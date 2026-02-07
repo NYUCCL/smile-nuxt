@@ -33,19 +33,28 @@ import {
 import appconfig from '../core/config.js'
 import useLog from './log.js'
 
-// Initialize Firebase connection
-const firebaseApp = initializeApp(appconfig.firebaseConfig)
-const auth = getAuth(firebaseApp)
-let db
+// Initialize Firebase connection (deferred if config is missing, e.g. during SSR or playground)
+let firebaseApp = null
+let auth = null
+let db = null
 
-if (appconfig.mode === 'testing') {
-  db = getFirestore()
-  db._setSettings({ ignoreUndefinedProperties: true })
-  connectFirestoreEmulator(db, '127.0.0.1', 8080)
-  console.warn('WARNING: using local firestore emulator')
+const hasFirebaseConfig = appconfig.firebaseConfig && appconfig.firebaseConfig.apiKey
+
+if (hasFirebaseConfig) {
+  firebaseApp = initializeApp(appconfig.firebaseConfig)
+  auth = getAuth(firebaseApp)
+
+  if (appconfig.mode === 'testing') {
+    db = getFirestore()
+    db._setSettings({ ignoreUndefinedProperties: true })
+    connectFirestoreEmulator(db, '127.0.0.1', 8080)
+    console.warn('WARNING: using local firestore emulator')
+  } else {
+    db = getFirestore(firebaseApp)
+    db._setSettings({ ignoreUndefinedProperties: true })
+  }
 } else {
-  db = getFirestore(firebaseApp)
-  db._setSettings({ ignoreUndefinedProperties: true })
+  console.warn('SMILE: Firebase config not found — database features disabled.')
 }
 
 let mode = 'real'

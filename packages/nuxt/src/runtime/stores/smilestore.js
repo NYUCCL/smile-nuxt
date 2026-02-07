@@ -32,8 +32,11 @@ import sizeof from 'firestore-size'
 // it seems like it doesn't re-run when we move to a new component that imports smilestore,
 // so it's doing what we want apparently
 
-// get local storage
-const existingLocalStorage = JSON.parse(localStorage.getItem(appconfig.localStorageKey))
+// get local storage (guarded for SSR where localStorage is not available)
+const hasLocalStorage = typeof localStorage !== 'undefined'
+const existingLocalStorage = hasLocalStorage
+  ? JSON.parse(localStorage.getItem(appconfig.localStorageKey))
+  : null
 
 let seed
 // if there is no local storage, then definitely have to set seed
@@ -63,11 +66,13 @@ if (seed) {
   seedrandom(seed, { global: true })
   //console.log('Set global seed to ' + seed)
 
-  // save to local storage
-  localStorage.setItem(
-    appconfig.localStorageKey,
-    JSON.stringify({ ...existingLocalStorage, seedID: seed, seedSet: true })
-  )
+  // save to local storage (guarded for SSR)
+  if (hasLocalStorage) {
+    localStorage.setItem(
+      appconfig.localStorageKey,
+      JSON.stringify({ ...existingLocalStorage, seedID: seed, seedSet: true })
+    )
+  }
 }
 
 /**
@@ -228,13 +233,13 @@ const initBrowserEphemeral = {
 export default defineStore('smilestore', {
   // arrow function recommended for full type inference
   state: () => ({
-    browserPersisted: useStorage(appconfig.localStorageKey, initBrowserPersisted, localStorage, {
+    browserPersisted: useStorage(appconfig.localStorageKey, initBrowserPersisted, typeof localStorage !== 'undefined' ? localStorage : undefined, {
       mergeDefaults: true,
     }),
     browserEphemeral: initBrowserEphemeral,
     dev:
       appconfig.mode === 'development'
-        ? useStorage(appconfig.devLocalStorageKey, initDev, localStorage, { mergeDefaults: true })
+        ? useStorage(appconfig.devLocalStorageKey, initDev, typeof localStorage !== 'undefined' ? localStorage : undefined, { mergeDefaults: true })
         : initDev,
     private: {
       recruitmentInfo: {},

@@ -15,6 +15,7 @@
 function parseWidthHeight(value) {
   // receives configuration option as WIDTHxHEIGHT
   // split based on 'x' and assign to objects
+  if (!value) return { width: 0, height: 0 }
   const w_h = value.split('x')
   return { width: parseInt(w_h[0]), height: parseInt(w_h[1]) }
 }
@@ -61,7 +62,7 @@ export default {
   mode: import.meta.env.MODE,
   smileVersion: import.meta.env.VITE_SMILE_VERSION,
   projectName: import.meta.env.VITE_PROJECT_NAME, // autocompute this on intitialization
-  projectRef: import.meta.env.VITE_DEPLOY_BASE_PATH.slice(1, -1).replace(/\//g, '-'),
+  projectRef: (import.meta.env.VITE_DEPLOY_BASE_PATH || '/').slice(1, -1).replace(/\//g, '-'),
   codeName: import.meta.env.VITE_CODE_NAME,
   codeNameURL: import.meta.env.VITE_CODE_NAME_DEPLOY_URL,
   localStorageKey: `smilestore-${import.meta.env.VITE_CODE_NAME}`,
