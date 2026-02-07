@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "name": "smile-playground",
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate"
+  },
+  "dependencies": {
+    "@gureckislab/smile": "workspace:*",
+    "nuxt": "^4.3.0"
+  }
+}
