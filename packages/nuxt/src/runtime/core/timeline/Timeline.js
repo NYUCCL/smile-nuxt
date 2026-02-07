@@ -26,38 +26,17 @@ class Timeline {
     this.type = 'timeline'
     this.has_welcome_anonymous = false
     this._IS_ROOT_NODE = '_IS_ROOT_NODE'
-    // add the recruitment chooser if in development mode
-    if (api.config.mode === 'development') {
-      this.registerView({
-        path: '/presentation',
-        name: 'presentation_home',
-        component: PresentationMode,
-        meta: { allowAlways: true, requiresConsent: false },
-      })
-      this.registerView({
-        path: '/',
-        name: 'recruit',
-        component: RecruitmentChooser,
-        meta: { allowAlways: true, requiresConsent: false },
-      })
-    } else if (api.config.mode === 'presentation') {
-      this.registerView({
-        path: '/',
-        name: 'presentation_home',
-        component: PresentationMode,
-        meta: { allowAlways: true, requiresConsent: false },
-      })
-    } else {
-      // auto refer to the anonymous welcome page
-      this.registerView({
-        path: '/',
-        name: 'landing',
-        redirect: {
-          name: 'welcome_anonymous',
-        },
-        meta: { allowAlways: true, requiresConsent: false },
-      })
-    }
+    // Register landing redirect: `/` → `welcome_anonymous`
+    // NOTE: Dev-mode and presentation-mode routes are handled via extendPages
+    // in the Nuxt module (Phase G), not registered on the Timeline.
+    this.registerView({
+      path: '/',
+      name: 'landing',
+      redirect: {
+        name: 'welcome_anonymous',
+      },
+      meta: { allowAlways: true, requiresConsent: false },
+    })
   }
 
   /**
@@ -453,6 +432,12 @@ class Timeline {
     const normalized = path === '' ? '/' : path.replace(/\/$/, '') || '/'
     const match = this.routes.find((r) => r.path === normalized)
     if (!match) return null
+
+    // Handle redirect routes (e.g., landing → welcome_anonymous)
+    if (match.redirect) {
+      return { redirect: match.redirect, meta: match.meta, name: match.name }
+    }
+
     return {
       component: match.component,
       props: match.props || {},

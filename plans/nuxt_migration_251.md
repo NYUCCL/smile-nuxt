@@ -2351,7 +2351,7 @@ Each phase should be executed in a **fresh Claude Code agent session** so the ag
 | 3 | Phase C (7–9) | Copy stores + tests, resolve circular dependency |
 | 4 | Phase D (10) | Copy Stepper class + tests |
 | 5 | Phase E (11–15) | Copy composables + tests, register auto-imports |
-| 6 | Phase F (16–17) | Timeline plugin + catch-all page (no guards) |
+| 6 | Phase F (16–17) ✅ | Timeline plugin + catch-all page (no guards) |
 | **7** | **Phase F (18–20)** | **Port navigation guards + copy router tests — hardest step, deserves focused context** |
 | 8 | Phase G (21–23) | Layouts + `/dev/` + `/presentation/` routes |
 | 9 | Phase H (24–27) | Tailwind + UI kit + first 2 real components + tests |
@@ -2962,12 +2962,12 @@ This is the highest-risk phase. Each sub-step introduces one routing concept, ve
 4. If any of these return `undefined` or `null`, the design file or plugin wiring is wrong
 
 **VERIFY**:
-- [ ] Plugin loads without errors
-- [ ] `$timeline` is accessible via `useNuxtApp()`
-- [ ] `$timeline.routes` has 2 entries
-- [ ] `$timeline.getViewForPath('/')` returns the Page1 component config
-- [ ] `$timeline.getViewForPath('/done')` returns the Page2 component config
-- [ ] `$timeline.seqtimeline[0].meta.next` === `'done'` (buildGraph worked)
+- [x] Plugin loads without errors
+- [x] `$timeline` is accessible via `useNuxtApp()`
+- [x] `$timeline.routes` has entries (4 routes: landing + welcome + task + thanks)
+- [x] `$timeline.getViewForPath('/')` returns the landing redirect config
+- [x] `$timeline.getViewForPath('/welcome')` returns the WelcomePage component config
+- [x] `$timeline.seqtimeline[0].meta.next` === `'task'` (buildGraph worked)
 
 #### Step 17: Create catch-all page (render components from Timeline)
 
@@ -3009,13 +3009,41 @@ This is the highest-risk phase. Each sub-step introduces one routing concept, ve
 6. At this point, you CAN freely jump between `/` and `/done` by typing URLs — that's expected (guards come next)
 
 **VERIFY**:
-- [ ] Navigating to `http://localhost:3000/` shows "Page 1 - Welcome"
-- [ ] Navigating to `http://localhost:3000/done` shows "Page 2 - Done"
-- [ ] Navigating to `http://localhost:3000/nonexistent` shows "No view found for: /nonexistent"
-- [ ] No crashes, no blank pages
-- [ ] The dynamic `<component :is>` pattern resolves the correct component
+- [x] Navigating to `http://localhost:3000/` redirects to `/welcome` and shows WelcomePage
+- [x] Navigating to `http://localhost:3000/task` shows TaskPage
+- [x] Navigating to `http://localhost:3000/thanks` shows ThanksPage
+- [x] Navigating to `http://localhost:3000/nonexistent` shows "Page not found" fallback
+- [x] No crashes, no blank pages
+- [x] The dynamic `<component :is>` pattern resolves the correct component
+- [x] Button navigation works: Welcome → Task → Thanks
 
-> **Important**: At this point, there are NO navigation guards. Users can freely jump between `/` and `/done` by typing URLs. That's expected — we add guards in the next step.
+> **Important**: At this point, there are NO navigation guards. Users can freely jump between pages by typing URLs. That's expected — we add guards in the next step.
+
+---
+
+> **Phase F Steps 16–17 Status: COMPLETED**
+>
+> **What was implemented** (deviations from plan noted):
+>
+> - **Timeline plugin** (`runtime/plugins/timeline.client.js`): Client-only plugin imports `~/design`, calls `useAPI()`, provides `$timeline` via `useNuxtApp()`. The plan's code example used `require()` — actual implementation uses ES module `import` with `#app` and `#imports`.
+> - **Catch-all page** (`runtime/pages/[...slug].vue`): Renders components via `$timeline.getViewForPath(route.path)`. Uses `timelineReady` ref (set in `onMounted`) to avoid SSR "not found" flash since the timeline plugin is client-only. Handles redirect routes (e.g., `/` → `/welcome`) via a `watch` on `viewConfig`.
+> - **Timeline.js constructor simplified**: Removed mode-based `PresentationMode`/`RecruitmentChooser` registration (components not available in Nuxt context). Now always registers the landing redirect (`/` → `welcome_anonymous`). Dev/presentation mode routes deferred to Phase G (`extendPages`).
+> - **`getViewForPath()` updated**: Now returns `{ redirect }` for redirect routes so the catch-all page can handle them.
+> - **Playground `design.js`**: 3-page flow (Welcome → Task → Thanks) instead of the plan's minimal 2-page. Uses factory function `createTimeline(api)` — receives `api` from plugin. `navigateTo()` is auto-imported by Nuxt (no explicit import needed).
+> - **Playground `app.vue`**: Replaced Phase 2/3 verification demos with `<NuxtPage />`.
+> - **`module.ts`**: Registers timeline plugin via `addPlugin`, catch-all page via `extendPages`. Removed the original scaffold `plugin.ts`.
+>
+> **Key decisions and gotchas**:
+> - `@pinia/nuxt` must be added to consumer's `modules` array BEFORE `@gureckislab/smile` (Pinia is required by SMILE stores). Do NOT use `moduleDependencies` (hangs with interactive prompt) or `installModule` (deprecated).
+> - The catch-all page renders nothing during SSR (empty `<!---->` comment) because `$timeline` only exists client-side. This is correct — the `timelineReady` pattern prevents a "Page not found" flash.
+> - The transient 404 on `/_nuxt/` during dev startup is normal Nuxt behavior (cache rebuild).
+> - Pre-existing vitest failure (root `vite.config.js` dependency on `scripts/generate_git_env.sh`) is unrelated.
+>
+> **Files created**: `runtime/plugins/timeline.client.js`, `runtime/pages/[...slug].vue`, `playground/design.js`
+> **Files modified**: `runtime/core/timeline/Timeline.js`, `src/module.ts`, `playground/app.vue`, `playground/nuxt.config.ts`, `package.json`
+> **Files deleted**: `runtime/plugin.ts` (scaffold boilerplate)
+
+---
 
 #### Step 18: Create global middleware (navigation guards)
 

@@ -1,4 +1,4 @@
-import { defineNuxtModule, addPlugin, addImports, createResolver } from '@nuxt/kit'
+import { defineNuxtModule, addPlugin, addImports, createResolver, extendPages } from '@nuxt/kit'
 import { fileURLToPath } from 'url'
 
 // Module options TypeScript interface definition
@@ -18,8 +18,17 @@ export default defineNuxtModule<ModuleOptions>({
     // Transpile runtime directory so .js files are processed
     _nuxt.options.build.transpile.push(runtimeDir)
 
-    // Do not add the extension since the `.ts` will be transpiled to `.mjs` after `pnpm run prepack`
-    addPlugin(resolver.resolve('./runtime/plugin'))
+    // Register timeline plugin (client-only — requires browser APIs and Pinia)
+    addPlugin(resolver.resolve('./runtime/plugins/timeline.client'))
+
+    // Register catch-all page for experiment routes
+    extendPages((pages) => {
+      pages.push({
+        name: 'slug',
+        path: '/:slug(.*)*',
+        file: resolver.resolve('./runtime/pages/[...slug].vue'),
+      })
+    })
 
     // Auto-import composables so they're available in consuming apps without explicit imports
     addImports([
