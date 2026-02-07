@@ -631,7 +631,23 @@ pnpm run test:e2e
 
 ---
 
-## Phase 2: Core Runtime Migration
+## Phase 2: Core Runtime Migration ✅
+
+> **Status: COMPLETED** (on `nuxt` branch)
+>
+> **What was done**: Copied 12 JS files (~4,160 lines) to `packages/nuxt/src/runtime/` following the dependency graph bottom-up. All `@/` import paths were updated to relative paths. The `getViewForPath()` method was added to Timeline.js. Playground was updated with a working StepState + randomization demo.
+>
+> **Files copied (verbatim except import paths)**:
+> - Zero-dep: `config.js`, `randomization.js`, `StepState.js`, `StepperProxy.js`, `StepperSerializer.js`
+> - Stores (copied together due to circular dep): `smilestore.js`, `log.js`, `firestore-db.js`
+> - Depend on stores: `utils.js`, `Stepper.js`
+> - Timeline: `Timeline.js` (Vue component imports commented out — handled by route-based modes; `getViewForPath()` added)
+>
+> **Import path changes**: All `@/core/...` → relative paths (e.g., `../core/config.js`, `./log.js`)
+>
+> **Known issue**: Playground uses relative imports (`../src/runtime/...`) which won't work for published package consumers. To be addressed in Phase M (Build & Publish) via auto-imports, `exports` map, or Nuxt aliases.
+>
+> **Deviations from plan**: Phase 2 as written in the plan covers stores, Firebase plugin, Timeline plugin, catch-all route, and middleware. We completed the file-copying portion here. The plugins, catch-all route, and middleware are addressed in the detailed implementation steps (Phases B-F below).
 
 > **⚠️ Important: Copy-First Approach — ALWAYS copy, NEVER reimplement**
 >
@@ -3490,10 +3506,35 @@ All test files were already copied during earlier phases. Now update their impor
 
 ### Phase M: Build & Publish
 
+> **Important: Runtime import paths must be resolved before publishing.**
+>
+> During development, the playground imports runtime files using relative paths
+> (e.g., `../src/runtime/core/stepper/StepState.js`). This works locally but
+> will **not** work for external consumers who install the package from npm.
+> Before publishing, runtime files must be accessible via one of:
+>
+> 1. **Auto-imports** — composables and components registered via `addImports()`
+>    and `addComponent()` in `module.ts` are auto-imported (no explicit import needed)
+> 2. **Package `exports` map** — for files that need explicit imports (e.g.,
+>    `Timeline`, `StepState`), add entries to the `exports` field in `package.json`:
+>    ```json
+>    "exports": {
+>      ".": { "types": "./dist/types.d.mts", "import": "./dist/module.mjs" },
+>      "./runtime/*": "./dist/runtime/*"
+>    }
+>    ```
+> 3. **Nuxt aliases** — register aliases in `module.ts` so consumers can use
+>    `#smile/timeline` style imports
+>
+> This should be addressed in Step 44 (module build) by verifying that
+> `pnpm run build` produces a `dist/` that includes runtime files, and in
+> Step 45 (fresh project test) by confirming imports resolve correctly.
+
 #### Step 44: Module build
 
 1. Configure `@nuxt/module-builder`
 2. Run `pnpm run build` and verify dist/ output
+3. **Verify runtime files are included in `dist/`** and accessible to consumers (see note above)
 
 **What was done**: Configured `@nuxt/module-builder` and ran a production build of the module.
 
