@@ -1,0 +1,84 @@
+/*
+ * This file contains global styles that are used throughout the application.
+ * It is imported into the main.css file.
+ */
+
+:root {
+  --purple: #8a4d76;
+  --pink: #e88f9e;
+  --brown: #84e69c;
+  --light-grey: #6c6c6c;
+  --darker-grey: #323232;
+  --beige-light: #d0d1cd;
+  --beige-lighter: #eff0eb;
+  --code: rgb(4, 4, 4);
+  --code-background: rgb(251, 251, 251);
+  --status-green: #23d160; /*rgb(13, 206, 13);*/
+  --status-yellow: #dab830;
+  --status-red: rgb(234, 8, 8);
+  --pinned-route: #ffdd57;
+  --dev-bar-light-grey: #f7f7f7;
+  --dev-bar-mild-grey: #eeeeee;
+  --dev-bar-strong-grey: #dbdbdb;
+  --dev-bar-text: #000;
+  --dev-bar-lines: 0.01em solid #b5b5b5;
+
+  /* previously set by smilestore */
+  --page-bg-color: '#fff';
+  --page-text-color: '#000';
+  --status-bar-bg-color: '#fff';
+  --status-bar-text-color: '#000';
+}
+
+.table-cell-small {
+  font-size: 0.8em;
+}
+
+.table-cell-base {
+  padding: 0.5rem 0.85rem;
+}
+
+.table-row-base {
+  transition: background-color 0.2s;
+  border-top: 1px solid var(--border); /* border-gray-200 */
+}
+
+.table-row-base-bottom {
+  border-bottom: 1px solid var(--dev-bar-lines); /* border-gray-200 */
+}
+
+.table-row-odd {
+  background-color: var(--dev-bg);
+}
+
+.table-row-odd:hover {
+  background-color: var(--hover-table-row); /* gray-50 */
+}
+
+.table-row-even {
+  background-color: var(--dev-bg-contrast);
+}
+
+.table-row-even:hover {
+  background-color: var(--hover-table-row); /* gray-200 */
+}
+
+.table-cell-left {
+  text-align: left;
+}
+
+.table-cell-center {
+  text-align: center;
+}
+
+.table-cell-mono {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.table-border-top {
+  border-top: 1px solid var(--border); /* border-gray-200 */
+}
+
+.table-border-bottom {
+  border-bottom: 1px solid var(--border); /* border-gray-200 */
+}

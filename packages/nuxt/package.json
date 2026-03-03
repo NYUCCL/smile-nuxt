@@ -36,12 +36,20 @@
   "dependencies": {
     "@nuxt/kit": "^4.3.0",
     "@pinia/nuxt": "^0.9.0",
+    "@tailwindcss/vite": "^4.1.10",
     "@vueuse/core": "^12.8.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "crypto-js": "^4.2.0",
     "json-stable-stringify": "^1.2.1",
     "lodash": "^4.17.21",
+    "motion": "^12.3.1",
     "pinia": "^2.3.1",
+    "reka-ui": "^2.6.1",
     "seedrandom": "^3.0.5",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss": "^4.1.11",
+    "tw-animate-css": "^1.3.4",
     "uuid": "^11.0.5"
   },
   "devDependencies": {

@@ -1,5 +1,6 @@
-import { defineNuxtModule, addPlugin, addImports, addLayout, addRouteMiddleware, createResolver, extendPages } from '@nuxt/kit'
+import { defineNuxtModule, addPlugin, addImports, addLayout, addRouteMiddleware, createResolver, extendPages, addComponentsDir } from '@nuxt/kit'
 import { fileURLToPath } from 'url'
+import tailwindcss from '@tailwindcss/vite'
 
 // Module options TypeScript interface definition
 export interface ModuleOptions {}
@@ -17,6 +18,13 @@ export default defineNuxtModule<ModuleOptions>({
 
     // Transpile runtime directory so .js files are processed
     _nuxt.options.build.transpile.push(runtimeDir)
+
+    // Register Tailwind CSS via Vite plugin
+    _nuxt.options.vite.plugins = _nuxt.options.vite.plugins || []
+    _nuxt.options.vite.plugins.push(tailwindcss())
+
+    // Add global CSS (Tailwind theme + SMILE styles)
+    _nuxt.options.css.push(resolver.resolve('./runtime/css/main.css'))
 
     // Register timeline plugin (client-only — requires browser APIs and Pinia)
     addPlugin(resolver.resolve('./runtime/plugins/timeline.client'))
@@ -52,6 +60,12 @@ export default defineNuxtModule<ModuleOptions>({
       })
     })
 
+    // Register UI component directories for auto-import
+    addComponentsDir({ path: resolver.resolve('./runtime/components/ui'), pathPrefix: false, global: true, extensions: ['vue'] })
+    addComponentsDir({ path: resolver.resolve('./runtime/components/forms'), pathPrefix: false, global: true, extensions: ['vue'] })
+    addComponentsDir({ path: resolver.resolve('./runtime/components/layouts'), pathPrefix: false, global: true, extensions: ['vue'] })
+    addComponentsDir({ path: resolver.resolve('./runtime/components/builtins'), pathPrefix: false, global: true, extensions: ['vue'] })
+
     // Auto-import composables and core classes so they're available in consuming apps without explicit imports
     addImports([
       { name: 'default', as: 'useAPI', from: resolver.resolve('./runtime/composables/useAPI') },
@@ -62,6 +76,7 @@ export default defineNuxtModule<ModuleOptions>({
       { name: 'getColorMode', from: resolver.resolve('./runtime/composables/useColorMode') },
       { name: 'setColorMode', from: resolver.resolve('./runtime/composables/useColorMode') },
       { name: 'default', as: 'Timeline', from: resolver.resolve('./runtime/core/timeline/Timeline') },
+      { name: 'cn', from: resolver.resolve('./runtime/lib/utils') },
     ])
   },
 })

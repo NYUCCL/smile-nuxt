@@ -1,5 +1,5 @@
 <template>
-  <div class="experiment-container">
+  <div class="@container bg-background text-foreground experiment-container">
     <slot />
   </div>
 </template>
