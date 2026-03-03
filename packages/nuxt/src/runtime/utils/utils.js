@@ -16,6 +16,7 @@ import useLog from '../stores/log.js'
  * @returns {Object} Dictionary of query parameter key-value pairs
  */
 export function getQueryParams() {
+  if (typeof window === 'undefined') return {}
   const queryString = window.location.search
   const urlParams = new URLSearchParams(queryString)
   const queryDict = {}

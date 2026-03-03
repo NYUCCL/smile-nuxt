@@ -189,6 +189,7 @@ export class SmileAPI {
    * @returns {void}
    */
   scrollToTop() {
+    if (typeof document === 'undefined') return
     const mainContent = document.querySelector('.device-container')
     if (mainContent) {
       mainContent.scrollTop = 0
@@ -315,10 +316,13 @@ export class SmileAPI {
    * @returns {void}
    */
   resetLocalState() {
-    localStorage.removeItem(this.config.localStorageKey)
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(this.config.localStorageKey)
+    }
     this.store.resetLocal()
-    const url = window.location.href
-    window.location.href = url.substring(0, url.lastIndexOf('#/'))
+    if (typeof window !== 'undefined') {
+      window.location.href = window.location.origin + window.location.pathname
+    }
   }
 
   /**
@@ -327,7 +331,9 @@ export class SmileAPI {
    * @returns {void}
    */
   reloadBrowser() {
-    window.location.reload()
+    if (typeof window !== 'undefined') {
+      window.location.reload()
+    }
   }
 
   // App component management
@@ -387,7 +393,7 @@ export class SmileAPI {
   getConfig(key) {
     if (key in this.store.config) {
       return this.store.config[key]
-    } else if (key in this.store.config.runtime) {
+    } else if (this.store.config.runtime && key in this.store.config.runtime) {
       return this.store.config.runtime[key]
     } else {
       this.logStore.error('SMILE API: getConfig() key not found', key)

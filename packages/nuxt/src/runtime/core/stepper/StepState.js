@@ -527,7 +527,7 @@ export class StepState {
    */
   get leafNodes() {
     if (this._states.length === 0) {
-      return this.pathString
+      return [this.pathString]
     }
 
     return this._states.reduce((leaves, state) => {

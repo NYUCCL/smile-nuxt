@@ -1,3 +1,5 @@
+import { fakerDistributions } from '../../utils/randomization.js'
+
 /**
  * @class StepperSerializer
  * @description Handles serialization and deserialization of Stepper objects
@@ -184,7 +186,7 @@ export class StepperSerializer {
           // Handle faker functions
           if (value.__fakerFunction) {
             reconstructed[key] = () => {
-              const fakerFunc = root.api?.faker?.[value.name]
+              const fakerFunc = fakerDistributions[value.name]
               if (!fakerFunc) {
                 console.warn(`Faker function ${value.name} not found during reconstruction`)
                 return null

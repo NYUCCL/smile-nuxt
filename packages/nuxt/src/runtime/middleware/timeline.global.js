@@ -298,7 +298,10 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     console.warn('[SMILE middleware] $timeline not available yet, skipping guards')
     return
   }
-  console.log(`[SMILE middleware] ${from.path} → ${to.path}`)
+  // Debug logging only in development mode
+  if (import.meta.dev) {
+    console.log(`[SMILE middleware] ${from.path} → ${to.path}`)
+  }
 
   // --- Dev/Presentation mode: prefix preservation + guard bypass ---
   // If FROM a prefixed route TO a non-prefixed route, redirect to preserve prefix.
@@ -329,8 +332,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       }
       store.resetLocal()
       if (typeof window !== 'undefined') {
-        const url = window.location.href
-        window.location.href = url.substring(0, url.lastIndexOf('#/'))
+        window.location.href = window.location.origin + window.location.pathname
       }
     },
     completeConsent: async () => {

@@ -28,7 +28,7 @@ class Timeline {
     this._IS_ROOT_NODE = '_IS_ROOT_NODE'
     // Register landing redirect: `/` → `welcome_anonymous`
     // NOTE: Dev-mode and presentation-mode routes are handled via extendPages
-    // in the Nuxt module (Phase G), not registered on the Timeline.
+    // in the Nuxt module (Phase 8), not registered on the Timeline.
     this.registerView({
       path: '/',
       name: 'landing',
@@ -83,8 +83,8 @@ class Timeline {
   pushToTimeline(route) {
     for (let i = 0; i < this.seqtimeline.length; i += 1) {
       if (this.seqtimeline[i].name === route.name) {
-        this.api.log.error(`Registering two routes to timeline with same name.  DuplicatePathError:${route.name}`)
-        throw new Error(`DuplicateNameError${route.name}`)
+        this.api.log.error(`Registering two routes to timeline with same name.  DuplicateNameError:${route.name}`)
+        throw new Error(`DuplicateNameError:${route.name}`)
       }
       if (this.seqtimeline[i].path === route.path) {
         this.api.log.error(`Registering two routes to timeline with same path.  DuplicatePathError:${route.path}`)
@@ -297,10 +297,15 @@ class Timeline {
         }
       }
 
-      route.meta = { next: undefined, prev: undefined } // need to configure next/prev for sequential routes
-      route.meta.sequential = true
-      route.meta.level = 1
-      route.meta.parentRandomizer = newroute.name
+      // Preserve existing meta (requiresConsent, requiresDone, etc.) while adding sequential fields
+      route.meta = {
+        ...route.meta,
+        next: undefined,
+        prev: undefined,
+        sequential: true,
+        level: 1,
+        parentRandomizer: newroute.name,
+      }
 
       if (push) {
         // add the route to the sequential timeline

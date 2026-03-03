@@ -108,12 +108,7 @@ function getLocalTimeString() {
  * - 'landing' for all other modes
  */
 function initLastRoute(mode) {
-  if (mode === 'development') {
-    return 'recruit'
-  }
-  if (mode === 'presentation') {
-    return 'presentation_home'
-  }
+  // In Nuxt, all modes start at 'landing' which redirects to 'welcome_anonymous'
   return 'landing'
 }
 
@@ -541,10 +536,12 @@ export default defineStore('smilestore', {
         })
         .finally(() => {
           // always executed
-          const { language } = window.navigator
-          const { webdriver } = window.navigator
-          const { userAgent } = window.navigator
-          this.setFingerPrint(ip, userAgent, language, webdriver)
+          if (typeof window !== 'undefined') {
+            const { language } = window.navigator
+            const { webdriver } = window.navigator
+            const { userAgent } = window.navigator
+            this.setFingerPrint(ip, userAgent, language, webdriver)
+          }
         })
     },
 
@@ -564,7 +561,7 @@ export default defineStore('smilestore', {
         language,
         webdriver,
       }
-      log.log('Browser fingerprint: ' + JSON.stringify(this.data.browserFingerprint))
+      log.log('Browser fingerprint: ' + JSON.stringify(this.private.browserFingerprint))
     },
 
     /**
@@ -627,15 +624,6 @@ export default defineStore('smilestore', {
     },
 
     /**
-     * Verifies visibility
-     * @param {boolean} value - Visibility value
-     * @description Records the provided visibility value in the data state.
-     */
-    verifyVisibility(value) {
-      this.data.verifiedVisibility = value
-    },
-
-    /**
      * Sets a condition
      * @param {string} name - Condition name
      * @param {Object} cond - Condition object
@@ -663,16 +651,18 @@ export default defineStore('smilestore', {
      */
     async setKnown() {
       const log = useLog()
-      // TODO: this need to have an exception handler wrapping around it
-      // because things go wrong
       this.browserPersisted.knownUser = true
       this.data.seedID = this.browserPersisted.seedID
-      this.browserPersisted.docRef = await createDoc(this.data)
-      this.browserPersisted.privateDocRef = await createPrivateDoc(this.private, this.browserPersisted.docRef)
-      if (this.browserPersisted.docRef) {
-        this.setDBConnected()
-      } else {
-        log.error('SMILESTORE: could not create document in firebase')
+      try {
+        this.browserPersisted.docRef = await createDoc(this.data)
+        this.browserPersisted.privateDocRef = await createPrivateDoc(this.private, this.browserPersisted.docRef)
+        if (this.browserPersisted.docRef) {
+          this.setDBConnected()
+        } else {
+          log.error('SMILESTORE: could not create document in firebase')
+        }
+      } catch (err) {
+        log.error('SMILESTORE: error creating documents in firebase:', err)
       }
     },
 

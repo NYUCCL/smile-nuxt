@@ -86,7 +86,7 @@ export class Stepper extends StepState {
    * @returns {Stepper} A new Stepper instance
    */
   _createNew(id, parent) {
-    return new Stepper({ id, parent })
+    return new Stepper({ id, parent, store: this._store })
   }
 
   /**
@@ -554,28 +554,24 @@ export class Stepper extends StepState {
       return false
     }
 
-    // Get current localStorage data
-    const existingLocalStorage = JSON.parse(localStorage.getItem(this._store.config.localStorageKey) || '{}')
-
-    // Update the viewSteppers in the localStorage data
-    if (!existingLocalStorage.viewSteppers) {
-      existingLocalStorage.viewSteppers = {}
-    }
-    existingLocalStorage.viewSteppers[targetPage] = {
+    const stepperData = {
       data: {
         stepperState: this.json,
       },
     }
 
-    // Save back to localStorage
-    localStorage.setItem(this._store.config.localStorageKey, JSON.stringify(existingLocalStorage))
+    // Update localStorage directly (guarded for SSR)
+    if (typeof localStorage !== 'undefined') {
+      const existingLocalStorage = JSON.parse(localStorage.getItem(this._store.config.localStorageKey) || '{}')
+      if (!existingLocalStorage.viewSteppers) {
+        existingLocalStorage.viewSteppers = {}
+      }
+      existingLocalStorage.viewSteppers[targetPage] = stepperData
+      localStorage.setItem(this._store.config.localStorageKey, JSON.stringify(existingLocalStorage))
+    }
 
     // Also update the store for consistency
-    this._store.browserPersisted.viewSteppers[targetPage] = {
-      data: {
-        stepperState: this.json,
-      },
-    }
+    this._store.browserPersisted.viewSteppers[targetPage] = stepperData
 
     return true
   }

@@ -148,8 +148,8 @@ export const fakerDistributions = {
    * @returns {{val: number, type: string}} Object containing random value and type
    */
   rexGaussian: (mu, sigma, tau) => {
-    const x = distributions.rnorm(0, 1).val
-    const z = distributions.runif(0, 1).val
+    const x = fakerDistributions.rnorm(0, 1).val
+    const z = fakerDistributions.runif(0, 1).val
     return {
       val: mu + sigma * x + tau * -Math.log(z),
       type: 'fake',

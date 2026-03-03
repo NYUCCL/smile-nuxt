@@ -1,5 +1,5 @@
 import { defineComponent, h } from 'vue'
-import Timeline from '../src/runtime/core/timeline/Timeline.js'
+// Timeline is auto-imported by the @gureckislab/smile Nuxt module
 
 // Each page component uses the SMILE API's goNextView() to navigate.
 // This sets currentViewDone=true before navigating, which the middleware

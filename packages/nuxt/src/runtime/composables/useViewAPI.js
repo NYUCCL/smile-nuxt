@@ -37,7 +37,7 @@ class ViewAPI extends SmileAPI {
     // Make page reactive using computed
     this._page = computed(() => this._route.name)
     this._stepper = computed(() => {
-      const stepper = useStepper(this._route.name, this.update)
+      const stepper = useStepper(this._route.name)
       stepper.setOnModify(() => this.updateStepper())
       return stepper
     })
