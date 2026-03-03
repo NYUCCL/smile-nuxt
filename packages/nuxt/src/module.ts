@@ -1,6 +1,9 @@
 import { defineNuxtModule, addPlugin, addImports, addLayout, addRouteMiddleware, createResolver, extendPages, addComponentsDir } from '@nuxt/kit'
 import { fileURLToPath } from 'url'
 import tailwindcss from '@tailwindcss/vite'
+import Icons from 'unplugin-icons/vite'
+import Components from 'unplugin-vue-components/vite'
+import IconsResolver from 'unplugin-icons/resolver'
 
 // Module options TypeScript interface definition
 export interface ModuleOptions {}
@@ -22,6 +25,12 @@ export default defineNuxtModule<ModuleOptions>({
     // Register Tailwind CSS via Vite plugin
     _nuxt.options.vite.plugins = _nuxt.options.vite.plugins || []
     _nuxt.options.vite.plugins.push(tailwindcss())
+    _nuxt.options.vite.plugins.push(Components({
+      resolvers: [IconsResolver()],
+    }))
+    _nuxt.options.vite.plugins.push(Icons({
+      compiler: 'vue3',
+    }))
 
     // Add global CSS (Tailwind theme + SMILE styles)
     _nuxt.options.css.push(resolver.resolve('./runtime/css/main.css'))
