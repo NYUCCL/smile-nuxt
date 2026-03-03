@@ -172,7 +172,6 @@ const initBrowserPersisted = {
   docRef: null,
   privateDocRef: null,
   completionCode: null,
-  currentViewDone: false,
   consented: false,
   withdrawn: false,
   verifiedVisibility: false,
@@ -194,6 +193,7 @@ const initBrowserPersisted = {
 
 const initBrowserEphemeral = {
   // ephemeral state, resets on browser refresh
+  currentViewDone: false,
   forceNavigate: false,
   tooSmall: false,
   steppers: {}, // Store for HStepper instances

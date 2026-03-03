@@ -7,13 +7,11 @@
  * - Navigation state management
  * - Next/previous view lookups
  *
- * The timeline ensures proper view sequencing and maintains navigation state by:
- * - Checking route metadata for navigation rules
- * - Handling navigation guards
- * - Managing query parameters between routes
- * - Providing navigation utilities for views
+ * In the Nuxt module, experiment routes are NOT registered with Vue Router
+ * (they all hit the catch-all route). So route metadata (next, prev, etc.)
+ * is looked up from $timeline.getViewForPath() instead of route.meta.
  */
-import { useRoute, useRouter, navigateTo as nuxtNavigateTo } from '#imports'
+import { useRoute, useRouter, useNuxtApp, navigateTo as nuxtNavigateTo } from '#imports'
 import useSmileStore from '../stores/smilestore'
 import useLog from '../stores/log'
 
@@ -21,11 +19,6 @@ import useLog from '../stores/log'
  * Timeline management composable for handling view navigation
  * @function useTimeline
  * @returns {Object} Timeline methods and utilities
- * @description Provides functionality for sequential navigation between views, including:
- * - Looking up next/previous views in the navigation sequence
- * - Navigating between views with optional force parameter
- * - Checking navigation state and route metadata
- * The timeline ensures proper view sequencing and navigation guard handling.
  */
 export default function useTimeline() {
   const smilestore = useSmileStore()
@@ -34,27 +27,34 @@ export default function useTimeline() {
   const log = useLog()
 
   /**
+   * Gets the timeline route config for the current path.
+   * Falls back to empty object if $timeline isn't available yet.
+   */
+  const _getTimelineRoute = () => {
+    const nuxtApp = useNuxtApp()
+    const timeline = nuxtApp.$timeline
+    if (!timeline) return null
+    return timeline.getViewForPath(route.path)
+  }
+
+  /**
    * Looks up the next route in the navigation sequence for a given route name
    * @param {string} routeName - The name of the route to look up the next route for
-   * @returns {Object|null} Route object with name and query params, or null if no next route found
+   * @returns {Object|null} Route object with path and query params, or null if no next route found
    */
   const lookupNext = (routeName) => {
-    // TODO: In Nuxt, experiment routes are not registered with Vue Router.
-    // This method currently uses router.getRoutes() which returns Nuxt's routes,
-    // not SMILE timeline routes. Will need to use Timeline.routes instead
-    // once the catch-all route integration is complete (Phase 5).
-    const routes = router.getRoutes()
+    const nuxtApp = useNuxtApp()
+    const timeline = nuxtApp.$timeline
+    if (!timeline) return null
 
-    // Find the specified route
-    const currentRoute = routes.find((r) => r.name === routeName)
+    const currentRoute = timeline.getRouteByName(routeName)
     if (!currentRoute) return null
 
-    // If the route has a next property, find that route
     if (currentRoute.meta?.next) {
-      const nextRoute = routes.find((r) => r.name === currentRoute.meta.next)
+      const nextRoute = timeline.getRouteByName(currentRoute.meta.next)
       if (nextRoute) {
         return {
-          name: nextRoute.name,
+          path: nextRoute.path,
           query: route.query,
         }
       }
@@ -64,22 +64,34 @@ export default function useTimeline() {
 
   /**
    * Gets the next view in the navigation sequence based on current route metadata
-   * @returns {Object|null} Route object with name and query params, or null if no next view
+   * @returns {Object|null} Route object with path and query params, or null if no next view
    */
   const nextView = () => {
-    if (route.meta.next) {
-      return { name: route.meta.next, query: route.query }
+    const config = _getTimelineRoute()
+    if (config?.meta?.next) {
+      const nuxtApp = useNuxtApp()
+      const timeline = nuxtApp.$timeline
+      const nextRoute = timeline?.getRouteByName(config.meta.next)
+      if (nextRoute) {
+        return { path: nextRoute.path, query: route.query }
+      }
     }
     return null
   }
 
   /**
    * Gets the previous view in the navigation sequence based on current route metadata
-   * @returns {Object|null} Route object with name and query params, or null if no previous view
+   * @returns {Object|null} Route object with path and query params, or null if no previous view
    */
   const prevView = () => {
-    if (route.meta.prev) {
-      return { name: route.meta.prev, query: route.query }
+    const config = _getTimelineRoute()
+    if (config?.meta?.prev) {
+      const nuxtApp = useNuxtApp()
+      const timeline = nuxtApp.$timeline
+      const prevRoute = timeline?.getRouteByName(config.meta.prev)
+      if (prevRoute) {
+        return { path: prevRoute.path, query: route.query }
+      }
     }
     return null
   }
@@ -91,27 +103,29 @@ export default function useTimeline() {
    * @returns {Promise<void>}
    */
   const goToView = async (view, force = true) => {
-    // unfortunately this is required because the router
-    // doesn't allow you to pass configuration options
-    // directly to the router.push() function
-    // although there's some plan about it in future
+    // Look up path from timeline since experiment routes aren't in Vue Router
+    const nuxtApp = useNuxtApp()
+    const timeline = nuxtApp.$timeline
+    const targetRoute = timeline?.getRouteByName(view)
+    const target = targetRoute ? targetRoute.path : `/${view}`
+
     if (force) {
       smilestore.browserEphemeral.forceNavigate = true
-      await nuxtNavigateTo({ name: view })
+      await nuxtNavigateTo(target)
       smilestore.browserEphemeral.forceNavigate = false
     } else {
-      await nuxtNavigateTo({ name: view })
+      await nuxtNavigateTo(target)
     }
   }
 
   /**
    * Internal navigation handler that manages state updates and data saving
    * @private
-   * @param {Object} goto - Route object to navigate to
+   * @param {Object} goto - Route object to navigate to (with path, not name)
    */
   const _doNavigate = (goto) => {
     // sets the current page as done
-    smilestore.dev.currentViewDone = true
+    smilestore.browserEphemeral.currentViewDone = true
 
     if (smilestore.config.autoSave) {
       log.log('TIMELINE STEPPER: Attempting auto saving on navigation')

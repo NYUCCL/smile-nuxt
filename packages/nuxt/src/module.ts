@@ -1,4 +1,4 @@
-import { defineNuxtModule, addPlugin, addImports, createResolver, extendPages } from '@nuxt/kit'
+import { defineNuxtModule, addPlugin, addImports, addRouteMiddleware, createResolver, extendPages } from '@nuxt/kit'
 import { fileURLToPath } from 'url'
 
 // Module options TypeScript interface definition
@@ -20,6 +20,13 @@ export default defineNuxtModule<ModuleOptions>({
 
     // Register timeline plugin (client-only — requires browser APIs and Pinia)
     addPlugin(resolver.resolve('./runtime/plugins/timeline.client'))
+
+    // Register global navigation guard middleware
+    addRouteMiddleware({
+      name: 'smile-timeline',
+      path: resolver.resolve('./runtime/middleware/timeline.global'),
+      global: true,
+    })
 
     // Register catch-all page for experiment routes
     extendPages((pages) => {

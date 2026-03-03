@@ -147,13 +147,8 @@ export class SmileAPI {
    * @instance
    */
   goToView = async (view, force = true, resetScroll = true) => {
-    if (force) {
-      this.store.browserEphemeral.forceNavigate = true
-      await navigateTo({ name: view })
-      this.store.browserEphemeral.forceNavigate = false
-    } else {
-      await navigateTo({ name: view })
-    }
+    // Use the useTimeline composable's goToView which resolves name→path
+    await this.timeline.goToView(view, force)
     if (resetScroll) {
       this.scrollToTop()
     }
@@ -163,13 +158,19 @@ export class SmileAPI {
    * Check if there is a next view available in the sequential navigation
    * @returns {boolean} True if there is a next view and sequential navigation is enabled
    */
-  hasNextView = () => !!this.route.meta.next && this.route.meta.sequential
+  hasNextView = () => {
+    const nv = this.timeline.nextView()
+    return !!nv
+  }
 
   /**
    * Check if there is a previous view available in the sequential navigation
    * @returns {boolean} True if there is a previous view and sequential navigation is enabled
    */
-  hasPrevView = () => !!this.route.meta.prev && this.route.meta.sequential
+  hasPrevView = () => {
+    const pv = this.timeline.prevView()
+    return !!pv
+  }
 
   /**
    * Get the next view in the navigation sequence

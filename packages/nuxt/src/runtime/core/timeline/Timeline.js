@@ -422,6 +422,16 @@ class Timeline {
     }
   }
   /**
+   * Looks up a route config from the routes array by name.
+   * Used by middleware to resolve name → path for redirects.
+   * @param {string} name - The route name to look up
+   * @returns {Object|null} The matching route config, or null if not found
+   */
+  getRouteByName(name) {
+    return this.routes.find((r) => r.name === name) || null
+  }
+
+  /**
    * Looks up a route config from the routes array by path.
    * Used by the catch-all page to resolve which component to render.
    * @param {string} path - The URL path to look up
