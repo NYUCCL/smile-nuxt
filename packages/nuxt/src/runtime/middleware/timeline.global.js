@@ -300,6 +300,20 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   }
   console.log(`[SMILE middleware] ${from.path} → ${to.path}`)
 
+  // --- Dev/Presentation mode: prefix preservation + guard bypass ---
+  // If FROM a prefixed route TO a non-prefixed route, redirect to preserve prefix.
+  // This catches goNextView() navigations that use unprefixed paths like '/consent'.
+  if (from.path.startsWith('/dev') && !to.path.startsWith('/dev')) {
+    return navigateTo('/dev' + to.path, { replace: true })
+  }
+  if (from.path.startsWith('/presentation') && !to.path.startsWith('/presentation')) {
+    return navigateTo('/presentation' + to.path, { replace: true })
+  }
+  // If TO a prefixed route, skip all experiment guards (free navigation in dev/presentation)
+  if (to.path.startsWith('/dev') || to.path.startsWith('/presentation')) {
+    return
+  }
+
   const store = useSmileStore()
   const log = useLog()
 

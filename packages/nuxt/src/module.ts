@@ -1,4 +1,4 @@
-import { defineNuxtModule, addPlugin, addImports, addRouteMiddleware, createResolver, extendPages } from '@nuxt/kit'
+import { defineNuxtModule, addPlugin, addImports, addLayout, addRouteMiddleware, createResolver, extendPages } from '@nuxt/kit'
 import { fileURLToPath } from 'url'
 
 // Module options TypeScript interface definition
@@ -28,12 +28,27 @@ export default defineNuxtModule<ModuleOptions>({
       global: true,
     })
 
-    // Register catch-all page for experiment routes
+    // Register layouts
+    addLayout({ src: resolver.resolve('./runtime/layouts/experiment.vue'), filename: 'experiment.vue' })
+    addLayout({ src: resolver.resolve('./runtime/layouts/development.vue'), filename: 'development.vue' })
+    addLayout({ src: resolver.resolve('./runtime/layouts/presentation.vue'), filename: 'presentation.vue' })
+
+    // Register catch-all page for experiment routes + dev/presentation mode pages
     extendPages((pages) => {
       pages.push({
         name: 'slug',
         path: '/:slug(.*)*',
         file: resolver.resolve('./runtime/pages/[...slug].vue'),
+      })
+      pages.push({
+        name: 'dev-slug',
+        path: '/dev/:slug(.*)*',
+        file: resolver.resolve('./runtime/pages/dev/[...slug].vue'),
+      })
+      pages.push({
+        name: 'presentation-slug',
+        path: '/presentation/:slug(.*)*',
+        file: resolver.resolve('./runtime/pages/presentation/[...slug].vue'),
       })
     })
 

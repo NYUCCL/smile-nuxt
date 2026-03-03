@@ -65,7 +65,7 @@ The old SPA used `localStorage` exclusively for client-side persistence because 
 
 #### Why this matters
 
-The navigation guards (ported in Phase F) check `knownUser`, `consented`, `done`, and `withdrawn` to decide whether to allow or redirect navigation. In the old SPA, guards only ran client-side, so `localStorage` was fine. In Nuxt, **global middleware runs on the server during SSR** for the first page load. If the persistence layer is `localStorage`-only, the server has no knowledge of these flags and will always treat users as unknown/unconsented on SSR page loads — causing incorrect redirects.
+The navigation guards (ported in Phase 7) check `knownUser`, `consented`, `done`, and `withdrawn` to decide whether to allow or redirect navigation. In the old SPA, guards only ran client-side, so `localStorage` was fine. In Nuxt, **global middleware runs on the server during SSR** for the first page load. If the persistence layer is `localStorage`-only, the server has no knowledge of these flags and will always treat users as unknown/unconsented on SSR page loads — causing incorrect redirects.
 
 #### Recommended tiered approach
 
@@ -148,7 +148,7 @@ export default defineNuxtPlugin(() => {
 
 #### Migration sequencing
 
-This refactoring should happen **during Phase 5 (Store Overhaul)**, not during Phase 3 (composables) or Phase F (guards). The current `hasLocalStorage` guards are sufficient for Phase 3. The full cookie migration should be done as a single focused step before the guards are ported, so that when the middleware runs server-side, the gate flags are already in cookies.
+This refactoring should happen **as a dedicated store overhaul step**, not during Phase 5 (composables) or Phase 7 (guards). The current `hasLocalStorage` guards are sufficient for Phase 5. The full cookie migration should be done as a single focused step before the guards are ported, so that when the middleware runs server-side, the gate flags are already in cookies.
 
 #### Reset methods must clear both storage tiers
 
@@ -303,7 +303,7 @@ smile/                              # Monorepo root
 
 ---
 
-## Phase 1: Module Scaffolding ✅
+## Reference: Module Scaffolding
 
 > **Status: COMPLETED** (commit `3f6cb08` on `nuxt` branch)
 >
@@ -783,7 +783,7 @@ pnpm run test:e2e
 
 ---
 
-## Phase 2: Core Runtime Migration ✅
+## Reference: Core Runtime
 
 > **Status: COMPLETED** (on `nuxt` branch)
 >
@@ -797,9 +797,9 @@ pnpm run test:e2e
 >
 > **Import path changes**: All `@/core/...` → relative paths (e.g., `../core/config.js`, `./log.js`)
 >
-> **Known issue**: Playground uses relative imports (`../src/runtime/...`) which won't work for published package consumers. To be addressed in Phase M (Build & Publish) via auto-imports, `exports` map, or Nuxt aliases.
+> **Known issue**: Playground uses relative imports (`../src/runtime/...`) which won't work for published package consumers. To be addressed in Phase 15 (Build & Publish) via auto-imports, `exports` map, or Nuxt aliases.
 >
-> **Deviations from plan**: Phase 2 as written in the plan covers stores, Firebase plugin, Timeline plugin, catch-all route, and middleware. We completed the file-copying portion here. The plugins, catch-all route, and middleware are addressed in the detailed implementation steps (Phases B-F below).
+> **Deviations from plan**: The "Reference: Core Runtime" section as written in the plan covers stores, Firebase plugin, Timeline plugin, catch-all route, and middleware. We completed the file-copying portion here. The plugins, catch-all route, and middleware are addressed in the detailed implementation steps (Phases 2–7 below).
 
 > **⚠️ Important: Copy-First Approach — ALWAYS copy, NEVER reimplement**
 >
@@ -1081,7 +1081,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
 
 ---
 
-## Phase 3: Composables Migration ✅
+## Reference: Composables
 
 > **Status: COMPLETED** (on `nuxt` branch)
 >
@@ -1120,8 +1120,8 @@ export default defineNuxtRouteMiddleware((to, from) => {
 > **Deviations from plan**: The plan's code examples for Phase 3 showed a reimplemented API structure. Per the copy-first principle, we copied the actual existing files verbatim and made only the minimal changes listed above. The actual composable structure (class-based SmileAPI/ViewAPI, factory functions) is preserved as-is.
 >
 > **Known TODOs** (deferred to later phases):
-> - `import.meta.glob()` paths in useAPI.js reference `../../user/assets/**/*` — won't resolve for published package consumers (Phase M)
-> - `useTimeline.js`'s `lookupNext()` calls `router.getRoutes()` — won't return SMILE routes in the catch-all architecture (Phase F)
+> - `import.meta.glob()` paths in useAPI.js reference `../../user/assets/**/*` — won't resolve for published package consumers (Phase 15)
+> - `useTimeline.js`'s `lookupNext()` calls `router.getRoutes()` — won't return SMILE routes in the catch-all architecture (Phase 6)
 > - State persistence redesign (localStorage → tiered cookies + localStorage) documented in Section 5 above (Phase 5)
 
 **Approach**: Copy existing composables from `src/core/composables/` to `runtime/composables/` with these minimal changes:
@@ -1283,7 +1283,7 @@ export function useViewAPI() {
 
 ---
 
-## Phase 4: User Layer Migration
+## Reference: User Layer
 
 ### 4.1 design.js → design.ts Conversion
 
@@ -1408,7 +1408,7 @@ export default defineNuxtConfig({
 
 ---
 
-## Phase 5: Build & Development Tools
+## Reference: Build & Development Tools
 
 In the module architecture, build configuration is split between:
 
@@ -1952,7 +1952,7 @@ export default defineNuxtConfig({
 
 ---
 
-## Phase 6: Server-Side Features (New Capabilities)
+## Reference: Server-Side Features
 
 ### 6.1 API Routes
 
@@ -1995,7 +1995,7 @@ export default defineEventHandler(async (event) => {
 
 ---
 
-## Phase 7: Testing Migration
+## Reference: Testing
 
 ### 7.1 Current Test Structure
 
@@ -2344,27 +2344,27 @@ Each phase should be executed in a **fresh Claude Code agent session** so the ag
 
 **Session boundaries:**
 
-| Session | Phase & Steps | Focus |
+| Session | Phase (Steps) | Focus |
 | --- | --- | --- |
-| 1 | Phase A (1–2) | Monorepo scaffolding + bare Nuxt module |
-| 2 | Phase B (3–6) | Copy leaf files + their tests (config, Timeline, utils, stepper deps) |
-| 3 | Phase C (7–9) | Copy stores + tests, resolve circular dependency |
-| 4 | Phase D (10) | Copy Stepper class + tests |
-| 5 | Phase E (11–15) | Copy composables + tests, register auto-imports |
-| 6 | Phase F (16–17) ✅ | Timeline plugin + catch-all page (no guards) |
-| **7** | **Phase F (18–20)** | **Port navigation guards + copy router tests — hardest step, deserves focused context** |
-| 8 | Phase G (21–23) | Layouts + `/dev/` + `/presentation/` routes |
-| 9 | Phase H (24–27) | Tailwind + UI kit + first 2 real components + tests |
-| 10 | Phase H (28–33) | Remaining builtin components |
-| 11 | Phase I (34–37) | Dev tools components |
-| 12 | Phase J (38–39) | Firebase integration |
-| 13 | Phase K (40) | Full integration test |
-| 14 | Phase L (41–43) | Wire up test infrastructure, make copied tests pass |
-| 15+ | Phases M–N | Build, publish, TypeScript |
+| 1 | Phase 1 (1–2) | Monorepo scaffolding + bare Nuxt module |
+| 2 | Phase 2 (3–6) | Copy leaf files + their tests (config, Timeline, utils, stepper deps) |
+| 3 | Phase 3 (7–9) | Copy stores + tests, resolve circular dependency |
+| 4 | Phase 4 (10) | Copy Stepper class + tests |
+| 5 | Phase 5 (11–15) | Copy composables + tests, register auto-imports |
+| 6 | Phase 6 (16–17) ✅ | Timeline plugin + catch-all page (no guards) |
+| **7** | **Phase 7 (18–20)** ✅ | **Port navigation guards + copy router tests — hardest step, deserves focused context** |
+| 8 | Phase 8 (21–23) | Layouts + `/dev/` + `/presentation/` routes |
+| 9 | Phase 9 (24–27) | Tailwind + UI kit + first 2 real components + tests |
+| 10 | Phase 10 (28–33) | Remaining builtin components |
+| 11 | Phase 11 (34–37) | Dev tools components |
+| 12 | Phase 12 (38–39) | Firebase integration |
+| 13 | Phase 13 (40) | Full integration test |
+| 14 | Phase 14 (41–43) | Wire up test infrastructure, make copied tests pass |
+| 15+ | Phase 15–16 | Build, publish, TypeScript |
 
 **Why phase-level, not step-level**: Individual steps (e.g., "copy one file") are too small for a full session spin-up. But steps within a phase share context that the agent benefits from (e.g., Steps 7–9 need to understand the circular dependency together; Steps 18–20 need to understand the guard logic holistically).
 
-**Why Phase F is split into two sessions**: Steps 16–17 (plugin + catch-all page) are straightforward wiring. Steps 18–20 (porting the ~230-line `beforeEach` guard one rule at a time) are the hardest, most error-prone work in the entire migration. A clean context window lets the agent focus entirely on the mechanical guard translation.
+**Why the guards phase is separate**: Steps 16–17 (plugin + catch-all page) are straightforward wiring. Steps 18–20 (porting the ~230-line `beforeEach` guard one rule at a time) are the hardest, most error-prone work in the entire migration. A clean context window lets the agent focus entirely on the mechanical guard translation.
 
 **Prompt template for each session:**
 
@@ -2402,7 +2402,7 @@ Level 6 (REPLACED):          router.js → replaced by catch-all route + middlew
 
 ---
 
-### Phase A: Bare Infrastructure (No SMILE Code)
+### Phase 1: Bare Infrastructure (No SMILE Code)
 
 #### Step 1: Create monorepo skeleton
 
@@ -2461,11 +2461,11 @@ Level 6 (REPLACED):          router.js → replaced by catch-all route + middlew
 
 ---
 
-### Phase B: Copy Leaf-Level Files (No Dependencies)
+### Phase 2: Copy Leaf-Level Files (No Dependencies)
 
 Each step copies exactly one file (or one tightly-coupled group), updates import paths, and verifies it loads in the playground.
 
-> **Tests move with the code**: When copying a source file that has a corresponding test file in `tests/vitest/`, copy the test file too (to `test/` inside the module). Update import paths in the test. The test doesn't need to pass yet (test infrastructure isn't set up until Phase L), but it should be present so nothing is left behind.
+> **Tests move with the code**: When copying a source file that has a corresponding test file in `tests/vitest/`, copy the test file too (to `test/` inside the module). Update import paths in the test. The test doesn't need to pass yet (test infrastructure isn't set up until Phase 14), but it should be present so nothing is left behind.
 
 #### Step 3: Copy config.js
 
@@ -2573,7 +2573,7 @@ Each step copies exactly one file (or one tightly-coupled group), updates import
    - `tests/vitest/core/stepper/StepperSerializer.test.js` → `test/core/stepper/StepperSerializer.test.js`
 3. Update `@/` imports to relative paths (both source and test files)
 
-**What was done**: Copied the three stepper leaf files (`StepState.js`, `StepperProxy.js`, `Serializer.js`) and their tests. These have no internal dependencies and are needed by `Stepper.js` in Phase D.
+**What was done**: Copied the three stepper leaf files (`StepState.js`, `StepperProxy.js`, `Serializer.js`) and their tests. These have no internal dependencies and are needed by `Stepper.js` in Phase 4.
 
 **How to test**:
 
@@ -2588,11 +2588,11 @@ Each step copies exactly one file (or one tightly-coupled group), updates import
 
 ---
 
-**Playground state after Phase B**: The playground app.vue should import and exercise each copied module — create a Timeline instance, call utility functions, instantiate a StepState — and print results to the page. This serves as both a smoke test and a readable reference for what these leaf modules do.
+**Playground state after Phase 2**: The playground app.vue should import and exercise each copied module — create a Timeline instance, call utility functions, instantiate a StepState — and print results to the page. This serves as both a smoke test and a readable reference for what these leaf modules do.
 
 ---
 
-### Phase C: Copy Stores (Dependency Level 1–2)
+### Phase 3: Copy Stores (Dependency Level 1–2)
 
 #### Step 7: Copy log.js store
 
@@ -2687,11 +2687,11 @@ Each step copies exactly one file (or one tightly-coupled group), updates import
 
 ---
 
-**Playground state after Phase C**: The playground should demonstrate the Pinia store working — show a reactive counter or state value on the page, persist it to localStorage, and prove it survives a page refresh. This is the first "real" interactive demo.
+**Playground state after Phase 3**: The playground should demonstrate the Pinia store working — show a reactive counter or state value on the page, persist it to localStorage, and prove it survives a page refresh. This is the first "real" interactive demo.
 
 ---
 
-### Phase D: Copy Stepper (Dependency Level 2)
+### Phase 4: Copy Stepper (Dependency Level 2)
 
 #### Step 10: Copy Stepper.js
 
@@ -2733,11 +2733,11 @@ Each step copies exactly one file (or one tightly-coupled group), updates import
 
 ---
 
-**Playground state after Phase D**: The playground should show a Stepper demo — create a stepper with a few steps, display the current step, and provide next/prev buttons. This demonstrates the Stepper class working end-to-end.
+**Playground state after Phase 4**: The playground should show a Stepper demo — create a stepper with a few steps, display the current step, and provide next/prev buttons. This demonstrates the Stepper class working end-to-end.
 
 ---
 
-### Phase E: Copy Composables (Dependency Levels 3–5)
+### Phase 5: Copy Composables (Dependency Levels 3–5)
 
 Each composable is added one at a time, in dependency order.
 
@@ -2753,7 +2753,7 @@ Each composable is added one at a time, in dependency order.
    - `router.push()` → `navigateTo()`
 3. **Do NOT register as auto-import yet** — test with explicit import first
 
-**What was done**: Copied `useTimeline.js` composable (no test files copied yet — deferred to Phase L). Renamed internal `navigateTo` function to `_doNavigate` to avoid naming conflict with Nuxt's `navigateTo`. Replaced `router.push()` with `nuxtNavigateTo()` (imported as `navigateTo as nuxtNavigateTo` from `#imports`). Removed unused `lodash` import. Removed explicit `pinia` import (Nuxt provides it). Changed `useSmileStore(pinia)` → `useSmileStore()`. Added TODO on `lookupNext()` which calls `router.getRoutes()` (won't return SMILE routes in the catch-all architecture).
+**What was done**: Copied `useTimeline.js` composable (no test files copied yet — deferred to Phase 14). Renamed internal `navigateTo` function to `_doNavigate` to avoid naming conflict with Nuxt's `navigateTo`. Replaced `router.push()` with `nuxtNavigateTo()` (imported as `navigateTo as nuxtNavigateTo` from `#imports`). Removed unused `lodash` import. Removed explicit `pinia` import (Nuxt provides it). Changed `useSmileStore(pinia)` → `useSmileStore()`. Added TODO on `lookupNext()` which calls `router.getRoutes()` (won't return SMILE routes in the catch-all architecture).
 
 **VERIFY**:
 - [x] File imports without errors
@@ -2770,7 +2770,7 @@ Each composable is added one at a time, in dependency order.
    - `@/core/stores/smilestore` → relative path
    - `@/core/stores/log` → relative path
 
-**What was done**: Copied `useStepper.js` composable (no test files copied yet — deferred to Phase L). Updated import paths: `@/core/stepper/Stepper` → `../core/stepper/Stepper`, `@/core/stores/smilestore` → `../stores/smilestore`, `@/core/stores/log` → `../stores/log`.
+**What was done**: Copied `useStepper.js` composable (no test files copied yet — deferred to Phase 14). Updated import paths: `@/core/stepper/Stepper` → `../core/stepper/Stepper`, `@/core/stores/smilestore` → `../stores/smilestore`, `@/core/stores/log` → `../stores/log`.
 
 **VERIFY**:
 - [x] File imports without errors
@@ -2791,7 +2791,7 @@ Each composable is added one at a time, in dependency order.
    - `router.push()` → `navigateTo()`
    - Timeline access → `useNuxtApp().$timeline`
 
-**What was done**: Copied `useAPI.js` composable (941 lines, largest file — no test files copied yet, deferred to Phase L). Added `runtimeConfig` as 6th parameter to `SmileAPI` constructor. Replaced `import.meta.env.VITE_DEPLOY_BASE_PATH` → `this.runtimeConfig?.public?.deployBasePath || '/'`. Replaced all `router.push()` calls → `navigateTo()` from `#imports`. Made `import.meta.glob()` calls safe with optional chaining (`import.meta.glob?.()`) and `|| {}` fallbacks. Added TODO comments for asset path resolution (won't work for published package consumers). The `useAPI()` factory function now calls `useRuntimeConfig()` and passes the result to the constructor.
+**What was done**: Copied `useAPI.js` composable (941 lines, largest file — no test files copied yet, deferred to Phase 14). Added `runtimeConfig` as 6th parameter to `SmileAPI` constructor. Replaced `import.meta.env.VITE_DEPLOY_BASE_PATH` → `this.runtimeConfig?.public?.deployBasePath || '/'`. Replaced all `router.push()` calls → `navigateTo()` from `#imports`. Made `import.meta.glob()` calls safe with optional chaining (`import.meta.glob?.()`) and `|| {}` fallbacks. Added TODO comments for asset path resolution (won't work for published package consumers). The `useAPI()` factory function now calls `useRuntimeConfig()` and passes the result to the constructor.
 
 **VERIFY**:
 - [x] File imports without errors
@@ -2814,7 +2814,7 @@ Each composable is added one at a time, in dependency order.
    - `@/core/stores/log` → relative path
    - `@/core/config` → relative path
 
-**What was done**: Copied `useViewAPI.js` (956 lines, top of composable dependency chain — no test files copied yet, deferred to Phase L). Updated all import paths to relative. Added `runtimeConfig` passthrough to `SmileAPI` parent constructor. The `useViewAPI()` factory function now calls `useRuntimeConfig()` with a safe guard (`typeof useRuntimeConfig === 'function' ? useRuntimeConfig() : {}`).
+**What was done**: Copied `useViewAPI.js` (956 lines, top of composable dependency chain — no test files copied yet, deferred to Phase 14). Updated all import paths to relative. Added `runtimeConfig` passthrough to `SmileAPI` parent constructor. The `useViewAPI()` factory function now calls `useRuntimeConfig()` with a safe guard (`typeof useRuntimeConfig === 'function' ? useRuntimeConfig() : {}`).
 
 **VERIFY**:
 - [x] File imports without errors
@@ -2859,9 +2859,9 @@ Each composable is added one at a time, in dependency order.
 
 ---
 
-**Playground state after Phase E**: The playground verifies Phase 3 in two ways: (1) an auto-import table that directly references all 7 composables and checks `typeof fn === 'function'` in `onMounted`, and (2) a SmileAPI class import that lists all prototype methods. Phase 2 demos (StepState stepper, randomization) are also retained and functional. SSR renders cleanly with zero errors.
+**Playground state after Phase 5**: The playground verifies the composables in two ways: (1) an auto-import table that directly references all 7 composables and checks `typeof fn === 'function'` in `onMounted`, and (2) a SmileAPI class import that lists all prototype methods. Earlier demos (StepState stepper, randomization) are also retained and functional. SSR renders cleanly with zero errors.
 
-**SSR-safety fixes applied during Phase E** (triggered by composable auto-import loading the full dependency chain during SSR):
+**SSR-safety fixes applied during Phase 5** (triggered by composable auto-import loading the full dependency chain during SSR):
 - `config.js`: Added `|| '/'` fallback for undefined `VITE_DEPLOY_BASE_PATH`, null guard in `parseWidthHeight()`
 - `firestore-db.js`: Made Firebase `initializeApp()` conditional on config being present
 - `smilestore.js`: Guarded all `localStorage` access with `typeof localStorage !== 'undefined'`
@@ -2869,7 +2869,7 @@ Each composable is added one at a time, in dependency order.
 
 ---
 
-### Phase F: Routing (The Architecture Gate)
+### Phase 6–7: Routing (The Architecture Gate)
 
 This is the highest-risk phase. Each sub-step introduces one routing concept, verified independently.
 
@@ -3021,13 +3021,13 @@ This is the highest-risk phase. Each sub-step introduces one routing concept, ve
 
 ---
 
-> **Phase F Steps 16–17 Status: COMPLETED**
+> **Phase 6 Steps 16–17 Status: COMPLETED**
 >
 > **What was implemented** (deviations from plan noted):
 >
 > - **Timeline plugin** (`runtime/plugins/timeline.client.js`): Client-only plugin imports `~/design`, calls `useAPI()`, provides `$timeline` via `useNuxtApp()`. The plan's code example used `require()` — actual implementation uses ES module `import` with `#app` and `#imports`.
 > - **Catch-all page** (`runtime/pages/[...slug].vue`): Renders components via `$timeline.getViewForPath(route.path)`. Uses `timelineReady` ref (set in `onMounted`) to avoid SSR "not found" flash since the timeline plugin is client-only. Handles redirect routes (e.g., `/` → `/welcome`) via a `watch` on `viewConfig`.
-> - **Timeline.js constructor simplified**: Removed mode-based `PresentationMode`/`RecruitmentChooser` registration (components not available in Nuxt context). Now always registers the landing redirect (`/` → `welcome_anonymous`). Dev/presentation mode routes deferred to Phase G (`extendPages`).
+> - **Timeline.js constructor simplified**: Removed mode-based `PresentationMode`/`RecruitmentChooser` registration (components not available in Nuxt context). Now always registers the landing redirect (`/` → `welcome_anonymous`). Dev/presentation mode routes deferred to Phase 8 (`extendPages`).
 > - **`getViewForPath()` updated**: Now returns `{ redirect }` for redirect routes so the catch-all page can handle them.
 > - **Playground `design.js`**: 3-page flow (Welcome → Task → Thanks) instead of the plan's minimal 2-page. Uses factory function `createTimeline(api)` — receives `api` from plugin. `navigateTo()` is auto-imported by Nuxt (no explicit import needed).
 > - **Playground `app.vue`**: Replaced Phase 2/3 verification demos with `<NuxtPage />`.
@@ -3188,11 +3188,11 @@ This is the highest-risk phase. Each sub-step introduces one routing concept, ve
 
 > **This is the architecture validation gate.** If all checks pass, the catch-all route + middleware approach is confirmed working. Everything after this is just copying real components into this proven architecture.
 
-**Playground state after Phase F**: A complete 5-page flow using trivial inline components: welcome → consent → task → debrief → thanks. Sequential ordering enforced by middleware, consent gating works, "Next" buttons navigate through the flow. This is the most important milestone — it proves the entire routing architecture works before any real SMILE components are involved.
+**Playground state after Phase 7**: A complete 5-page flow using trivial inline components: welcome → consent → task → debrief → thanks. Sequential ordering enforced by middleware, consent gating works, "Next" buttons navigate through the flow. This is the most important milestone — it proves the entire routing architecture works before any real SMILE components are involved.
 
 ---
 
-### Phase G: Layouts & Mode Routes
+### Phase 8: Layouts & Mode Routes
 
 #### Step 21: Create experiment layout
 
@@ -3233,9 +3233,9 @@ This is the highest-risk phase. Each sub-step introduces one routing concept, ve
 3. Confirm no visual changes — the layout is a transparent wrapper at this point
 
 **VERIFY**:
-- [ ] Existing 5-page flow still works identically
-- [ ] Layout wrapper div is visible in DOM inspector
-- [ ] No visual regressions
+- [x] Existing 5-page flow still works identically
+- [x] Layout wrapper div is visible in DOM inspector
+- [x] No visual regressions
 
 #### Step 22: Add /dev/ mode route
 
@@ -3284,10 +3284,10 @@ This is the highest-risk phase. Each sub-step introduces one routing concept, ve
 6. Confirm both modes are independent — navigating in one doesn't affect the other
 
 **VERIFY**:
-- [ ] `/dev/` shows Page 1 with yellow "DEV MODE" header
-- [ ] `/dev/consent` shows consent page with dev layout
-- [ ] Navigation within `/dev/` stays in dev prefix
-- [ ] Production routes (`/`, `/consent`, etc.) still work normally without dev header
+- [x] `/dev/` shows Page 1 with yellow "DEV MODE" header
+- [x] `/dev/consent` shows consent page with dev layout
+- [x] Navigation within `/dev/` stays in dev prefix
+- [x] Production routes (`/`, `/consent`, etc.) still work normally without dev header
 
 #### Step 23: Add /presentation/ mode route
 
@@ -3309,13 +3309,13 @@ This is the highest-risk phase. Each sub-step introduces one routing concept, ve
 6. All three modes should work independently — test the full 5-page flow in each one
 
 **VERIFY**:
-- [ ] `/presentation/` shows experiment with presentation header
-- [ ] All three modes (`/`, `/dev/`, `/presentation/`) work independently
-- [ ] The 5-page flow works in all three modes
+- [x] `/presentation/` shows experiment with presentation header
+- [x] All three modes (`/`, `/dev/`, `/presentation/`) work independently
+- [x] The 5-page flow works in all three modes
 
 ---
 
-### Phase H: Copy Real Components (One at a Time)
+### Phase 9–10: Copy Real Components (One at a Time)
 
 Routing is proven. Now replace trivial inline components with real SMILE components. Copy **one component at a time**, verify it renders, then move to the next. The order below starts with the simplest component and works up to the most complex.
 
@@ -3445,7 +3445,7 @@ Repeat the pattern for each remaining built-in view. Copy one, register it, upda
 
 ---
 
-### Phase I: Dev Tools Components
+### Phase 11: Dev Tools Components
 
 #### Step 34: Copy DevToolbar
 
@@ -3524,7 +3524,7 @@ Repeat the pattern for each remaining built-in view. Copy one, register it, upda
 
 ---
 
-### Phase J: Firebase Integration
+### Phase 12: Firebase Integration
 
 #### Step 38: Create Firebase plugin
 
@@ -3577,7 +3577,7 @@ Repeat the pattern for each remaining built-in view. Copy one, register it, upda
 
 ---
 
-### Phase K: Full Integration Test
+### Phase 13: Full Integration Test
 
 #### Step 40: Full playground experiment
 
@@ -3620,9 +3620,9 @@ Repeat the pattern for each remaining built-in view. Copy one, register it, upda
 
 ---
 
-### Phase L: Testing Infrastructure
+### Phase 14: Testing Infrastructure
 
-> **Note**: By this point, all test files have already been **copied** to `test/` alongside their source files during Phases B–I. This phase sets up the test runner and makes the copied tests actually pass.
+> **Note**: By this point, all test files have already been **copied** to `test/` alongside their source files during Phases 2–11. This phase sets up the test runner and makes the copied tests actually pass.
 
 #### Step 41: Set up Vitest with Nuxt and copy test setup
 
@@ -3701,7 +3701,7 @@ All test files were already copied during earlier phases. Now update their impor
 
 ---
 
-### Phase M: Build & Publish
+### Phase 15: Build & Publish
 
 > **Important: Runtime import paths must be resolved before publishing.**
 >
@@ -3773,7 +3773,7 @@ All test files were already copied during earlier phases. Now update their impor
 
 ---
 
-### Phase N: TypeScript Conversion (Optional, Final)
+### Phase 16: TypeScript Conversion (Optional, Final)
 
 #### Step 46+: Gradual TypeScript migration
 
@@ -3802,7 +3802,7 @@ All test files were already copied during earlier phases. Now update their impor
 
 ### High Risk Areas
 
-1. **Catch-all Route + Timeline Resolution**: The catch-all `[...slug].vue` page resolving components from the Timeline is the single most critical piece. If `getViewForPath()` or the dynamic `<component :is>` pattern has issues, everything breaks. **Mitigated by Phase F (Steps 16–20)** — validated with trivial components before any real code is copied.
+1. **Catch-all Route + Timeline Resolution**: The catch-all `[...slug].vue` page resolving components from the Timeline is the single most critical piece. If `getViewForPath()` or the dynamic `<component :is>` pattern has issues, everything breaks. **Mitigated by Phases 6–7 (Steps 16–20)** — validated with trivial components before any real code is copied.
 2. **Navigation Guard Migration**: The `beforeEach` guard has ~230 lines of complex conditional logic with many edge cases. The port to `defineNuxtRouteMiddleware()` is mostly mechanical (`next()` → `return`, etc.) but ordering and behavior must be identical. **Mitigated by Steps 18–19** — guards are added one at a time and tested individually.
 3. **Circular Dependency (log ↔ smilestore)**: These two stores import each other. **Mitigated by Steps 7–9** — both are copied together and tested as a pair.
 4. **State Persistence**: localStorage + Firestore sync must work identically. **Mitigated by Step 9** (localStorage) and **Steps 38–39** (Firestore), each tested in isolation.
@@ -3811,7 +3811,7 @@ All test files were already copied during earlier phases. Now update their impor
 ### Mitigation Strategies
 
 1. **One-thing-at-a-time steps**: Each of the 46 steps does exactly one thing and has explicit verification checkboxes. Problems are caught immediately, not after multiple changes have been stacked.
-2. **Early routing validation (Phase F, Steps 16–20)**: The two highest-risk areas (catch-all routing + middleware) are validated with trivial inline components before committing to the bulk component copy. If the architecture doesn't work, you find out with ~5 steps of work invested, not 30.
+2. **Early routing validation (Phases 6–7, Steps 16–20)**: The two highest-risk areas (catch-all routing + middleware) are validated with trivial inline components before committing to the bulk component copy. If the architecture doesn't work, you find out with ~5 steps of work invested, not 30.
 3. **Incremental guard porting (Step 19)**: The middleware guards are added one at a time (reset check, consent, ordering, etc.) and tested individually, rather than porting all 230 lines at once.
 4. **Commit after every step**: Small commits mean easy rollback to the last known-good state.
 5. **Rollback Plan**: Original code is untouched throughout the migration — it remains fully functional.
@@ -3957,7 +3957,7 @@ This makes SMILE a proper framework (like Nuxt itself) rather than a template to
 See the **Agent Session Strategy** section at the top of the Implementation Order for the full table. Quick reference:
 
 - **Start a fresh agent session for each phase** (not each step)
-- **Phase F is split into two sessions** (Steps 16–17 and Steps 18–20) because guard porting needs focused context
+- **Phases 6–7 are split into two sessions** (Steps 16–17 and Steps 18–20) because guard porting needs focused context
 - **Prompt each agent** with: "Execute Phase X (Steps N–M) of the migration plan at `plans/nuxt_migration_251.md`"
 - **Handoff between sessions**: git commits are the state transfer mechanism; each session checks `git log` first
 
@@ -3971,7 +3971,7 @@ See the **Agent Session Strategy** section at the top of the Implementation Orde
 6. **Never skip a VERIFY checkpoint** — If it fails, stop and debug
 7. **TypeScript is optional and final** — The module works fine with JavaScript
 8. **The playground is your test bed** — Every step should leave it in a working state
-9. **Phase F is the go/no-go gate** — If routing doesn't work with trivial components, stop and debug before copying real code
+9. **Phases 6–7 are the go/no-go gate** — If routing doesn't work with trivial components, stop and debug before copying real code
 10. **Commit after every passing step** — Small commits make rollback easy and serve as handoff points between agent sessions
 11. **Build a working playground example at every phase** — After each phase, the playground should be a self-contained demo of what works so far. Don't just copy files silently; update the playground to exercise them.
-12. **Tests travel with code** — When copying a source file, always copy its test file too. Tests are wired up and run in Phase L, but they should be present in the module from the moment the source arrives.
+12. **Tests travel with code** — When copying a source file, always copy its test file too. Tests are wired up and run in Phase 14, but they should be present in the module from the moment the source arrives.
