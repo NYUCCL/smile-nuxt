@@ -725,6 +725,163 @@ describe('Timeline middleware guards', () => {
     })
   })
 
+  describe('skipBlockingGuards (dev/presentation mode)', () => {
+    it('should allow navigation to any route when skipBlockingGuards is true', async () => {
+      // Unknown, unconsented user trying to jump to instructions — normally blocked
+      store.browserPersisted.lastRoute = 'welcome_anonymous'
+      const result = await executeGuards(
+        mockRoute('/instructions'),
+        mockRoute('/welcome'),
+        { timeline, store, log, api, skipBlockingGuards: true }
+      )
+      expect(result).toBeUndefined() // allowed
+    })
+
+    it('should still run state-setting guards (completeConsent) with skipBlockingGuards', async () => {
+      store.browserPersisted.knownUser = true
+      store.browserPersisted.consented = true
+      store.browserPersisted.lastRoute = 'demograph'
+      store.browserEphemeral.currentViewDone = true
+
+      await executeGuards(
+        mockRoute('/demograph'),
+        mockRoute('/consent'),
+        { timeline, store, log, api, skipBlockingGuards: true }
+      )
+      expect(api.completeConsent).toHaveBeenCalled()
+    })
+
+    it('should still run state-setting guards (setDone) with skipBlockingGuards', async () => {
+      store.browserPersisted.knownUser = true
+      store.browserPersisted.consented = true
+      store.browserPersisted.done = true
+      store.browserPersisted.lastRoute = 'thanks'
+      store.browserEphemeral.currentViewDone = true
+
+      await executeGuards(
+        mockRoute('/thanks'),
+        mockRoute('/feedback'),
+        { timeline, store, log, api, skipBlockingGuards: true }
+      )
+      expect(api.setDone).toHaveBeenCalled()
+    })
+
+    it('should still run postGuard (setLastRoute, currentViewDone reset) with skipBlockingGuards', async () => {
+      store.browserEphemeral.currentViewDone = true
+
+      await executeGuards(
+        mockRoute('/welcome'),
+        mockRoute('/'),
+        { timeline, store, log, api, skipBlockingGuards: true }
+      )
+      expect(store.setLastRoute).toHaveBeenCalledWith('welcome_anonymous')
+      expect(store.recordRoute).toHaveBeenCalledWith('welcome_anonymous')
+      expect(store.browserEphemeral.currentViewDone).toBe(false)
+    })
+
+    it('should allow unknown paths in skipBlockingGuards mode (dev pages handle resolution)', async () => {
+      const result = await executeGuards(
+        mockRoute('/nonexistent'),
+        mockRoute('/welcome'),
+        { timeline, store, log, api, skipBlockingGuards: true }
+      )
+      expect(result).toBeUndefined() // allowed — dev page handles its own resolution
+    })
+
+    it('should skip pinned route guard with skipBlockingGuards', async () => {
+      store.config.mode = 'development'
+      store.dev.pinnedRoute = 'demograph'
+
+      // Normally pinned route would redirect to /demograph
+      const result = await executeGuards(
+        mockRoute('/instructions'),
+        mockRoute('/welcome'),
+        { timeline, store, log, api, skipBlockingGuards: true }
+      )
+      expect(result).toBeUndefined() // allowed — pinned route guard skipped
+    })
+  })
+
+  describe('Parameterized route matching (getViewForPath)', () => {
+    let paramTimeline
+
+    beforeEach(() => {
+      const mockApi = {
+        config: { mode: 'production', localStorageKey: 'test_storage' },
+        log: { debug: vi.fn(), log: vi.fn(), warn: vi.fn(), error: vi.fn(), success: vi.fn() },
+        store: {
+          getRandomizedRouteByName: vi.fn().mockReturnValue(null),
+          setRandomizedRoute: vi.fn(),
+          registerStepper: vi.fn(),
+          config: { mode: 'production' },
+          browserPersisted: { seqtimeline: [], routes: [] },
+        },
+        sampleWithReplacement: vi.fn((options) => [options[0]]),
+        getConditionByName: vi.fn(),
+        randomAssignCondition: vi.fn((options) => options.conditionname[0]),
+      }
+
+      paramTimeline = new Timeline(mockApi)
+
+      paramTimeline.pushSeqView({
+        path: '/welcome',
+        name: 'welcome_anonymous',
+        component: MockComponent('Welcome'),
+        meta: { allowAlways: true },
+      })
+
+      paramTimeline.pushSeqView({
+        path: '/welcome/:service',
+        name: 'welcome_referred',
+        component: MockComponent('Welcome Referred'),
+        meta: { allowAlways: true },
+      })
+
+      paramTimeline.pushSeqView({
+        path: '/task/:id/step/:step',
+        name: 'task_step',
+        component: MockComponent('Task Step'),
+      })
+
+      paramTimeline.build()
+    })
+
+    it('should match exact paths first', () => {
+      const result = paramTimeline.getViewForPath('/welcome')
+      expect(result).not.toBeNull()
+      expect(result.name).toBe('welcome_anonymous')
+    })
+
+    it('should match parameterized routes like /welcome/:service', () => {
+      const result = paramTimeline.getViewForPath('/welcome/prolific')
+      expect(result).not.toBeNull()
+      expect(result.name).toBe('welcome_referred')
+    })
+
+    it('should match multi-param routes', () => {
+      const result = paramTimeline.getViewForPath('/task/42/step/3')
+      expect(result).not.toBeNull()
+      expect(result.name).toBe('task_step')
+    })
+
+    it('should not match partial paths against parameterized routes', () => {
+      // /welcome/prolific/extra should not match /welcome/:service
+      const result = paramTimeline.getViewForPath('/welcome/prolific/extra')
+      expect(result).toBeNull()
+    })
+
+    it('should return null for completely unknown paths', () => {
+      const result = paramTimeline.getViewForPath('/unknown')
+      expect(result).toBeNull()
+    })
+
+    it('should prefer exact match over parameterized match', () => {
+      // /welcome should match welcome_anonymous, not welcome_referred
+      const result = paramTimeline.getViewForPath('/welcome')
+      expect(result.name).toBe('welcome_anonymous')
+    })
+  })
+
   describe('getRouteByName helper', () => {
     it('should find routes by name', () => {
       const route = timeline.getRouteByName('welcome_anonymous')

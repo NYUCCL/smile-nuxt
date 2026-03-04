@@ -1,6 +1,11 @@
 <template>
   <NuxtLayout name="development">
-    <component v-if="viewConfig && viewConfig.component" :is="viewConfig.component" v-bind="viewConfig.props" />
+    <!-- Dev mode landing: show RecruitmentChooserView at /dev/ -->
+    <RecruitmentChooserView v-if="isDevRoot && timelineReady" />
+    <template v-else-if="viewConfig && viewConfig.component">
+      <ExperimentStatusBar />
+      <component :is="viewConfig.component" v-bind="viewConfig.props" />
+    </template>
     <div v-else-if="viewConfig === null && timelineReady">
       <h1>Page not found</h1>
       <p>No view registered for path: {{ experimentPath }}</p>
@@ -9,6 +14,8 @@
 </template>
 
 <script setup>
+import RecruitmentChooserView from '#smile-dev/RecruitmentChooserView.vue'
+
 const route = useRoute()
 const nuxtApp = useNuxtApp()
 
@@ -19,11 +26,27 @@ const experimentPath = computed(() => {
   return route.path.replace(/^\/dev/, '') || '/'
 })
 
-const viewConfig = computed(() => {
+// Show RecruitmentChooserView at the dev root
+const isDevRoot = computed(() => {
+  return experimentPath.value === '/'
+})
+
+const rawViewConfig = computed(() => {
   if (!timelineReady.value) return undefined
+  if (isDevRoot.value) return undefined // handled by RecruitmentChooserView
   const timeline = nuxtApp.$timeline
   if (!timeline) return undefined
   return timeline.getViewForPath(experimentPath.value)
+})
+
+// Resolve string component names to actual component references
+const viewConfig = computed(() => {
+  const config = rawViewConfig.value
+  if (!config || !config.component) return config
+  if (typeof config.component === 'string') {
+    return { ...config, component: resolveComponent(config.component) }
+  }
+  return config
 })
 
 onMounted(() => {

@@ -1,6 +1,5 @@
 <script setup>
 import { ref } from 'vue'
-const router = useRouter()
 const smilestore = useSmileStore() // get the global store
 const api = useAPI() // get the api
 const email = ref('')
@@ -48,9 +47,9 @@ function toggleReport() {
  * Submits the withdraw form and navigates to withdraw page
  */
 function submitWithdraw() {
-  // submit the withdraw form and jump to the thanks
+  // submit the withdraw form and jump to the withdraw page
   toggleWithdraw()
-  router.push('withdraw') // should use
+  api.goToView('withdraw')
 }
 </script>
 
@@ -60,7 +59,7 @@ function submitWithdraw() {
     <!-- Left section: Brand logo and study information -->
     <div class="flex items-stretch flex-shrink-0 min-h-[3.25rem]">
       <a class="flex items-center pt-3" :href="api.config.labURL" target="_new" v-if="!api.config.anonymousMode">
-        <img :src="api.getStaticUrl(api.config.brandLogoFn)" width="90" class="dark-aware-img" />
+        <img :src="api.getPublicUrl(api.config.brandLogoFn)" width="90" class="dark-aware-img" />
       </a>
       <div class="flex items-center pt-1">
         <p class="text-xs text-left pl-2.5 text-muted-foreground pt-2 @[600px]:block hidden font-mono">

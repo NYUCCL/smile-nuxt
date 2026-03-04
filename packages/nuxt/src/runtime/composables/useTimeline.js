@@ -10,6 +10,9 @@
  * In the Nuxt module, experiment routes are NOT registered with Vue Router
  * (they all hit the catch-all route). So route metadata (next, prev, etc.)
  * is looked up from $timeline.getViewForPath() instead of route.meta.
+ *
+ * Route paths under /dev/ and /presentation/ are transparently handled:
+ * the prefix is stripped for timeline lookups and re-added for navigation.
  */
 import { useRoute, useRouter, useNuxtApp, navigateTo as nuxtNavigateTo } from '#imports'
 import useSmileStore from '../stores/smilestore'
@@ -27,14 +30,36 @@ export default function useTimeline() {
   const log = useLog()
 
   /**
+   * Detects the current route prefix ('/dev', '/presentation', or '').
+   * @returns {string} The prefix string
+   */
+  const _getRoutePrefix = () => {
+    const path = route.path
+    if (path.startsWith('/dev')) return '/dev'
+    if (path.startsWith('/presentation')) return '/presentation'
+    return ''
+  }
+
+  /**
+   * Strips /dev or /presentation prefix from a path to get the experiment path.
+   * @param {string} path - The full route path
+   * @returns {string} The experiment path without prefix
+   */
+  const _stripPrefix = (path) => {
+    return path.replace(/^\/(dev|presentation)/, '') || '/'
+  }
+
+  /**
    * Gets the timeline route config for the current path.
-   * Falls back to empty object if $timeline isn't available yet.
+   * Strips /dev or /presentation prefix before lookup.
+   * Falls back to null if $timeline isn't available yet.
    */
   const _getTimelineRoute = () => {
     const nuxtApp = useNuxtApp()
     const timeline = nuxtApp.$timeline
     if (!timeline) return null
-    return timeline.getViewForPath(route.path)
+    const experimentPath = _stripPrefix(route.path)
+    return timeline.getViewForPath(experimentPath)
   }
 
   /**
@@ -53,8 +78,9 @@ export default function useTimeline() {
     if (currentRoute.meta?.next) {
       const nextRoute = timeline.getRouteByName(currentRoute.meta.next)
       if (nextRoute) {
+        const prefix = _getRoutePrefix()
         return {
-          path: nextRoute.path,
+          path: prefix + nextRoute.path,
           query: route.query,
         }
       }
@@ -73,7 +99,8 @@ export default function useTimeline() {
       const timeline = nuxtApp.$timeline
       const nextRoute = timeline?.getRouteByName(config.meta.next)
       if (nextRoute) {
-        return { path: nextRoute.path, query: route.query }
+        const prefix = _getRoutePrefix()
+        return { path: prefix + nextRoute.path, query: route.query }
       }
     }
     return null
@@ -90,7 +117,8 @@ export default function useTimeline() {
       const timeline = nuxtApp.$timeline
       const prevRoute = timeline?.getRouteByName(config.meta.prev)
       if (prevRoute) {
-        return { path: prevRoute.path, query: route.query }
+        const prefix = _getRoutePrefix()
+        return { path: prefix + prevRoute.path, query: route.query }
       }
     }
     return null
@@ -107,7 +135,9 @@ export default function useTimeline() {
     const nuxtApp = useNuxtApp()
     const timeline = nuxtApp.$timeline
     const targetRoute = timeline?.getRouteByName(view)
-    const target = targetRoute ? targetRoute.path : `/${view}`
+    const basePath = targetRoute ? targetRoute.path : `/${view}`
+    const prefix = _getRoutePrefix()
+    const target = prefix + basePath
 
     if (force) {
       smilestore.browserEphemeral.forceNavigate = true

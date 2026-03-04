@@ -445,7 +445,17 @@ class Timeline {
   getViewForPath(path) {
     // Normalize path (strip trailing slash, etc.)
     const normalized = path === '' ? '/' : path.replace(/\/$/, '') || '/'
-    const match = this.routes.find((r) => r.path === normalized)
+
+    // First try exact match, then pattern match for parameterized routes (e.g., /welcome/:service)
+    let match = this.routes.find((r) => r.path === normalized)
+    if (!match) {
+      match = this.routes.find((r) => {
+        if (!r.path.includes(':')) return false
+        // Convert route pattern like /welcome/:service to regex /^\/welcome\/([^/]+)$/
+        const regex = new RegExp('^' + r.path.replace(/:[^/]+/g, '([^/]+)') + '$')
+        return regex.test(normalized)
+      })
+    }
     if (!match) return null
 
     // Handle redirect routes (e.g., landing → welcome_anonymous)

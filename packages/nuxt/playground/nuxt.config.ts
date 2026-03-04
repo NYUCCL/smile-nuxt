@@ -3,4 +3,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   compatibilityDate: 'latest',
   smile: {},
+  vite: {
+    envDir: '../../../env',
+  },
 })

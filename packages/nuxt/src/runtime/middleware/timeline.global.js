@@ -26,8 +26,8 @@ import { getQueryParams } from '../utils/utils'
  * @param {Object} deps.api - API-like object with methods guards need
  * @returns {undefined|Object} undefined = allow, navigateTo() result = redirect
  */
-export async function executeGuards(to, from, { timeline, store, log, api }) {
-  const result = await _runGuards(to, from, { timeline, store, log, api })
+export async function executeGuards(to, from, { timeline, store, log, api, skipBlockingGuards = false }) {
+  const result = await _runGuards(to, from, { timeline, store, log, api, skipBlockingGuards })
 
   // If navigation is allowed (result is undefined), run post-guard logic
   if (result === undefined) {
@@ -42,7 +42,7 @@ export async function executeGuards(to, from, { timeline, store, log, api }) {
 /**
  * Runs all 22 guards in order. Returns undefined to allow, or a navigateTo result to redirect.
  */
-async function _runGuards(to, from, { timeline, store, log, api }) {
+async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGuards = false }) {
   // --- Helper: resolve a route name to its path for navigateTo ---
   // Falls back to welcome_anonymous if the name isn't a valid timeline route
   // (prevents infinite redirect when lastRoute is e.g. 'recruit' which isn't in the timeline)
@@ -63,7 +63,11 @@ async function _runGuards(to, from, { timeline, store, log, api }) {
   // --- Guard 0: Unknown path (not in timeline at all) ---
   // Paths not registered in the timeline (e.g. /foo, /recruit) should redirect
   // to welcome for unknown users or lastRoute for known users.
+  // In dev/presentation mode, allow unknown paths (the dev page handles its own resolution).
   if (!toConfig) {
+    if (skipBlockingGuards) {
+      return // allow — dev/presentation pages handle their own route resolution
+    }
     log.warn('ROUTER GUARD: Path ' + to.path + ' is not in the timeline')
     if (store.isKnownUser) {
       const target = resolveNameToPath(store.lastRoute)
@@ -97,6 +101,12 @@ async function _runGuards(to, from, { timeline, store, log, api }) {
   // --- Guard 4: Reset app flag on target ---
   if (toMeta.resetApp) {
     api.resetApp()
+  }
+
+  // In dev/presentation mode, skip blocking guards (free navigation)
+  // but state-setting guards (1-4) and _postGuard still run.
+  if (skipBlockingGuards) {
+    return // allow — postGuard runs via executeGuards
   }
 
   // --- Guard 5: Dev mode pinned route ---
@@ -271,6 +281,8 @@ async function _runGuards(to, from, { timeline, store, log, api }) {
  * Runs only when navigation is allowed (guard returned undefined).
  */
 function _postGuard({ timeline, store, log, api, toName }) {
+  store.setLastRoute(toName)
+  store.recordRoute(toName)
   api.removeAutofill()
 
   if (store.browserPersisted.useSeed) {
@@ -303,7 +315,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     console.log(`[SMILE middleware] ${from.path} → ${to.path}`)
   }
 
-  // --- Dev/Presentation mode: prefix preservation + guard bypass ---
+  // --- Dev/Presentation mode: prefix preservation ---
   // If FROM a prefixed route TO a non-prefixed route, redirect to preserve prefix.
   // This catches goNextView() navigations that use unprefixed paths like '/consent'.
   if (from.path.startsWith('/dev') && !to.path.startsWith('/dev')) {
@@ -312,10 +324,8 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   if (from.path.startsWith('/presentation') && !to.path.startsWith('/presentation')) {
     return navigateTo('/presentation' + to.path, { replace: true })
   }
-  // If TO a prefixed route, skip all experiment guards (free navigation in dev/presentation)
-  if (to.path.startsWith('/dev') || to.path.startsWith('/presentation')) {
-    return
-  }
+
+  const isDevOrPresentation = to.path.startsWith('/dev') || to.path.startsWith('/presentation')
 
   const store = useSmileStore()
   const log = useLog()
@@ -332,7 +342,11 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       }
       store.resetLocal()
       if (typeof window !== 'undefined') {
-        window.location.href = window.location.origin + window.location.pathname
+        const path = window.location.pathname
+        let targetPath = '/'
+        if (path.startsWith('/dev')) targetPath = '/dev/'
+        else if (path.startsWith('/presentation')) targetPath = '/presentation/'
+        window.location.href = window.location.origin + targetPath
       }
     },
     completeConsent: async () => {
@@ -357,6 +371,16 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     randomSeed: () => {
       seedrandom(uuidv4(), { global: true })
     },
+  }
+
+  // For dev/presentation routes: run state-setting guards and post-guard,
+  // but skip blocking guards (free navigation in dev/presentation mode).
+  // Strip the prefix so timeline route lookup works.
+  if (isDevOrPresentation) {
+    const stripPrefix = (p) => p.replace(/^\/(dev|presentation)/, '') || '/'
+    const strippedTo = { ...to, path: stripPrefix(to.path) }
+    const strippedFrom = { ...from, path: stripPrefix(from.path) }
+    return executeGuards(strippedTo, strippedFrom, { timeline, store, log, api, skipBlockingGuards: true })
   }
 
   return executeGuards(to, from, { timeline, store, log, api })

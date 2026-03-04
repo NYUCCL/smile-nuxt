@@ -22,6 +22,10 @@ export default defineNuxtModule<ModuleOptions>({
     // Transpile runtime directory so .js files are processed
     _nuxt.options.build.transpile.push(runtimeDir)
 
+    // Alias for dev components — layouts are copied into .nuxt/ so relative imports break;
+    // this alias lets layouts import dev components via '#smile-dev/...'
+    _nuxt.options.alias['#smile-dev'] = resolver.resolve('./runtime/components/dev')
+
     // Register Tailwind CSS via Vite plugin
     _nuxt.options.vite.plugins = _nuxt.options.vite.plugins || []
     _nuxt.options.vite.plugins.push(tailwindcss())
@@ -86,6 +90,8 @@ export default defineNuxtModule<ModuleOptions>({
       { name: 'setColorMode', from: resolver.resolve('./runtime/composables/useColorMode') },
       { name: 'default', as: 'Timeline', from: resolver.resolve('./runtime/core/timeline/Timeline') },
       { name: 'cn', from: resolver.resolve('./runtime/lib/utils') },
+      { name: 'default', as: 'useSmileStore', from: resolver.resolve('./runtime/stores/smilestore') },
+      { name: 'default', as: 'useLog', from: resolver.resolve('./runtime/stores/log') },
     ])
   },
 })

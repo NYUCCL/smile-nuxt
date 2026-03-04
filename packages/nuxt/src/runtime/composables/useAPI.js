@@ -16,7 +16,7 @@
  */
 
 import { reactive } from 'vue'
-import { useRoute, useRouter, useRuntimeConfig, navigateTo } from '#imports'
+import { useRoute, useRouter, useRuntimeConfig, useNuxtApp, navigateTo } from '#imports'
 import useSmileStore from '../stores/smilestore'
 import useLog from '../stores/log'
 import useTimeline from './useTimeline'
@@ -321,7 +321,13 @@ export class SmileAPI {
     }
     this.store.resetLocal()
     if (typeof window !== 'undefined') {
-      window.location.href = window.location.origin + window.location.pathname
+      // Navigate to the appropriate root based on current path prefix
+      // (dev/presentation routes bypass guards, so we must explicitly go to root)
+      const path = window.location.pathname
+      let targetPath = '/'
+      if (path.startsWith('/dev')) targetPath = '/dev/'
+      else if (path.startsWith('/presentation')) targetPath = '/presentation/'
+      window.location.href = window.location.origin + targetPath
     }
   }
 
@@ -580,7 +586,7 @@ export class SmileAPI {
    * api.recordPageData([1, 2, 3]) // Error: use { items: [1, 2, 3] } instead
    */
   recordPageData(data, routeName = null) {
-    const pageName = routeName || this.route.name
+    const pageName = routeName || this.currentRouteName()
     if (!pageName) {
       this.logStore.error('SMILE API: recordPageData() - No route name available')
       return false
@@ -760,11 +766,18 @@ export class SmileAPI {
 
   // routes
   /**
-   * Gets the name of the current route
-   * @returns {string} The current route name
+   * Gets the name of the current route from the timeline.
+   * In Nuxt, Vue Router route names are catch-all names (e.g. 'dev-slug'),
+   * so we resolve the actual timeline route name from the path.
+   * @returns {string|undefined} The current timeline route name
    */
   currentRouteName() {
-    return this.route.name
+    // Dev root shows RecruitmentChooserView, not the landing redirect
+    if (this.route.path === '/dev' || this.route.path === '/dev/') {
+      return 'recruit'
+    }
+    const viewConfig = this._resolveTimelineRoute()
+    return viewConfig?.name
   }
 
   // routes
@@ -777,11 +790,31 @@ export class SmileAPI {
   }
 
   /**
-   * Gets the name of the current view
-   * @returns {string} The current view name
+   * Gets the name of the current view from the timeline.
+   * @returns {string|undefined} The current view name
    */
   currentViewName() {
-    return this.route.name
+    return this.currentRouteName()
+  }
+
+  /**
+   * Resolves the timeline route for the current path by stripping
+   * any /dev/ or /presentation/ prefix and looking up in $timeline.
+   * @returns {Object|null} The timeline route config
+   * @private
+   */
+  _resolveTimelineRoute() {
+    if (typeof window === 'undefined') return null
+    try {
+      const nuxtApp = useNuxtApp()
+      const timeline = nuxtApp?.$timeline
+      if (!timeline) return null
+      // Strip /dev or /presentation prefix to get the experiment path
+      const path = this.route.path.replace(/^\/(dev|presentation)/, '') || '/'
+      return timeline.getViewForPath(path)
+    } catch {
+      return null
+    }
   }
 
   /**

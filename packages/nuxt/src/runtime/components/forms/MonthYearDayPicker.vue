@@ -3,17 +3,7 @@ import { CalendarRoot, useForwardPropsEmits, useDateFormatter } from 'reka-ui'
 import { createDecade, createYear, toDate } from 'reka-ui/date'
 import { getLocalTimeZone, today, CalendarDate } from '@internationalized/date'
 import { computed, ref, watch } from 'vue'
-import {
-  CalendarCell,
-  CalendarCellTrigger,
-  CalendarGrid,
-  CalendarGridBody,
-  CalendarGridHead,
-  CalendarGridRow,
-  CalendarHeadCell,
-  CalendarHeader,
-  CalendarHeading,
-} from '@/uikit/components/ui/calendar'
+// Calendar components (CalendarCell, CalendarCellTrigger, etc.) are auto-imported
 
 const props = defineProps({
   defaultValue: { type: null, required: false },
