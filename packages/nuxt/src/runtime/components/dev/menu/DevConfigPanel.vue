@@ -90,7 +90,10 @@ const toggleRotation = () => {
  * @returns {void}
  */
 function resetDevState() {
-  localStorage.removeItem(api.config.devLocalStorageKey) // delete the local store
+  localStorage.removeItem(api.config.devLocalStorageKey) // delete the local store (legacy)
+  // Reset cookie-backed dev state to defaults
+  const defaults = { viewProvidesAutofill: null, viewProvidesStepper: false, showConsoleBar: false, showSideBar: false, pinnedRoute: null, mainView: 'devmode', consoleBarHeight: 300, consoleBarTab: 'browse', sideBarTab: 'steps', searchParams: '', logFilter: 'All', notificationFilter: 'Errors only', lastViewLimit: false, dataPath: null, configPath: null, selectedDevice: 'desktop2', deviceWidth: 1024, deviceHeight: 768, isRotated: false, isFullscreen: false, routePanelVisible: false, globalColorMode: 'auto', experimentColorMode: 'auto' }
+  Object.assign(api.store.dev, defaults)
   location.reload()
 }
 </script>
@@ -126,7 +129,7 @@ function resetDevState() {
       <div class="grid grid-cols-3 items-center gap-4">
         <Label for="sidebarTab">Sidebar Tab</Label>
         <div class="col-span-2">
-          <Select v-model="api.store.dev.sidebarTab">
+          <Select v-model="api.store.dev.sideBarTab">
             <SelectTrigger>
               <SelectValue placeholder="Select tab" />
             </SelectTrigger>

@@ -95,7 +95,7 @@ function submitForm(event) {
   formError.value = ''
 
   // Save to store
-  api.store.browserPersisted.completionCode = completionCode.value
+  api.store.cookieState.completionCode = completionCode.value
 
   api.log.debug('submitting to AMT')
 

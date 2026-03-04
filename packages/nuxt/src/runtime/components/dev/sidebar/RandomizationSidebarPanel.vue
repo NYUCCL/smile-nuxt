@@ -105,8 +105,8 @@ const getBranchType = (index, total) => {
               <Tooltip>
                 <TooltipTrigger>
                   <Switch
-                    :model-value="smilestore.browserPersisted.useSeed"
-                    @update:model-value="smilestore.browserPersisted.useSeed = $event"
+                    :model-value="smilestore.localState.useSeed"
+                    @update:model-value="smilestore.localState.useSeed = $event"
                   />
                 </TooltipTrigger>
                 <TooltipContent>
@@ -121,12 +121,12 @@ const getBranchType = (index, total) => {
                 v-model="seed"
                 type="text"
                 placeholder="Current seed"
-                :class="{ 'opacity-50 pointer-events-none': !smilestore.browserPersisted.useSeed }"
+                :class="{ 'opacity-50 pointer-events-none': !smilestore.localState.useSeed }"
               />
             </div>
             <Button
               @click="set_seed"
-              :disabled="!smilestore.browserPersisted.useSeed"
+              :disabled="!smilestore.localState.useSeed"
               size="sm"
               variant="outline"
               class="font-mono text-xs"
@@ -141,8 +141,8 @@ const getBranchType = (index, total) => {
       <div
         class="subsection"
         v-if="
-          smilestore.browserPersisted.possibleConditions &&
-          Object.keys(smilestore.browserPersisted.possibleConditions).length > 0
+          smilestore.localState.possibleConditions &&
+          Object.keys(smilestore.localState.possibleConditions).length > 0
         "
       >
         <!-- Random variables header -->
@@ -162,10 +162,10 @@ const getBranchType = (index, total) => {
           <!-- Variables list -->
           <div class="relative m-0 p-0 pt-1.5 mb-3 mt-2">
             <ul class="list-none p-0 m-0 text-left ml-1.5 pb-2">
-              <template v-for="(value, key, index) in smilestore.browserPersisted.possibleConditions" :key="key">
+              <template v-for="(value, key, index) in smilestore.localState.possibleConditions" :key="key">
                 <li class="flex items-center mb-0 ml-0.5 mt-1">
                   <span class="font-mono text-sm text-gray-500 whitespace-pre mr-0">{{
-                    getBranchType(index, Object.keys(smilestore.browserPersisted.possibleConditions).length)
+                    getBranchType(index, Object.keys(smilestore.localState.possibleConditions).length)
                   }}</span>
                   <Select :model-value="selected[key]" @update:model-value="(val) => changeCond(key, val)">
                     <SelectTrigger class="h-7 text-[0.65rem] py-1 px-3 font-mono">

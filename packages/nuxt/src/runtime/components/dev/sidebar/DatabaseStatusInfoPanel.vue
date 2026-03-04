@@ -19,7 +19,7 @@ var timer = ref(null)
  */
 const firebase_url = computed(() => {
   const mode = api.config.mode == 'development' ? 'testing' : 'real'
-  return `https://console.firebase.google.com/u/0/project/${api.config.firebaseConfig.projectId}/firestore/data/~2F${mode}~2F${api.config.projectRef}~2Fdata~2F${api.store.browserPersisted.docRef}`
+  return `https://console.firebase.google.com/u/0/project/${api.config.firebaseConfig.projectId}/firestore/data/~2F${mode}~2F${api.config.projectRef}~2Fdata~2F${api.store.cookieState.docRef}`
 })
 
 /**
@@ -60,7 +60,7 @@ const startTimer = () => {
     if (!api.store.browserEphemeral.dbConnected) {
       last_write_time_string.value = `Never happened`
     } else {
-      var time = ((Date.now() - api.store.browserPersisted.lastWrite) / 1000).toFixed(1)
+      var time = ((Date.now() - api.store.localState.lastWrite) / 1000).toFixed(1)
       if (time < 60) {
         last_write_time_string.value = `${time} secs ago`
       } else if (time < 180) {
@@ -100,7 +100,7 @@ const showServiceSelect = ref(false)
       <tr class="table-row-base table-row-even hidden sm:table-row">
         <td class="table-cell-base table-cell-left table-cell-small"><b>Last route:</b></td>
         <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
-          {{ '/' + api.store.browserPersisted.lastRoute }}
+          {{ '/' + api.store.cookieState.lastRoute }}
         </td>
       </tr>
       <!-- Mode row -->
@@ -121,8 +121,8 @@ const showServiceSelect = ref(false)
       <tr class="table-row-base table-row-odd">
         <td class="table-cell-base table-cell-left table-cell-small"><b>DocRef:</b></td>
         <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
-          {{ api.store.browserPersisted.docRef }}&nbsp;&nbsp;<a
-            v-if="api.store.browserPersisted.docRef"
+          {{ api.store.cookieState.docRef }}&nbsp;&nbsp;<a
+            v-if="api.store.cookieState.docRef"
             @click.prevent="open_firebase_console(firebase_url)"
             ><i-fa6-solid-square-up-right
           /></a>
@@ -132,7 +132,7 @@ const showServiceSelect = ref(false)
       <tr class="table-row-base table-row-even hidden sm:table-row">
         <td class="table-cell-base table-cell-left table-cell-small"><b>Writes:</b></td>
         <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
-          {{ api.store.browserPersisted.totalWrites }} out of {{ api.config.maxWrites }} max
+          {{ api.store.localState.totalWrites }} out of {{ api.config.maxWrites }} max
         </td>
       </tr>
       <!-- Last write row -->
@@ -153,8 +153,8 @@ const showServiceSelect = ref(false)
       <tr class="table-row-base table-row-odd hidden sm:table-row table-border-bottom">
         <td class="table-cell-base table-cell-left table-cell-small"><b>Size:</b></td>
         <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
-          {{ api.store.browserPersisted.approxDataSize }} / 1,048,576 max ({{
-            Math.round((api.store.browserPersisted.approxDataSize / 1048576) * 1000) / 1000
+          {{ api.store.localState.approxDataSize }} / 1,048,576 max ({{
+            Math.round((api.store.localState.approxDataSize / 1048576) * 1000) / 1000
           }}%)
         </td>
       </tr>

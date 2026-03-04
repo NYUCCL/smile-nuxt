@@ -56,25 +56,25 @@ const colorModeDisplayText = computed(() => {
               <div class="flex flex-col items-center">
                 <span>Consent</span>
                 <div class="field">
-                  <Switch v-model="api.store.browserPersisted.consented" class="mt-1" />
+                  <Switch v-model="api.store.cookieState.consented" class="mt-1" />
                 </div>
               </div>
               <div class="flex flex-col items-center">
                 <span>Known</span>
                 <div class="field">
-                  <Switch v-model="api.store.browserPersisted.knownUser" class="mt-1" />
+                  <Switch v-model="api.store.cookieState.knownUser" class="mt-1" />
                 </div>
               </div>
               <div class="flex flex-col items-center">
                 <span>Done</span>
                 <div class="field">
-                  <Switch v-model="api.store.browserPersisted.done" class="mt-1" />
+                  <Switch v-model="api.store.cookieState.done" class="mt-1" />
                 </div>
               </div>
               <div class="flex flex-col items-center">
                 <span>Withdrew</span>
                 <div class="field">
-                  <Switch v-model="api.store.browserPersisted.withdrawn" class="mt-1" />
+                  <Switch v-model="api.store.cookieState.withdrawn" class="mt-1" />
                 </div>
               </div>
               <div class="flex flex-col items-center">

@@ -54,7 +54,7 @@ function createTestTimeline() {
       setRandomizedRoute: vi.fn(),
       registerStepper: vi.fn(),
       config: { mode: 'production' },
-      browserPersisted: { seqtimeline: [], routes: [] },
+      localState: { seqtimeline: [], routes: [] },
     },
     sampleWithReplacement: vi.fn((options) => [options[0]]),
     getConditionByName: vi.fn(),
@@ -153,17 +153,33 @@ function createMockStore(overrides = {}) {
   return {
     config: { mode: 'production', localStorageKey: 'test_storage', autoSave: false },
     dev: { pinnedRoute: null, viewProvidesStepper: false },
-    browserPersisted: {
+    cookieState: {
       knownUser: false,
       lastRoute: 'landing',
       consented: false,
       withdrawn: false,
       done: false,
-      reset: false,
-      useSeed: false,
       seedID: '',
       seedSet: false,
-      ...overrides.browserPersisted,
+      docRef: null,
+      completionCode: null,
+      ...overrides.cookieState,
+    },
+    localState: {
+      reset: false,
+      useSeed: false,
+      verifiedVisibility: false,
+      privateDocRef: null,
+      totalWrites: 0,
+      lastWrite: null,
+      approxDataSize: 0,
+      viewSteppers: {},
+      possibleConditions: {},
+      seqtimeline: [],
+      routes: [],
+      conditions: {},
+      randomizedRoutes: {},
+      ...overrides.localState,
     },
     browserEphemeral: {
       currentViewDone: false,
@@ -171,52 +187,57 @@ function createMockStore(overrides = {}) {
       dbConnected: false,
       ...overrides.browserEphemeral,
     },
+    // Compatibility getter (matches the real store)
+    get browserPersisted() {
+      return { ...this.localState, ...this.cookieState }
+    },
     // Getters (computed-like)
     get isKnownUser() {
-      return this.browserPersisted.knownUser
+      return this.cookieState.knownUser
     },
     get isConsented() {
-      return this.browserPersisted.consented
+      return this.cookieState.consented
     },
     get isWithdrawn() {
-      return this.browserPersisted.withdrawn
+      return this.cookieState.withdrawn
     },
     get isDone() {
-      return this.browserPersisted.done
+      return this.cookieState.done
     },
     get lastRoute() {
-      return this.browserPersisted.lastRoute
+      return this.cookieState.lastRoute
     },
     get isDBConnected() {
       return this.browserEphemeral.dbConnected
     },
     get getSeedID() {
-      return this.browserPersisted.seedID
+      return this.cookieState.seedID
     },
     // Actions
     setLastRoute: vi.fn(function (route) {
-      this.browserPersisted.lastRoute = route
+      this.cookieState.lastRoute = route
     }),
     recordRoute: vi.fn(),
     setConsented: vi.fn(function () {
-      this.browserPersisted.consented = true
+      this.cookieState.consented = true
     }),
     setDone: vi.fn(function () {
-      this.browserPersisted.done = true
+      this.cookieState.done = true
     }),
     resetApp: vi.fn(function () {
-      this.browserPersisted.reset = true
+      this.localState.reset = true
     }),
     setKnown: vi.fn(async function () {
-      this.browserPersisted.knownUser = true
+      this.cookieState.knownUser = true
     }),
     setWithdrawn: vi.fn(function () {
-      this.browserPersisted.withdrawn = true
+      this.cookieState.withdrawn = true
     }),
     loadData: vi.fn(async function () {
       this.browserEphemeral.dbConnected = true
     }),
     removeAutofill: vi.fn(),
+    clearSmileCookies: vi.fn(),
     resetLocal: vi.fn(),
     ...overrides,
   }
@@ -241,18 +262,18 @@ function createMockLog() {
  */
 function createMockApi(store) {
   return {
-    isResetApp: vi.fn(() => store.browserPersisted.reset),
+    isResetApp: vi.fn(() => store.localState.reset),
     resetLocalState: vi.fn(),
     completeConsent: vi.fn(async () => {
       store.setConsented()
-      if (!store.browserPersisted.knownUser) {
+      if (!store.cookieState.knownUser) {
         await store.setKnown()
       }
     }),
     setDone: vi.fn(() => store.setDone()),
     resetApp: vi.fn(() => store.resetApp()),
     connectDB: vi.fn(async () => {
-      if (!store.browserPersisted.knownUser) {
+      if (!store.cookieState.knownUser) {
         await store.setKnown()
         store.setConsented()
       }
@@ -302,7 +323,7 @@ describe('Timeline middleware guards', () => {
     })
 
     it('should redirect unknown users trying to access non-welcome routes', async () => {
-      store.browserPersisted.lastRoute = 'welcome_anonymous'
+      store.cookieState.lastRoute = 'welcome_anonymous'
       const result = await executeGuards(
         mockRoute('/demograph'),
         mockRoute('/welcome'),
@@ -327,9 +348,9 @@ describe('Timeline middleware guards', () => {
   describe('Consent gating', () => {
     it('should call completeConsent when leaving a setConsented route', async () => {
       // Navigate from consent to demograph
-      store.browserPersisted.knownUser = true
-      store.browserPersisted.consented = true
-      store.browserPersisted.lastRoute = 'demograph'
+      store.cookieState.knownUser = true
+      store.cookieState.consented = true
+      store.cookieState.lastRoute = 'demograph'
       store.browserEphemeral.currentViewDone = true
 
       await executeGuards(
@@ -341,8 +362,8 @@ describe('Timeline middleware guards', () => {
     })
 
     it('should block unconsented users from routes requiring consent', async () => {
-      store.browserPersisted.lastRoute = 'welcome_anonymous'
-      store.browserPersisted.consented = false
+      store.cookieState.lastRoute = 'welcome_anonymous'
+      store.cookieState.consented = false
       store.browserEphemeral.forceNavigate = true
 
       // First, force navigate to consent to set lastRoute
@@ -354,7 +375,7 @@ describe('Timeline middleware guards', () => {
 
       // Now try to go to task without consenting (not forced)
       store.browserEphemeral.forceNavigate = false
-      store.browserPersisted.lastRoute = 'consent'
+      store.cookieState.lastRoute = 'consent'
 
       const result = await executeGuards(
         mockRoute('/demograph'),
@@ -369,9 +390,9 @@ describe('Timeline middleware guards', () => {
 
   describe('Done gating', () => {
     it('should call setDone when leaving a setDone route', async () => {
-      store.browserPersisted.knownUser = true
-      store.browserPersisted.consented = true
-      store.browserPersisted.lastRoute = 'thanks'
+      store.cookieState.knownUser = true
+      store.cookieState.consented = true
+      store.cookieState.lastRoute = 'thanks'
       store.browserEphemeral.currentViewDone = true
 
       await executeGuards(
@@ -383,10 +404,10 @@ describe('Timeline middleware guards', () => {
     })
 
     it('should block navigation to requiresDone routes when not done', async () => {
-      store.browserPersisted.knownUser = true
-      store.browserPersisted.consented = true
-      store.browserPersisted.done = false
-      store.browserPersisted.lastRoute = 'feedback'
+      store.cookieState.knownUser = true
+      store.cookieState.consented = true
+      store.cookieState.done = false
+      store.cookieState.lastRoute = 'feedback'
 
       const result = await executeGuards(
         mockRoute('/thanks'),
@@ -400,10 +421,10 @@ describe('Timeline middleware guards', () => {
 
   describe('Reset app', () => {
     it('should call resetApp when navigating to a resetApp route', async () => {
-      store.browserPersisted.knownUser = true
-      store.browserPersisted.consented = true
-      store.browserPersisted.done = true
-      store.browserPersisted.lastRoute = 'thanks'
+      store.cookieState.knownUser = true
+      store.cookieState.consented = true
+      store.cookieState.done = true
+      store.cookieState.lastRoute = 'thanks'
       store.browserEphemeral.currentViewDone = true
 
       await executeGuards(
@@ -415,10 +436,10 @@ describe('Timeline middleware guards', () => {
     })
 
     it('should NOT call resetApp when navigating to thanks2 (resetApp=false)', async () => {
-      store.browserPersisted.knownUser = true
-      store.browserPersisted.consented = true
-      store.browserPersisted.done = true
-      store.browserPersisted.lastRoute = 'thanks2'
+      store.cookieState.knownUser = true
+      store.cookieState.consented = true
+      store.cookieState.done = true
+      store.cookieState.lastRoute = 'thanks2'
       store.browserEphemeral.currentViewDone = true
 
       await executeGuards(
@@ -432,7 +453,7 @@ describe('Timeline middleware guards', () => {
 
   describe('Withdrawn state', () => {
     it('should redirect withdrawn users to withdraw page', async () => {
-      store.browserPersisted.withdrawn = true
+      store.cookieState.withdrawn = true
 
       const result = await executeGuards(
         mockRoute('/demograph'),
@@ -444,7 +465,7 @@ describe('Timeline middleware guards', () => {
     })
 
     it('should allow withdrawn users to access the withdraw page', async () => {
-      store.browserPersisted.withdrawn = true
+      store.cookieState.withdrawn = true
 
       const result = await executeGuards(
         mockRoute('/withdraw'),
@@ -494,7 +515,7 @@ describe('Timeline middleware guards', () => {
   describe('Sequential navigation', () => {
     it('should allow going to next route when currentViewDone is true', async () => {
       // welcome_anonymous → consent (next in sequence)
-      store.browserPersisted.lastRoute = 'welcome_anonymous'
+      store.cookieState.lastRoute = 'welcome_anonymous'
       store.browserEphemeral.currentViewDone = true
 
       const result = await executeGuards(
@@ -507,7 +528,7 @@ describe('Timeline middleware guards', () => {
 
     it('should block going to next route when currentViewDone is false', async () => {
       // welcome_anonymous → consent but not done
-      store.browserPersisted.lastRoute = 'welcome_anonymous'
+      store.cookieState.lastRoute = 'welcome_anonymous'
       store.browserEphemeral.currentViewDone = false
 
       const result = await executeGuards(
@@ -520,9 +541,9 @@ describe('Timeline middleware guards', () => {
     })
 
     it('should allow navigating to the same route as lastRoute', async () => {
-      store.browserPersisted.knownUser = true
-      store.browserPersisted.consented = true
-      store.browserPersisted.lastRoute = 'demograph'
+      store.cookieState.knownUser = true
+      store.cookieState.consented = true
+      store.cookieState.lastRoute = 'demograph'
 
       const result = await executeGuards(
         mockRoute('/demograph'),
@@ -535,9 +556,9 @@ describe('Timeline middleware guards', () => {
 
   describe('Known user guards', () => {
     it('should allow known user to navigate to their lastRoute', async () => {
-      store.browserPersisted.knownUser = true
-      store.browserPersisted.consented = true
-      store.browserPersisted.lastRoute = 'demograph'
+      store.cookieState.knownUser = true
+      store.cookieState.consented = true
+      store.cookieState.lastRoute = 'demograph'
 
       const result = await executeGuards(
         mockRoute('/demograph'),
@@ -548,9 +569,9 @@ describe('Timeline middleware guards', () => {
     })
 
     it('should redirect known users trying to access unauthorized routes', async () => {
-      store.browserPersisted.knownUser = true
-      store.browserPersisted.consented = true
-      store.browserPersisted.lastRoute = 'demograph'
+      store.cookieState.knownUser = true
+      store.cookieState.consented = true
+      store.cookieState.lastRoute = 'demograph'
 
       // Try to jump to instructions (not the next route from demograph in the guard check)
       const result = await executeGuards(
@@ -598,7 +619,7 @@ describe('Timeline middleware guards', () => {
 
     it('should NOT run post-guard when navigation is redirected', async () => {
       // Unknown user trying to go to /demograph — should redirect, not run post-guard
-      store.browserPersisted.lastRoute = 'welcome_anonymous'
+      store.cookieState.lastRoute = 'welcome_anonymous'
       store.browserEphemeral.currentViewDone = true
 
       const result = await executeGuards(
@@ -697,9 +718,9 @@ describe('Timeline middleware guards', () => {
     })
 
     it('should redirect known users at unknown paths to lastRoute', async () => {
-      store.browserPersisted.knownUser = true
-      store.browserPersisted.consented = true
-      store.browserPersisted.lastRoute = 'demograph'
+      store.cookieState.knownUser = true
+      store.cookieState.consented = true
+      store.cookieState.lastRoute = 'demograph'
 
       const result = await executeGuards(
         mockRoute('/nonexistent'),
@@ -713,7 +734,7 @@ describe('Timeline middleware guards', () => {
     it('should redirect to welcome when lastRoute is not a valid timeline route', async () => {
       // This is the infinite redirect scenario: lastRoute='recruit' but recruit
       // is not in the timeline. resolveNameToPath should fall back to welcome.
-      store.browserPersisted.lastRoute = 'recruit'
+      store.cookieState.lastRoute = 'recruit'
 
       const result = await executeGuards(
         mockRoute('/recruit'),
@@ -728,7 +749,7 @@ describe('Timeline middleware guards', () => {
   describe('skipBlockingGuards (dev/presentation mode)', () => {
     it('should allow navigation to any route when skipBlockingGuards is true', async () => {
       // Unknown, unconsented user trying to jump to instructions — normally blocked
-      store.browserPersisted.lastRoute = 'welcome_anonymous'
+      store.cookieState.lastRoute = 'welcome_anonymous'
       const result = await executeGuards(
         mockRoute('/instructions'),
         mockRoute('/welcome'),
@@ -738,9 +759,9 @@ describe('Timeline middleware guards', () => {
     })
 
     it('should still run state-setting guards (completeConsent) with skipBlockingGuards', async () => {
-      store.browserPersisted.knownUser = true
-      store.browserPersisted.consented = true
-      store.browserPersisted.lastRoute = 'demograph'
+      store.cookieState.knownUser = true
+      store.cookieState.consented = true
+      store.cookieState.lastRoute = 'demograph'
       store.browserEphemeral.currentViewDone = true
 
       await executeGuards(
@@ -752,10 +773,10 @@ describe('Timeline middleware guards', () => {
     })
 
     it('should still run state-setting guards (setDone) with skipBlockingGuards', async () => {
-      store.browserPersisted.knownUser = true
-      store.browserPersisted.consented = true
-      store.browserPersisted.done = true
-      store.browserPersisted.lastRoute = 'thanks'
+      store.cookieState.knownUser = true
+      store.cookieState.consented = true
+      store.cookieState.done = true
+      store.cookieState.lastRoute = 'thanks'
       store.browserEphemeral.currentViewDone = true
 
       await executeGuards(
@@ -814,7 +835,7 @@ describe('Timeline middleware guards', () => {
           setRandomizedRoute: vi.fn(),
           registerStepper: vi.fn(),
           config: { mode: 'production' },
-          browserPersisted: { seqtimeline: [], routes: [] },
+          localState: { seqtimeline: [], routes: [] },
         },
         sampleWithReplacement: vi.fn((options) => [options[0]]),
         getConditionByName: vi.fn(),

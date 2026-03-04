@@ -189,7 +189,7 @@ onKeyDown((e) => {
 onKeyDown((e) => {
   if (e.ctrlKey && e.key === 'd') {
     e.preventDefault()
-    if (!api.store.browserPersisted.knownUser) {
+    if (!api.store.cookieState.knownUser) {
       api.setKnown()
       api.setConsented()
       showTemporaryNotification('Ctrl + D', 'Connected to Database')

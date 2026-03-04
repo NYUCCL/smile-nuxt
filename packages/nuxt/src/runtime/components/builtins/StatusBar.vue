@@ -79,7 +79,7 @@ function submitWithdraw() {
       <div class="flex justify-end ml-auto items-stretch">
         <div class="flex items-center pt-1" v-if="!api.config.anonymousMode">
           <div class="flex gap-2">
-            <Button variant="outline" size="xs" v-if="api.store.browserPersisted.consented" @click="toggleConsent()">
+            <Button variant="outline" size="xs" v-if="api.store.cookieState.consented" @click="toggleConsent()">
               <i-fa6-solid-magnifying-glass />
               <span class="@[400px]:inline hidden">View consent</span>
             </Button>
@@ -87,9 +87,9 @@ function submitWithdraw() {
               variant="danger-light"
               size="xs"
               v-if="
-                api.store.browserPersisted.consented &&
-                !api.store.browserPersisted.withdrawn &&
-                !api.store.browserPersisted.done
+                api.store.cookieState.consented &&
+                !api.store.cookieState.withdrawn &&
+                !api.store.cookieState.done
               "
               @click="toggleWithdraw()"
             >

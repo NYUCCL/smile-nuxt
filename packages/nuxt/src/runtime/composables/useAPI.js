@@ -78,7 +78,7 @@ export class SmileAPI {
     this.private = store.private
     this.all_data = { private: store.private, data: store.data }
     this.all_config = {
-      browserPersisted: store.browserPersisted,
+      browserPersisted: store.browserPersisted, // compatibility getter (read-only merge of both tiers)
       dev: store.dev,
       code: store.config.github,
       config: store.config,
@@ -302,7 +302,7 @@ export class SmileAPI {
    * Check if the application is in reset state
    * @returns {boolean} True if app is reset, false otherwise
    */
-  isResetApp = () => this.store.browserPersisted.reset
+  isResetApp = () => this.store.localState.reset
 
   /**
    * Reset just the store state
@@ -316,13 +316,21 @@ export class SmileAPI {
    * @returns {void}
    */
   resetLocalState() {
+    // Clear all persistence, then hard-navigate to reload with a clean slate.
+    // We do NOT call store.resetLocal() / $reset() because that would trigger
+    // the store-sync watchers which re-write default values back to cookies
+    // and localStorage, undoing our cleanup.
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem(this.config.localStorageKey)
     }
-    this.store.resetLocal()
+    if (typeof document !== 'undefined') {
+      const prefix = `smile_${this.config.codeName}_`
+      const cookieKeys = ['knownUser', 'lastRoute', 'docRef', 'completionCode', 'consented', 'withdrawn', 'done', 'seedID', 'seedSet']
+      cookieKeys.forEach((key) => {
+        document.cookie = `${prefix}${key}=; path=/; max-age=0; SameSite=Lax`
+      })
+    }
     if (typeof window !== 'undefined') {
-      // Navigate to the appropriate root based on current path prefix
-      // (dev/presentation routes bypass guards, so we must explicitly go to root)
       const path = window.location.pathname
       let targetPath = '/'
       if (path.startsWith('/dev')) targetPath = '/dev/'
@@ -438,7 +446,7 @@ export class SmileAPI {
    * @returns {Promise<void>} A promise that resolves when the database connection is established
    */
   async connectDB() {
-    if (!this.store.browserPersisted.knownUser) {
+    if (!this.store.cookieState.knownUser) {
       await this.store.setKnown()
       this.store.setConsented()
     }
@@ -659,7 +667,7 @@ export class SmileAPI {
     if (
       this.store.config.windowsizerAggressive === true &&
       this.store.data.verifiedVisibility === true &&
-      !this.store.browserPersisted.withdrawn
+      !this.store.cookieState.withdrawn
     ) {
       val =
         width < this.store.config.windowsizerRequest.width + 10 ||
@@ -731,9 +739,9 @@ export class SmileAPI {
       completed: 'oo',
     }
     let endCode = ''
-    if (this.store.browserPersisted.withdrawn) {
+    if (this.store.cookieState.withdrawn) {
       endCode = codes['withdrew']
-    } else if (this.store.browserPersisted.done) {
+    } else if (this.store.cookieState.done) {
       endCode = codes['completed']
     }
     return hashDigest.slice(0, 20) + endCode
@@ -901,7 +909,7 @@ export class SmileAPI {
     }
 
     const possibleConditions = conditionObject[name]
-    this.store.browserPersisted.possibleConditions[name] = possibleConditions
+    this.store.localState.possibleConditions[name] = possibleConditions
 
     const hasWeights = keys.includes('weights')
     const weights = hasWeights ? conditionObject.weights : undefined
@@ -969,7 +977,7 @@ export class SmileAPI {
    */
   async completeConsent() {
     this.setConsented()
-    if (!this.store.browserPersisted.knownUser) {
+    if (!this.store.cookieState.knownUser) {
       await this.setKnown()
     }
   }

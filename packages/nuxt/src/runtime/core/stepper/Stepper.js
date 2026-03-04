@@ -571,7 +571,7 @@ export class Stepper extends StepState {
     }
 
     // Also update the store for consistency
-    this._store.browserPersisted.viewSteppers[targetPage] = stepperData
+    this._store.localState.viewSteppers[targetPage] = stepperData
 
     return true
   }

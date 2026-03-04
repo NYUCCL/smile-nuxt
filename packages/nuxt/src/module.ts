@@ -39,7 +39,14 @@ export default defineNuxtModule<ModuleOptions>({
     // Add global CSS (Tailwind theme + SMILE styles)
     _nuxt.options.css.push(resolver.resolve('./runtime/css/main.css'))
 
-    // Register timeline plugin (client-only — requires browser APIs and Pinia)
+    // Client-only plugins — order matters:
+    // 1. store-sync: patches localState from localStorage, sets up cookie/localStorage watchers
+    addPlugin(resolver.resolve('./runtime/plugins/store-sync.client'))
+    // 2. seed: initializes global random seed (needs patched localState)
+    addPlugin(resolver.resolve('./runtime/plugins/seed.client'))
+    // 3. dev-sync: syncs dev cookie (after store is fully initialized)
+    addPlugin(resolver.resolve('./runtime/plugins/dev-sync.client'))
+    // 4. timeline: creates timeline instance (needs seed set)
     addPlugin(resolver.resolve('./runtime/plugins/timeline.client'))
 
     // Register global navigation guard middleware

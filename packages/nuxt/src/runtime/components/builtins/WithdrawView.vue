@@ -72,7 +72,7 @@ const content = computed(() => {
     <div class="w-[60%] h-[80%]">
       <!-- Withdrawal confirmation card - shown when user has withdrawn -->
       <Card
-        v-if="api.store.browserPersisted.withdrawn && content"
+        v-if="api.store.cookieState.withdrawn && content"
         class="border-withdraw-border bg-withdraw-bg text-withdraw-text"
       >
         <CardHeader>

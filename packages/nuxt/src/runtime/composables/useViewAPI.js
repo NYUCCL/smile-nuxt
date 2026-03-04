@@ -34,10 +34,12 @@ class ViewAPI extends SmileAPI {
     // Store route as a class property
     this._route = route
 
-    // Make page reactive using computed
-    this._page = computed(() => this._route.name)
+    // Make page reactive using computed — use timeline view name (not Vue Router route.name
+    // which is always 'dev-slug' or 'slug' in the catch-all page)
+    this._page = computed(() => this.currentRouteName() || this._route.name)
     this._stepper = computed(() => {
-      const stepper = useStepper(this._route.name)
+      const viewName = this.currentRouteName() || this._route.name
+      const stepper = useStepper(viewName)
       stepper.setOnModify(() => this.updateStepper())
       return stepper
     })
@@ -765,10 +767,10 @@ class ViewAPI extends SmileAPI {
    * api.clear()
    */
   clear() {
-    if (this.store.browserPersisted.viewSteppers[this._page.value]) {
-      const pageData = this.store.browserPersisted.viewSteppers[this._page.value].data || {}
+    if (this.store.localState.viewSteppers[this._page.value]) {
+      const pageData = this.store.localState.viewSteppers[this._page.value].data || {}
       delete pageData.stepperState
-      this.store.browserPersisted.viewSteppers[this._page.value].data = pageData
+      this.store.localState.viewSteppers[this._page.value].data = pageData
 
       this._stepper.value.clearSubTree()
       this.componentRegistry.clear()

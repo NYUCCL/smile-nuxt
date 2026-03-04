@@ -285,7 +285,7 @@ function _postGuard({ timeline, store, log, api, toName }) {
   store.recordRoute(toName)
   api.removeAutofill()
 
-  if (store.browserPersisted.useSeed) {
+  if (store.localState.useSeed) {
     const seedID = store.getSeedID
     const seed = `${seedID}-${toName}`
     seedrandom(seed, { global: true })
@@ -335,12 +335,20 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   // which can cause issues in middleware context. Instead, proxy only the
   // methods actually used by the guards.
   const api = {
-    isResetApp: () => store.browserPersisted.reset,
+    isResetApp: () => store.localState.reset,
     resetLocalState: () => {
+      // Clear persistence then hard-navigate. Don't touch the store —
+      // watchers would re-write defaults back to storage before navigation.
       if (typeof localStorage !== 'undefined') {
         localStorage.removeItem(store.config.localStorageKey)
       }
-      store.resetLocal()
+      if (typeof document !== 'undefined') {
+        const prefix = `smile_${store.config.codeName}_`
+        const cookieKeys = ['knownUser', 'lastRoute', 'docRef', 'completionCode', 'consented', 'withdrawn', 'done', 'seedID', 'seedSet']
+        cookieKeys.forEach((key) => {
+          document.cookie = `${prefix}${key}=; path=/; max-age=0; SameSite=Lax`
+        })
+      }
       if (typeof window !== 'undefined') {
         const path = window.location.pathname
         let targetPath = '/'
@@ -351,14 +359,14 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     },
     completeConsent: async () => {
       store.setConsented()
-      if (!store.browserPersisted.knownUser) {
+      if (!store.cookieState.knownUser) {
         await store.setKnown()
       }
     },
     setDone: () => store.setDone(),
     resetApp: () => store.resetApp(),
     connectDB: async () => {
-      if (!store.browserPersisted.knownUser) {
+      if (!store.cookieState.knownUser) {
         await store.setKnown()
         store.setConsented()
       }

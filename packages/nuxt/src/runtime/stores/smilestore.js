@@ -8,13 +8,17 @@
  * - Global UI state and dev tools
  * The store serves as the central state management system for the SMILE framework,
  * coordinating data flow between components, views, and external services.
+ *
+ * State is split into two persistence tiers:
+ * - cookieState: Small gate flags (knownUser, consented, etc.) persisted via cookies
+ *   so they're available during SSR for hydration. Client-side sync plugin handles writes.
+ * - localState: Larger/complex data (viewSteppers, routes, conditions, etc.) persisted
+ *   via localStorage. Client-side sync plugin patches on load and watches for writes.
  */
 import { defineStore } from 'pinia'
-import { useStorage } from '@vueuse/core'
+import { useCookie } from '#imports'
 import axios from 'axios'
 import appconfig from '../core/config.js'
-import { v4 as uuidv4 } from 'uuid'
-import seedrandom from 'seedrandom'
 import useLog from './log.js'
 import {
   createDoc,
@@ -26,54 +30,8 @@ import {
 } from './firestore-db'
 import sizeof from 'firestore-size'
 
-////////////  SET THE SEED FOR RANDOMIZATION //////////
-
-// note: we only need to run this on page load (not every time smilestore.js is imported in another file)
-// it seems like it doesn't re-run when we move to a new component that imports smilestore,
-// so it's doing what we want apparently
-
-// get local storage (guarded for SSR where localStorage is not available)
-const hasLocalStorage = typeof localStorage !== 'undefined'
-const existingLocalStorage = hasLocalStorage
-  ? JSON.parse(localStorage.getItem(appconfig.localStorageKey))
-  : null
-
-let seed
-// if there is no local storage, then definitely have to set seed
-if (!existingLocalStorage) {
-  seed = uuidv4()
-} else {
-  // if there is local storage, check if we have seed usage turned on
-  if (existingLocalStorage.useSeed) {
-    // does seed already exist?
-    const seedSet = existingLocalStorage.seedSet
-    if (seedSet) {
-      // if seed already exists, get seedID
-      seed = existingLocalStorage.seedID
-    } else {
-      // if seed is not set, generate a new seed
-      seed = uuidv4()
-    }
-  } else {
-    // if seed usage is turned off, don't set seed
-    seed = null
-  }
-}
-
-// if seed is not null
-if (seed) {
-  // set the seed
-  seedrandom(seed, { global: true })
-  //console.log('Set global seed to ' + seed)
-
-  // save to local storage (guarded for SSR)
-  if (hasLocalStorage) {
-    localStorage.setItem(
-      appconfig.localStorageKey,
-      JSON.stringify({ ...existingLocalStorage, seedID: seed, seedSet: true })
-    )
-  }
-}
+// Cookie max age: 30 days in seconds
+const COOKIE_MAX_AGE = 86400 * 30
 
 /**
  * Returns the current local time as an ISO-like string in the user's timezone
@@ -98,20 +56,6 @@ function getLocalTimeString() {
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}${sign}${offsetHours}:${offsetMins}`
 }
 
-/////// continue with setting up smilestore ///////
-/**
- * Determines the initial route based on application mode
- * @param {string} mode - Application mode ('development', 'presentation', or other)
- * @returns {string} Initial route name to use
- * - 'recruit' for development mode
- * - 'presentation_home' for presentation mode
- * - 'landing' for all other modes
- */
-function initLastRoute(mode) {
-  // In Nuxt, all modes start at 'landing' which redirects to 'welcome_anonymous'
-  return 'landing'
-}
-
 /**
  * Removes Firebase configuration from a config object
  * @param {Object} config - Configuration object that may contain Firebase config
@@ -123,75 +67,75 @@ function removeFirestore(config) {
   return rest
 }
 
-/**
- * Initial state values for different store sections
- * The following sections define initial values for:
- * - Dev settings (initDev): Development-related UI state and settings that sync with localStorage
- * - Local settings (initLocal): User-specific state that syncs with localStorage
- * - Global settings (initGlobal): Ephemeral state that resets on page refresh
- */
-
 const initDev = {
-  // syncs with local storage
-  viewProvidesAutofill: null, // does current page offer autofil (transient)
-  viewProvidesStepper: false, // does current page provide a trial stepper (transient)
-  showConsoleBar: false, // show/hide the data base bottom (transient)
+  viewProvidesAutofill: null,
+  viewProvidesStepper: false,
+  showConsoleBar: false,
   showSideBar: false,
   pinnedRoute: null,
   mainView: 'devmode',
-  consoleBarHeight: 300, // height of the data bar (transient)
-  consoleBarTab: 'browse', // which tab to show in the data bar (transient)
-  sideBarTab: 'steps', // which tab is visible in the dev sidebar (transient)
-  searchParams: '', // search parameters (transient)
-  logFilter: 'All', // what level of log messages to show (transient)
-  notificationFilter: 'Errors only', // what level of notifications to show (transient)
-  lastViewLimit: false, // limits logs to the last page (transient)
-  dataPath: null, // path to the data (transient)
-  configPath: null, // path to the config (transient)
-  selectedDevice: 'desktop2', // selected device for responsive design mode
-  deviceWidth: 1024, // device width for responsive design mode
-  deviceHeight: 768, // device height for responsive design mode
-  isRotated: false, // device rotation state for responsive design mode
-  isFullscreen: false, // fullscreen state for responsive design mode
-  // panel locations (transient)
+  consoleBarHeight: 300,
+  consoleBarTab: 'browse',
+  sideBarTab: 'steps',
+  searchParams: '',
+  logFilter: 'All',
+  notificationFilter: 'Errors only',
+  lastViewLimit: false,
+  dataPath: null,
+  configPath: null,
+  selectedDevice: 'desktop2',
+  deviceWidth: 1024,
+  deviceHeight: 768,
+  isRotated: false,
+  isFullscreen: false,
   routePanelVisible: false,
-  // color mode settings (persisted)
-  globalColorMode: 'auto', // global color mode for the dev tools
-  experimentColorMode: 'auto', // experiment color mode for the main app
+  globalColorMode: 'auto',
+  experimentColorMode: 'auto',
 }
 
-const initBrowserPersisted = {
-  // syncs with local storage
+/**
+ * Tier 1: Cookie-backed state — small gate flags.
+ * useCookie() in state() provides server-side read for SSR hydration.
+ * Client-side store-sync plugin handles writing changes back to document.cookie.
+ */
+const initCookieState = {
   knownUser: false,
-  lastRoute: initLastRoute(appconfig.mode),
+  lastRoute: 'landing',
   docRef: null,
-  privateDocRef: null,
   completionCode: null,
   consented: false,
   withdrawn: false,
-  verifiedVisibility: false,
   done: false,
+  seedID: '',
+  seedSet: false,
+}
+
+/**
+ * Tier 2: localStorage-backed state — larger/complex data.
+ * Plain defaults in state(). Client-side store-sync plugin patches from
+ * localStorage on load and watches for changes to write back.
+ */
+const initLocalState = {
+  privateDocRef: null,
+  verifiedVisibility: false,
   reset: false,
   totalWrites: 0,
   lastWrite: null,
   approxDataSize: 0,
-  useSeed: true, // do you want to use a random seed based on the participant's ID?
-  seedID: '',
-  seedSet: false,
+  useSeed: true,
   viewSteppers: {},
   possibleConditions: {},
   seqtimeline: [],
   routes: [],
-  conditions: {}, // tracking conditions both locally and remotely
-  randomizedRoutes: {}, // tracking randomized route assignments both locally and remotely
+  conditions: {},
+  randomizedRoutes: {},
 }
 
 const initBrowserEphemeral = {
-  // ephemeral state, resets on browser refresh
   currentViewDone: false,
   forceNavigate: false,
   tooSmall: false,
-  steppers: {}, // Store for HStepper instances
+  steppers: {},
   dbConnected: false,
   dbChanges: true,
   urls: {
@@ -206,19 +150,17 @@ const initBrowserEphemeral = {
   },
 }
 
+// Export initial values so plugins can reference them
+export { initCookieState, initLocalState, COOKIE_MAX_AGE }
+
 /**
  * @module smilestore
  * @description Main Pinia store for managing SMILE application state.
- * Handles:
- * - Local storage state (persisted between sessions)
- * - Global ephemeral state (resets on refresh)
- * - Development configuration state
- * - Private user data
- * - Public experiment data
- * - Application configuration
  *
  * The store is divided into several namespaces:
- * - browserPersisted: Persisted state synced with localStorage
+ * - cookieState: Tier 1 persisted state (cookies, SSR-accessible)
+ * - localState: Tier 2 persisted state (localStorage, client-only)
+ * - browserPersisted: Compatibility getter merging both tiers (read-only)
  * - browserEphemeral: Ephemeral state that resets on refresh
  * - dev: Development-only state and configuration
  * - private: Sensitive user data not synced to database
@@ -226,70 +168,85 @@ const initBrowserEphemeral = {
  * - config: Application configuration settings
  */
 export default defineStore('smilestore', {
-  // arrow function recommended for full type inference
-  state: () => ({
-    browserPersisted: useStorage(appconfig.localStorageKey, initBrowserPersisted, typeof localStorage !== 'undefined' ? localStorage : undefined, {
-      mergeDefaults: true,
-    }),
-    browserEphemeral: initBrowserEphemeral,
-    dev:
-      appconfig.mode === 'development'
-        ? useStorage(appconfig.devLocalStorageKey, initDev, typeof localStorage !== 'undefined' ? localStorage : undefined, { mergeDefaults: true })
-        : initDev,
-    private: {
-      recruitmentInfo: {},
-      withdrawData: {},
-      browserFingerprint: {}, // empty
-    },
-    data: {
-      // syncs with firestore
-      appStartTime: Date.now(),
-      seedID: '',
-      firebaseAnonAuthID: '',
-      firebaseDocID: '',
-      trialNum: 0, // not being updated correctly
-      consented: false,
-      verifiedVisibility: false,
-      done: false,
-      starttime: null, // time consented (server timestamp)
-      endtime: null, // time finished or withdrew (server timestamp)
-      starttimeLocal: null, // time consented in user's local time (ISO string)
-      endtimeLocal: null, // time finished or withdrew in user's local time (ISO string)
-      userTimezone: null, // user's timezone (e.g., "America/New_York")
-      userTimezoneOffset: null, // user's UTC offset in minutes (e.g., -300 for EST)
-      recruitmentService: 'web', // fake
-      browserData: [], // empty
-      withdrawn: false, // false
-      routeOrder: [],
-      conditions: {},
-      randomizedRoutes: {},
-      smileConfig: removeFirestore(appconfig), //  adding config info to firebase document
-      studyData: [],
-    },
-    config: appconfig,
-  }),
+  state: () => {
+    const prefix = `smile_${appconfig.codeName}_`
+
+    // Tier 1: useCookie() for server-side read; client sync plugin handles writes
+    const cookieState = {
+      knownUser: useCookie(`${prefix}knownUser`, { default: () => false, maxAge: COOKIE_MAX_AGE }).value ?? false,
+      lastRoute: useCookie(`${prefix}lastRoute`, { default: () => 'landing', maxAge: COOKIE_MAX_AGE }).value ?? 'landing',
+      docRef: useCookie(`${prefix}docRef`, { default: () => null, maxAge: COOKIE_MAX_AGE }).value ?? null,
+      completionCode: useCookie(`${prefix}completionCode`, { default: () => null, maxAge: COOKIE_MAX_AGE }).value ?? null,
+      consented: useCookie(`${prefix}consented`, { default: () => false, maxAge: COOKIE_MAX_AGE }).value ?? false,
+      withdrawn: useCookie(`${prefix}withdrawn`, { default: () => false, maxAge: COOKIE_MAX_AGE }).value ?? false,
+      done: useCookie(`${prefix}done`, { default: () => false, maxAge: COOKIE_MAX_AGE }).value ?? false,
+      seedID: useCookie(`${prefix}seedID`, { default: () => '', maxAge: COOKIE_MAX_AGE }).value ?? '',
+      seedSet: useCookie(`${prefix}seedSet`, { default: () => false, maxAge: COOKIE_MAX_AGE }).value ?? false,
+    }
+
+    // Tier 2: plain defaults; client sync plugin patches from localStorage and writes back
+    const localState = { ...initLocalState }
+
+    return {
+      cookieState,
+      localState,
+      browserEphemeral: { ...initBrowserEphemeral },
+      dev:
+        appconfig.mode === 'development'
+          ? useCookie(`smile_${appconfig.codeName}_dev`, { default: () => ({ ...initDev }), maxAge: 86400 * 365 })
+          : { ...initDev },
+      private: {
+        recruitmentInfo: {},
+        withdrawData: {},
+        browserFingerprint: {},
+      },
+      data: {
+        appStartTime: Date.now(),
+        seedID: '',
+        firebaseAnonAuthID: '',
+        firebaseDocID: '',
+        trialNum: 0,
+        consented: false,
+        verifiedVisibility: false,
+        done: false,
+        starttime: null,
+        endtime: null,
+        starttimeLocal: null,
+        endtimeLocal: null,
+        userTimezone: null,
+        userTimezoneOffset: null,
+        recruitmentService: 'web',
+        browserData: [],
+        withdrawn: false,
+        routeOrder: [],
+        conditions: {},
+        randomizedRoutes: {},
+        smileConfig: removeFirestore(appconfig),
+        studyData: [],
+      },
+      config: appconfig,
+    }
+  },
 
   getters: {
+    // Compatibility getter: merges both tiers for read-only access
+    browserPersisted: (state) => ({ ...state.localState, ...state.cookieState }),
     isDataBarVisible: (state) => state.dev.showConsoleBar,
-    isKnownUser: (state) => state.browserPersisted.knownUser,
-    isConsented: (state) => state.browserPersisted.consented,
-    isWithdrawn: (state) => state.browserPersisted.withdrawn,
-    isDone: (state) => state.browserPersisted.done,
-    lastRoute: (state) => state.browserPersisted.lastRoute,
+    isKnownUser: (state) => state.cookieState.knownUser,
+    isConsented: (state) => state.cookieState.consented,
+    isWithdrawn: (state) => state.cookieState.withdrawn,
+    isDone: (state) => state.cookieState.done,
+    lastRoute: (state) => state.cookieState.lastRoute,
     isDBConnected: (state) => state.browserEphemeral.dbConnected,
     hasAutofill: (state) => state.dev.viewProvidesAutofill,
     searchParams: (state) => state.dev.searchParams,
     recruitmentService: (state) => state.data.recruitmentService,
-    isSeedSet: (state) => state.browserPersisted.seedSet,
-    getSeedID: (state) => state.browserPersisted.seedID,
-    getLocal: (state) => state.browserPersisted,
-    getConditions: (state) => state.browserPersisted.conditions,
-    getRandomizedRoutes: (state) => state.browserPersisted.randomizedRoutes,
+    isSeedSet: (state) => state.cookieState.seedSet,
+    getSeedID: (state) => state.cookieState.seedID,
+    getLocal: (state) => ({ ...state.localState, ...state.cookieState }),
+    getConditions: (state) => state.localState.conditions,
+    getRandomizedRoutes: (state) => state.localState.randomizedRoutes,
     verifiedVisibility: (state) => state.data.verifiedVisibility,
-    /**
-     * Gets all pageData fields from the data store
-     * @returns {Object} Object containing all pageData_* fields
-     */
     getAllPageData: (state) => {
       const pageDataFields = {}
       for (const key in state.data) {
@@ -300,34 +257,20 @@ export default defineStore('smilestore', {
       return pageDataFields
     },
     getShortId: (state) => {
-      if (!state.browserPersisted.docRef || typeof state.browserPersisted.docRef !== 'string') return 'N/A'
-      //const lastDashIndex = state.browserPersisted.docRef.lastIndexOf('-')
-      return `${state.browserPersisted.docRef.substring(0, 10)}`
+      if (!state.cookieState.docRef || typeof state.cookieState.docRef !== 'string') return 'N/A'
+      return `${state.cookieState.docRef.substring(0, 10)}`
     },
   },
 
   actions: {
-    /**
-     * Manually synchronizes local state to remote data store
-     * @description Copies conditions, randomized routes, and seed ID from local state to the remote data store.
-     * Used when database connection is restored after being offline.
-     */
     manualSyncLocalToData() {
-      // sync conditions to remote
       const log = useLog()
       log.debug('SMILESTORE: syncing conditions, randomized routes to remote')
-      this.data.conditions = this.browserPersisted.conditions
-      this.data.randomizedRoutes = this.browserPersisted.randomizedRoutes
-      this.data.seedID = this.browserPersisted.seedID
+      this.data.conditions = this.localState.conditions
+      this.data.randomizedRoutes = this.localState.randomizedRoutes
+      this.data.seedID = this.cookieState.seedID
     },
 
-    /**
-     * Sets database connection status to connected and syncs local data
-     * @description When transitioning from disconnected to connected state,
-     * synchronizes local state data to the remote database before setting
-     * the connection status to true. This ensures data consistency after
-     * reconnecting.
-     */
     setDBConnected() {
       if (this.browserEphemeral.dbConnected === false) {
         this.manualSyncLocalToData()
@@ -335,23 +278,12 @@ export default defineStore('smilestore', {
       this.browserEphemeral.dbConnected = true
     },
 
-    /**
-     * Sets search parameters in dev state
-     * @param {Object} searchParams - URL search parameters object to store
-     * @description Updates the dev state's searchParams property with the provided search parameters.
-     * Used to track and access URL query parameters throughout the application.
-     */
     setSearchParams(searchParams) {
       this.dev.searchParams = searchParams
     },
 
-    /**
-     * Sets consent status to true and records start time
-     * @description Updates both local and remote data stores to indicate participant has consented.
-     * Also records the current timestamp as the experiment start time in the remote data store.
-     */
     setConsented() {
-      this.browserPersisted.consented = true
+      this.cookieState.consented = true
       this.data.consented = true
       this.data.starttime = fsnow()
       this.data.starttimeLocal = getLocalTimeString()
@@ -359,23 +291,13 @@ export default defineStore('smilestore', {
       this.data.userTimezoneOffset = new Date().getTimezoneOffset()
     },
 
-    /**
-     * Sets consent status to false
-     * @description Updates both local and remote data stores to indicate participant has not consented.
-     */
     setUnconsented() {
-      this.browserPersisted.consented = false
+      this.cookieState.consented = false
       this.data.consented = false
     },
 
-    /**
-     * Sets withdrawn status to true and records withdrawal time
-     * @param {Object} forminfo - Form information object containing withdrawal details
-     * @description Updates both local and remote data stores to indicate participant has withdrawn.
-     * Also records the current timestamp as the withdrawal time in the remote data store.
-     */
     setWithdrawn(forminfo) {
-      this.browserPersisted.withdrawn = true
+      this.cookieState.withdrawn = true
       this.data.withdrawn = true
       this.private.withdrawData = forminfo
       this.data.endtime = fsnow()
@@ -383,113 +305,64 @@ export default defineStore('smilestore', {
     },
 
     verifyVisibility(value) {
-      this.browserPersisted.verifiedVisibility = value
+      this.localState.verifiedVisibility = value
       this.data.verifiedVisibility = value
     },
 
-    /**
-     * Sets done status to true and records end time
-     * @description Updates both local and remote data stores to indicate participant has completed the experiment.
-     * Also records the current timestamp as the completion time in the remote data store.
-     */
     setDone() {
-      this.browserPersisted.done = true
+      this.cookieState.done = true
       this.data.done = true
       this.data.endtime = fsnow()
       this.data.endtimeLocal = getLocalTimeString()
     },
 
-    /**
-     * Sets completion code
-     * @param {string} code - Completion code to set
-     * @description Updates the local state with the provided completion code.
-     */
     setCompletionCode(code) {
-      this.browserPersisted.completionCode = code
+      this.cookieState.completionCode = code
     },
 
-    /**
-     * Resets the application state
-     * @description Resets the local state to its initial values.
-     */
     resetApp() {
-      this.browserPersisted.reset = true
+      this.localState.reset = true
     },
 
-    /**
-     * Sets the seed ID
-     * @param {string} seed - Seed ID to set
-     * @description Updates the local state with the provided seed ID.
-     */
     setSeedID(seed) {
-      if (seed === this.browserPersisted.seedID) {
+      if (seed === this.cookieState.seedID) {
         console.debug('SMILESTORE: seed already set to', seed)
         return
       }
-      this.browserPersisted.seedID = seed
+      this.cookieState.seedID = seed
       this.data.seedID = seed
-      this.browserPersisted.seedSet = true
+      this.cookieState.seedSet = true
 
       // After setting a seed we should clear out randomized settings
-      this.browserPersisted.conditions = {}
-      this.browserPersisted.randomizedRoutes = {}
+      this.localState.conditions = {}
+      this.localState.randomizedRoutes = {}
       this.data.conditions = {}
       this.data.randomizedRoutes = {}
     },
 
-    /**
-     * Registers a stepper for a given view
-     * @param {string} view - View name to register stepper for
-     * @param {Stepper} [stepper] - Optional Stepper instance to register
-     * @description Adds a new stepper object to the local state's viewSteppers array and optionally registers a Stepper instance in global state.
-     * @returns {Stepper} The registered stepper instance
-     */
     registerStepper(view, stepper = null) {
-      // allocate a new serialization space
-      this.browserPersisted.viewSteppers[view] = {}
+      this.localState.viewSteppers[view] = {}
 
-      // register the stepper in global state
       if (stepper) {
         if (!this.browserEphemeral.steppers) {
           this.browserEphemeral.steppers = {}
         }
         this.browserEphemeral.steppers[view] = stepper
-
-        // force a save
         stepper.save(view)
       }
-      // return the active stepper
       return this.browserEphemeral.steppers?.[view]
     },
 
-    /**
-     * Retrieves a stepper for a given view
-     * @param {string} view - View name to get stepper for
-     * @returns {Object} Stepper object for the given view
-     * @description Returns the stepper object for the specified view from the local state.
-     */
-
     getStepper(view) {
-      return this.browserPersisted.viewSteppers[view]
+      return this.localState.viewSteppers[view]
     },
 
-    /**
-     * Resets a stepper for a given view
-     * @param {string} view - View name to reset stepper for
-     * @description Resets the stepper object for the specified view in the local state.
-     */
     resetStepper(view) {
-      if (this.browserPersisted.viewSteppers[view]) {
-        this.browserPersisted.viewSteppers[view] = {}
+      if (this.localState.viewSteppers[view]) {
+        this.localState.viewSteppers[view] = {}
       }
     },
 
-    /**
-     * Records a window event
-     * @param {string} type - Event type
-     * @param {Object} [event_data] - Optional event data object
-     * @description Records a window event in the browserData array.
-     */
     recordWindowEvent(type, event_data = null) {
       if (event_data) {
         this.data.browserData.push({
@@ -505,37 +378,21 @@ export default defineStore('smilestore', {
       }
     },
 
-    /**
-     * Retrieves browser fingerprint information
-     * @returns {Promise<Object>} Browser fingerprint information
-     * @description Retrieves browser fingerprint information from the IP address of the user.
-     * This is not "real" browser fingerprinting, but it's close enough for our purposes.
-     * It just finds things like browser version, OS, and IP address of user which can be helpful for debugging purposes.
-     */
     getBrowserFingerprint() {
-      // this is not "real" browser fingerprinting, but it's close enough for our purposes
-      // it just finds things like browser version, OS, and IP address of user
-      // which can be helpful for debugging purposes
       let ip = 'unknown'
       const log = useLog()
-      // Make a request for a user with a given ID
       axios
         .get('https://api.ipify.org/?format=json')
         .then((response) => {
-          // handle success
-
-          // check if ip field exists
           if (response.data.ip) {
             ip = response.data.ip
             log.success('SMILESTORE: User IP address detected (using api.ipify.org): ' + ip)
           }
         })
         .catch((error) => {
-          // handle error
           log.log(error)
         })
         .finally(() => {
-          // always executed
           if (typeof window !== 'undefined') {
             const { language } = window.navigator
             const { webdriver } = window.navigator
@@ -545,14 +402,6 @@ export default defineStore('smilestore', {
         })
     },
 
-    /**
-     * Sets browser fingerprint information
-     * @param {string} ip - IP address of user
-     * @param {string} userAgent - User agent string
-     * @param {string} language - Browser language
-     * @param {boolean} webdriver - Webdriver status
-     * @description Sets the browser fingerprint information in the private state.
-     */
     setFingerPrint(ip, userAgent, language, webdriver) {
       const log = useLog()
       this.private.browserFingerprint = {
@@ -564,38 +413,19 @@ export default defineStore('smilestore', {
       log.log('Browser fingerprint: ' + JSON.stringify(this.private.browserFingerprint))
     },
 
-    /**
-     * Sets autofill status
-     * @param {Function} fn - Autofill function to set
-     * @description Sets the autofill status in the dev state.
-     */
     setAutofill(fn) {
       this.dev.viewProvidesAutofill = fn
     },
 
-    /**
-     * Removes autofill status
-     * @description Removes the autofill status in the dev state.
-     */
     removeAutofill() {
       this.dev.viewProvidesAutofill = null
     },
 
-    /**
-     * Sets recruitment service
-     * @param {string} service - Recruitment service to set
-     * @param {Object} info - Recruitment information object
-     * @description Sets the recruitment service and information in the data and private states.
-     */
     setRecruitmentService(service, info) {
       this.data.recruitmentService = service
       this.private.recruitmentInfo = info
     },
 
-    /**
-     * Autofills a view
-     * @description If the view provides autofill, this function will call the autofill function.
-     */
     autofill() {
       if (this.dev.viewProvidesAutofill) {
         this.dev.viewProvidesAutofill()
@@ -604,59 +434,32 @@ export default defineStore('smilestore', {
       }
     },
 
-    /**
-     * Records data
-     * @param {Object} data - Data to record
-     * @description Records the provided data in the data state.
-     */
     recordData(data) {
       this.data.studyData.push(JSON.parse(JSON.stringify(data)))
     },
 
-    /**
-     * Records a property
-     * @param {string} name - Property name
-     * @param {Object} data - Data to record
-     * @description Records the provided data in the data state under the specified property name.
-     */
     recordProperty(name, data) {
       this.data[name] = JSON.parse(JSON.stringify(data))
     },
 
-    /**
-     * Sets a condition
-     * @param {string} name - Condition name
-     * @param {Object} cond - Condition object
-     * @description Sets the condition in the local and data states.
-     */
     setCondition(name, cond) {
-      this.browserPersisted.conditions[name] = cond
+      this.localState.conditions[name] = cond
       this.data.conditions[name] = cond
     },
 
-    /**
-     * Sets a randomized route
-     * @param {string} name - Route name
-     * @param {Object} route - Route object
-     * @description Sets the randomized route in the local and data states.
-     */
     setRandomizedRoute(name, route) {
-      this.browserPersisted.randomizedRoutes[name] = route
+      this.localState.randomizedRoutes[name] = route
       this.data.randomizedRoutes[name] = route
     },
 
-    /**
-     * Sets known user status
-     * @description Sets the known user status in the local and data states.
-     */
     async setKnown() {
       const log = useLog()
-      this.browserPersisted.knownUser = true
-      this.data.seedID = this.browserPersisted.seedID
+      this.cookieState.knownUser = true
+      this.data.seedID = this.cookieState.seedID
       try {
-        this.browserPersisted.docRef = await createDoc(this.data)
-        this.browserPersisted.privateDocRef = await createPrivateDoc(this.private, this.browserPersisted.docRef)
-        if (this.browserPersisted.docRef) {
+        this.cookieState.docRef = await createDoc(this.data)
+        this.localState.privateDocRef = await createPrivateDoc(this.private, this.cookieState.docRef)
+        if (this.cookieState.docRef) {
           this.setDBConnected()
         } else {
           log.error('SMILESTORE: could not create document in firebase')
@@ -666,72 +469,46 @@ export default defineStore('smilestore', {
       }
     },
 
-    /**
-     * Loads data from the database
-     * @description Loads data from the database and sets the data state.
-     */
     async loadData() {
       let data
-      if (this.browserPersisted.docRef) {
-        data = await loadDoc(this.browserPersisted.docRef)
-        // ALSO WHAT IF THIS FAILS?
+      if (this.cookieState.docRef) {
+        data = await loadDoc(this.cookieState.docRef)
       }
       if (data) {
         this.data = data
-        this.browserPersisted.approxDataSize = sizeof(data)
+        this.localState.approxDataSize = sizeof(data)
         this.setDBConnected()
       }
     },
 
-    /**
-     * Sets the last route
-     * @param {string} route - Route to set
-     * @description Sets the last route in the local state.
-     */
     setLastRoute(route) {
-      this.browserPersisted.lastRoute = route
-      // if (route !== 'config') {
-      //   this.browserPersisted.lastRoute = route
-      // }
+      this.cookieState.lastRoute = route
     },
 
-    /**
-     * Records a route
-     * @param {string} route - Route to record
-     * @description Records a route in the data state.
-     */
     recordRoute(route) {
       const currentTime = Date.now()
 
-      // If there's a previous route, update its delta
       if (this.data.routeOrder.length > 0) {
         const lastIndex = this.data.routeOrder.length - 1
         const lastRoute = this.data.routeOrder[lastIndex]
 
-        // Calculate and update the delta for the previous route
         this.data.routeOrder[lastIndex] = {
           ...lastRoute,
           timeDelta: currentTime - lastRoute.timestamp,
         }
       }
 
-      // Add the new route without a delta (will be calculated on next route change)
       this.data.routeOrder.push({
         route,
         timestamp: currentTime,
-        timeDelta: null, // Delta will be set when next route is recorded
+        timeDelta: null,
       })
     },
 
-    /**
-     * Saves data to the database
-     * @param {boolean} [force=false] - Whether to force the save
-     * @description Saves the data to the database.
-     */
     async saveData(force = false) {
       const log = useLog()
       if (this.isDBConnected) {
-        if (!force && this.browserPersisted.totalWrites >= appconfig.maxWrites) {
+        if (!force && this.localState.totalWrites >= appconfig.maxWrites) {
           log.error(
             'SMILESTORE: max writes reached to firebase.  Data NOT saved.  Call saveData() less numerously to avoid problems/cost issues.'
           )
@@ -740,28 +517,25 @@ export default defineStore('smilestore', {
 
         if (
           !force &&
-          this.browserPersisted.lastWrite &&
-          Date.now() - this.browserPersisted.lastWrite < appconfig.minWriteInterval
+          this.localState.lastWrite &&
+          Date.now() - this.localState.lastWrite < appconfig.minWriteInterval
         ) {
           log.error(
             `SMILESTORE: write interval too short for firebase (${appconfig.minWriteInterval}).  \
             Data NOT saved. Call saveData() less frequently to avoid problems/cost issues. See env/.env \
             file to alter this setting.`
           )
-          // console.error(Date.now() - this.browserPersisted.lastWrite)
           return
         }
 
-        await updateSubjectDataRecord(this.data, this.browserPersisted.docRef)
-        await updatePrivateSubjectDataRecord(this.private, this.browserPersisted.docRef)
-        //console.log('data size = ', sizeof(data))
-        this.browserPersisted.approxDataSize = sizeof(this.data)
-        this.browserPersisted.totalWrites += 1
-        this.browserPersisted.lastWrite = Date.now()
-        //this.browserEphemeral.snapshot = { ...smilestore.$state.data }
-        this.browserEphemeral.dbChanges = false // reset the changes flag
+        await updateSubjectDataRecord(this.data, this.cookieState.docRef)
+        await updatePrivateSubjectDataRecord(this.private, this.cookieState.docRef)
+        this.localState.approxDataSize = sizeof(this.data)
+        this.localState.totalWrites += 1
+        this.localState.lastWrite = Date.now()
+        this.browserEphemeral.dbChanges = false
         log.success('SMILESTORE: saveData() Request to firebase successful (force = ' + force + ')')
-      } else if (!this.data.consented && !this.browserPersisted.consented) {
+      } else if (!this.data.consented && !this.cookieState.consented) {
         log.log('SMILESTORE: not saving because not consented')
       } else {
         log.error("SMILESTORE: can't save data, not connected to firebase")
@@ -769,34 +543,29 @@ export default defineStore('smilestore', {
     },
 
     /**
-     * Resets the local state
-     * @description Resets the local state to its initial values.
+     * Clears all smile cookies by resetting cookieState to defaults
+     */
+    clearSmileCookies() {
+      const defaults = { ...initCookieState }
+      Object.keys(defaults).forEach((key) => {
+        this.cookieState[key] = defaults[key]
+      })
+    },
+
+    /**
+     * Resets the local state to initial values and clears cookies
      */
     resetLocal() {
-      // this.browserPersisted.knownUser = false
-      // this.browserPersisted.lastRoute = 'welcome'
-      // this.browserEphemeral.dbConnected = false
+      this.clearSmileCookies()
       this.$reset()
     },
 
-    /**
-     * Gets a condition by name
-     * @param {string} name - Condition name
-     * @returns {Object} Condition object
-     * @description Returns the condition object for the specified name from the local state.
-     */
     getConditionByName(name) {
-      return this.browserPersisted.conditions[name]
+      return this.localState.conditions[name]
     },
 
-    /**
-     * Gets a randomized route by name
-     * @param {string} name - Route name
-     * @returns {Object} Route object
-     * @description Returns the route object for the specified name from the local state.
-     */
     getRandomizedRouteByName(name) {
-      return this.browserPersisted.randomizedRoutes[name]
+      return this.localState.randomizedRoutes[name]
     },
   },
 })

@@ -14,26 +14,26 @@ const api = useAPI()
     <StepperItem class="relative flex w-full flex-col items-center justify-center" :step="1">
       <StepperSeparator
         class="absolute left-[calc(50%+20px)] right-[calc(-50%+10px)] top-5 block h-0.5 shrink-0 rounded-full bg-muted"
-        :class="[api.store.browserPersisted.knownUser ? 'bg-green-500' : 'bg-gray-300']"
+        :class="[api.store.cookieState.knownUser ? 'bg-green-500' : 'bg-gray-300']"
       />
 
       <StepperTrigger as-child>
         <div
           class="z-10 rounded-full shrink-0 p-3"
-          :class="[api.store.browserPersisted.knownUser ? 'bg-green-200' : 'bg-muted']"
+          :class="[api.store.cookieState.knownUser ? 'bg-green-200' : 'bg-muted']"
         >
           <i-heroicons-user-minus-16-solid
-            :class="[api.store.browserPersisted.knownUser ? 'text-green-500' : 'text-gray-500']"
+            :class="[api.store.cookieState.knownUser ? 'text-green-500' : 'text-gray-500']"
           />
         </div>
       </StepperTrigger>
 
       <div class="flex flex-col items-center text-center">
         <StepperDescription
-          :class="[api.store.browserPersisted.knownUser ? 'text-green-500' : 'text-gray-500']"
+          :class="[api.store.cookieState.knownUser ? 'text-green-500' : 'text-gray-500']"
           class="text-[0.6rem] text-muted-foreground transition font-mono"
         >
-          {{ api.store.browserPersisted.knownUser ? 'Known user' : 'Unknown user' }}
+          {{ api.store.cookieState.knownUser ? 'Known user' : 'Unknown user' }}
         </StepperDescription>
       </div>
     </StepperItem>
