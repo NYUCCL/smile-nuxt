@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "name": "my-smile-experiment",
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "dev:prepare": "nuxt prepare",
+    "postinstall": "bash scripts/generate_git_env.sh || true"
+  },
+  "dependencies": {
+    "@gureckislab/smile": "^1.0.0",
+    "@pinia/nuxt": "^0.10.0",
+    "nuxt": "^4.3.0"
+  }
+}

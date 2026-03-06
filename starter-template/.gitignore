@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+
+# Nuxt
+.nuxt
+.output
+dist
+
+# Local env files (secrets)
+*.local
+
+# Local SQLite database
+.data/
+
+# Logs
+*.log
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.sw?
+
+# Playwright
+test-results/
+playwright-report/
+
+# Drizzle migration metadata
+drizzle/meta/
