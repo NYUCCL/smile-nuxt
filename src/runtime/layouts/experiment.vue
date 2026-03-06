@@ -3,7 +3,7 @@
     <ClientOnly>
       <ExperimentStatusBar />
     </ClientOnly>
-    <div class="flex-1 min-h-0">
+    <div class="flex-1 min-h-0 overflow-auto">
       <slot />
     </div>
   </div>

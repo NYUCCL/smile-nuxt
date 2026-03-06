@@ -12,7 +12,7 @@
 import { defineNuxtPlugin } from '#imports'
 import { watch } from 'vue'
 import useSmileStore from '../stores/smilestore'
-import { initCookieState, initLocalState, COOKIE_MAX_AGE } from '../stores/smilestore'
+import { initCookieState, initLocalState, initDev, COOKIE_MAX_AGE } from '../stores/smilestore'
 import appconfig from '../core/config.js'
 
 export default defineNuxtPlugin((nuxtApp) => {
@@ -51,7 +51,19 @@ export default defineNuxtPlugin((nuxtApp) => {
     { deep: true }
   )
 
-  // --- 3. Watch localState → localStorage ---
+  // --- 3. Watch store.dev — reset to defaults if externally cleared to null ---
+  if (appconfig.mode === 'development') {
+    watch(
+      () => store.dev,
+      (val) => {
+        if (val === null || val === undefined) {
+          store.dev = { ...initDev }
+        }
+      }
+    )
+  }
+
+  // --- 4. Watch localState → localStorage ---
   watch(
     () => store.localState,
     (val) => {

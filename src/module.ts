@@ -19,6 +19,10 @@ export default defineNuxtModule<ModuleOptions>({
     const resolver = createResolver(import.meta.url)
     const runtimeDir = fileURLToPath(new URL('./runtime', import.meta.url))
 
+    // Experiments are pure client-side apps (no SEO needed, dynamic state).
+    // Disable SSR for fast SPA-style navigation without server round-trips.
+    _nuxt.options.ssr = false
+
     // Transpile runtime directory so .js files are processed
     _nuxt.options.build.transpile.push(runtimeDir)
 

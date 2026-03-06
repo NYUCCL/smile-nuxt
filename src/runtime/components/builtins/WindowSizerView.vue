@@ -23,7 +23,7 @@ function finish() {
 
 <template>
   <!-- Main container with centered content -->
-  <CenteredContent class="m-2 mt-5">
+  <div class="flex justify-center m-2 mt-5">
     <!-- Resizable window target box with animated border -->
     <div
       class="bg-window-sizer-bg border-animation flex items-center justify-center"
@@ -94,7 +94,7 @@ function finish() {
         </div>
       </div>
     </div>
-  </CenteredContent>
+  </div>
 </template>
 
 <style scoped>

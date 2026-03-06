@@ -39,15 +39,8 @@ const rawViewConfig = computed(() => {
   return timeline.getViewForPath(experimentPath.value)
 })
 
-// Resolve string component names to actual component references
-const viewConfig = computed(() => {
-  const config = rawViewConfig.value
-  if (!config || !config.component) return config
-  if (typeof config.component === 'string') {
-    return { ...config, component: resolveComponent(config.component) }
-  }
-  return config
-})
+// Pass through — global components work with string names in <component :is>
+const viewConfig = rawViewConfig
 
 onMounted(() => {
   timelineReady.value = true

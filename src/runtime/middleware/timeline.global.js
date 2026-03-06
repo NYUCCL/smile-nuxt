@@ -105,7 +105,7 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
 
   // --- Guard 5: Dev mode pinned route ---
   // Runs before skipBlockingGuards so pinning works in dev mode
-  if (store.dev.pinnedRoute) {
+  if (store.dev?.pinnedRoute) {
     // If pinned route doesn't exist in timeline, clear it
     if (!timeline.getRouteByName(store.dev.pinnedRoute)) {
       store.dev.pinnedRoute = null
@@ -298,7 +298,7 @@ function _postGuard({ timeline, store, log, api, toName }) {
     log.log('ROUTER GUARD: Not using participant-specific seed; seed set randomly')
   }
   log.clearPageHistory()
-  store.dev.viewProvidesStepper = false
+  if (store.dev) store.dev.viewProvidesStepper = false
   store.browserEphemeral.currentViewDone = false
   log.log('ROUTER GUARD: Router navigated to /' + toName)
 }

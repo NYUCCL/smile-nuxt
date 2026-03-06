@@ -26,6 +26,11 @@ export default defineEventHandler(async (event) => {
     return
   }
 
+  // In development mode, skip auth gate (developer is already local)
+  if (import.meta.dev) {
+    return
+  }
+
   // Check session cookie
   const token = getCookie(event, 'smile_dev_session')
   if (!token) {

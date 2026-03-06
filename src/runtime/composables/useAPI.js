@@ -246,14 +246,16 @@ export class SmileAPI {
    * This allows dynamic path resolution for nested directories
    * @private
    */
-  #userAssets = import.meta.glob?.('../../user/assets/**/*', { eager: true, query: '?url', import: 'default' }) || {}
+  // TODO: Asset loading via import.meta.glob needs rework for Nuxt module context.
+  // These paths are relative to the module, not the consuming app.
+  #userAssets = {}
 
   /**
    * Eagerly import all core assets using Vite's glob import
    * This allows dynamic path resolution for nested directories
    * @private
    */
-  #coreAssets = import.meta.glob?.('../../assets/**/*', { eager: true, query: '?url', import: 'default' }) || {}
+  #coreAssets = {}
 
   /**
    * Get the URL for a public asset using the deployment base path
@@ -932,18 +934,9 @@ export class SmileAPI {
     // TODO: import.meta.glob paths need updating for Nuxt module context.
     // User assets will be in the consuming app, not the module.
     this.logStore.debug('Preloading images')
-    setTimeout(() => {
-      Object.values(
-        import.meta.glob?.('@/user/assets/**/*.{png,jpg,jpeg,svg,SVG,JPG,PNG,JPEG}', {
-          eager: true,
-          query: '?url',
-          import: 'default',
-        }) || {}
-      ).forEach((url) => {
-        const image = new Image()
-        image.src = url
-      })
-    }, 1)
+    // TODO: import.meta.glob paths need updating for Nuxt module context.
+    // User assets live in the consuming app, not the module.
+    this.logStore.debug('Image preloading not yet implemented for Nuxt module')
   }
 
   /**
@@ -954,18 +947,9 @@ export class SmileAPI {
     // TODO: import.meta.glob paths need updating for Nuxt module context.
     // User assets will be in the consuming app, not the module.
     this.logStore.debug('Preloading videos')
-    setTimeout(() => {
-      Object.values(
-        import.meta.glob?.('@/user/assets/**/*.{mp4,mov,avi,m4v}', {
-          eager: true,
-          query: '?url',
-          import: 'default',
-        }) || {}
-      ).forEach((url) => {
-        const video = document.createElement('video')
-        video.src = url
-      })
-    }, 1)
+    // TODO: import.meta.glob paths need updating for Nuxt module context.
+    // User assets live in the consuming app, not the module.
+    this.logStore.debug('Video preloading not yet implemented for Nuxt module')
   }
 
   /**
