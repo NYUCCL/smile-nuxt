@@ -275,30 +275,48 @@ After the migration is complete and all functionality verified:
 
 **Note**: During migration, all runtime files remain as `.js`. TypeScript conversion is a final, optional step.
 
+> **UPDATE (2026-03-06)**: The repo was restructured from the original `packages/nuxt/` monorepo layout to a flat root layout. Module code lives directly at `src/`. The `packages/` directory has been removed.
+
 ```text
-smile/                              # Monorepo root
-├── packages/
-│   └── nuxt/                       # The Nuxt module (@gureckislab/smile)
-│       ├── src/
-│       │   ├── module.ts           # Module entry point (only TS file initially)
-│       │   └── runtime/            # Runtime code (ships to users)
-│       │       ├── composables/    # useAPI.js, useViewAPI.js, etc. (keep as .js)
-│       │       ├── components/     # Built-in views, UI kit (.vue files)
-│       │       ├── stores/         # smilestore.js, log.js (keep as .js)
-│       │       ├── plugins/        # firebase.client.js, timeline.client.js
-│       │       ├── middleware/     # timeline.global.js (keep as .js)
-│       │       ├── layouts/        # experiment.vue, development.vue, etc.
-│       │       ├── pages/          # /dev/, /presentation/ routes
-│       │       ├── core/           # Timeline.js, Stepper.js, etc. (keep as .js)
-│       │       └── utils/          # randomization.js, utils.js (keep as .js)
-│       ├── playground/             # Test experiment (like current src/user)
-│       │   ├── nuxt.config.ts      # extends '../src/module'
-│       │   ├── design.js           # Test timeline (keep as .js)
-│       │   └── components/         # Test custom components
-│       └── test/                   # Vitest + Playwright tests
-├── docs/                           # VitePress documentation (keep existing)
-├── analysis/                       # Python analysis tools (keep existing)
-└── scripts/                        # Build/deploy scripts
+smile-ui/                            # Repository root (IS the Nuxt module)
+├── src/
+│   ├── module.ts                    # Module entry point
+│   └── runtime/                     # Runtime code (ships to users)
+│       ├── composables/             # useAPI.js, useViewAPI.js, etc.
+│       ├── components/              # Built-in views, UI kit (.vue files)
+│       │   ├── builtins/            # WelcomeView, ConsentView, etc.
+│       │   ├── ui/                  # Button, Card, Input, etc.
+│       │   └── dev/                 # DevToolbar, Sidebar, ConsoleBar
+│       ├── stores/                  # smilestore.js, log.js
+│       ├── plugins/                 # seed.client.js, timeline.client.js, store-sync.client.js
+│       ├── middleware/              # timeline.global.js
+│       ├── layouts/                 # experiment.vue
+│       ├── pages/                   # [...slug].vue, dev/[...slug].vue
+│       ├── server/                  # Nitro server routes + middleware + DB
+│       │   ├── api/participants/    # CRUD for participant data
+│       │   ├── api/auth/            # Dev login/logout/session
+│       │   ├── database/schema.ts   # Drizzle schema
+│       │   ├── middleware/dev-auth.ts
+│       │   ├── plugins/migrate.ts   # Auto-create tables on startup
+│       │   └── utils/db.ts          # DB singleton (Turso/SQLite)
+│       ├── core/                    # Timeline.js, Stepper.js, etc.
+│       └── utils/                   # randomization.js, utils.js
+├── playground/                      # Dev playground (Nuxt app)
+│   ├── nuxt.config.ts
+│   ├── design.js                    # Full experiment timeline
+│   └── components/                  # Custom experiment components
+├── test/                            # All tests
+│   ├── setup/mocks.js               # Shared Vitest mocks
+│   ├── core/                        # Unit tests (Timeline, Stepper, utils, etc.)
+│   ├── middleware/                   # Navigation guard tests (44 tests)
+│   └── e2e/                         # Playwright E2E tests (16 tests)
+├── legacy/                          # Archived SPA code
+├── docs/                            # VitePress documentation
+├── drizzle.config.ts                # Drizzle Kit config
+├── vitest.config.js                 # Vitest configuration
+├── playwright.config.ts             # Playwright configuration
+├── .env                             # Default config
+└── .env.local                       # Secrets (gitignored)
 ```
 
 ---
@@ -2344,23 +2362,23 @@ Each phase should be executed in a **fresh Claude Code agent session** so the ag
 
 **Session boundaries:**
 
-| Session | Phase (Steps) | Focus |
-| --- | --- | --- |
-| 1 | Phase 1 (1–2) | Monorepo scaffolding + bare Nuxt module |
-| 2 | Phase 2 (3–6) | Copy leaf files + their tests (config, Timeline, utils, stepper deps) |
-| 3 | Phase 3 (7–9) | Copy stores + tests, resolve circular dependency |
-| 4 | Phase 4 (10) | Copy Stepper class + tests |
-| 5 | Phase 5 (11–15) | Copy composables + tests, register auto-imports |
-| 6 | Phase 6 (16–17) ✅ | Timeline plugin + catch-all page (no guards) |
-| **7** | **Phase 7 (18–20)** ✅ | **Port navigation guards + copy router tests — hardest step, deserves focused context** |
-| 8 | Phase 8 (21–23) | Layouts + `/dev/` + `/presentation/` routes |
-| 9 | Phase 9 (24–27) | Tailwind + UI kit + first 2 real components + tests |
-| 10 | Phase 10 (28–33) | Remaining builtin components |
-| 11 | Phase 11 (34–37) | Dev tools components |
-| 12 | Phase 12 (38–39) | Firebase integration |
-| 13 | Phase 13 (40) | Full integration test |
-| 14 | Phase 14 (41–43) | Wire up test infrastructure, make copied tests pass |
-| 15+ | Phase 15–16 | Build, publish, TypeScript |
+| Session | Phase (Steps) | Focus | Status |
+| --- | --- | --- | --- |
+| 1 | Phase 1 (1–2) | Monorepo scaffolding + bare Nuxt module | DONE |
+| 2 | Phase 2 (3–6) | Copy leaf files + their tests (config, Timeline, utils, stepper deps) | DONE |
+| 3 | Phase 3 (7–9) | Copy stores + tests, resolve circular dependency | DONE |
+| 4 | Phase 4 (10) | Copy Stepper class + tests | DONE |
+| 5 | Phase 5 (11–15) | Copy composables + tests, register auto-imports | DONE |
+| 6 | Phase 6 (16–17) | Timeline plugin + catch-all page (no guards) | DONE |
+| 7 | Phase 7 (18–20) | Port navigation guards + copy router tests | DONE |
+| 8 | Phase 8 (21–23) | Layouts + `/dev/` + `/presentation/` routes | DONE |
+| 9 | Phase 9 (24–27) | Tailwind + UI kit + first 2 real components + tests | DONE |
+| 10 | Phase 10 (28–33) | Remaining builtin components | DONE |
+| 11 | Phase 11 (34–37) | Dev tools components | DONE |
+| 12 | Phase 12 (38–39) | ~~Firebase~~ Server API (Drizzle + Turso/SQLite) | DONE (redesigned) |
+| 13 | Phase 13 (40) | Full integration test | DONE |
+| 14 | Phase 14 (41–43) | Wire up test infrastructure, make tests pass | DONE (341 unit + 16 E2E) |
+| 15+ | Phase 15–16 | Build, publish, TypeScript | **NEXT** |
 
 **Why phase-level, not step-level**: Individual steps (e.g., "copy one file") are too small for a full session spin-up. But steps within a phase share context that the agent benefits from (e.g., Steps 7–9 need to understand the circular dependency together; Steps 18–20 need to understand the guard logic holistically).
 
@@ -3805,8 +3823,9 @@ All test files were already copied during earlier phases. Now update their impor
 1. **Catch-all Route + Timeline Resolution**: The catch-all `[...slug].vue` page resolving components from the Timeline is the single most critical piece. If `getViewForPath()` or the dynamic `<component :is>` pattern has issues, everything breaks. **Mitigated by Phases 6–7 (Steps 16–20)** — validated with trivial components before any real code is copied.
 2. **Navigation Guard Migration**: The `beforeEach` guard has ~230 lines of complex conditional logic with many edge cases. The port to `defineNuxtRouteMiddleware()` is mostly mechanical (`next()` → `return`, etc.) but ordering and behavior must be identical. **Mitigated by Steps 18–19** — guards are added one at a time and tested individually.
 3. **Circular Dependency (log ↔ smilestore)**: These two stores import each other. **Mitigated by Steps 7–9** — both are copied together and tested as a pair.
-4. **State Persistence**: localStorage + Firestore sync must work identically. **Mitigated by Step 9** (localStorage) and **Steps 38–39** (Firestore), each tested in isolation.
-5. **Development Tools**: Complex UI components with many features. **Mitigated by Steps 34–37** — each dev tool component is copied and integrated independently.
+4. **State Persistence**: Tiered cookie/localStorage persistence must work correctly. **Mitigated by Step 9** (localStorage) and cookie tier implementation. Server-side data via Drizzle + Turso/SQLite (replaced Firebase). **Status: RESOLVED.**
+5. **Development Tools**: Complex UI components with many features. **Mitigated by Steps 34–37** — each dev tool component is copied and integrated independently. **Status: RESOLVED.**
+6. **Asset loading (`import.meta.glob`)**: The module's `useAPI.js` has stubbed-out asset loading. `#userAssets` and `#coreAssets` are `{}`, and `getCoreStaticUrl()`, `getStaticUrl()`, `preloadAllImages()`, `preloadAllVideos()` are non-functional. This must be resolved before Phase M (Build & Publish) to support consuming apps that have static assets. **Status: OPEN.**
 
 ### Mitigation Strategies
 
@@ -3832,12 +3851,13 @@ All test files were already copied during earlier phases. Now update their impor
 1. All existing experiments run without modification (or minimal changes)
 2. Development mode works with all features
 3. Presentation mode works
-4. All tests pass
-5. Firebase integration works (dev + production)
+4. All tests pass (341 unit + 16 E2E as of Phase L completion)
+5. ~~Firebase integration works (dev + production)~~ Server API (Drizzle + Turso/SQLite) works for data persistence
 6. Recruitment service integration works
 7. Build and deploy pipelines work
 8. No performance regression
 9. Documentation updated
+10. Asset loading (`import.meta.glob`) works for consuming apps (Phase M prerequisite)
 
 ---
 
@@ -3935,22 +3955,69 @@ This makes SMILE a proper framework (like Nuxt itself) rather than a template to
 
 ### Phase Overview (46 Steps)
 
-| Phase | Steps | What it proves |
-| --- | --- | --- |
-| A: Bare Infrastructure | 1–2 | Nuxt module + playground work with zero SMILE code |
-| B: Leaf Files | 3–6 | Config, Timeline, utils, stepper deps load in isolation |
-| C: Stores | 7–9 | Pinia stores work, circular dep resolved, localStorage persists |
-| D: Stepper | 10 | Full Stepper class works |
-| E: Composables | 11–15 | Each composable works, auto-imports work |
-| **F: Routing (Gate)** | **16–20** | **Catch-all route + middleware enforce sequential ordering with trivial pages** |
-| G: Layouts & Modes | 21–23 | `/dev/` and `/presentation/` prefixes work |
-| H: Real Components | 24–33 | Built-in views render one-at-a-time in proven routing |
-| I: Dev Tools | 34–37 | Dev sidebar, console, presentation nav work |
-| J: Firebase | 38–39 | Auth + Firestore sync work |
-| K: Full Integration | 40 | Complete experiment flow end-to-end |
-| L: Testing | 41–43 | Unit + E2E tests pass |
-| M: Build & Publish | 44–45 | Module installs in fresh project |
-| N: TypeScript | 46+ | Optional, gradual, after everything works |
+| Phase | Steps | What it proves | Status |
+| --- | --- | --- | --- |
+| A: Bare Infrastructure | 1–2 | Nuxt module + playground work with zero SMILE code | DONE |
+| B: Leaf Files | 3–6 | Config, Timeline, utils, stepper deps load in isolation | DONE |
+| C: Stores | 7–9 | Pinia stores work, circular dep resolved, localStorage persists | DONE |
+| D: Stepper | 10 | Full Stepper class works | DONE |
+| E: Composables | 11–15 | Each composable works, auto-imports work | DONE |
+| **F: Routing (Gate)** | **16–20** | **Catch-all route + middleware enforce sequential ordering with trivial pages** | **DONE** |
+| G: Layouts & Modes | 21–23 | `/dev/` and `/presentation/` prefixes work | DONE |
+| H: Real Components | 24–33 | Built-in views render one-at-a-time in proven routing | DONE |
+| I: Dev Tools | 34–37 | Dev sidebar, console, presentation nav work | DONE |
+| J: ~~Firebase~~ Server API | 38–39 | ~~Auth + Firestore sync~~ Drizzle + Turso/SQLite API works | DONE (redesigned) |
+| K: Full Integration | 40 | Complete experiment flow end-to-end | DONE |
+| L: Testing | 41–43 | Unit + E2E tests pass | DONE |
+| M: Build & Publish | 44–45 | Module installs in fresh project | NOT STARTED |
+| N: TypeScript | 46+ | Optional, gradual, after everything works | NOT STARTED |
+
+---
+
+### Current Status (as of 2026-03-06)
+
+**All phases through L (Testing) are complete.** The module is functional with a full experiment flow running in the playground.
+
+#### Major Deviations from Original Plan
+
+1. **Repo restructured to root**: The original plan placed the module at `packages/nuxt/`. The repo was restructured so module code lives at root (`src/module.ts`, `src/runtime/`). The `packages/` directory has been removed entirely. Playground is at `playground/`, docs at `docs/`.
+
+2. **Firebase replaced with Server API**: Phase 12 (Steps 38-39) was redesigned. Instead of Firebase/Firestore, the module now uses:
+   - Nitro server API routes (`src/runtime/server/api/participants/`) with Drizzle ORM
+   - Local dev: `file:.data/experiment.db` (auto-created SQLite)
+   - Production: Turso via `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN` env vars
+   - `smilestore.js` uses `$fetch('/api/participants/...')` instead of Firebase SDK
+   - Dev auth via `dev-auth.ts` server middleware (password-based, session tokens in DB)
+
+3. **State persistence redesigned**: Tiered approach implemented:
+   - Tier 1 (cookies): `knownUser`, `consented`, `done`, `withdrawn`, `seedID`, `seedSet`, `completionCode`, `lastRoute`, `docRef`
+   - Tier 2 (localStorage): `viewSteppers`, `routes`, `conditions`, etc.
+   - Tier 3 (Pinia only): transient/ephemeral state
+
+#### Testing Status
+
+**Unit tests (Vitest)**: 341 tests passing across all test suites:
+- `test/core/` — Timeline, Stepper, StepState, StepperProxy, StepperSerializer, seed, randomization, utils
+- `test/middleware/` — 44 navigation guard tests
+- `test/core/composables/` — useAPI, useStepper, useTimeline, useViewAPI
+
+**E2E tests (Playwright)**: 16 tests passing:
+- `test/e2e/guards.spec.ts` — 5 tests (redirect enforcement, consent gating, sequence ordering)
+- `test/e2e/persistence.spec.ts` — 3 tests (refresh resume, consent memory, root redirect)
+- `test/e2e/experiment-flow.spec.ts` — 6 tests (welcome render, navigation, demographics, quiz with correct answers, quiz with wrong answers causing instruction loop)
+- `test/e2e/dev-mode.spec.ts` — 2 tests (dev route rendering, route jumping)
+
+#### Known Open Items / TODOs
+
+1. **`import.meta.glob()` asset loading** (useAPI.js lines 238-258): `#userAssets` and `#coreAssets` are hardcoded to `{}`. In the old SPA these used `import.meta.glob()` to eagerly import assets at build time. In the Nuxt module context, user assets live in the consuming app, not the module, so the glob paths don't work. `getCoreStaticUrl()`, `getStaticUrl()`, `preloadAllImages()`, and `preloadAllVideos()` are all non-functional stubs. **Needs resolution before Phase M (Build & Publish)** — likely via a Nuxt module hook that registers the consuming app's asset directories, or by switching to `public/` directory assets.
+
+2. **useAPI.test.js has 3 trivially passing tests**: These test mocked behavior rather than real API logic. Should be strengthened or removed.
+
+3. **StepperSerializer.test.js `domElement` test**: Tests DOM serialization with a mock element that may not exercise the real code path. Low priority.
+
+4. **CI/CD workflows**: Old SPA deploy workflows archived. Need Vercel/other deployment setup for the Nuxt app.
+
+5. **Starter template**: `nyuccl/smile-starter` repo needs updating for the module-based architecture.
 
 ### Agent Session Reference
 
