@@ -2378,7 +2378,10 @@ Each phase should be executed in a **fresh Claude Code agent session** so the ag
 | 12 | Phase 12 (38–39) | ~~Firebase~~ Server API (Drizzle + Turso/SQLite) | DONE (redesigned) |
 | 13 | Phase 13 (40) | Full integration test | DONE |
 | 14 | Phase 14 (41–43) | Wire up test infrastructure, make tests pass | DONE (341 unit + 16 E2E) |
-| 15+ | Phase 15–16 | Build, publish, TypeScript | **NEXT** |
+| 15 | Phase 15 (44–45) | Build module, test fresh install | **NEXT** |
+| 16 | Phase 16 (46) | TypeScript conversion (optional) | NOT STARTED |
+| 17 | Phase 17 (47–49) | Vercel deployment, CI/CD, Slack | NOT STARTED |
+| 18 | Phase 18 (50–54) | Full documentation rewrite | NOT STARTED |
 
 **Why phase-level, not step-level**: Individual steps (e.g., "copy one file") are too small for a full session spin-up. But steps within a phase share context that the agent benefits from (e.g., Steps 7–9 need to understand the circular dependency together; Steps 18–20 need to understand the guard logic holistically).
 
@@ -3816,6 +3819,175 @@ All test files were already copied during earlier phases. Now update their impor
 
 ---
 
+### Phase 17: Deployment & Infrastructure
+
+> **Prerequisite**: Phase 15 (Build & Publish) must be complete — the module must be installable from npm before deployment can be tested end-to-end.
+
+#### Step 47: Vercel deployment
+
+**Goal**: A SMILE experiment can be deployed to Vercel from a starter-template project with zero custom build configuration.
+
+1. Create a test project from `starter-template/` (or use `nuxi init -t gh:nyuccl/smile-ui/starter-template`)
+2. Connect to Vercel via `vercel` CLI or GitHub integration
+3. Configure environment variables in Vercel dashboard:
+   - `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` for production database
+   - `SMILE_DEV_PASSWORD` for dev/presentation mode access
+4. Deploy and verify:
+   - Production experiment flow works end-to-end
+   - Server API routes (`/api/participants/*`) connect to Turso
+   - Dev mode accessible at `/dev/` with password gate
+   - Data persists across sessions (participant completes, returns later)
+
+**Key decisions to validate**:
+- Does `nuxt build` produce a working Vercel-compatible output? (Nuxt has built-in Vercel preset)
+- Does the Nitro server layer (API routes, middleware) work on Vercel serverless functions?
+- Are Turso connections reliable from Vercel edge/serverless?
+- Does `generate_git_env.sh` run correctly in Vercel's build environment, or do we need a Node-based alternative?
+
+**VERIFY**:
+- [ ] `vercel deploy` succeeds from a starter-template project
+- [ ] Experiment flow works on deployed URL
+- [ ] Server API routes work (data saves to Turso)
+- [ ] Dev mode password gate works in production
+- [ ] Returning participants resume where they left off
+
+#### Step 48: Vercel + GitHub integration
+
+**Goal**: Push-to-deploy workflow where merging to main auto-deploys the experiment.
+
+1. Connect the researcher's GitHub repo to Vercel
+2. Configure:
+   - Production branch: `main`
+   - Preview deployments for PRs (useful for testing experiment changes)
+   - Environment variables set in Vercel dashboard (not committed)
+3. Test the full cycle: push a change → Vercel builds → preview URL works → merge → production updates
+
+#### Step 49: Slack/notification integration (optional)
+
+**Goal**: Lab gets notified of deployments and can monitor experiments.
+
+1. Install Vercel Slack integration (or GitHub Actions notification)
+2. Configure notifications for:
+   - Successful deployments
+   - Failed builds
+   - Optionally: new participant completions (via a server route webhook)
+3. Document the setup process for lab onboarding
+
+**VERIFY**:
+- [ ] Push to main triggers automatic deployment
+- [ ] Preview deployments work for PRs
+- [ ] Slack notifications fire on deploy (if configured)
+
+---
+
+### Phase 18: Documentation Rewrite
+
+> **Prerequisite**: Phases 15–17 must be complete. The deployment workflow must be tested and working before documenting it. Documentation should describe what actually works, not what we hope will work.
+
+**Goal**: Rewrite the VitePress documentation at `docs/` to reflect the new Nuxt module architecture. This is a significant effort — nearly every page needs updating because the installation, project structure, configuration, and deployment workflow have all changed.
+
+#### Step 50: Documentation audit and outline
+
+1. Audit every existing doc page and categorize:
+   - **Delete**: Pages about the old SPA architecture, Vite config, Firebase setup
+   - **Rewrite**: Installation, project structure, configuration, deployment, API reference
+   - **Keep**: Conceptual pages (experiment design principles, IRB guidance) that aren't architecture-specific
+2. Create a new documentation outline:
+
+**Proposed structure**:
+```
+docs/
+├── getting-started/
+│   ├── installation.md        # nuxi init -t gh:nyuccl/smile-ui/starter-template
+│   ├── project-structure.md   # What each file does
+│   ├── your-first-experiment.md # Edit design.js + MyTaskView.vue
+│   └── running-locally.md     # pnpm dev, three modes (/dev/, /presentation/)
+├── guide/
+│   ├── design-file.md         # Timeline API: pushSeqView, registerView, etc.
+│   ├── custom-components.md   # Writing task views, using useViewAPI()
+│   ├── built-in-views.md      # All built-in components and their props
+│   ├── navigation-guards.md   # How routing/sequencing works
+│   ├── data-recording.md      # recordPageData, stepper, save behavior
+│   ├── randomization.md       # Conditions, shuffle, seeded RNG
+│   ├── configuration.md       # .env files, runtimeConfig, api.setRuntimeConfig()
+│   ├── stepper.md             # Multi-trial tasks with useStepper/useViewAPI
+│   └── state-persistence.md   # Cookie/localStorage tiers, resume behavior
+├── deployment/
+│   ├── vercel.md              # Recommended: Vercel setup, env vars, GitHub integration
+│   ├── database.md            # Turso setup, local SQLite for dev
+│   ├── dev-auth.md            # Password-protecting /dev/ in production
+│   └── other-platforms.md     # Netlify, Cloudflare, self-hosted (brief)
+├── lab-setup/
+│   ├── onboarding.md          # Setting up a new lab: Vercel team, Turso org, Slack
+│   ├── new-experiment.md      # Creating a new experiment repo from template
+│   ├── recruitment.md         # Prolific, MTurk, CloudResearch integration
+│   └── monitoring.md          # Checking data, participant progress
+├── api/
+│   ├── use-api.md             # SmileAPI class reference
+│   ├── use-view-api.md        # ViewAPI class reference
+│   ├── timeline.md            # Timeline class reference
+│   ├── stepper.md             # Stepper/StepState class reference
+│   └── server-api.md          # /api/participants/* endpoints
+├── migration/
+│   └── from-spa.md            # Guide for migrating existing SPA experiments
+└── reference/
+    ├── env-variables.md       # Complete list of all VITE_* and server env vars
+    ├── built-in-components.md # Component props/slots/events reference
+    └── module-options.md      # smile: {} config in nuxt.config.ts
+```
+
+#### Step 51: Core documentation pages
+
+Write the highest-priority pages first (what a new user needs to get started):
+
+1. **Installation** — The `nuxi init` command, `pnpm install`, `.env.local` setup
+2. **Project structure** — What each file does, where to put things
+3. **Your first experiment** — Walk through editing `design.js` and `MyTaskView.vue`
+4. **Running locally** — `pnpm dev`, the three modes, dev tools
+5. **Configuration** — `.env` files, `design.js` runtime config, env var reference
+
+#### Step 52: Deployment documentation
+
+The deployment story has changed completely:
+- **Old**: Manual Firebase deploy, GitHub Actions CI/CD, `generate_git_env.sh` → deploy hooks
+- **New**: Vercel (recommended), push-to-deploy, Turso for database
+
+Write:
+1. **Vercel setup** — Connect repo, set env vars, deploy. Include screenshots.
+2. **Database setup** — Create Turso database, get credentials, configure env vars
+3. **Dev auth** — Setting `SMILE_DEV_PASSWORD` in production, how the session system works
+4. **Other platforms** — Brief notes on Netlify, Cloudflare Pages, self-hosted Node
+
+#### Step 53: Lab setup / onboarding documentation
+
+This replaces the old "getting your lab set up" docs:
+- **Old**: Firebase project setup, service accounts, GitHub secrets, deploy workflows
+- **New**: Vercel team account, Turso organization, Slack integration, template repo access
+
+Write:
+1. **Lab onboarding** — One-time setup: Vercel team, Turso org, install Slack bot
+2. **New experiment workflow** — `nuxi init` → edit → push → auto-deploys
+3. **Recruitment** — Prolific/MTurk/CloudResearch integration (mostly unchanged)
+4. **Monitoring** — Checking participant data via dev mode, Turso dashboard, or direct API
+
+#### Step 54: API reference and migration guide
+
+1. **API reference** — Auto-generate or manually document SmileAPI, ViewAPI, Timeline, Stepper
+2. **Migration from SPA** — For labs with existing experiments: what changed, how to port `design.js`, component changes, env var mapping (`VITE_FIREBASE_*` → `TURSO_*`)
+
+**VERIFY**:
+- [ ] A new user can go from zero to running experiment using only the docs
+- [ ] Deployment docs are tested against a real Vercel deployment
+- [ ] All env variables are documented
+- [ ] Migration guide covers the key breaking changes
+- [ ] No references to Firebase, old SPA structure, or `packages/` layout remain
+
+---
+
+**Note**: This phase is optional and can be done gradually over weeks/months. The module works fine with JavaScript.
+
+---
+
 ## Risk Assessment
 
 ### High Risk Areas
@@ -3970,7 +4142,9 @@ This makes SMILE a proper framework (like Nuxt itself) rather than a template to
 | K: Full Integration | 40 | Complete experiment flow end-to-end | DONE |
 | L: Testing | 41–43 | Unit + E2E tests pass | DONE |
 | M: Build & Publish | 44–45 | Module installs in fresh project | NOT STARTED |
-| N: TypeScript | 46+ | Optional, gradual, after everything works | NOT STARTED |
+| N: TypeScript | 46 | Optional, gradual, after everything works | NOT STARTED |
+| O: Deployment | 47–49 | Vercel deploy, push-to-deploy, Slack notifications | NOT STARTED |
+| P: Documentation | 50–54 | Full docs rewrite for new architecture | NOT STARTED |
 
 ---
 
