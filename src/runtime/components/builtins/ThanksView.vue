@@ -63,7 +63,7 @@ onMounted(() => {
   const mountTime = Date.now()
 
   // Start the save immediately (no delay)
-  api.saveData(true).then(() => {
+  Promise.resolve(api.saveData(true)).then(() => {
     api.setCompletionCode(completionCode.value)
     saveComplete = true
   }).catch(() => {

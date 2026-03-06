@@ -131,7 +131,7 @@ const initBrowserEphemeral = {
 }
 
 // Export initial values so plugins can reference them
-export { initCookieState, initLocalState, COOKIE_MAX_AGE }
+export { initCookieState, initLocalState, initDev, COOKIE_MAX_AGE }
 
 /**
  * @module smilestore
@@ -173,7 +173,7 @@ export default defineStore('smilestore', {
       browserEphemeral: { ...initBrowserEphemeral },
       dev:
         appconfig.mode === 'development'
-          ? useCookie(`smile_${appconfig.codeName}_dev`, { default: () => ({ ...initDev }), maxAge: 86400 * 365 })
+          ? useCookie(`smile_${appconfig.codeName}_dev`, { default: () => ({ ...initDev }), maxAge: 86400 * 365 }).value ?? { ...initDev }
           : { ...initDev },
       private: {
         recruitmentInfo: {},
@@ -216,8 +216,8 @@ export default defineStore('smilestore', {
     isDone: (state) => state.cookieState.done,
     lastRoute: (state) => state.cookieState.lastRoute,
     isDBConnected: (state) => state.browserEphemeral.dbConnected,
-    hasAutofill: (state) => state.dev.viewProvidesAutofill,
-    searchParams: (state) => state.dev.searchParams,
+    hasAutofill: (state) => state.dev?.viewProvidesAutofill,
+    searchParams: (state) => state.dev?.searchParams,
     recruitmentService: (state) => state.data.recruitmentService,
     isSeedSet: (state) => state.cookieState.seedSet,
     getSeedID: (state) => state.cookieState.seedID,
@@ -392,11 +392,11 @@ export default defineStore('smilestore', {
     },
 
     setAutofill(fn) {
-      this.dev.viewProvidesAutofill = fn
+      if (this.dev) this.dev.viewProvidesAutofill = fn
     },
 
     removeAutofill() {
-      this.dev.viewProvidesAutofill = null
+      if (this.dev) this.dev.viewProvidesAutofill = null
     },
 
     setRecruitmentService(service, info) {
@@ -405,7 +405,7 @@ export default defineStore('smilestore', {
     },
 
     autofill() {
-      if (this.dev.viewProvidesAutofill) {
+      if (this.dev?.viewProvidesAutofill) {
         this.dev.viewProvidesAutofill()
         const log = useLog()
         log.warn('DEV MODE: View was autofilled by a user-provided component function')
