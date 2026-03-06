@@ -23,32 +23,27 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.gitsecret/keys/random_seed
-!*.secret
-/css/styles.css
-/docs/.vitepress/cache
-/public/qr.svg
-/data/private/**
-env/*.txt
-env/*.tar.gz
-env/*.zip
 
-# Firebase service account
+# Nuxt
+.nuxt
+.output
+
+# Docs
+/docs/.vitepress/cache
+
+# Local SQLite database
+.data/
+
+# Drizzle migration metadata
+drizzle/meta/
+
+# Firebase service account (legacy)
 *.service-account*
 components.d.ts
 /.vite
 
-# Python
-analysis/.venv/
-analysis/__pycache__/
-analysis/*.egg-info/
-analysis/.ruff_cache/
+# Python (legacy)
 *.pyc
 __pycache__/
 .marimo/
-
-# Test coverage
-analysis/htmlcov/
-analysis/.coverage
 .pytest_cache/
-analysis/notebooks/__marimo__/session
