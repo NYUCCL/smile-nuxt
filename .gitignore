@@ -47,3 +47,7 @@ components.d.ts
 __pycache__/
 .marimo/
 .pytest_cache/
+
+# Playwright
+test-results/
+playwright-report/
