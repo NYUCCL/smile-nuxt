@@ -1,4 +1,11 @@
 <script setup>
+import ILucideBookMarked from '~icons/lucide/book-marked'
+import ILucideBugPlay from '~icons/lucide/bug-play'
+import ILucideInfo from '~icons/lucide/info'
+import ILucideMoon from '~icons/lucide/moon'
+import ILucideSettings from '~icons/lucide/settings'
+import ILucideSmile from '~icons/lucide/smile'
+import ILucideSun from '~icons/lucide/sun'
 /**
  * @fileoverview Sidebar component for the Smile application with navigation and configuration options
  */

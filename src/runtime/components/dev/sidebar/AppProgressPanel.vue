@@ -1,4 +1,7 @@
 <script setup>
+import IFluentCloudSync24Filled from '~icons/fluent/cloud-sync-24-filled'
+import IHeroiconsUserMinus16Solid from '~icons/heroicons/user-minus-16-solid'
+import ILucideDatabase from '~icons/lucide/database'
 /**
  * API instance for accessing Smile app state and actions
  * @type {import('@/core/composables/useAPI')}

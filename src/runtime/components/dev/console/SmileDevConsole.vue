@@ -1,4 +1,8 @@
 <script setup>
+import IFa6SolidGear from '~icons/fa6-solid/gear'
+import IMdiConsoleLine from '~icons/mdi/console-line'
+import ITdesignDataBaseFilled from '~icons/tdesign/data-base-filled'
+import IUilDownArrow from '~icons/uil/down-arrow'
 /**
  * @fileoverview Main console component for developer mode
  * Provides a tabbed interface for database browsing, log viewing, and configuration

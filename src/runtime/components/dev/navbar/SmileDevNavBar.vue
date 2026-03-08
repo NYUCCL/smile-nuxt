@@ -1,4 +1,5 @@
 <script setup>
+import ILucideBugPlay from '~icons/lucide/bug-play'
 // Component imports
 import StepInfoButtonGroup from './StepInfoButtonGroup.vue'
 import ViewInfoButtonGroup from './ViewInfoButtonGroup.vue'

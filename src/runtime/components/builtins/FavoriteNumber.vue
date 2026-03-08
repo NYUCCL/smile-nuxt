@@ -1,4 +1,5 @@
 <script setup>
+import IFa6SolidArrowRight from '~icons/fa6-solid/arrow-right'
 /**
  * @description Task 1 view component for collecting favorite number
  * @author Smile UI

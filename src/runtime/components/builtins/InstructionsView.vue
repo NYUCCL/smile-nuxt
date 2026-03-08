@@ -1,4 +1,6 @@
 <script setup>
+import IFa6SolidArrowRight from '~icons/fa6-solid/arrow-right'
+import IMaterialSymbolsIntegrationInstructions from '~icons/material-symbols/integration-instructions'
 import { computed } from 'vue'
 import useViewAPI from '../../composables/useViewAPI'
 

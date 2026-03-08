@@ -1,4 +1,6 @@
 <script setup>
+import IFa6SolidAngleRight from '~icons/fa6-solid/angle-right'
+import IFa6SolidHouse from '~icons/fa6-solid/house'
 /**
  * @fileoverview Configuration list component
  * Displays hierarchical configuration structures with navigation capabilities

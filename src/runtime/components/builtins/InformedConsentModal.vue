@@ -1,4 +1,5 @@
 <script setup>
+import IFa6SolidXmark from '~icons/fa6-solid/xmark'
 import { watch, onUnmounted } from 'vue'
 import useAPI from '../../composables/useAPI'
 

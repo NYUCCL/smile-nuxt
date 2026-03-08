@@ -1,4 +1,6 @@
 <script setup>
+import ILucideArrowRight from '~icons/lucide/arrow-right'
+import ILucideDices from '~icons/lucide/dices'
 /**
  * RecruitmentChooserView.vue
  *

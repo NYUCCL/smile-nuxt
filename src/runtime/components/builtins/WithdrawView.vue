@@ -1,4 +1,6 @@
 <script setup>
+import IIconParkOutlineAttention from '~icons/icon-park-outline/attention'
+import IIconParkOutlineBye from '~icons/icon-park-outline/bye'
 // import and initalize smile API
 import { computed } from 'vue'
 import useAPI from '../../composables/useAPI'

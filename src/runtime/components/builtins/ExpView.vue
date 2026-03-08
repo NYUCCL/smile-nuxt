@@ -1,4 +1,5 @@
 <script setup>
+import IFa6SolidArrowRight from '~icons/fa6-solid/arrow-right'
 /**
  * @description Experiment view component for basic experiment flow
  * @author Smile UI

@@ -1,4 +1,5 @@
 <script setup>
+import IFa6SolidBahai from '~icons/fa6-solid/bahai'
 /**
  * Study preview component that displays study information and lab details
  * Provides participants with information about the study, compensation, and researchers

@@ -1,4 +1,6 @@
 <script setup>
+import ILucideDownload from '~icons/lucide/download'
+import ILucideQrCode from '~icons/lucide/qr-code'
 /**
  * @fileoverview QR code button component for presentation mode
  * Provides a dropdown menu with QR code display and download functionality.

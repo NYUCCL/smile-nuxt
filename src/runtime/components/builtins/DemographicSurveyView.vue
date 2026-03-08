@@ -1,4 +1,7 @@
 <script setup>
+import IFa6SolidArrowLeft from '~icons/fa6-solid/arrow-left'
+import IFa6SolidArrowRight from '~icons/fa6-solid/arrow-right'
+import IFa6SolidPerson from '~icons/fa6-solid/person'
 import { reactive, computed, ref } from 'vue'
 import { cn } from '../../lib/utils'
 import { CalendarIcon } from 'lucide-vue-next'

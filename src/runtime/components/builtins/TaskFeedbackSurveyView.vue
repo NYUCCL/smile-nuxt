@@ -1,4 +1,5 @@
 <script setup>
+import IFa6SolidPencil from '~icons/fa6-solid/pencil'
 import { reactive, computed } from 'vue'
 import useViewAPI from '../../composables/useViewAPI'
 

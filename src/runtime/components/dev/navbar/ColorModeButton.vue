@@ -1,4 +1,7 @@
 <script setup>
+import ILucideMoon from '~icons/lucide/moon'
+import ILucideSun from '~icons/lucide/sun'
+import ILucideSunMoon from '~icons/lucide/sun-moon'
 // UI components
 
 // Color mode composable

@@ -1,4 +1,8 @@
 <script setup>
+import IBxError from '~icons/bx/error'
+import IFa6SolidArrowLeft from '~icons/fa6-solid/arrow-left'
+import IFa6SolidArrowRight from '~icons/fa6-solid/arrow-right'
+import IFa6SolidSquareCheck from '~icons/fa6-solid/square-check'
 import { computed } from 'vue'
 import useViewAPI from '../../composables/useViewAPI'
 

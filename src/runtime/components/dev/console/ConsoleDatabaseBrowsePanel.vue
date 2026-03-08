@@ -1,4 +1,5 @@
 <script setup>
+import IFa6SolidHouse from '~icons/fa6-solid/house'
 /**
  * @fileoverview Database browsing panel component
  * Provides a hierarchical navigation interface for exploring data structures

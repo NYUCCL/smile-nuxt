@@ -2,8 +2,6 @@ import { defineNuxtModule, addPlugin, addImports, addLayout, addRouteMiddleware,
 import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import Icons from 'unplugin-icons/vite'
-import Components from 'unplugin-vue-components/vite'
-import IconsResolver from 'unplugin-icons/resolver'
 
 // Module options TypeScript interface definition
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -51,9 +49,6 @@ export default defineNuxtModule<ModuleOptions>({
     // Register Tailwind CSS via Vite plugin
     _nuxt.options.vite.plugins = _nuxt.options.vite.plugins || []
     _nuxt.options.vite.plugins.push(tailwindcss())
-    addVitePlugin(Components({
-      resolvers: [IconsResolver()],
-    }))
     addVitePlugin(Icons({
       compiler: 'vue3',
     }))

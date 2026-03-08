@@ -1,4 +1,7 @@
 <script setup>
+import IIconoirRemoveEmpty from '~icons/iconoir/remove-empty'
+import ILucideChevronLeft from '~icons/lucide/chevron-left'
+import ILucideChevronRight from '~icons/lucide/chevron-right'
 // API composable for stepper navigation
 import useViewAPI from '../../../composables/useViewAPI'
 

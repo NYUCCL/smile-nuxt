@@ -1,4 +1,6 @@
 <script setup>
+import ILucideDatabase from '~icons/lucide/database'
+import ILucideRefreshCw from '~icons/lucide/refresh-cw'
 // Vue composables
 import { computed } from 'vue'
 

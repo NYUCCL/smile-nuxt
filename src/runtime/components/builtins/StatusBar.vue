@@ -1,4 +1,7 @@
 <script setup>
+import IFa6SolidCircleXmark from '~icons/fa6-solid/circle-xmark'
+import IFa6SolidHand from '~icons/fa6-solid/hand'
+import IFa6SolidMagnifyingGlass from '~icons/fa6-solid/magnifying-glass'
 import { ref } from 'vue'
 import useSmileStore from '../../stores/smilestore'
 import useAPI from '../../composables/useAPI'

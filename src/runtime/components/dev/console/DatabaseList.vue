@@ -1,4 +1,6 @@
 <script setup>
+import IFa6SolidAngleRight from '~icons/fa6-solid/angle-right'
+import IFa6SolidHouse from '~icons/fa6-solid/house'
 /**
  * @fileoverview Database list component
  * Displays hierarchical data structures with navigation capabilities

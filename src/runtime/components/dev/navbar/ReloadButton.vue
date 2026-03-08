@@ -1,4 +1,5 @@
 <script setup>
+import ILucideRotateCcw from '~icons/lucide/rotate-ccw'
 // UI components
 import useAPI from '../../../composables/useAPI'
 

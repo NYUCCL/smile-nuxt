@@ -1,4 +1,6 @@
 <script setup>
+import IIcOutlineFullscreen from '~icons/ic/outline-fullscreen'
+import IIcOutlineFullscreenExit from '~icons/ic/outline-fullscreen-exit'
 // UI components
 import useAPI from '../../../composables/useAPI'
 

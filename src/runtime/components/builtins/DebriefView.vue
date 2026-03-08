@@ -1,4 +1,5 @@
 <script setup>
+import IFa6SolidArrowRight from '~icons/fa6-solid/arrow-right'
 /**
  * @fileoverview DebriefView component for displaying study completion information
  * @description This component shows debrief text to participants and provides navigation

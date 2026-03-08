@@ -1,4 +1,6 @@
 <script setup>
+import ILucidePresentation from '~icons/lucide/presentation'
+import IUilPresentationLine from '~icons/uil/presentation-line'
 /**
  * @fileoverview Navigation bar component for presentation mode
  * Provides a clean, minimal navigation interface with presentation controls

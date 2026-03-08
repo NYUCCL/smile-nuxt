@@ -1,4 +1,9 @@
 <script setup>
+import ICarbonRotateCounterclockwiseFilled from '~icons/carbon/rotate-counterclockwise-filled'
+import IIcOutlineFullscreen from '~icons/ic/outline-fullscreen'
+import ILucideMoon from '~icons/lucide/moon'
+import ILucideSun from '~icons/lucide/sun'
+import ILucideSunMoon from '~icons/lucide/sun-moon'
 import { ref, computed } from 'vue'
 import ResponsiveDeviceSelect from './menu/ResponsiveDeviceSelect.vue'
 import { useElementSize } from '@vueuse/core'

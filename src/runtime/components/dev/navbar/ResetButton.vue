@@ -1,4 +1,5 @@
 <script setup>
+import IF7BoltFill from '~icons/f7/bolt-fill'
 // UI components
 import useAPI from '../../../composables/useAPI'
 

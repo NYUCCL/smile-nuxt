@@ -1,4 +1,6 @@
 <script setup>
+import IFa6SolidHouseFlag from '~icons/fa6-solid/house-flag'
+import IFa6SolidLeaf from '~icons/fa6-solid/leaf'
 /**
  * Props for StepNode component
  * @typedef {object} StepNodeProps

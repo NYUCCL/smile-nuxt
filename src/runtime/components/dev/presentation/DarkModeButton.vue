@@ -1,4 +1,7 @@
 <script setup>
+import ILucideMoon from '~icons/lucide/moon'
+import ILucideSun from '~icons/lucide/sun'
+import ILucideSunMoon from '~icons/lucide/sun-moon'
 /**
  * @fileoverview Dark mode toggle button component for presentation mode
  * Provides a tooltip-enabled button to switch between light, dark, and system color modes

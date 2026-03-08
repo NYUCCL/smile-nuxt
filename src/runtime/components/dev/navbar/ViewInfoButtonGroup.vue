@@ -1,4 +1,12 @@
 <script setup>
+import IIcBaselinePinOff from '~icons/ic/baseline-pin-off'
+import IIcBaselinePushPin from '~icons/ic/baseline-push-pin'
+import ILucideArrowDown from '~icons/lucide/arrow-down'
+import ILucideDiamond from '~icons/lucide/diamond'
+import ILucidePresentation from '~icons/lucide/presentation'
+import IMdiMagic from '~icons/mdi/magic'
+import IMeteorIconsAnglesLeft from '~icons/meteor-icons/angles-left'
+import IMeteorIconsAnglesRight from '~icons/meteor-icons/angles-right'
 // Vue composables
 import { computed } from 'vue'
 

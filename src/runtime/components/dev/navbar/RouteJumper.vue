@@ -1,4 +1,8 @@
 <script setup>
+import ILucideArrowDown from '~icons/lucide/arrow-down'
+import ILucideDiamond from '~icons/lucide/diamond'
+import ILucideHouse from '~icons/lucide/house'
+import ILucidePresentation from '~icons/lucide/presentation'
 // Vue composables
 import { watch, ref, computed } from 'vue'
 import useLog from '../../../stores/log'

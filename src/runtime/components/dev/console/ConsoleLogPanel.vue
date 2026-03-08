@@ -1,4 +1,10 @@
 <script setup>
+import IFa6RegularClock from '~icons/fa6-regular/clock'
+import IFa6SolidAngleRight from '~icons/fa6-solid/angle-right'
+import IFa6SolidClock from '~icons/fa6-solid/clock'
+import IFa6SolidCodeBranch from '~icons/fa6-solid/code-branch'
+import IFa6SolidDatabase from '~icons/fa6-solid/database'
+import IFa6SolidGear from '~icons/fa6-solid/gear'
 /**
  * @fileoverview Console log panel component
  * Displays application logs with filtering and search capabilities

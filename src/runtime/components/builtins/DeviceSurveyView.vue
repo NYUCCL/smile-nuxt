@@ -1,4 +1,7 @@
 <script setup>
+import IFa6SolidArrowLeft from '~icons/fa6-solid/arrow-left'
+import IFa6SolidArrowRight from '~icons/fa6-solid/arrow-right'
+import IFa6SolidDesktop from '~icons/fa6-solid/desktop'
 import { reactive, computed } from 'vue'
 import useViewAPI from '../../composables/useViewAPI'
 

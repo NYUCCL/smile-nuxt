@@ -1,4 +1,5 @@
 <script setup>
+import ILucideHome from '~icons/lucide/home'
 /**
  * @fileoverview Home button component for presentation mode
  * Navigates back to the presentation homepage

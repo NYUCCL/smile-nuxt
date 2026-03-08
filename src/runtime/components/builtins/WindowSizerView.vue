@@ -1,4 +1,6 @@
 <script setup>
+import IFa6SolidArrowRight from '~icons/fa6-solid/arrow-right'
+import IFa6SolidArrowsUpDownLeftRight from '~icons/fa6-solid/arrows-up-down-left-right'
 /**
  * Window Sizer View Component
  *

@@ -1,4 +1,9 @@
 <script setup>
+import IFa6SolidTrash from '~icons/fa6-solid/trash'
+import IFamiconsHome from '~icons/famicons/home'
+import ILucideChevronLeft from '~icons/lucide/chevron-left'
+import ILucideChevronRight from '~icons/lucide/chevron-right'
+import IMdiTrash from '~icons/mdi/trash'
 import { ref, computed, watch } from 'vue'
 import StepNode from './StepNode.vue'
 import StepDataViewer from './StepDataViewer.vue'

@@ -1,4 +1,5 @@
 <script setup>
+import ICarbonRotateCounterclockwiseFilled from '~icons/carbon/rotate-counterclockwise-filled'
 /**
  * @fileoverview Developer configuration panel component for adjusting developer mode settings
  */

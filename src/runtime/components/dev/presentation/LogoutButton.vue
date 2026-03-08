@@ -1,4 +1,5 @@
 <script setup>
+import ILucideLogOut from '~icons/lucide/log-out'
 import { ref, onMounted } from 'vue'
 
 const isLoggedIn = ref(false)
