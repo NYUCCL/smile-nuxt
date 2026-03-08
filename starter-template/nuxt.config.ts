@@ -8,6 +8,9 @@ export default defineNuxtConfig({
   // SMILE module options (all optional — defaults are sensible)
   smile: {},
 
+  // Project-level CSS (Tailwind plugins, custom styles)
+  css: ['~/assets/css/app.css'],
+
   // Load env vars from project root
   vite: {
     envDir: '.',
