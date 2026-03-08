@@ -2,6 +2,7 @@
 import { ArrowDown, Diamond, House, Presentation } from 'lucide-vue-next'
 // Vue composables
 import { watch, ref, computed } from 'vue'
+import { useRoute, navigateTo } from '#imports'
 import useLog from '../../../stores/log'
 import useAPI from '../../../composables/useAPI'
 

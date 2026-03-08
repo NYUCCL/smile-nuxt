@@ -1,9 +1,6 @@
 <script setup>
 import { Home } from 'lucide-vue-next'
-/**
- * @fileoverview Home button component for presentation mode
- * Navigates back to the presentation homepage
- */
+import { navigateTo } from '#imports'
 
 const _props = defineProps(['icon'])
 
