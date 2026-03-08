@@ -82,6 +82,7 @@ export default defineNuxtModule<ModuleOptions>({
       '@nyuccl/smile > @vueuse/core',
       '@nyuccl/smile > uuid',
       '@nyuccl/smile > axios',
+      '@nyuccl/smile > motion',
     )
 
     // Add global CSS (Tailwind theme + SMILE styles)
