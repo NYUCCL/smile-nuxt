@@ -3,7 +3,7 @@
 import { computed } from 'vue'
 
 // Local components
-import CircleProgress from '../sidebar/CircleProgress.vue'
+import CircleProgress from './CircleProgress.vue'
 
 /**
  * API instance for accessing application state and methods
