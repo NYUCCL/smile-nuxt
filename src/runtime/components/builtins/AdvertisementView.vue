@@ -42,7 +42,7 @@ onBeforeUnmount(() => {
   >
     <img
       ref="logo"
-      src="/brain.svg"
+      :src="'/brain.svg'"
       width="220"
       class="dark-aware-img"
     >

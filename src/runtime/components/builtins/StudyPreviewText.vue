@@ -60,7 +60,7 @@ const _props = defineProps({
     <template #right>
       <!-- Lab logo (hidden on smaller screens) -->
       <img
-        src="@/user/assets/brain.svg"
+        :src="'/brain.svg'"
         width="220"
         class="mb-4 hidden @xl:block"
       >

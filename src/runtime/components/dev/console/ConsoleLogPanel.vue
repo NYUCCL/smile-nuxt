@@ -195,7 +195,7 @@ function getBgClass(msg) {
                   <i-fa6-regular-clock v-else-if="msg.message.includes('TRIAL STEPPER')" />
                   <img
                     v-else-if="msg.message.includes('FIRESTORE')"
-                    src="/src/assets/dev/firebase-bw.svg"
+                    :src="'/firebase-bw.svg'"
                     width="15"
                   >
                   <i-fa6-solid-angle-right v-else />
@@ -236,7 +236,7 @@ function getBgClass(msg) {
                   <i-fa6-regular-clock v-else-if="msg.message.includes('TRIAL STEPPER')" />
                   <img
                     v-else-if="msg.message.includes('FIRESTORE')"
-                    src="/src/assets/dev/firebase-bw.svg"
+                    :src="'/firebase-bw.svg'"
                     width="15"
                   >
                   <i-fa6-solid-angle-right v-else />
