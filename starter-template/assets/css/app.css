@@ -1,2 +1,2 @@
 /* Tailwind plugins — add or remove as needed */
-@import '@tailwindcss/typography';
+@plugin '@tailwindcss/typography';
