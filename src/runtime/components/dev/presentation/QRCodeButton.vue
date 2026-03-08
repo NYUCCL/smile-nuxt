@@ -1,12 +1,18 @@
 <script setup>
 /**
  * @fileoverview QR code button component for presentation mode
- * Provides a dropdown menu with QR code display and download functionality
+ * Provides a dropdown menu with QR code display and download functionality.
+ * QR code is generated on-demand via /api/qr server route.
  */
+import { computed } from 'vue'
 
-// Icon imports
+const api = useAPI()
 
-// UI component imports
+// Build the QR API URL pointing to the experiment's production URL
+const qrUrl = computed(() => {
+  const deployUrl = api.config.deployURL || (import.meta.client ? window.location.origin : '')
+  return `/api/qr?url=${encodeURIComponent(deployUrl)}`
+})
 </script>
 
 <template>
@@ -31,12 +37,12 @@
         </div>
         <!-- QR code image display -->
         <div class="flex justify-center">
-          <img src="/qr.svg" alt="QR Code" class="w-48 h-48" />
+          <img :src="qrUrl" alt="QR Code" class="w-48 h-48" />
         </div>
         <!-- Download button -->
         <div class="flex justify-end">
           <Button variant="outline" size="sm" as-child>
-            <a href="qr.svg" download="qr.svg" class="flex items-center gap-2">
+            <a :href="qrUrl" download="qr.svg" class="flex items-center gap-2">
               <i-lucide-download class="size-3" />
               <span>Download QR</span>
             </a>
