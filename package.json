@@ -1,6 +1,6 @@
 {
   "name": "@gureckislab/smile",
-  "version": "1.0.0",
+  "version": "0.2.0-beta",
   "description": "SMILE experiment framework as a Nuxt module",
   "author": "Todd Gureckis <gureckis@gmail.com>",
   "license": "MIT",
