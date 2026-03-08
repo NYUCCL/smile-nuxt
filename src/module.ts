@@ -1,4 +1,4 @@
-import { defineNuxtModule, addPlugin, addImports, addLayout, addRouteMiddleware, createResolver, extendPages, addComponentsDir, addServerScanDir, addServerImportsDir } from '@nuxt/kit'
+import { defineNuxtModule, addPlugin, addImports, addLayout, addRouteMiddleware, createResolver, extendPages, addComponentsDir, addServerScanDir, addServerImportsDir, addVitePlugin } from '@nuxt/kit'
 import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import Icons from 'unplugin-icons/vite'
@@ -51,11 +51,12 @@ export default defineNuxtModule<ModuleOptions>({
     // Register Tailwind CSS via Vite plugin
     _nuxt.options.vite.plugins = _nuxt.options.vite.plugins || []
     _nuxt.options.vite.plugins.push(tailwindcss())
-    _nuxt.options.vite.plugins.push(Components({
+    addVitePlugin(Components({
       resolvers: [IconsResolver()],
     }))
-    _nuxt.options.vite.plugins.push(Icons({
+    addVitePlugin(Icons({
       compiler: 'vue3',
+      autoInstall: true,
     }))
 
     // Pre-bundle CJS dependencies so Vite converts them to ESM for the browser
