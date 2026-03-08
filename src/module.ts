@@ -11,7 +11,7 @@ export interface ModuleOptions {}
 
 export default defineNuxtModule<ModuleOptions>({
   meta: {
-    name: '@gureckislab/smile',
+    name: '@nyuccl/smile',
     configKey: 'smile',
   },
   // Default configuration options of the Nuxt module

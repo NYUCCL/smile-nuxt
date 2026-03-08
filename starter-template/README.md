@@ -1,6 +1,6 @@
 # My SMILE Experiment
 
-Built with [@gureckislab/smile](https://github.com/nyuccl/smile-ui) — a Nuxt module for online behavioral research.
+Built with [@nyuccl/smile](https://github.com/nyuccl/smile-nuxt) — a Nuxt module for online behavioral research.
 
 ## Quick Start
 
@@ -102,4 +102,4 @@ Add your own tests as you build your experiment — test your custom task intera
 
 ## Documentation
 
-See the [SMILE documentation](https://github.com/nyuccl/smile-ui/tree/main/docs) for the full API reference, built-in components, and deployment guides.
+See the [SMILE documentation](https://github.com/nyuccl/smile-nuxt/tree/main/docs) for the full API reference, built-in components, and deployment guides.

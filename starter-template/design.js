@@ -3,7 +3,7 @@
  * @description Configures the experiment timeline — the sequence of pages
  * participants see. Edit this file to define your experiment flow.
  *
- * Built-in views provided by @gureckislab/smile:
+ * Built-in views provided by @nyuccl/smile:
  *   AdvertisementView, InformedConsentView, DemographicSurveyView,
  *   WindowSizerView, InstructionsView, InstructionsQuiz,
  *   DebriefView, DeviceSurveyView, TaskFeedbackSurveyView,

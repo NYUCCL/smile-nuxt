@@ -8,7 +8,7 @@
     "generate": "nuxt generate"
   },
   "dependencies": {
-    "@gureckislab/smile": "workspace:*",
+    "@nyuccl/smile": "workspace:*",
     "nuxt": "^4.3.0"
   }
 }

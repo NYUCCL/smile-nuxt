@@ -1,5 +1,5 @@
 export default defineNuxtConfig({
-  modules: ['@pinia/nuxt', '@gureckislab/smile'],
+  modules: ['@pinia/nuxt', '@nyuccl/smile'],
 
   // SMILE module options (all optional — defaults are sensible)
   smile: {},
