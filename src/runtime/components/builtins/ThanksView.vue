@@ -8,12 +8,12 @@
  */
 
 // External library imports
-import Clipboard from 'clipboard'
-
+import _Clipboard from 'clipboard'
 // Vue imports
 import { onMounted, ref } from 'vue'
 
 // Internal imports
+const Clipboard = _Clipboard.default || _Clipboard
 
 /**
  * Initialize API

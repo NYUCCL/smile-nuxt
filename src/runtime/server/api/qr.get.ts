@@ -1,5 +1,8 @@
-import QRCode from 'qrcode-svg'
+import _QRCode from 'qrcode-svg'
 import { defineEventHandler, getQuery, getRequestURL, setResponseHeader } from 'h3'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const QRCode = (_QRCode as any).default || _QRCode
 
 export default defineEventHandler((event) => {
   const query = getQuery(event)

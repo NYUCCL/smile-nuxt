@@ -10,8 +10,10 @@
  */
 import { defineNuxtPlugin } from '#imports'
 import { v4 as uuidv4 } from 'uuid'
-import seedrandom from 'seedrandom'
+import _seedrandom from 'seedrandom'
 import useSmileStore from '../stores/smilestore'
+
+const seedrandom = _seedrandom.default || _seedrandom
 
 export default defineNuxtPlugin(() => {
   const store = useSmileStore()

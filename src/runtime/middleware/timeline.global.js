@@ -6,12 +6,14 @@
  * route (`/:slug(.*)*`). So we look up route metadata from $timeline.routes
  * instead of Vue Router's to.meta / from.meta.
  */
-import seedrandom from 'seedrandom'
+import _seedrandom from 'seedrandom'
 import { v4 as uuidv4 } from 'uuid'
 import { defineNuxtRouteMiddleware, useNuxtApp, navigateTo } from '#imports'
 import useSmileStore from '../stores/smilestore'
 import useLog from '../stores/log'
 import { getQueryParams, processQuery, initService } from '../utils/utils'
+
+const seedrandom = _seedrandom.default || _seedrandom
 
 /**
  * Core guard logic extracted for testability.
