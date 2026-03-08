@@ -1,14 +1,15 @@
-import { execSync } from 'child_process'
+import { execSync } from 'node:child_process'
 import { loadEnv } from 'vite'
-import { readFileSync } from 'fs'
-import { resolve, dirname } from 'path'
-import { fileURLToPath } from 'url'
+import { readFileSync } from 'node:fs'
+import { resolve, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 // Auto-generate git env vars before loading config
 const __dirname = dirname(fileURLToPath(import.meta.url))
 try {
   execSync('bash scripts/generate_git_env.sh', { cwd: resolve(__dirname, '..'), stdio: 'inherit' })
-} catch {
+}
+catch {
   console.warn('[SMILE] Could not generate git env — scripts/generate_git_env.sh failed')
 }
 
@@ -34,27 +35,28 @@ let smileVersion = '0.0.0'
 try {
   const pkg = JSON.parse(readFileSync(resolve(rootDir, 'package.json'), 'utf8'))
   smileVersion = pkg.version
-} catch {}
+}
+catch { /* ignored */ }
 
 export default defineNuxtConfig({
   modules: ['@pinia/nuxt', '../src/module'],
-  devtools: { enabled: true },
-  compatibilityDate: 'latest',
-  smile: {},
-  vite: {
-    envDir: '..',
-    define: {
-      'import.meta.env.VITE_SMILE_VERSION': JSON.stringify(smileVersion),
-    },
-  },
   // Merge git/deploy env vars into Vite's env so import.meta.env picks them up
   $development: {
     vite: {
       define: Object.fromEntries(
         Object.entries(env)
           .filter(([k]) => k.startsWith('VITE_'))
-          .map(([k, v]) => [`import.meta.env.${k}`, JSON.stringify(v)])
+          .map(([k, v]) => [`import.meta.env.${k}`, JSON.stringify(v)]),
       ),
     },
   },
+  devtools: { enabled: true },
+  compatibilityDate: 'latest',
+  vite: {
+    envDir: '..',
+    define: {
+      'import.meta.env.VITE_SMILE_VERSION': JSON.stringify(smileVersion),
+    },
+  },
+  smile: {},
 })

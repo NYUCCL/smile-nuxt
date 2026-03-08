@@ -1,5 +1,5 @@
 // general testing functions
-import { defineComponent, h } from 'vue'
+import { defineComponent } from 'vue'
 import { setActivePinia } from 'pinia'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { createTestingPinia } from '@pinia/testing'
@@ -7,8 +7,10 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { vi, describe, beforeEach, afterEach, it, expect } from 'vitest'
 
 // import shared mocks
-import '../../setup/mocks' // Import shared mocks
 import { setupBrowserEnvironment } from '../../setup/mocks'
+
+// import the composable
+import useViewAPI from '@/core/composables/useViewAPI'
 
 /* eslint-disable no-undef */
 // Mock the config import before any other imports
@@ -17,9 +19,6 @@ vi.mock('@/core/config', () => ({
     mode: 'development',
   },
 }))
-
-// import the composable
-import useViewAPI from '@/core/composables/useViewAPI'
 
 // Helper function to set up Pinia
 const setupPinia = () => {

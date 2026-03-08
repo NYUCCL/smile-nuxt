@@ -7,7 +7,6 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { vi, describe, beforeEach, afterEach, it, expect } from 'vitest'
 
 // import shared mocks
-import '../../setup/mocks' // Import shared mocks
 import { setupBrowserEnvironment } from '../../setup/mocks'
 import { useNuxtApp, useRoute } from '#imports'
 
@@ -38,8 +37,8 @@ const timelineRoutes = [
 ]
 
 const mockTimeline = {
-  getViewForPath: vi.fn((path) => timelineRoutes.find((r) => r.path === path) || null),
-  getRouteByName: vi.fn((name) => timelineRoutes.find((r) => r.name === name) || null),
+  getViewForPath: vi.fn(path => timelineRoutes.find(r => r.path === path) || null),
+  getRouteByName: vi.fn(name => timelineRoutes.find(r => r.name === name) || null),
 }
 
 vi.mocked(useNuxtApp).mockReturnValue({ $timeline: mockTimeline })

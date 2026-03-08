@@ -10,10 +10,10 @@
 
 /**
  * Initialize color mode composable for global scope (applies to html element, like production mode)
- * @type {Object} Global color mode state and controls
+ * @type {object} Global color mode state and controls
  */
 const {
-  state: globalColorMode,
+  state: _globalColorMode,
   mode: globalColorModeRaw,
   toggle: toggleColorMode,
   system,
@@ -25,8 +25,12 @@ const {
   <TooltipProvider>
     <Tooltip>
       <!-- Tooltip trigger button -->
-      <TooltipTrigger asChild>
-        <Button size="menu" variant="outline" @click="toggleColorMode">
+      <TooltipTrigger as-child>
+        <Button
+          size="menu"
+          variant="outline"
+          @click="toggleColorMode"
+        >
           <!-- Light mode icon -->
           <i-lucide-moon v-if="globalColorModeRaw === 'light'" />
           <!-- Dark mode icon -->
@@ -37,9 +41,15 @@ const {
       </TooltipTrigger>
       <!-- Tooltip content with dynamic text -->
       <TooltipContent side="bottom">
-        <p v-if="globalColorModeRaw === 'light'">Switch to Dark Mode</p>
-        <p v-else-if="globalColorModeRaw === 'dark'">Switch to System ({{ system }})</p>
-        <p v-else>Switch to Light Mode</p>
+        <p v-if="globalColorModeRaw === 'light'">
+          Switch to Dark Mode
+        </p>
+        <p v-else-if="globalColorModeRaw === 'dark'">
+          Switch to System ({{ system }})
+        </p>
+        <p v-else>
+          Switch to Light Mode
+        </p>
       </TooltipContent>
     </Tooltip>
   </TooltipProvider>

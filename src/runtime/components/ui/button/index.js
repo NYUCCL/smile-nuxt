@@ -3,22 +3,22 @@ import { cva } from 'class-variance-authority'
 export { default as Button } from './Button.vue'
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-3.5 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg:not([class*=\'size-\'])]:size-3.5 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
   {
     variants: {
       variant: {
-        default:
+        'default':
           'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 disabled:bg-gray-300 disabled:text-gray-500',
-        destructive:
+        'destructive':
           'bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 disabled:bg-gray-300 disabled:text-gray-500',
-        outline:
+        'outline':
           'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200',
-        secondary:
+        'secondary':
           'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 disabled:bg-gray-300 disabled:text-gray-500',
-        ghost:
+        'ghost':
           'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 disabled:text-gray-400 disabled:hover:bg-transparent',
-        link: 'text-primary underline-offset-4 hover:underline disabled:text-gray-400 disabled:no-underline',
-        primary:
+        'link': 'text-primary underline-offset-4 hover:underline disabled:text-gray-400 disabled:no-underline',
+        'primary':
           'bg-primary-button text-primary-button-foreground shadow-xs hover:bg-primary-button/90 disabled:bg-gray-300 disabled:text-gray-500',
         'primary-light':
           'bg-primary-button-light text-primary-button-light-foreground shadow-xs hover:bg-primary-button-light/80 disabled:bg-gray-100 disabled:text-gray-400',
@@ -26,18 +26,18 @@ export const buttonVariants = cva(
           'text-link-button underline-offset-4 hover:underline disabled:text-gray-400 disabled:no-underline',
         'button-link-light':
           'bg-link-button-light text-link-button-light-foreground shadow-xs hover:bg-link-button-light/80 disabled:bg-gray-100 disabled:text-gray-400',
-        info: 'bg-info-button text-info-button-foreground shadow-xs hover:bg-info-button/90 disabled:bg-gray-300 disabled:text-gray-500',
+        'info': 'bg-info-button text-info-button-foreground shadow-xs hover:bg-info-button/90 disabled:bg-gray-300 disabled:text-gray-500',
         'info-light':
           'bg-info-button-light text-info-button-light-foreground shadow-xs hover:bg-info-button-light/80 disabled:bg-gray-100 disabled:text-gray-400',
-        success:
+        'success':
           'bg-success-button text-success-button-foreground shadow-xs hover:bg-success-button/90 disabled:bg-gray-300 disabled:text-gray-500',
         'success-light':
           'bg-success-button-light text-success-button-light-foreground shadow-xs hover:bg-success-button-light/80 disabled:bg-gray-100 disabled:text-gray-400',
-        warning:
+        'warning':
           'bg-warning-button text-warning-button-foreground shadow-xs hover:bg-warning-button/90 disabled:bg-gray-300 disabled:text-gray-500',
         'warning-light':
           'bg-warning-button-light text-warning-button-light-foreground shadow-xs hover:bg-warning-button-light/80 disabled:bg-gray-100 disabled:text-gray-400',
-        danger:
+        'danger':
           'bg-danger-button text-danger-button-foreground shadow-xs hover:bg-danger-button/90 disabled:bg-gray-300 disabled:text-gray-500',
         'danger-light':
           'bg-danger-button-light text-danger-button-light-foreground shadow-xs hover:bg-danger-button-light/80 disabled:bg-gray-100 disabled:text-gray-400',
@@ -56,5 +56,5 @@ export const buttonVariants = cva(
       variant: 'default',
       size: 'default',
     },
-  }
+  },
 )

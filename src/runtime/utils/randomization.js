@@ -60,7 +60,7 @@ export function sampleWithReplacement(array, sampleSize, weights = undefined) {
   // normalize weights array -- get sum of all weights
   const sumOfWeights = weights.reduce((a, b) => a + b, 0)
   // divide each weight by the sum of all weights
-  const normalizedWeights = weights.map((weight) => weight / sumOfWeights)
+  const normalizedWeights = weights.map(weight => weight / sumOfWeights)
 
   const sample = []
   let s = sampleSize
@@ -85,13 +85,13 @@ export function sampleWithReplacement(array, sampleSize, weights = undefined) {
  */
 export function expandProduct(...arr) {
   // get length of each sub array in arr
-  const lengths = arr.map((x) => x.length)
+  const lengths = arr.map(x => x.length)
   // get product of lengths
   const product = lengths.reduce((a, b) => a * b, 1)
   if (product > 1000) {
-    console.warn("That's a whole lot of combinations! Are you sure you want to do that?")
+    console.warn('That\'s a whole lot of combinations! Are you sure you want to do that?')
   }
-  return arr.reduce((a, b) => a.flatMap((d) => b.map((e) => [d, e].flat())))
+  return arr.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())))
 }
 
 /**
@@ -136,7 +136,7 @@ export const fakerDistributions = {
   rbinom: (n, p) => ({
     val: Array(n)
       .fill(0)
-      .reduce((acc) => acc + (Math.random() < p ? 1 : 0), 0),
+      .reduce(acc => acc + (Math.random() < p ? 1 : 0), 0),
     type: 'fake',
   }),
 
@@ -175,8 +175,8 @@ export const fakerDistributions = {
 
   /**
    * Evaluates any function values in a trial object
-   * @param {Object} trial - Trial object potentially containing function values
-   * @returns {Object} Trial object with functions evaluated
+   * @param {object} trial - Trial object potentially containing function values
+   * @returns {object} Trial object with functions evaluated
    */
   render: (trial) => {
     for (let [key, value] of Object.entries(trial)) {

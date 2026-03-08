@@ -34,7 +34,7 @@ const instText = computed(() => {
  * Navigate to the next view in the experiment flow
  * @param {boolean} [goto] - Optional parameter for navigation control (unused in current implementation)
  */
-function finish(goto) {
+function finish(_goto) {
   api.goFirstStep() // reset the state in case you loop back (only needed if using stepper)
   api.goNextView()
 }
@@ -44,7 +44,7 @@ function finish(goto) {
   <!-- Main instruction container with responsive layout -->
   <ConstrainedTaskWindow
     variant="ghost"
-    :responsiveUI="api.config.responsiveUI"
+    :responsive-u-i="api.config.responsiveUI"
     :width="api.config.windowsizerRequest.width"
     :height="api.config.windowsizerRequest.height"
   >
@@ -56,14 +56,19 @@ function finish(goto) {
       </h1>
 
       <!-- Dynamic instruction text based on condition -->
-      <p class="text-left text-lg mb-4">{{ instText }}</p>
+      <p class="text-left text-lg mb-4">
+        {{ instText }}
+      </p>
 
       <!-- Visual separator -->
-      <hr class="border-gray-300 my-4" />
+      <hr class="border-gray-300 my-4">
 
       <!-- Navigation button container -->
       <div class="flex justify-end">
-        <Button variant="default" @click="finish()">
+        <Button
+          variant="default"
+          @click="finish()"
+        >
           next
           <i-fa6-solid-arrow-right />
         </Button>

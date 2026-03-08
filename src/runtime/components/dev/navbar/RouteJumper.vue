@@ -8,7 +8,7 @@ import { watch, ref, computed } from 'vue'
 const api = useAPI()
 
 // Props
-const props = defineProps(['routeName'])
+const _props = defineProps(['routeName'])
 
 // Logging store
 const log = useLog()
@@ -29,17 +29,17 @@ const routes = api.store.localState.routes
 
 // Filter routes - only those not in seqtimeline, and exclude redirect-only routes (e.g. landing)
 const filteredRoutes = routes.filter((r) => {
-  return !seqtimeline.find((s) => s.name === r.name) && !r.redirect
+  return !seqtimeline.find(s => s.name === r.name) && !r.redirect
 })
 
 // Also exclude redirect-only routes from seqtimeline
-const allRoutes = seqtimeline.filter((r) => !r.redirect).concat(filteredRoutes)
+const allRoutes = seqtimeline.filter(r => !r.redirect).concat(filteredRoutes)
 
 /**
  * Watches the route and updates the current query
  */
 const currentQuery = ref(route.query)
-watch(route, async (newRoute, oldRoute) => {
+watch(route, async (newRoute, _oldRoute) => {
   currentQuery.value = newRoute.query
 })
 
@@ -47,7 +47,7 @@ watch(route, async (newRoute, oldRoute) => {
  * Set the currently hovered route
  * @param {string} route - Route name
  */
-function setHover(route) {
+function _setHover(route) {
   hoverRoute.value = route
 }
 
@@ -67,16 +67,21 @@ function goHome() {
   if (isPresentation.value) {
     log.warn('PRESENTATION MODE: user requested to navigate to presentation home')
     navigateTo('/presentation/')
-  } else {
+  }
+  else {
     log.warn('DEV MODE: user requested to navigate to dev home')
     navigateTo('/dev/')
   }
 }
 </script>
+
 <template>
   <!-- Dropdown menu listing all routes for navigation -->
   <DropdownMenuContent align="end">
-    <DropdownMenuItem @click="goHome" class="cursor-pointer border-b border-border mb-1">
+    <DropdownMenuItem
+      class="cursor-pointer border-b border-border mb-1"
+      @click="goHome"
+    >
       <span class="text-[0.65rem] font-mono">
         <div class="routename font-medium">
           <i-lucide-house class="inline mr-1" />
@@ -87,21 +92,36 @@ function goHome() {
     <DropdownMenuItem
       v-for="r in allRoutes"
       :key="r.name"
-      @mouseover="hoverRoute = r.name"
-      @mouseout="hoverRoute = ''"
       :class="{
         'bg-accent text-accent-foreground': activeRouteName === r.name,
         'bg-muted': hoverRoute === r.name,
       }"
-      @click="navigate(r.name)"
       class="cursor-pointer"
+      @mouseover="hoverRoute = r.name"
+      @mouseout="hoverRoute = ''"
+      @click="navigate(r.name)"
     >
       <span class="text-[0.65rem] font-mono">
         <div class="routename font-medium">
-          <span v-if="r.meta.level > 0" v-for="i in r.meta.level" style="margin-left: 5px">&nbsp;</span>
-          <i-lucide-arrow-down v-if="r.meta.sequential" class="inline mr-1" />
-          <i-lucide-presentation v-else-if="r.name === 'presentation_home'" class="inline mr-1" />
-          <i-lucide-diamond v-else class="inline mr-1" />
+          <template v-if="r.meta.level > 0">
+            <span
+              v-for="j in r.meta.level"
+              :key="j"
+              style="margin-left: 5px"
+            >&nbsp;</span>
+          </template>
+          <i-lucide-arrow-down
+            v-if="r.meta.sequential"
+            class="inline mr-1"
+          />
+          <i-lucide-presentation
+            v-else-if="r.name === 'presentation_home'"
+            class="inline mr-1"
+          />
+          <i-lucide-diamond
+            v-else
+            class="inline mr-1"
+          />
           /{{ r.name }}
         </div>
       </span>

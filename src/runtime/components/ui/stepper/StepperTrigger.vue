@@ -17,7 +17,7 @@ const forwarded = useForwardProps(delegatedProps)
 <template>
   <TooltipProvider>
     <Tooltip v-if="tooltip">
-      <TooltipTrigger asChild>
+      <TooltipTrigger as-child>
         <StepperTrigger
           v-bind="forwarded"
           :class="cn('p-1 flex flex-col items-center text-center gap-1 rounded-md', props.class)"

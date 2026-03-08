@@ -33,7 +33,7 @@ import { devicePresets } from '../devicePresets.js'
 
 /**
  * Initialize SMILE API instance
- * @constant {Object} api Global API instance
+ * @constant {object} api Global API instance
  */
 const api = useAPI()
 
@@ -103,8 +103,12 @@ function resetDevState() {
   <div class="grid gap-4">
     <!-- Header section with title and description -->
     <div class="space-y-2">
-      <h4 class="font-medium leading-none">Developer Configurations</h4>
-      <p class="text-sm text-muted-foreground">Adjust or reset developer mode settings.</p>
+      <h4 class="font-medium leading-none">
+        Developer Configurations
+      </h4>
+      <p class="text-sm text-muted-foreground">
+        Adjust or reset developer mode settings.
+      </p>
     </div>
 
     <!-- Visual separator with "Panels" label -->
@@ -122,7 +126,11 @@ function resetDevState() {
       <!-- Sidebar visibility toggle -->
       <div class="grid grid-cols-3 items-center gap-4">
         <Label for="sidebar">Show Sidebar</Label>
-        <Switch id="sidebar" v-model="api.store.dev.showSideBar" class="col-span-2" />
+        <Switch
+          id="sidebar"
+          v-model="api.store.dev.showSideBar"
+          class="col-span-2"
+        />
       </div>
 
       <!-- Sidebar tab selection -->
@@ -134,9 +142,15 @@ function resetDevState() {
               <SelectValue placeholder="Select tab" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="steps">Steps</SelectItem>
-              <SelectItem value="randomization">Random</SelectItem>
-              <SelectItem value="db">Info</SelectItem>
+              <SelectItem value="steps">
+                Steps
+              </SelectItem>
+              <SelectItem value="randomization">
+                Random
+              </SelectItem>
+              <SelectItem value="db">
+                Info
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -145,7 +159,11 @@ function resetDevState() {
       <!-- Console visibility toggle -->
       <div class="grid grid-cols-3 items-center gap-4">
         <Label for="console">Show Console</Label>
-        <Switch id="console" v-model="api.store.dev.showConsoleBar" class="col-span-2" />
+        <Switch
+          id="console"
+          v-model="api.store.dev.showConsoleBar"
+          class="col-span-2"
+        />
       </div>
 
       <!-- Console tab selection -->
@@ -157,9 +175,15 @@ function resetDevState() {
               <SelectValue placeholder="Select tab" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="browse">Data Browser</SelectItem>
-              <SelectItem value="log">Log</SelectItem>
-              <SelectItem value="config">Config</SelectItem>
+              <SelectItem value="browse">
+                Data Browser
+              </SelectItem>
+              <SelectItem value="log">
+                Log
+              </SelectItem>
+              <SelectItem value="config">
+                Config
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -178,7 +202,11 @@ function resetDevState() {
       <!-- Fullscreen toggle -->
       <div class="grid grid-cols-3 items-center gap-4">
         <Label for="width">Full screen</Label>
-        <Switch id="width" v-model="api.store.dev.isFullscreen" class="col-span-2" />
+        <Switch
+          id="width"
+          v-model="api.store.dev.isFullscreen"
+          class="col-span-2"
+        />
       </div>
 
       <!-- Device selection with rotation button -->
@@ -188,8 +216,12 @@ function resetDevState() {
           <ResponsiveDeviceSelect />
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="xs" @click="toggleRotation">
+              <TooltipTrigger as-child>
+                <Button
+                  variant="outline"
+                  size="xs"
+                  @click="toggleRotation"
+                >
                   <i-carbon-rotate-counterclockwise-filled :class="{ 'text-blue-400': api.store.dev.isRotated }" />
                 </Button>
               </TooltipTrigger>
@@ -204,7 +236,13 @@ function resetDevState() {
 
     <!-- Reset button section -->
     <div class="flex justify-end mt-5">
-      <Button variant="outline" size="sm" @click="resetDevState"> Reset to Default </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        @click="resetDevState"
+      >
+        Reset to Default
+      </Button>
     </div>
   </div>
 </template>

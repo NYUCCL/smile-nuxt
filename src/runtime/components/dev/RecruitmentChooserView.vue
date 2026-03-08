@@ -29,7 +29,9 @@ const devUrls = computed(() => {
   <div class="px-4 md:px-8 lg:px-12 pt-10 pb-10 bg-background text-foreground global-color-mode">
     <!-- Header section with title and description -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold mb-4">Welcome to Smile Developer Mode</h1>
+      <h1 class="text-3xl font-bold mb-4">
+        Welcome to Smile Developer Mode
+      </h1>
       <p class="text-lg mb-6">
         You can use this to test your application, read the docs, QA your data, and recruit participants through
         multiple platforms.
@@ -37,7 +39,7 @@ const devUrls = computed(() => {
     </div>
 
     <!-- Divider line -->
-    <hr class="my-4" />
+    <hr class="my-4">
 
     <!-- Grid of recruitment platform cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -45,14 +47,19 @@ const devUrls = computed(() => {
       <Card class="flex flex-col">
         <CardHeader>
           <CardTitle>Prolific</CardTitle>
-          <CardDescription
-            ><a href="https://www.prolific.co">Prolific.ac</a> is a platform for online experiments.</CardDescription
-          >
+          <CardDescription>
+            <a href="https://www.prolific.co">Prolific.ac</a> is a platform for online experiments.
+          </CardDescription>
         </CardHeader>
         <CardContent class="flex justify-end flex-1 items-end">
-          <Button asChild variant="default" size="xs" class="is-blue" id="prolific_tester">
-            <a :href="devUrls['prolific']"
-              ><i-lucide-dices /> Prolific User
+          <Button
+            id="prolific_tester"
+            as-child
+            variant="default"
+            size="xs"
+            class="is-blue"
+          >
+            <a :href="devUrls['prolific']"><i-lucide-dices /> Prolific User
               <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
@@ -63,15 +70,20 @@ const devUrls = computed(() => {
       <Card class="flex flex-col">
         <CardHeader>
           <CardTitle>CloudResearch</CardTitle>
-          <CardDescription
-            ><a href="https://www.cloudresearch.com/">CloudResearch</a> is a platform that recruits from several
-            sources, including Mechanical Turk but includes some screening for bots and server farms.</CardDescription
-          >
+          <CardDescription>
+            <a href="https://www.cloudresearch.com/">CloudResearch</a> is a platform that recruits from several
+            sources, including Mechanical Turk but includes some screening for bots and server farms.
+          </CardDescription>
         </CardHeader>
         <CardContent class="flex justify-end flex-1 items-end">
-          <Button asChild variant="default" size="xs" class="is-pink" id="cloudresearch_tester">
-            <a :href="devUrls['cloudresearch']"
-              ><i-lucide-dices /> CR User
+          <Button
+            id="cloudresearch_tester"
+            as-child
+            variant="default"
+            size="xs"
+            class="is-pink"
+          >
+            <a :href="devUrls['cloudresearch']"><i-lucide-dices /> CR User
               <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
@@ -88,16 +100,27 @@ const devUrls = computed(() => {
           </CardDescription>
         </CardHeader>
         <CardContent class="flex justify-end space-y-2 flex-1 items-end flex-col">
-          <Button asChild variant="secondary" size="xs" class="is-light-yellow" id="amt_tester_preview">
+          <Button
+            id="amt_tester_preview"
+            as-child
+            variant="secondary"
+            size="xs"
+            class="is-light-yellow"
+          >
             <a
               href="/dev/mturk?assignmentId=ASSIGNMENT_ID_NOT_AVAILABLE&hitId=123RVWYBAZW00EXAMPLE&turkSubmitTo=https://www.mturk.com/&workerId=AZ3456EXAMPLE"
-              >AMT Preview Mode
+            >AMT Preview Mode
               <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
-          <Button asChild variant="default" size="xs" class="is-yellow" id="amt_tester">
-            <a :href="devUrls['mturk']"
-              ><i-lucide-dices /> AMT User
+          <Button
+            id="amt_tester"
+            as-child
+            variant="default"
+            size="xs"
+            class="is-yellow"
+          >
+            <a :href="devUrls['mturk']"><i-lucide-dices /> AMT User
               <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
@@ -108,14 +131,19 @@ const devUrls = computed(() => {
       <Card class="flex flex-col">
         <CardHeader>
           <CardTitle>Citizen Science</CardTitle>
-          <CardDescription
-            >Citizen Science is a stand-in for a possible future platform run by the lab.</CardDescription
-          >
+          <CardDescription>
+            Citizen Science is a stand-in for a possible future platform run by the lab.
+          </CardDescription>
         </CardHeader>
         <CardContent class="flex justify-end flex-1 items-end">
-          <Button asChild variant="default" size="xs" class="is-green" id="citizen_tester">
-            <a :href="devUrls['citizensci']"
-              ><i-lucide-dices /> Citizen Sci User
+          <Button
+            id="citizen_tester"
+            as-child
+            variant="default"
+            size="xs"
+            class="is-green"
+          >
+            <a :href="devUrls['citizensci']"><i-lucide-dices /> Citizen Sci User
               <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
@@ -126,14 +154,19 @@ const devUrls = computed(() => {
       <Card class="flex flex-col">
         <CardHeader>
           <CardTitle>SONA</CardTitle>
-          <CardDescription
-            >SONA is a platform for running experiments from the university "for credit" pool of students.</CardDescription
-          >
+          <CardDescription>
+            SONA is a platform for running experiments from the university "for credit" pool of students.
+          </CardDescription>
         </CardHeader>
         <CardContent class="flex justify-end flex-1 items-end">
-          <Button asChild variant="default" size="xs" class="is-orange" id="sona_tester">
-            <a :href="devUrls['sona']"
-              ><i-lucide-dices /> SONA User
+          <Button
+            id="sona_tester"
+            as-child
+            variant="default"
+            size="xs"
+            class="is-orange"
+          >
+            <a :href="devUrls['sona']"><i-lucide-dices /> SONA User
               <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
@@ -144,14 +177,19 @@ const devUrls = computed(() => {
       <Card class="flex flex-col">
         <CardHeader>
           <CardTitle>SONA Paid</CardTitle>
-          <CardDescription
-            >SONA Paid is a platform for running paid experiments from the university pool.</CardDescription
-          >
+          <CardDescription>
+            SONA Paid is a platform for running paid experiments from the university pool.
+          </CardDescription>
         </CardHeader>
         <CardContent class="flex justify-end flex-1 items-end">
-          <Button asChild variant="default" size="xs" class="is-teal" id="sona_paid_tester">
-            <a :href="devUrls['sona_paid']"
-              ><i-lucide-dices /> SONA Paid User
+          <Button
+            id="sona_paid_tester"
+            as-child
+            variant="default"
+            size="xs"
+            class="is-teal"
+          >
+            <a :href="devUrls['sona_paid']"><i-lucide-dices /> SONA Paid User
               <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
@@ -162,14 +200,19 @@ const devUrls = computed(() => {
       <Card class="flex flex-col">
         <CardHeader>
           <CardTitle>SPARK</CardTitle>
-          <CardDescription
-            >SPARK is a recruitment service from the Hartley Lab for adolescent participants of various ages.</CardDescription
-          >
+          <CardDescription>
+            SPARK is a recruitment service from the Hartley Lab for adolescent participants of various ages.
+          </CardDescription>
         </CardHeader>
         <CardContent class="flex justify-end flex-1 items-end">
-          <Button asChild variant="default" size="xs" class="is-red" id="spark_tester">
-            <a :href="devUrls['spark']"
-              ><i-lucide-dices /> SPARK User
+          <Button
+            id="spark_tester"
+            as-child
+            variant="default"
+            size="xs"
+            class="is-red"
+          >
+            <a :href="devUrls['spark']"><i-lucide-dices /> SPARK User
               <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
@@ -180,15 +223,20 @@ const devUrls = computed(() => {
       <Card class="flex flex-col">
         <CardHeader>
           <CardTitle>PANDA</CardTitle>
-          <CardDescription
-            ><a href="https://www.discoveriesinaction.org">PANDA</a> (Princeton and NYU Discoveries in Action) is a
-            recruitment platform for younger participants.</CardDescription
-          >
+          <CardDescription>
+            <a href="https://www.discoveriesinaction.org">PANDA</a> (Princeton and NYU Discoveries in Action) is a
+            recruitment platform for younger participants.
+          </CardDescription>
         </CardHeader>
         <CardContent class="flex justify-end flex-1 items-end">
-          <Button asChild variant="default" size="xs" class="is-coral" id="panda_tester">
-            <a :href="devUrls['panda']"
-              ><i-lucide-dices /> PANDA User
+          <Button
+            id="panda_tester"
+            as-child
+            variant="default"
+            size="xs"
+            class="is-coral"
+          >
+            <a :href="devUrls['panda']"><i-lucide-dices /> PANDA User
               <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
@@ -202,9 +250,14 @@ const devUrls = computed(() => {
           <CardDescription>Anonymous web user is not referred by any recruitment service.</CardDescription>
         </CardHeader>
         <CardContent class="flex justify-end flex-1 items-end">
-          <Button asChild variant="default" size="xs" class="is-purple" id="web_tester">
-            <a :href="devUrls['web']"
-              ><i-lucide-dices /> Anon Web User
+          <Button
+            id="web_tester"
+            as-child
+            variant="default"
+            size="xs"
+            class="is-purple"
+          >
+            <a :href="devUrls['web']"><i-lucide-dices /> Anon Web User
               <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>

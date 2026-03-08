@@ -13,12 +13,18 @@ const api = useAPI()
   <!-- Reload browser button with tooltip -->
   <TooltipProvider>
     <Tooltip>
-      <TooltipTrigger asChild>
-        <Button size="menu" variant="outline" @click="api.reloadBrowser()">
+      <TooltipTrigger as-child>
+        <Button
+          size="menu"
+          variant="outline"
+          @click="api.reloadBrowser()"
+        >
           <i-lucide-rotate-ccw :stroke-width="2.5" />
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="bottom"> Reload browser (Cmd + R)</TooltipContent>
+      <TooltipContent side="bottom">
+        Reload browser (Cmd + R)
+      </TooltipContent>
     </Tooltip>
   </TooltipProvider>
 </template>

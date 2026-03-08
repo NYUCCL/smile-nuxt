@@ -18,6 +18,7 @@ import StroopExpView from './components/StroopExpView.vue'
 import { QUIZ_QUESTIONS } from './components/quizQuestions'
 
 export default function createTimeline(api) {
+  // eslint-disable-next-line no-undef
   const timeline = new Timeline(api)
 
   // Set runtime configuration options

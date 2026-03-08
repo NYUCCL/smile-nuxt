@@ -59,13 +59,13 @@ describe('Randomization tests', () => {
       .fill()
       .map(() => random.shuffle(input))
 
-    const identityCount = results.filter((r) => r.join(',') === '1,2,3,4,5').length
+    const identityCount = results.filter(r => r.join(',') === '1,2,3,4,5').length
     // A true shuffle of 5 items has 1/120 chance of identity; with 100 tries
     // we expect ~0-1 identity results, definitely not all 100
     expect(identityCount).toBeLessThan(10)
 
     // Multiple distinct orderings should appear
-    const uniqueOrderings = new Set(results.map((r) => r.join(',')))
+    const uniqueOrderings = new Set(results.map(r => r.join(',')))
     expect(uniqueOrderings.size).toBeGreaterThan(10)
   })
 
@@ -112,7 +112,7 @@ describe('Randomization tests', () => {
       .fill()
       .map(() => random.sampleWithReplacement([1, 2, 3], 3))
 
-    const hasDuplicates = results.some((r) => new Set(r).size < r.length)
+    const hasDuplicates = results.some(r => new Set(r).size < r.length)
     expect(hasDuplicates).toBe(true)
 
     // All values should be from the source array
@@ -145,7 +145,7 @@ describe('Randomization tests', () => {
 
     expect(combos.length).toBe(8)
     // Verify actual content — all 8 combinations should be present
-    const asStrings = combos.map((c) => c.join(',')).sort()
+    const asStrings = combos.map(c => c.join(',')).sort()
     expect(asStrings).toEqual([
       '1,3,5', '1,3,6', '1,4,5', '1,4,6',
       '2,3,5', '2,3,6', '2,4,5', '2,4,6',
@@ -156,7 +156,7 @@ describe('Randomization tests', () => {
     const combos = random.expandProduct(['a', 'b'], [1, 2, 3])
 
     expect(combos.length).toBe(6)
-    const asStrings = combos.map((c) => c.join(',')).sort()
+    const asStrings = combos.map(c => c.join(',')).sort()
     expect(asStrings).toEqual([
       'a,1', 'a,2', 'a,3',
       'b,1', 'b,2', 'b,3',

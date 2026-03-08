@@ -18,9 +18,9 @@ const props = defineProps({
   variant: {
     type: String,
     default: 'default',
-    validator: (value) => ['default', 'primary', 'info', 'success', 'warning', 'danger'].includes(value),
+    validator: value => ['default', 'primary', 'info', 'success', 'warning', 'danger'].includes(value),
   },
-  size: { type: String, default: 'default', validator: (value) => ['xs', 'sm', 'default', 'lg', 'xl'].includes(value) },
+  size: { type: String, default: 'default', validator: value => ['xs', 'sm', 'default', 'lg', 'xl'].includes(value) },
 })
 const emits = defineEmits(['update:modelValue'])
 
@@ -38,7 +38,11 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
 
 <template>
-  <CheckboxRoot data-slot="checkbox" v-bind="forwarded" :class="cn(checkboxVariants({ variant, size }), props.class)">
+  <CheckboxRoot
+    data-slot="checkbox"
+    v-bind="forwarded"
+    :class="cn(checkboxVariants({ variant, size }), props.class)"
+  >
     <CheckboxIndicator
       data-slot="checkbox-indicator"
       class="flex items-center justify-center text-current transition-none"

@@ -49,7 +49,11 @@ defineExpose({
 </script>
 
 <template>
-  <SplitterPanel ref="splitterPanelRef" data-slot="resizable-panel" v-bind="forwarded">
+  <SplitterPanel
+    ref="splitterPanelRef"
+    data-slot="resizable-panel"
+    v-bind="forwarded"
+  >
     <slot />
   </SplitterPanel>
 </template>

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { StepperSerializer } from '@/core/stepper/StepperSerializer'
 import { Stepper } from '@/core/stepper/Stepper'
 import { defineComponent } from 'vue'
@@ -24,7 +24,7 @@ describe('StepperSerializer', () => {
     api = {
       faker: {
         runif: (min, max) => fakerDistributions.runif(min, max).val,
-        rchoice: (options) => fakerDistributions.rchoice(options).val,
+        rchoice: options => fakerDistributions.rchoice(options).val,
       },
     }
     stepper = new Stepper({ id: 'test', parent: root, store })
@@ -107,8 +107,8 @@ describe('StepperSerializer', () => {
 
     it('should serialize nested stepper structure', () => {
       const child1 = stepper.push('child1')
-      const child2 = stepper.push('child2')
-      const grandchild = child1.push('grandchild')
+      const _child2 = stepper.push('child2')
+      const _grandchild = child1.push('grandchild')
 
       const serialized = StepperSerializer.serialize(stepper)
       expect(serialized.states).toHaveLength(2)
@@ -177,7 +177,7 @@ describe('StepperSerializer', () => {
     })
 
     it('should handle Vue components', () => {
-      const TestComponent = defineComponent({
+      const _TestComponent = defineComponent({
         name: 'TestComponent',
         template: '<div>Test</div>',
       })
@@ -259,7 +259,7 @@ describe('StepperSerializer', () => {
 
       const newStepper = new Stepper({ id: 'test', parent: root, store })
       expect(() => StepperSerializer.deserialize(invalidData, newStepper, root)).toThrow(
-        'Missing required fields in data'
+        'Missing required fields in data',
       )
     })
 
@@ -275,7 +275,7 @@ describe('StepperSerializer', () => {
 
       const newStepper = new Stepper({ id: 'test', parent: root, store })
       expect(() => StepperSerializer.deserialize(invalidData, newStepper, root)).toThrow(
-        'Invalid id: Expected string but received number'
+        'Invalid id: Expected string but received number',
       )
     })
   })

@@ -41,8 +41,8 @@ function save_path() {
  * @returns {number} Count of non-null path segments
  */
 const n_active_panels = computed(() => {
-  var count = 0
-  for (var i = 0; i < browse_panels.path.length; i++) {
+  let count = 0
+  for (let i = 0; i < browse_panels.path.length; i++) {
     if (browse_panels.path[i] !== null) {
       count++
     }
@@ -56,11 +56,12 @@ const n_active_panels = computed(() => {
  * @returns {string|null} Path string or null if invalid
  */
 function panel_path(cutoff) {
-  var path = ''
+  let path = ''
   if (browse_panels.path[browse_panels.path.length - cutoff - 1] == null) {
     return null
-  } else {
-    for (var i = 0; i < browse_panels.path.length - cutoff; i++) {
+  }
+  else {
+    for (let i = 0; i < browse_panels.path.length - cutoff; i++) {
       path += String(browse_panels.path[i])
       if (i < browse_panels.path.length - cutoff - 1) {
         path += '.'
@@ -109,7 +110,7 @@ function panel3_select(option) {
  */
 function panel_jump(index) {
   // for everything after index set to null
-  for (var i = index + 1; i < browse_panels.path.length; i++) {
+  for (let i = index + 1; i < browse_panels.path.length; i++) {
     browse_panels.path[i] = null
   }
   // trim browse_panels to length three
@@ -119,7 +120,7 @@ function panel_jump(index) {
 /**
  * Reset the developer state by clearing localStorage and reloading the page
  */
-function resetDevState() {
+function _resetDevState() {
   localStorage.removeItem(api.config.devLocalStorageKey) // delete the local store
   location.reload()
 }
@@ -131,14 +132,20 @@ function resetDevState() {
     <!-- Breadcrumb navigation bar -->
     <Breadcrumb class="bg-muted border-b border-t border-dev-lines px-3 py-2 font-mono">
       <BreadcrumbList>
-        <template v-for="(option, index) in browse_panels.path">
+        <template v-for="(option, index) in browse_panels.path" :key="index">
           <template v-if="option !== null">
-            <BreadcrumbItem :key="index">
-              <BreadcrumbLink as="button" @click="panel_jump(index)" class="flex items-center text-xs">
+            <BreadcrumbItem>
+              <BreadcrumbLink
+                as="button"
+                class="flex items-center text-xs"
+                @click="panel_jump(index)"
+              >
                 <template v-if="option == '/'">
                   <i-fa6-solid-house />
                 </template>
-                <template v-else>{{ option }}</template>
+                <template v-else>
+                  {{ option }}
+                </template>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator v-if="index < n_active_panels - 1" />
@@ -153,8 +160,10 @@ function resetDevState() {
       <div class="flex flex-col w-1/6 min-w-[120px] border-r border-l border-dev-lines bg-muted p-2 gap-2">
         <div class="text-xs text-left mb-2 font-mono">
           Read more about configuration options
-          <a href="https://smile.gureckislab.org/configuration.html" class="text-blue-600 underline ml-1">in the docs</a
-          >.
+          <a
+            href="https://smile.gureckislab.org/configuration.html"
+            class="text-blue-600 underline ml-1"
+          >in the docs</a>.
         </div>
       </div>
       <!-- Three-panel configuration browser -->
@@ -177,7 +186,10 @@ function resetDevState() {
         </div>
         <!-- Right panel -->
         <div class="bg-gray-50 h-full overflow-hidden">
-          <ConfigList :data="panel_path(0)" @selected="panel3_select" />
+          <ConfigList
+            :data="panel_path(0)"
+            @selected="panel3_select"
+          />
         </div>
       </div>
     </div>

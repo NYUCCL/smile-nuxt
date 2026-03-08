@@ -4,7 +4,7 @@ import { createTestingPinia } from '@pinia/testing'
 import Stepper from '@/core/stepper/Stepper'
 
 describe('StepperProxy', () => {
-  let proxy
+  let _proxy
   let pinia
 
   beforeEach(() => {

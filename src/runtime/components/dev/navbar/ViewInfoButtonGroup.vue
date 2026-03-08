@@ -1,6 +1,6 @@
 <script setup>
 // Vue composables
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 
 // Local components
 import RouteJumper from './RouteJumper.vue'
@@ -25,10 +25,11 @@ const currentTimelineMeta = computed(() => {
  * @returns {string} CSS class string for pinned state styling
  */
 const buttonstyle = computed(() => {
-  let base = ''
+  const base = ''
   if (api.store.dev.pinnedRoute !== null) {
     return base + ' pinned'
-  } else {
+  }
+  else {
     return base
   }
 })
@@ -59,11 +60,17 @@ const togglePin = () => {
 <template>
   <!-- View information button group with tooltips -->
   <TooltipProvider>
-    <ButtonGroup variant="outline" size="menu">
+    <ButtonGroup
+      variant="outline"
+      size="menu"
+    >
       <!-- Autofill button -->
       <Tooltip>
-        <TooltipTrigger asChild>
-          <ButtonGroupItem v-on:click="api.autofill()" :disabled="!api.hasAutofill()">
+        <TooltipTrigger as-child>
+          <ButtonGroupItem
+            :disabled="!api.hasAutofill()"
+            @click="api.autofill()"
+          >
             <i-mdi-magic />
           </ButtonGroupItem>
         </TooltipTrigger>
@@ -75,15 +82,17 @@ const togglePin = () => {
       <!-- Previous view button -->
       <template v-if="api.hasPrevView()">
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger as-child>
             <ButtonGroupItem
-              v-on:click="api.goToView(api.route?.meta?.prev)"
               :disabled="api.store.dev.pinnedRoute !== null"
+              @click="api.goToView(api.route?.meta?.prev)"
             >
               <i-meteor-icons-angles-left />
             </ButtonGroupItem>
           </TooltipTrigger>
-          <TooltipContent side="bottom"> Previous View (Up Arrow)</TooltipContent>
+          <TooltipContent side="bottom">
+            Previous View (Up Arrow)
+          </TooltipContent>
         </Tooltip>
       </template>
       <template v-else>
@@ -95,12 +104,17 @@ const togglePin = () => {
       <!-- Next view button -->
       <template v-if="api.hasNextView()">
         <Tooltip>
-          <TooltipTrigger asChild>
-            <ButtonGroupItem v-on:click="api.goNextView()" :disabled="api.store.dev.pinnedRoute !== null">
+          <TooltipTrigger as-child>
+            <ButtonGroupItem
+              :disabled="api.store.dev.pinnedRoute !== null"
+              @click="api.goNextView()"
+            >
               <i-meteor-icons-angles-right />
             </ButtonGroupItem>
           </TooltipTrigger>
-          <TooltipContent side="bottom"> Next View (Down Arrow)</TooltipContent>
+          <TooltipContent side="bottom">
+            Next View (Down Arrow)
+          </TooltipContent>
         </Tooltip>
       </template>
       <template v-else>
@@ -112,28 +126,42 @@ const togglePin = () => {
       <!-- Pin route button (dev mode only, not presentation) -->
       <template v-if="isDevMode">
         <Tooltip>
-          <TooltipTrigger asChild>
-            <ButtonGroupItem v-on:click="togglePin()" :class="{ pinned: api.store.dev.pinnedRoute !== null }">
+          <TooltipTrigger as-child>
+            <ButtonGroupItem
+              :class="{ pinned: api.store.dev.pinnedRoute !== null }"
+              @click="togglePin()"
+            >
               <i-ic-baseline-pin-off v-if="api.store.dev.pinnedRoute !== null" />
               <i-ic-baseline-push-pin v-else />
             </ButtonGroupItem>
           </TooltipTrigger>
-          <TooltipContent side="bottom"> Pin current route (Ctrl + P) </TooltipContent>
+          <TooltipContent side="bottom">
+            Pin current route (Ctrl + P)
+          </TooltipContent>
         </Tooltip>
       </template>
 
       <!-- Route dropdown menu -->
-      <DropdownMenu :open="api.store.dev.routePanelVisible" @update:open="handleDropdownOpenChange">
+      <DropdownMenu
+        :open="api.store.dev.routePanelVisible"
+        @update:open="handleDropdownOpenChange"
+      >
         <DropdownMenuTrigger as-child>
           <ButtonGroupItem :class="buttonstyle">
             <div class="font-mono text-[0.65rem] font-medium min-w-[100px]">
               <!-- Route type icons -->
-              <i-lucide-arrow-down v-if="currentTimelineMeta.sequential" class="inline size-3 mr-1" />
+              <i-lucide-arrow-down
+                v-if="currentTimelineMeta.sequential"
+                class="inline size-3 mr-1"
+              />
               <i-lucide-presentation
                 v-else-if="api.currentRouteName() === 'presentation_home'"
                 class="inline size-3 mr-1"
               />
-              <i-lucide-diamond v-else class="inline size-3 mr-1" />
+              <i-lucide-diamond
+                v-else
+                class="inline size-3 mr-1"
+              />
               /{{ api.currentRouteName() }}
             </div>
           </ButtonGroupItem>

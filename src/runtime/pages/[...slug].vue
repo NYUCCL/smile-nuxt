@@ -1,6 +1,10 @@
 <template>
   <NuxtLayout name="experiment">
-    <component v-if="viewConfig && viewConfig.component" :is="viewConfig.component" v-bind="viewConfig.props" />
+    <component
+      :is="viewConfig.component"
+      v-if="viewConfig && viewConfig.component"
+      v-bind="viewConfig.props"
+    />
     <div v-else-if="viewConfig === null && timelineReady">
       <h1>Page not found</h1>
       <p>No view registered for path: {{ route.path }}</p>
@@ -32,11 +36,12 @@ watch(viewConfig, (config) => {
   if (config && config.redirect) {
     if (config.redirect.name) {
       // Resolve the redirect target's path from the timeline routes
-      const target = nuxtApp.$timeline.routes.find((r) => r.name === config.redirect.name)
+      const target = nuxtApp.$timeline.routes.find(r => r.name === config.redirect.name)
       if (target) {
         navigateTo(target.path)
       }
-    } else if (config.redirect.path) {
+    }
+    else if (config.redirect.path) {
       navigateTo(config.redirect.path)
     }
   }

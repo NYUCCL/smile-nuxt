@@ -3,7 +3,7 @@ import { watch, onUnmounted } from 'vue'
 
 /**
  * Props for the InformedConsentModal component
- * @typedef {Object} Props
+ * @typedef {object} Props
  * @property {boolean} show - Controls the visibility of the modal
  */
 const props = defineProps({
@@ -13,7 +13,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['toggleConsent'])
+const _emit = defineEmits(['toggleConsent'])
 
 const api = useAPI()
 
@@ -28,12 +28,13 @@ watch(
     if (mainContent) {
       if (isVisible) {
         mainContent.style.overflow = 'hidden'
-      } else {
+      }
+      else {
         mainContent.style.overflow = ''
       }
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 /**
@@ -50,9 +51,15 @@ onUnmounted(() => {
 
 <template>
   <!-- Modal overlay with backdrop -->
-  <div class="absolute inset-0 z-50 flex items-center justify-center p-8" :class="{ hidden: !show }">
+  <div
+    class="absolute inset-0 z-50 flex items-center justify-center p-8"
+    :class="{ hidden: !show }"
+  >
     <!-- Backdrop that closes modal when clicked -->
-    <div class="absolute inset-0 bg-black bg-opacity-50" @click="$emit('toggleConsent')"></div>
+    <div
+      class="absolute inset-0 bg-black bg-opacity-50"
+      @click="$emit('toggleConsent')"
+    />
 
     <!-- Close button in top-right corner -->
     <Button
@@ -85,7 +92,9 @@ onUnmounted(() => {
 
       <!-- Modal footer with action button -->
       <div class="border-t bg-muted px-5 py-4 flex justify-end">
-        <Button @click="$emit('toggleConsent')"> Take me back! </Button>
+        <Button @click="$emit('toggleConsent')">
+          Take me back!
+        </Button>
       </div>
     </div>
   </div>

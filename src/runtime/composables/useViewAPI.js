@@ -1,7 +1,7 @@
 /**
  * @module useViewAPI
  * @description Creates a view-specific API instance that combines core API functionality with stepper controls
- * @returns {Object} A reactive object containing:
+ * @returns {object} A reactive object containing:
  * - All methods and properties from the core API
  * - All methods and properties from the stepper
  */
@@ -43,7 +43,8 @@ class ViewAPI extends SmileAPI {
         const stepper = useStepper(viewName)
         stepper.setOnModify(() => this.updateStepper())
         return stepper
-      } catch {
+      }
+      catch {
         return null
       }
     })
@@ -65,7 +66,7 @@ class ViewAPI extends SmileAPI {
       (newStepper) => {
         this._updateStepperState(newStepper, false) // don't save because it will trigger recursive updates
       },
-      { immediate: true, deep: true }
+      { immediate: true, deep: true },
     )
 
     // Add keyboard event handlers from VueUse
@@ -128,8 +129,8 @@ class ViewAPI extends SmileAPI {
   /**
    * Advances to the next step in the stepper.
    * Updates the stepper state if a next step exists.
-   * @param {boolean} [resetScroll=true] - Whether to reset scroll position to top after navigation
-   * @returns {Object|null} The next state object if one exists, null otherwise
+   * @param {boolean} [resetScroll] - Whether to reset scroll position to top after navigation
+   * @returns {object | null} The next state object if one exists, null otherwise
    * @memberof ViewAPI
    * @instance
    */
@@ -147,8 +148,8 @@ class ViewAPI extends SmileAPI {
   /**
    * Returns to the previous step in the stepper.
    * Updates the stepper state if a previous step exists.
-   * @param {boolean} [resetScroll=true] - Whether to reset scroll position to top after navigation
-   * @returns {Object|null} The previous state object if one exists, null otherwise
+   * @param {boolean} [resetScroll] - Whether to reset scroll position to top after navigation
+   * @returns {object | null} The previous state object if one exists, null otherwise
    * @memberof ViewAPI
    * @instance
    */
@@ -166,7 +167,7 @@ class ViewAPI extends SmileAPI {
   /**
    * Resets the stepper to its first step.
    * Updates the stepper state after resetting to the initial position.
-   * @param {boolean} [resetScroll=true] - Whether to reset scroll position to top after navigation
+   * @param {boolean} [resetScroll] - Whether to reset scroll position to top after navigation
    * @returns {void}
    * @memberof ViewAPI
    * @instance
@@ -183,7 +184,7 @@ class ViewAPI extends SmileAPI {
    * Navigates to a specific step by path.
    * Updates the stepper state after navigating to the specified path.
    * @param {string} path - The path of the step to navigate to (e.g. "trial/block1/step2")
-   * @param {boolean} [resetScroll=true] - Whether to reset scroll position to top after navigation
+   * @param {boolean} [resetScroll] - Whether to reset scroll position to top after navigation
    * @returns {void}
    * @memberof ViewAPI
    * @instance
@@ -367,7 +368,7 @@ class ViewAPI extends SmileAPI {
     }
     const self = this // capture the outer this context
 
-    const isDefined = (key) => key in this._stepper.value.root.data.gvars
+    const isDefined = key => key in this._stepper.value.root.data.gvars
 
     const createRecursiveProxy = (target) => {
       return new Proxy(target, {
@@ -430,7 +431,7 @@ class ViewAPI extends SmileAPI {
 
   /**
    * Starts a named timer by storing the current timestamp in persisted variables
-   * @param {string} [name='default'] - The name of the timer to start
+   * @param {string} [name] - The name of the timer to start
    * @returns {void}
    * @memberof ViewAPI
    * @instance
@@ -441,7 +442,7 @@ class ViewAPI extends SmileAPI {
 
   /**
    * Checks if a named timer has been started
-   * @param {string} [name='default'] - The name of the timer to check
+   * @param {string} [name] - The name of the timer to check
    * @returns {boolean} True if the timer exists and has been started, false otherwise
    * @memberof ViewAPI
    * @instance
@@ -453,7 +454,7 @@ class ViewAPI extends SmileAPI {
 
   /**
    * Gets the elapsed time in milliseconds since a named timer was started
-   * @param {string} [name='default'] - The name of the timer to check
+   * @param {string} [name] - The name of the timer to check
    * @returns {number} Elapsed time in milliseconds
    * @memberof ViewAPI
    * @instance
@@ -464,7 +465,7 @@ class ViewAPI extends SmileAPI {
 
   /**
    * Gets the elapsed time in seconds since a named timer was started
-   * @param {string} [name='default'] - The name of the timer to check
+   * @param {string} [name] - The name of the timer to check
    * @returns {number} Elapsed time in seconds
    * @memberof ViewAPI
    * @instance
@@ -475,7 +476,7 @@ class ViewAPI extends SmileAPI {
 
   /**
    * Gets the elapsed time in minutes since a named timer was started
-   * @param {string} [name='default'] - The name of the timer to check
+   * @param {string} [name] - The name of the timer to check
    * @returns {number} Elapsed time in minutes
    * @memberof ViewAPI
    * @instance
@@ -520,7 +521,7 @@ class ViewAPI extends SmileAPI {
 
   /**
    * Gets merged data from all steps in the current path (parent blocks + current step)
-   * @returns {Object|null} Merged data object containing properties from all steps in current path, or null if no path data exists
+   * @returns {object | null} Merged data object containing properties from all steps in current path, or null if no path data exists
    * @memberof ViewAPI
    * @instance
    * @example
@@ -550,7 +551,7 @@ class ViewAPI extends SmileAPI {
         return new Proxy(obj, {
           get: (target, prop) => {
             const value = target[prop]
-            if (typeof prop === 'string' && !isNaN(prop)) {
+            if (typeof prop === 'string' && !Number.isNaN(Number(prop))) {
               return createRecursiveProxy(value, [...path, prop])
             }
             return value
@@ -631,7 +632,7 @@ class ViewAPI extends SmileAPI {
         return new Proxy(obj, {
           get: (target, prop) => {
             const value = target[prop]
-            if (typeof prop === 'string' && !isNaN(prop)) {
+            if (typeof prop === 'string' && !Number.isNaN(Number(prop))) {
               return createRecursiveProxy(value)
             }
             return value
@@ -685,8 +686,8 @@ class ViewAPI extends SmileAPI {
   /**
    * Gets data for all leaf nodes in the stepper, optionally filtered by path pattern.
    * Returns only the data directly associated with each leaf node, without merging parent block data.
-   * @param {string|null} [pathFilter=null] - Optional path pattern to filter nodes (e.g. 'trial/block*')
-   * @returns {Array<Object>} Array of data objects for each matching leaf node
+   * @param {string|null} [pathFilter] - Optional path pattern to filter nodes (e.g. 'trial/block*')
+   * @returns {Array<object>} Array of data objects for each matching leaf node
    * @memberof ViewAPI
    * @instance
    * @example
@@ -747,7 +748,8 @@ class ViewAPI extends SmileAPI {
       if (state.isLeaf) {
         if (matchesFilter(state.pathString, pathFilter)) {
           // Only return the node's own data, not including root properties
-          const { gvars, ...nodeData } = state.data
+          // eslint-disable-next-line no-unused-vars
+          const { gvars: _gvars, ...nodeData } = state.data
           return nodeData
         }
         return []
@@ -845,14 +847,14 @@ class ViewAPI extends SmileAPI {
   /**
    * Updates the internal stepper state with new data
    * @private
-   * @param {Object} data - The new stepper state data
-   * @param {Object} data.dataAlongPath - Data collected along the current path
+   * @param {object} data - The new stepper state data
+   * @param {object} data.dataAlongPath - Data collected along the current path
    * @param {string} data.currentPathString - String representation of current path
    * @param {string[]} data.currentPath - Array of steps in current path
    * @param {number} data.index - Current step index
-   * @param {Object} data.data - Stepper data object
-   * @param {Object} data.data.gvars - Global variables object
-   * @param {boolean} [save=true] - Whether to persist state changes
+   * @param {object} data.data - Stepper data object
+   * @param {object} data.data.gvars - Global variables object
+   * @param {boolean} [save] - Whether to persist state changes
    * @memberof ViewAPI
    * @instance
    */
@@ -881,7 +883,7 @@ class ViewAPI extends SmileAPI {
   /**
    * Creates a clean visualization of the state machine structure
    * @private
-   * @returns {Object} Processed state machine representation
+   * @returns {object} Processed state machine representation
    * @memberof ViewAPI
    * @instance
    */
@@ -920,6 +922,7 @@ export default function useViewAPI() {
     const router = useRouter()
     const store = useSmileStore()
     const logStore = useLog()
+    // eslint-disable-next-line no-undef
     const runtimeConfig = typeof useRuntimeConfig === 'function' ? useRuntimeConfig() : {}
     const timeline = { goNextView, goPrevView, goToView, nextView, prevView }
     viewAPIInstance = new ViewAPI(store, logStore, route, router, timeline, runtimeConfig)

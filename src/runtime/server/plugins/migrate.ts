@@ -1,6 +1,6 @@
 import { useDB } from '../utils/db'
 import { sql } from 'drizzle-orm'
-import { participants, privateData, devSessions } from '../database/schema'
+import { participants as _participants, privateData as _privateData, devSessions as _devSessions } from '../database/schema'
 
 export default defineNitroPlugin(async () => {
   const db = useDB()

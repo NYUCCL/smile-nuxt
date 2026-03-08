@@ -9,7 +9,7 @@ const props = defineProps({
   variant: {
     type: String,
     default: 'default',
-    validator: (value) => ['default', 'ghost', 'game', 'outline'].includes(value),
+    validator: value => ['default', 'ghost', 'game', 'outline'].includes(value),
   },
   responsiveUI: {
     type: Boolean,
@@ -48,7 +48,8 @@ const containerStyle = computed(() => {
       minWidth: props.width + 'px',
       minHeight: props.height + 'px',
     }
-  } else {
+  }
+  else {
     return {
       width: '90vw',
       height: props.height + 'px',
@@ -67,7 +68,10 @@ const containerStyle = computed(() => {
 
 <template>
   <div class="flex justify-center mt-5">
-    <div :class="containerClasses" :style="containerStyle">
+    <div
+      :class="containerClasses"
+      :style="containerStyle"
+    >
       <slot />
     </div>
   </div>

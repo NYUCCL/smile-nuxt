@@ -85,7 +85,7 @@ const stop = api.onKeyDown(
       }
     }
   },
-  { dedupe: true }
+  { dedupe: true },
 )
 
 function finish() {
@@ -96,12 +96,15 @@ function finish() {
 <template>
   <ConstrainedTaskWindow
     variant="ghost"
-    :responsiveUI="api.config.responsiveUI"
+    :responsive-u-i="api.config.responsiveUI"
     :width="api.config.windowsizerRequest.width"
     :height="api.config.windowsizerRequest.height"
   >
     <!-- Show this for each trial -->
-    <div class="text-center" v-if="api.path[0] == 'stroop'">
+    <div
+      v-if="api.path[0] == 'stroop'"
+      class="text-center"
+    >
       <h1
         class="text-6xl font-bold mb-8"
         :class="{
@@ -112,22 +115,42 @@ function finish() {
       >
         {{ api.stepData.word }}
       </h1>
-      <p class="text-lg text-muted-foreground" id="prompt">Type "R" for Red, "B" for blue, "G" for green.</p>
+      <p
+        id="prompt"
+        class="text-lg text-muted-foreground"
+      >
+        Type "R" for Red, "B" for blue, "G" for green.
+      </p>
     </div>
 
     <!-- Show this when you are done with the trials and offer a button
          which will advance to the next route -->
-    <div class="text-center" v-else>
-      <p class="text-lg text-muted-foreground mb-4" id="prompt">
+    <div
+      v-else
+      class="text-center"
+    >
+      <p
+        id="prompt"
+        class="text-lg text-muted-foreground mb-4"
+      >
         Thanks! You are finished with this task and can move on.
       </p>
       <!-- display the final score -->
       <p class="text-xl font-semibold text-muted-foreground mb-6">
         Your score was {{ api.persist.finalScore.toFixed(2) }}%
       </p>
-      <Button variant="default" size="lg" id="finish" @click="finish()">
+      <Button
+        id="finish"
+        variant="default"
+        size="lg"
+        @click="finish()"
+      >
         Continue
-        <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
+        <svg
+          class="w-4 h-4 ml-2"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
           <path
             fill-rule="evenodd"
             d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"

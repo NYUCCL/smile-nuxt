@@ -30,14 +30,14 @@ export const QUIZ_QUESTIONS = [
       },
       {
         id: 'example4',
-        question: "What's 7 x 7?",
+        question: 'What\'s 7 x 7?',
         multiSelect: false,
         answers: ['63', '59', '49', '14'],
         correctAnswer: ['49'],
       },
       {
         id: 'example5',
-        question: "Who is in Todd's lab?",
+        question: 'Who is in Todd\'s lab?',
         multiSelect: true,
         answers: ['Pat', 'Ellen', 'Jimbo', 'Roger'],
         correctAnswer: ['Pat', 'Ellen'],

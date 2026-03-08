@@ -32,7 +32,7 @@ const forwardedProps = useForwardProps(delegatedProps)
           size: context?.size || size,
         }),
         `px-2 flex-1 rounded-none shadow-none first:rounded-l-md last:rounded-r-md focus:z-10 focus-visible:z-10 border-l-0 first:border-l [&_svg:not([class*='size-'])]:size-3.5`,
-        props.class
+        props.class,
       )
     "
   >

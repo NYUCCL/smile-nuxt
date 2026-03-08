@@ -29,5 +29,5 @@ export const switchVariants = cva(
       variant: 'default',
       size: 'default',
     },
-  }
+  },
 )

@@ -25,7 +25,7 @@ const delegatedProps = reactiveOmit(props, 'class', 'size', 'isActive')
           variant: isActive ? 'outline' : 'ghost',
           size,
         }),
-        props.class
+        props.class,
       )
     "
   >

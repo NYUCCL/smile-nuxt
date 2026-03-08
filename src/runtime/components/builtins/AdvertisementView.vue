@@ -35,18 +35,33 @@ onBeforeUnmount(() => {
 <template>
   <ConstrainedTaskWindow
     variant="ghost"
-    :responsiveUI="api.config.responsiveUI"
+    :responsive-u-i="api.config.responsiveUI"
     :width="api.config.windowsizerRequest.width"
     :height="api.config.windowsizerRequest.height"
   >
-    <img ref="logo" src="/brain.svg" width="220" class="dark-aware-img" />
+    <img
+      ref="logo"
+      src="/brain.svg"
+      width="220"
+      class="dark-aware-img"
+    >
 
-    <h1 ref="title" class="text-3xl font-bold mb-4">Please help us understand the mind!</h1>
+    <h1
+      ref="title"
+      class="text-3xl font-bold mb-4"
+    >
+      Please help us understand the mind!
+    </h1>
 
     <p>Take part in a short experiment where you play some games.</p>
-    <br />
+    <br>
 
-    <Button ref="button" id="begintask" @click="finish()" size="lg">
+    <Button
+      id="begintask"
+      ref="button"
+      size="lg"
+      @click="finish()"
+    >
       I'm ready!
     </Button>
   </ConstrainedTaskWindow>

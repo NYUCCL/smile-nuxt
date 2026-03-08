@@ -1,8 +1,8 @@
 <script setup>
 /**
  * Props for StepNode component
- * @typedef {Object} StepNodeProps
- * @property {Object} state - The state object for this node
+ * @typedef {object} StepNodeProps
+ * @property {object} state - The state object for this node
  * @property {number} index - The index of this node among siblings
  * @property {number} total - The total number of siblings
  * @property {Function} isNodeSelected - Function to check if node is selected
@@ -49,11 +49,13 @@ const handleClick = () => {
  */
 const getBranchType = (index, total, depth) => {
   if (index === 0 && depth === 1) {
-    return '\u250c\u2500 '
-  } else if (index === total - 1) {
+    return '\u250C\u2500 '
+  }
+  else if (index === total - 1) {
     return '\u2514\u2500 '
-  } else {
-    return '\u251c\u2500 '
+  }
+  else {
+    return '\u251C\u2500 '
   }
 }
 
@@ -64,7 +66,7 @@ const getBranchType = (index, total, depth) => {
  */
 const getVerticalPrefix = (verticalLines) => {
   if (!verticalLines || !verticalLines.length) return ''
-  return verticalLines.map((hasLine) => (hasLine ? '\u2502 ' : '  ')).join('')
+  return verticalLines.map(hasLine => (hasLine ? '\u2502 ' : '  ')).join('')
 }
 
 /**
@@ -93,14 +95,25 @@ const getChildVerticalLines = (verticalLines, index, total) => {
     >
       <span class="vertical-lines">{{ getVerticalPrefix(verticalLines) }}</span>
       <span class="tree-branch">{{ getBranchType(index, total, depth) }}</span>
-      <span class="node-path" :class="{ 'leaf-state': !state.isLeaf }"
-        >{{ state.path }} <i-fa6-solid-house-flag class="home-icon inline" v-if="state.isFirstLeaf" />
-        <i-fa6-solid-leaf class="text-green-400 dark:text-green-500 inline" v-else-if="state.isLeaf" />
+      <span
+        class="node-path"
+        :class="{ 'leaf-state': !state.isLeaf }"
+      >{{ state.path }} <i-fa6-solid-house-flag
+        v-if="state.isFirstLeaf"
+        class="home-icon inline"
+      />
+        <i-fa6-solid-leaf
+          v-else-if="state.isLeaf"
+          class="text-green-400 dark:text-green-500 inline"
+        />
       </span>
     </div>
 
     <!-- Recursive tree nodes, but limit depth -->
-    <ul v-if="state.rows && state.rows.length > 0 && depth < maxDepth" class="children">
+    <ul
+      v-if="state.rows && state.rows.length > 0 && depth < maxDepth"
+      class="children"
+    >
       <StepNode
         v-for="(childState, childIndex) in state.rows"
         :key="childIndex"

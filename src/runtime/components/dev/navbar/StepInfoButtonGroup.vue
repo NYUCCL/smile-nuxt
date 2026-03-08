@@ -14,42 +14,54 @@ const api = useViewAPI()
 <template>
   <!-- Step navigation button group with tooltips -->
   <TooltipProvider>
-    <ButtonGroup variant="outline" size="menu">
+    <ButtonGroup
+      variant="outline"
+      size="menu"
+    >
       <!-- Step back button -->
       <Tooltip>
-        <TooltipTrigger asChild>
+        <TooltipTrigger as-child>
           <ButtonGroupItem
-            @click="api.goPrevStep()"
             :disabled="!api.store.dev.viewProvidesStepper || !api.hasPrevStep()"
+            @click="api.goPrevStep()"
           >
             <i-lucide-chevron-left />
           </ButtonGroupItem>
         </TooltipTrigger>
-        <TooltipContent side="bottom"> Step back (Left Arrow) </TooltipContent>
+        <TooltipContent side="bottom">
+          Step back (Left Arrow)
+        </TooltipContent>
       </Tooltip>
 
       <!-- Current path display -->
       <Tooltip>
-        <TooltipTrigger asChild>
+        <TooltipTrigger as-child>
           <ButtonGroupItem :disabled="!api.store.dev.viewProvidesStepper || !api.hasSteps()">
-            <span class="counter" v-if="api.pathString">{{ api.pathString }}</span>
+            <span
+              v-if="api.pathString"
+              class="counter"
+            >{{ api.pathString }}</span>
             <i-iconoir-remove-empty v-else />
           </ButtonGroupItem>
         </TooltipTrigger>
-        <TooltipContent side="bottom"> Current path </TooltipContent>
+        <TooltipContent side="bottom">
+          Current path
+        </TooltipContent>
       </Tooltip>
 
       <!-- Step forward button -->
       <Tooltip>
-        <TooltipTrigger asChild>
+        <TooltipTrigger as-child>
           <ButtonGroupItem
-            @click="api.goNextStep()"
             :disabled="!api.store.dev.viewProvidesStepper || !api.hasNextStep()"
+            @click="api.goNextStep()"
           >
             <i-lucide-chevron-right />
           </ButtonGroupItem>
         </TooltipTrigger>
-        <TooltipContent side="bottom"> Step forward (Right Arrow) </TooltipContent>
+        <TooltipContent side="bottom">
+          Step forward (Right Arrow)
+        </TooltipContent>
       </Tooltip>
     </ButtonGroup>
   </TooltipProvider>

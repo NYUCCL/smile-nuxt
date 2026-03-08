@@ -1,10 +1,10 @@
 <script setup>
-import { reactive, onMounted, watch, onUnmounted } from 'vue'
+import { reactive, watch, onUnmounted } from 'vue'
 // import and initalize smile API
 
 /**
  * Component props for WithdrawModal
- * @typedef {Object} WithdrawModalProps
+ * @typedef {object} WithdrawModalProps
  * @property {boolean} show - Controls modal visibility
  * @property {string} prefillEmail - Pre-filled email address for the form
  */
@@ -21,7 +21,7 @@ const props = defineProps({
 
 /**
  * Component emits for WithdrawModal
- * @typedef {Object} WithdrawModalEmits
+ * @typedef {object} WithdrawModalEmits
  * @property {Function} toggleWithdraw - Emitted when modal should be toggled
  * @property {Function} submitWithdraw - Emitted when withdraw form is submitted
  */
@@ -32,7 +32,7 @@ const api = useAPI()
 
 /**
  * Reactive form data for withdraw information
- * @type {import('vue').Reactive<Object>}
+ * @type {import('vue').Reactive<object>}
  */
 const forminfo = reactive({
   reason_select: [],
@@ -45,7 +45,7 @@ const forminfo = reactive({
  * @type {string[]}
  */
 const withdrawOptions = [
-  "I couldn't adjust the size of my browser to make everything visible",
+  'I couldn\'t adjust the size of my browser to make everything visible',
   'This task is too hard.',
   'This task is too time consuming.',
   'This task is boring.',
@@ -73,12 +73,13 @@ watch(
     if (mainContent) {
       if (isVisible) {
         mainContent.style.overflow = 'hidden'
-      } else {
+      }
+      else {
         mainContent.style.overflow = ''
       }
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // Clean up on component unmount
@@ -92,9 +93,15 @@ onUnmounted(() => {
 
 <template>
   <!-- Modal overlay and container -->
-  <div class="absolute inset-0 z-50 flex items-center justify-center p-8" :class="{ hidden: !show }">
+  <div
+    class="absolute inset-0 z-50 flex items-center justify-center p-8"
+    :class="{ hidden: !show }"
+  >
     <!-- Backdrop overlay -->
-    <div class="absolute inset-0 bg-black bg-opacity-50" @click="$emit('toggleWithdraw')"></div>
+    <div
+      class="absolute inset-0 bg-black bg-opacity-50"
+      @click="$emit('toggleWithdraw')"
+    />
 
     <!-- Close button -->
     <Button
@@ -109,7 +116,7 @@ onUnmounted(() => {
     <div class="w-[90%] h-[90%] relative bg-background border border-border flex flex-col overflow-hidden">
       <!-- Scrollable content area -->
       <div class="flex-1 overflow-y-auto">
-        <TitleTwoCol :responsiveUI="api.config.responsiveUI">
+        <TitleTwoCol :responsive-u-i="api.config.responsiveUI">
           <!-- Modal header with title -->
           <template #title>
             <h3 class="text-3xl font-semibold">
@@ -123,10 +130,8 @@ onUnmounted(() => {
               <p class="text-sm text-muted-foreground">
                 You are free to withdraw from this study at any time. Withdrawing from the study <b>may</b> affect the
                 total amount of your compensation. We will follow up with you about partial compensation.
-                <b
-                  >You do not have to answer any particular question but we appreciate understanding the reasons for
-                  your withdraw.</b
-                >
+                <b>You do not have to answer any particular question but we appreciate understanding the reasons for
+                  your withdraw.</b>
               </p>
             </div>
           </template>
@@ -138,7 +143,11 @@ onUnmounted(() => {
               <div class="space-y-4">
                 <Label class="text-lg font-semibold"> Why are you withdrawing from the study? (Optional) </Label>
                 <div class="space-y-3">
-                  <div v-for="(option, index) in withdrawOptions" :key="index" class="flex items-center space-x-3">
+                  <div
+                    v-for="(option, index) in withdrawOptions"
+                    :key="index"
+                    class="flex items-center space-x-3"
+                  >
                     <Checkbox
                       :id="`withdraw-option-${index}`"
                       :checked="forminfo.reason_select.includes(option)"
@@ -149,7 +158,8 @@ onUnmounted(() => {
                             if (!forminfo.reason_select.includes(option)) {
                               forminfo.reason_select.push(option)
                             }
-                          } else {
+                          }
+                          else {
                             const idx = forminfo.reason_select.indexOf(option)
                             if (idx > -1) {
                               forminfo.reason_select.splice(idx, 1)
@@ -158,17 +168,25 @@ onUnmounted(() => {
                         }
                       "
                     />
-                    <Label :for="`withdraw-option-${index}`" class="text-sm font-normal cursor-pointer">
+                    <Label
+                      :for="`withdraw-option-${index}`"
+                      class="text-sm font-normal cursor-pointer"
+                    >
                       {{ option }}
                     </Label>
                   </div>
                 </div>
-                <p class="text-xs text-gray-500">Select all that apply.</p>
+                <p class="text-xs text-gray-500">
+                  Select all that apply.
+                </p>
               </div>
 
               <!-- Additional comments section -->
               <div class="space-y-3">
-                <Label for="comments" class="text-lg font-semibold"> Additional comments. (Optional) </Label>
+                <Label
+                  for="comments"
+                  class="text-lg font-semibold"
+                > Additional comments. (Optional) </Label>
                 <Textarea
                   id="comments"
                   v-model="forminfo.reason_comments"
@@ -183,7 +201,10 @@ onUnmounted(() => {
 
               <!-- Contact email section -->
               <div class="space-y-3">
-                <Label for="email" class="text-base font-medium"> Contact email. (Optional) </Label>
+                <Label
+                  for="email"
+                  class="text-base font-medium"
+                > Contact email. (Optional) </Label>
                 <Input
                   id="email"
                   v-model="forminfo.email"
@@ -206,8 +227,18 @@ onUnmounted(() => {
 
       <!-- Modal footer with action buttons -->
       <div class="border-t bg-muted px-5 py-4 flex justify-end space-x-4 flex-shrink-0">
-        <Button variant="outline" @click="$emit('toggleWithdraw')"> Nevermind, take me back to the study! </Button>
-        <Button variant="destructive" @click="withdraw"> Withdraw </Button>
+        <Button
+          variant="outline"
+          @click="$emit('toggleWithdraw')"
+        >
+          Nevermind, take me back to the study!
+        </Button>
+        <Button
+          variant="destructive"
+          @click="withdraw"
+        >
+          Withdraw
+        </Button>
       </div>
     </div>
   </div>

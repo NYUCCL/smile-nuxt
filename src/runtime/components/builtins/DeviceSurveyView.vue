@@ -38,10 +38,10 @@ if (!api.persist.isDefined('forminfo')) {
  */
 const page_one_complete = computed(
   () =>
-    api.persist.forminfo.device_type !== '' &&
-    api.persist.forminfo.connection !== '' &&
-    api.persist.forminfo.connection_quality !== '' &&
-    api.persist.forminfo.browser !== ''
+    api.persist.forminfo.device_type !== ''
+    && api.persist.forminfo.connection !== ''
+    && api.persist.forminfo.connection_quality !== ''
+    && api.persist.forminfo.browser !== '',
 )
 
 /**
@@ -50,10 +50,10 @@ const page_one_complete = computed(
  */
 const page_two_complete = computed(
   () =>
-    api.persist.forminfo.pointer !== '' &&
-    api.persist.forminfo.assistive_technology !== '' &&
-    api.persist.forminfo.tools !== '' &&
-    api.persist.forminfo.ai !== ''
+    api.persist.forminfo.pointer !== ''
+    && api.persist.forminfo.assistive_technology !== ''
+    && api.persist.forminfo.tools !== ''
+    && api.persist.forminfo.ai !== '',
 )
 
 /**
@@ -89,12 +89,16 @@ function finish() {
 <template>
   <!-- Main container with responsive layout constraints -->
   <ConstrainedPage
-    :responsiveUI="api.config.responsiveUI"
+    :responsive-u-i="api.config.responsiveUI"
     :width="api.config.windowsizerRequest.width"
     :height="api.config.windowsizerRequest.height"
   >
     <!-- Two-column layout with title and form sections -->
-    <TitleTwoCol leftFirst leftWidth="w-1/3" :responsiveUI="api.config.responsiveUI">
+    <TitleTwoCol
+      left-first
+      left-width="w-1/3"
+      :responsive-u-i="api.config.responsiveUI"
+    >
       <!-- Title and description section -->
       <template #title>
         <h3 class="text-3xl font-bold mb-4">
@@ -109,7 +113,9 @@ function finish() {
       <!-- Left sidebar with important note -->
       <template #left>
         <div class="text-left text-muted-foreground">
-          <h3 class="text-lg font-bold mb-2">Important Note</h3>
+          <h3 class="text-lg font-bold mb-2">
+            Important Note
+          </h3>
           <p class="text-md font-light text-muted-foreground">
             If this is a paid study your answers to these questions will have
             <b>no effect on your final payment</b>. We are just interested in your honest answers.
@@ -120,7 +126,10 @@ function finish() {
       <!-- Right content area with form pages -->
       <template #right>
         <!-- Page 1: Device and connection information -->
-        <div v-if="api.pathString === 'device_page1'" class="border border-border text-left bg-muted p-6 rounded-lg">
+        <div
+          v-if="api.pathString === 'device_page1'"
+          class="border border-border text-left bg-muted p-6 rounded-lg"
+        >
           <!-- Device type selection -->
           <div class="mb-3">
             <label class="block text-md font-semibold text-foreground mb-2">
@@ -131,17 +140,35 @@ function finish() {
                 <SelectValue placeholder="Select an option" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Laptop Computer">Laptop Computer</SelectItem>
-                <SelectItem value="Desktop Computer">Desktop Computer</SelectItem>
-                <SelectItem value="iPad/Tablet">iPad/Tablet</SelectItem>
-                <SelectItem value="Smartphone">Smartphone</SelectItem>
-                <SelectItem value="Television">Television</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-                <SelectItem value="I'm not sure">I'm not sure</SelectItem>
-                <SelectItem value="I'd rather not say">I'd rather not say</SelectItem>
+                <SelectItem value="Laptop Computer">
+                  Laptop Computer
+                </SelectItem>
+                <SelectItem value="Desktop Computer">
+                  Desktop Computer
+                </SelectItem>
+                <SelectItem value="iPad/Tablet">
+                  iPad/Tablet
+                </SelectItem>
+                <SelectItem value="Smartphone">
+                  Smartphone
+                </SelectItem>
+                <SelectItem value="Television">
+                  Television
+                </SelectItem>
+                <SelectItem value="Other">
+                  Other
+                </SelectItem>
+                <SelectItem value="I'm not sure">
+                  I'm not sure
+                </SelectItem>
+                <SelectItem value="I'd rather not say">
+                  I'd rather not say
+                </SelectItem>
               </SelectContent>
             </Select>
-            <p class="text-xs text-muted-foreground mt-1">Enter your computer type (choose the best match)</p>
+            <p class="text-xs text-muted-foreground mt-1">
+              Enter your computer type (choose the best match)
+            </p>
           </div>
 
           <!-- Internet connection type selection -->
@@ -154,19 +181,41 @@ function finish() {
                 <SelectValue placeholder="Select an option" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Ethernet">Ethernet</SelectItem>
-                <SelectItem value="Wifi">Wifi</SelectItem>
-                <SelectItem value="Cellular (5G)">Cellular (5G)</SelectItem>
-                <SelectItem value="Cellular (4G/LTE)">Cellular (4G/LTE)</SelectItem>
-                <SelectItem value="Cellular (3G)">Cellular (3G)</SelectItem>
-                <SelectItem value="DSL">DSL</SelectItem>
-                <SelectItem value="Dialup Modem">Dialup Modem</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-                <SelectItem value="I'm not sure">I'm not sure</SelectItem>
-                <SelectItem value="I'd rather not say">I'd rather not say</SelectItem>
+                <SelectItem value="Ethernet">
+                  Ethernet
+                </SelectItem>
+                <SelectItem value="Wifi">
+                  Wifi
+                </SelectItem>
+                <SelectItem value="Cellular (5G)">
+                  Cellular (5G)
+                </SelectItem>
+                <SelectItem value="Cellular (4G/LTE)">
+                  Cellular (4G/LTE)
+                </SelectItem>
+                <SelectItem value="Cellular (3G)">
+                  Cellular (3G)
+                </SelectItem>
+                <SelectItem value="DSL">
+                  DSL
+                </SelectItem>
+                <SelectItem value="Dialup Modem">
+                  Dialup Modem
+                </SelectItem>
+                <SelectItem value="Other">
+                  Other
+                </SelectItem>
+                <SelectItem value="I'm not sure">
+                  I'm not sure
+                </SelectItem>
+                <SelectItem value="I'd rather not say">
+                  I'd rather not say
+                </SelectItem>
               </SelectContent>
             </Select>
-            <p class="text-xs text-muted-foreground mt-1">Enter your internet connection type</p>
+            <p class="text-xs text-muted-foreground mt-1">
+              Enter your internet connection type
+            </p>
           </div>
 
           <!-- Connection quality rating -->
@@ -179,15 +228,29 @@ function finish() {
                 <SelectValue placeholder="Select an option" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Fast">Fast</SelectItem>
-                <SelectItem value="Moderate">Moderate</SelectItem>
-                <SelectItem value="Slow but reliable">Slow but reliable</SelectItem>
-                <SelectItem value="Very slow, unreliable">Very slow, unreliable</SelectItem>
-                <SelectItem value="I'm not sure">I'm not sure</SelectItem>
-                <SelectItem value="I'd rather not say">I'd rather not say</SelectItem>
+                <SelectItem value="Fast">
+                  Fast
+                </SelectItem>
+                <SelectItem value="Moderate">
+                  Moderate
+                </SelectItem>
+                <SelectItem value="Slow but reliable">
+                  Slow but reliable
+                </SelectItem>
+                <SelectItem value="Very slow, unreliable">
+                  Very slow, unreliable
+                </SelectItem>
+                <SelectItem value="I'm not sure">
+                  I'm not sure
+                </SelectItem>
+                <SelectItem value="I'd rather not say">
+                  I'd rather not say
+                </SelectItem>
               </SelectContent>
             </Select>
-            <p class="text-xs text-muted-foreground mt-1">How would you rate your Internet connection</p>
+            <p class="text-xs text-muted-foreground mt-1">
+              How would you rate your Internet connection
+            </p>
           </div>
 
           <!-- Browser selection -->
@@ -198,30 +261,62 @@ function finish() {
                 <SelectValue placeholder="Select an option" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Safari (Mac)">Safari (Mac)</SelectItem>
-                <SelectItem value="Chrome">Chrome</SelectItem>
-                <SelectItem value="Firefox">Firefox</SelectItem>
-                <SelectItem value="Opera">Opera</SelectItem>
-                <SelectItem value="Microsoft Edge">Microsoft Edge</SelectItem>
-                <SelectItem value="Microsoft Internet Explorer">Microsoft Internet Explorer</SelectItem>
-                <SelectItem value="UC Browser">UC Browser</SelectItem>
-                <SelectItem value="Samsung Internet">Samsung Internet</SelectItem>
-                <SelectItem value="ARC">ARC</SelectItem>
-                <SelectItem value="Chromium">Chromium</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-                <SelectItem value="I'm not sure">I'm not sure</SelectItem>
-                <SelectItem value="I'd rather not say">I'd rather not say</SelectItem>
+                <SelectItem value="Safari (Mac)">
+                  Safari (Mac)
+                </SelectItem>
+                <SelectItem value="Chrome">
+                  Chrome
+                </SelectItem>
+                <SelectItem value="Firefox">
+                  Firefox
+                </SelectItem>
+                <SelectItem value="Opera">
+                  Opera
+                </SelectItem>
+                <SelectItem value="Microsoft Edge">
+                  Microsoft Edge
+                </SelectItem>
+                <SelectItem value="Microsoft Internet Explorer">
+                  Microsoft Internet Explorer
+                </SelectItem>
+                <SelectItem value="UC Browser">
+                  UC Browser
+                </SelectItem>
+                <SelectItem value="Samsung Internet">
+                  Samsung Internet
+                </SelectItem>
+                <SelectItem value="ARC">
+                  ARC
+                </SelectItem>
+                <SelectItem value="Chromium">
+                  Chromium
+                </SelectItem>
+                <SelectItem value="Other">
+                  Other
+                </SelectItem>
+                <SelectItem value="I'm not sure">
+                  I'm not sure
+                </SelectItem>
+                <SelectItem value="I'd rather not say">
+                  I'd rather not say
+                </SelectItem>
               </SelectContent>
             </Select>
-            <p class="text-xs text-muted-foreground mt-1">Enter your internet browser type</p>
+            <p class="text-xs text-muted-foreground mt-1">
+              Enter your internet browser type
+            </p>
           </div>
 
           <!-- Navigation separator -->
-          <hr class="border-border my-6" />
+          <hr class="border-border my-6">
 
           <!-- Continue button for page 1 -->
           <div class="flex justify-end">
-            <Button variant="outline" :disabled="!page_one_complete" @click="api.goNextStep()">
+            <Button
+              variant="outline"
+              :disabled="!page_one_complete"
+              @click="api.goNextStep()"
+            >
               Continue
               <i-fa6-solid-arrow-right />
             </Button>
@@ -243,20 +338,44 @@ function finish() {
                 <SelectValue placeholder="Select an option" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Mouse">Mouse</SelectItem>
-                <SelectItem value="Trackpad">Trackpad</SelectItem>
-                <SelectItem value="Scrollwheel">Scrollwheel</SelectItem>
-                <SelectItem value="Touchscreen/Finger">Touchscreen/Finger</SelectItem>
-                <SelectItem value="Trackpoint/pointing stick">Trackpoint/pointing stick</SelectItem>
-                <SelectItem value="Stylus/Pen/Pencil">Stylus/Pen/Pencil</SelectItem>
-                <SelectItem value="Keyboard Only">Keyboard Only</SelectItem>
-                <SelectItem value="Game Controller">Game Controller</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-                <SelectItem value="I'm not sure">I'm not sure</SelectItem>
-                <SelectItem value="I'd rather not say">I'd rather not say</SelectItem>
+                <SelectItem value="Mouse">
+                  Mouse
+                </SelectItem>
+                <SelectItem value="Trackpad">
+                  Trackpad
+                </SelectItem>
+                <SelectItem value="Scrollwheel">
+                  Scrollwheel
+                </SelectItem>
+                <SelectItem value="Touchscreen/Finger">
+                  Touchscreen/Finger
+                </SelectItem>
+                <SelectItem value="Trackpoint/pointing stick">
+                  Trackpoint/pointing stick
+                </SelectItem>
+                <SelectItem value="Stylus/Pen/Pencil">
+                  Stylus/Pen/Pencil
+                </SelectItem>
+                <SelectItem value="Keyboard Only">
+                  Keyboard Only
+                </SelectItem>
+                <SelectItem value="Game Controller">
+                  Game Controller
+                </SelectItem>
+                <SelectItem value="Other">
+                  Other
+                </SelectItem>
+                <SelectItem value="I'm not sure">
+                  I'm not sure
+                </SelectItem>
+                <SelectItem value="I'd rather not say">
+                  I'd rather not say
+                </SelectItem>
               </SelectContent>
             </Select>
-            <p class="text-xs text-muted-foreground mt-1">Enter your input type</p>
+            <p class="text-xs text-muted-foreground mt-1">
+              Enter your input type
+            </p>
           </div>
 
           <!-- Assistive technology usage -->
@@ -269,10 +388,18 @@ function finish() {
                 <SelectValue placeholder="Select an option" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="No">No</SelectItem>
-                <SelectItem value="Yes">Yes</SelectItem>
-                <SelectItem value="I'm not sure">I'm not sure</SelectItem>
-                <SelectItem value="I'd rather not say">I'd rather not say</SelectItem>
+                <SelectItem value="No">
+                  No
+                </SelectItem>
+                <SelectItem value="Yes">
+                  Yes
+                </SelectItem>
+                <SelectItem value="I'm not sure">
+                  I'm not sure
+                </SelectItem>
+                <SelectItem value="I'd rather not say">
+                  I'd rather not say
+                </SelectItem>
               </SelectContent>
             </Select>
             <p class="text-xs text-muted-foreground mt-1">
@@ -290,10 +417,18 @@ function finish() {
                 <SelectValue placeholder="Select an option" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="No">No</SelectItem>
-                <SelectItem value="Yes">Yes</SelectItem>
-                <SelectItem value="I'm not sure">I'm not sure</SelectItem>
-                <SelectItem value="I'd rather not say">I'd rather not say</SelectItem>
+                <SelectItem value="No">
+                  No
+                </SelectItem>
+                <SelectItem value="Yes">
+                  Yes
+                </SelectItem>
+                <SelectItem value="I'm not sure">
+                  I'm not sure
+                </SelectItem>
+                <SelectItem value="I'd rather not say">
+                  I'd rather not say
+                </SelectItem>
               </SelectContent>
             </Select>
             <p class="text-xs text-muted-foreground mt-1">
@@ -312,25 +447,44 @@ function finish() {
                 <SelectValue placeholder="Select an option" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="No">No</SelectItem>
-                <SelectItem value="Yes">Yes</SelectItem>
-                <SelectItem value="I'm not sure">I'm not sure</SelectItem>
-                <SelectItem value="I'd rather not say">I'd rather not say</SelectItem>
+                <SelectItem value="No">
+                  No
+                </SelectItem>
+                <SelectItem value="Yes">
+                  Yes
+                </SelectItem>
+                <SelectItem value="I'm not sure">
+                  I'm not sure
+                </SelectItem>
+                <SelectItem value="I'd rather not say">
+                  I'd rather not say
+                </SelectItem>
               </SelectContent>
             </Select>
-            <p class="text-xs text-muted-foreground mt-1">Please answser truthfully.</p>
+            <p class="text-xs text-muted-foreground mt-1">
+              Please answser truthfully.
+            </p>
           </div>
 
           <!-- Navigation separator -->
-          <hr class="border-border my-6" />
+          <hr class="border-border my-6">
 
           <!-- Navigation buttons for page 2 -->
           <div class="flex justify-between">
-            <Button variant="outline" @click="api.goPrevStep()">
+            <Button
+              variant="outline"
+              @click="api.goPrevStep()"
+            >
               <i-fa6-solid-arrow-left />
               Previous
             </Button>
-            <Button variant="default" :disabled="!page_two_complete" @click="finish()"> I'm done! </Button>
+            <Button
+              variant="default"
+              :disabled="!page_two_complete"
+              @click="finish()"
+            >
+              I'm done!
+            </Button>
           </div>
         </div>
       </template>

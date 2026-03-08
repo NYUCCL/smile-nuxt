@@ -19,12 +19,14 @@ const database_tooltip = computed(() => {
   let msg = ''
   if (api.store.browserEphemeral.dataLoaded) {
     msg += 'Record created | '
-  } else {
+  }
+  else {
     msg += 'No record yet | '
   }
   if (api.store.browserEphemeral.unsavedChanges) {
     msg += 'Unsaved changes '
-  } else {
+  }
+  else {
     msg += 'Saved '
   }
   if (api.store.browserEphemeral.dataLoaded) {
@@ -39,8 +41,11 @@ const database_tooltip = computed(() => {
   <!-- Database status button with tooltip -->
   <TooltipProvider>
     <Tooltip>
-      <TooltipTrigger asChild>
-        <Button size="menu" variant="outline">
+      <TooltipTrigger as-child>
+        <Button
+          size="menu"
+          variant="outline"
+        >
           <!-- Database icon with status styling -->
           <i-lucide-database
             style="font-size: 2em"
@@ -65,7 +70,7 @@ const database_tooltip = computed(() => {
               <CircleProgress
                 :percentage="Math.round(api.store.localState.approxDataSize / 1048576) * 100"
                 :size="12"
-                :strokeWidth="40"
+                :stroke-width="40"
                 slicecolor="#aaa"
                 basecolor="#aaa"
               />
@@ -76,7 +81,7 @@ const database_tooltip = computed(() => {
               <CircleProgress
                 :percentage="Math.round(api.store.localState.approxDataSize / 1048576) * 100"
                 :size="12"
-                :strokeWidth="40"
+                :stroke-width="40"
                 slicecolor="var(--primary-button)"
                 basecolor="var(--status-green)"
               />

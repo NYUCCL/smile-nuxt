@@ -2,14 +2,14 @@
   <NuxtLayout name="presentation">
     <!-- Presentation home page at /presentation/ root -->
     <component
-      v-if="isRoot && timelineReady"
       :is="presentationHome"
+      v-if="isRoot && timelineReady"
       v-bind="presentationHomeProps"
     />
     <!-- Normal timeline view resolution -->
     <component
-      v-else-if="viewConfig && viewConfig.component"
       :is="viewConfig.component"
+      v-else-if="viewConfig && viewConfig.component"
       v-bind="viewConfig.props"
     />
     <div v-else-if="viewConfig === null && timelineReady">
@@ -67,11 +67,12 @@ watch(viewConfig, (config) => {
   if (isRoot.value) return
   if (config && config.redirect) {
     if (config.redirect.name) {
-      const target = nuxtApp.$timeline.routes.find((r) => r.name === config.redirect.name)
+      const target = nuxtApp.$timeline.routes.find(r => r.name === config.redirect.name)
       if (target) {
         navigateTo('/presentation' + target.path)
       }
-    } else if (config.redirect.path) {
+    }
+    else if (config.redirect.path) {
       navigateTo('/presentation' + config.redirect.path)
     }
   }

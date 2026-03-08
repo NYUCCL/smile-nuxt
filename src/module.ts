@@ -1,11 +1,12 @@
 import { defineNuxtModule, addPlugin, addImports, addLayout, addRouteMiddleware, createResolver, extendPages, addComponentsDir, addServerScanDir, addServerImportsDir } from '@nuxt/kit'
-import { fileURLToPath } from 'url'
+import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import Icons from 'unplugin-icons/vite'
 import Components from 'unplugin-vue-components/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 
 // Module options TypeScript interface definition
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ModuleOptions {}
 
 export default defineNuxtModule<ModuleOptions>({

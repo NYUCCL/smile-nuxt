@@ -60,8 +60,8 @@ const descriptionParagraphs = computed(() => {
 })
 
 const uniqueAffiliations = computed(() => {
-  const affiliations = props.projectAuthors.flatMap((author) =>
-    Array.isArray(author.affiliation) ? author.affiliation : [author.affiliation]
+  const affiliations = props.projectAuthors.flatMap(author =>
+    Array.isArray(author.affiliation) ? author.affiliation : [author.affiliation],
   )
   return [...new Set(affiliations)]
 })
@@ -77,7 +77,8 @@ function getAffiliationIndex(affiliation) {
 function goToSection(section) {
   if (section.href) {
     window.location.href = section.href
-  } else if (section.view) {
+  }
+  else if (section.view) {
     api.goToView(section.view)
   }
 }
@@ -103,9 +104,15 @@ function goToSection(section) {
         <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
           <!-- Authors -->
           <div class="md:col-span-2">
-            <h3 class="text-[0.65rem] font-extralight uppercase tracking-widest text-muted-foreground mb-4">Authors</h3>
+            <h3 class="text-[0.65rem] font-extralight uppercase tracking-widest text-muted-foreground mb-4">
+              Authors
+            </h3>
             <div class="space-y-2">
-              <div v-for="(author, index) in projectAuthors" :key="index" class="text-[0.9rem]">
+              <div
+                v-for="(author, index) in projectAuthors"
+                :key="index"
+                class="text-[0.9rem]"
+              >
                 <template v-if="author.link">
                   <a
                     :href="author.link"
@@ -120,7 +127,10 @@ function goToSection(section) {
                   <span class="text-foreground font-medium">{{ author.name }}</span>
                 </template>
                 <sup class="text-xs text-muted-foreground">
-                  <template v-for="(aff, affIndex) in getUniqueAffiliations(author.affiliation)" :key="affIndex">
+                  <template
+                    v-for="(aff, affIndex) in getUniqueAffiliations(author.affiliation)"
+                    :key="affIndex"
+                  >
                     {{ getAffiliationIndex(aff)
                     }}{{ affIndex < getUniqueAffiliations(author.affiliation).length - 1 ? ',' : '' }}
                   </template>
@@ -135,16 +145,26 @@ function goToSection(section) {
               Affiliations
             </h3>
             <div class="space-y-3">
-              <div v-for="(aff, index) in uniqueAffiliations" :key="index" class="text-[0.9rem]">
+              <div
+                v-for="(aff, index) in uniqueAffiliations"
+                :key="index"
+                class="text-[0.9rem]"
+              >
                 <sup class="text-xs">{{ index + 1 }}</sup>&nbsp;{{ aff }}
               </div>
             </div>
           </div>
 
           <!-- Project Info -->
-          <div v-if="info.length" class="md:col-span-4 md:col-start-9">
+          <div
+            v-if="info.length"
+            class="md:col-span-4 md:col-start-9"
+          >
             <div class="space-y-4">
-              <div v-for="item in info" :key="item.title">
+              <div
+                v-for="item in info"
+                :key="item.title"
+              >
                 <h3 class="text-[0.65rem] font-extralight uppercase tracking-widest text-muted-foreground mb-2">
                   {{ item.title }}
                 </h3>
@@ -158,7 +178,10 @@ function goToSection(section) {
                   >
                     {{ item.data }}
                   </a>
-                  <span v-else class="text-foreground">{{ item.data }}</span>
+                  <span
+                    v-else
+                    class="text-foreground"
+                  >{{ item.data }}</span>
                 </div>
               </div>
             </div>
@@ -184,13 +207,24 @@ function goToSection(section) {
 
       <!-- Navigation Sections -->
       <div class="space-y-8">
-        <template v-for="(section, index) in sections" :key="index">
+        <template
+          v-for="(section, index) in sections"
+          :key="index"
+        >
           <div>
-            <h3 class="text-xl font-semibold text-foreground mb-3">{{ section.title }}</h3>
-            <p v-if="section.description" class="text-lg text-muted-foreground mb-4">
+            <h3 class="text-xl font-semibold text-foreground mb-3">
+              {{ section.title }}
+            </h3>
+            <p
+              v-if="section.description"
+              class="text-lg text-muted-foreground mb-4"
+            >
               {{ section.description }}
             </p>
-            <Button size="sm" @click="goToSection(section)">
+            <Button
+              size="sm"
+              @click="goToSection(section)"
+            >
               {{ section.label || section.title }}
               <ArrowRight class="w-4 h-4 ml-2 inline" />
             </Button>

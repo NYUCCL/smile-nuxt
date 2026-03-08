@@ -12,11 +12,11 @@
  * core functionality. It initializes all required dependencies and returns a reactive API object
  * that maintains reactivity when used in components.
  *
- * @returns {Object} A reactive SmileAPI instance with all core framework capabilities
+ * @returns {object} A reactive SmileAPI instance with all core framework capabilities
  */
 
 import { reactive } from 'vue'
-import { useRoute, useRouter, useRuntimeConfig, useNuxtApp, navigateTo } from '#imports'
+import { useRoute, useRouter, useRuntimeConfig, useNuxtApp } from '#imports'
 import useSmileStore from '../stores/smilestore'
 import useLog from '../stores/log'
 import useTimeline from './useTimeline'
@@ -41,28 +41,28 @@ import {
  * and other core functionality needed for running SMILE experiments. It serves as the primary interface
  * between experiment components and the underlying application infrastructure.
  *
- * @property {Object} store - Smile store instance containing application state
- * @property {Object} logStore - Logging store for application logging
- * @property {Object} route - Vue Router route object for current route
- * @property {Object} router - Vue Router instance for navigation
- * @property {Object} timeline - Timeline instance for managing view sequence
- * @property {Object} config - Application configuration from store
- * @property {Object} data - Application data from store
- * @property {Object} private - Private data from store
- * @property {Object} all_data - Combined private and public data
- * @property {Object} all_config - Combined bro, dev, github and main configs
+ * @property {object} store - Smile store instance containing application state
+ * @property {object} logStore - Logging store for application logging
+ * @property {object} route - Vue Router route object for current route
+ * @property {object} router - Vue Router instance for navigation
+ * @property {object} timeline - Timeline instance for managing view sequence
+ * @property {object} config - Application configuration from store
+ * @property {object} data - Application data from store
+ * @property {object} private - Private data from store
+ * @property {object} all_data - Combined private and public data
+ * @property {object} all_config - Combined bro, dev, github and main configs
  * @property {Object} urls - Global URL configurations
  * @property {Object} log - Logging methods interface
  */
 export class SmileAPI {
   /**
    * Creates a new SmileAPI instance
-   * @param {Object} store - The Smile store instance containing application state
-   * @param {Object} logStore - The logging store for application logging
-   * @param {Object} route - Vue Router route object for current route
-   * @param {Object} router - Vue Router instance for navigation
-   * @param {Object} timeline - Timeline instance for managing view sequence
-   * @param {Object} runtimeConfig - Nuxt runtime config object
+   * @param {object} store - The Smile store instance containing application state
+   * @param {object} logStore - The logging store for application logging
+   * @param {object} route - Vue Router route object for current route
+   * @param {object} router - Vue Router instance for navigation
+   * @param {object} timeline - Timeline instance for managing view sequence
+   * @param {object} runtimeConfig - Nuxt runtime config object
    */
   constructor(store, logStore, route, router, timeline, runtimeConfig) {
     this.store = store
@@ -89,7 +89,7 @@ export class SmileAPI {
   // Logging methods
   /**
    * Logging methods for the application
-   * @property {Object} log - Object containing logging methods
+   * @property {object} log - Object containing logging methods
    * @property {Function} log.debug - Log debug level messages
    * @property {Function} log.log - Log standard messages
    * @property {Function} log.warn - Log warning messages
@@ -111,7 +111,7 @@ export class SmileAPI {
   // Router related methods
   /**
    * Navigate to the next view in the timeline sequence
-   * @param {boolean} [resetScroll=true] - Whether to reset scroll position to top after navigation
+   * @param {boolean} [resetScroll] - Whether to reset scroll position to top after navigation
    * @returns {void}
    * @memberof SmileAPI
    * @instance
@@ -123,9 +123,10 @@ export class SmileAPI {
       }
     })
   }
+
   /**
    * Navigate to the previous view in the timeline sequence
-   * @param {boolean} [resetScroll=true] - Whether to reset scroll position to top after navigation
+   * @param {boolean} [resetScroll] - Whether to reset scroll position to top after navigation
    * @returns {void}
    * @memberof SmileAPI
    * @instance
@@ -137,11 +138,12 @@ export class SmileAPI {
       }
     })
   }
+
   /**
    * Navigate to a specific view in the application
    * @param {string} view - The name of the view to navigate to
-   * @param {boolean} [force=true] - Whether to force navigation by temporarily disabling navigation guards
-   * @param {boolean} [resetScroll=true] - Whether to reset scroll position to top after navigation
+   * @param {boolean} [force] - Whether to force navigation by temporarily disabling navigation guards
+   * @param {boolean} [resetScroll] - Whether to reset scroll position to top after navigation
    * @returns {Promise<void>}
    * @memberof SmileAPI
    * @instance
@@ -174,13 +176,13 @@ export class SmileAPI {
 
   /**
    * Get the next view in the navigation sequence
-   * @returns {Object|null} Route object with name and query params, or null if no next view
+   * @returns {object | null} Route object with name and query params, or null if no next view
    */
   nextView = () => this.timeline.nextView()
 
   /**
    * Get the previous view in the navigation sequence
-   * @returns {Object|null} Route object with name and query params, or null if no previous view
+   * @returns {object | null} Route object with name and query params, or null if no previous view
    */
   prevView = () => this.timeline.prevView()
 
@@ -195,10 +197,11 @@ export class SmileAPI {
       mainContent.scrollTop = 0
     }
   }
+
   // Randomization utilities
   /**
    * Collection of faker distributions for generating random data
-   * @type {Object} fakerDistributions
+   * @type {object} fakerDistributions
    */
   faker = fakerDistributions
 
@@ -262,7 +265,7 @@ export class SmileAPI {
    * @param {string} name - The name/path of the public asset
    * @returns {string} The complete URL for the public asset
    */
-  getPublicUrl = (name) => (this.runtimeConfig?.public?.deployBasePath || '/') + name
+  getPublicUrl = name => (this.runtimeConfig?.public?.deployBasePath || '/') + name
 
   /**
    * Get the URL for a core static asset from the core assets directory
@@ -356,7 +359,7 @@ export class SmileAPI {
   /**
    * Set a global app component that can be accessed throughout the application
    * @param {string} key - The key/identifier for the component
-   * @param {Object} value - The component to store globally
+   * @param {object} value - The component to store globally
    * @returns {void}
    */
   setAppComponent(key, value) {
@@ -369,7 +372,7 @@ export class SmileAPI {
   /**
    * Get a global app component by its key identifier
    * @param {string} key - The key/identifier of the component to retrieve
-   * @returns {Object|undefined} The component if found, undefined otherwise
+   * @returns {object | undefined} The component if found, undefined otherwise
    */
   getAppComponent(key) {
     if (!this.store.config.global_app_components || !(key in this.store.config.global_app_components)) {
@@ -391,13 +394,15 @@ export class SmileAPI {
   setRuntimeConfig(key, value) {
     if (key in this.store.config) {
       this.store.config[key] = value
-    } else {
+    }
+    else {
       if (!this.store.config.runtime) {
         this.store.config.runtime = {}
       }
       this.store.config.runtime[key] = value
     }
-    const { global_app_components, ...configWithoutComponents } = this.store.config
+    // eslint-disable-next-line no-unused-vars
+    const { global_app_components: _gac, ...configWithoutComponents } = this.store.config
     this.store.data.smileConfig = configWithoutComponents
   }
 
@@ -409,9 +414,11 @@ export class SmileAPI {
   getConfig(key) {
     if (key in this.store.config) {
       return this.store.config[key]
-    } else if (this.store.config.runtime && key in this.store.config.runtime) {
+    }
+    else if (this.store.config.runtime && key in this.store.config.runtime) {
       return this.store.config.runtime[key]
-    } else {
+    }
+    else {
       this.logStore.error('SMILE API: getConfig() key not found', key)
       return null
     }
@@ -455,7 +462,7 @@ export class SmileAPI {
 
   /**
    * Records that the user has withdrawn from the study and stores their withdrawal form info
-   * @param {Object} forminfo - The withdrawal form information provided by the user
+   * @param {object} forminfo - The withdrawal form information provided by the user
    * @returns {void}
    */
   setWithdrawn(forminfo) {
@@ -502,7 +509,7 @@ export class SmileAPI {
    * - Keys containing ".", "/", "[", "]", or "*"
    *
    * @param {*} value - The value to validate
-   * @param {string} [path=''] - Current path for error messages
+   * @param {string} [path] - Current path for error messages
    * @returns {{valid: boolean, error: string|null}} Validation result
    * @private
    */
@@ -548,7 +555,7 @@ export class SmileAPI {
     if (typeof value === 'object') {
       for (const [key, val] of Object.entries(value)) {
         // Check for invalid key characters
-        if (/[.\/\[\]*]/.test(key)) {
+        if (/[./[\]*]/.test(key)) {
           return {
             valid: false,
             error: `Invalid key name "${key}" at path: ${path || 'root'}. Keys cannot contain ".", "/", "[", "]", or "*"`,
@@ -574,7 +581,7 @@ export class SmileAPI {
    * Note: Data must be Firestore-compatible. Arrays at the top level are not allowed
    * because they would create nested arrays when stored. Use an object wrapper instead.
    *
-   * @param {Object} data - The data to record for this page (must be an object, not an array)
+   * @param {object} data - The data to record for this page (must be an object, not an array)
    * @param {string} [routeName] - Optional route name override. Uses current route if not provided
    * @returns {boolean} True if data was recorded successfully, false if validation failed
    *
@@ -604,8 +611,8 @@ export class SmileAPI {
     // Validate that data is not an array (would create nested arrays)
     if (Array.isArray(data)) {
       this.logStore.error(
-        'SMILE API: recordPageData() - Data cannot be an array (would create nested arrays). ' +
-          'Wrap your array in an object, e.g., { items: [...] }'
+        'SMILE API: recordPageData() - Data cannot be an array (would create nested arrays). '
+        + 'Wrap your array in an object, e.g., { items: [...] }',
       )
       return false
     }
@@ -621,7 +628,7 @@ export class SmileAPI {
 
     // Calculate current visit index from routeOrder
     const visitCount = this.store.data.routeOrder
-      ? this.store.data.routeOrder.filter((entry) => entry.route === pageName).length
+      ? this.store.data.routeOrder.filter(entry => entry.route === pageName).length
       : 0
     const currentVisitIndex = Math.max(0, visitCount - 1) // -1 because current visit is already in routeOrder
     const visitKey = `visit_${currentVisitIndex}`
@@ -666,13 +673,13 @@ export class SmileAPI {
   isBrowserTooSmall(width, height) {
     let val = false
     if (
-      this.store.config.windowsizerAggressive === true &&
-      this.store.data.verifiedVisibility === true &&
-      !this.store.cookieState.withdrawn
+      this.store.config.windowsizerAggressive === true
+      && this.store.data.verifiedVisibility === true
+      && !this.store.cookieState.withdrawn
     ) {
-      val =
-        width < this.store.config.windowsizerRequest.width + 10 ||
-        height < this.store.config.windowsizerRequest.height + 85 // margin for status bar
+      val
+        = width < this.store.config.windowsizerRequest.width + 10
+          || height < this.store.config.windowsizerRequest.height + 85 // margin for status bar
     }
     return val
   }
@@ -727,7 +734,8 @@ export class SmileAPI {
     let dataToHash
     if (Object.keys(pageDataFields).length > 0) {
       dataToHash = stringify(pageDataFields)
-    } else {
+    }
+    else {
       dataToHash = stringify(this.store.data.studyData)
     }
 
@@ -740,7 +748,8 @@ export class SmileAPI {
     let endCode = ''
     if (this.store.cookieState.withdrawn) {
       endCode = codes['withdrew']
-    } else if (this.store.cookieState.done) {
+    }
+    else if (this.store.cookieState.done) {
       endCode = codes['completed']
     }
     return hashDigest.slice(0, 20) + endCode
@@ -790,7 +799,7 @@ export class SmileAPI {
   // routes
   /**
    * Gets the info of the current route
-   * @returns {Object} The current route info
+   * @returns {object} The current route info
    */
   currentRouteInfo() {
     return this.route
@@ -807,7 +816,7 @@ export class SmileAPI {
   /**
    * Resolves the timeline route for the current path by stripping
    * any /dev/ or /presentation/ prefix and looking up in $timeline.
-   * @returns {Object|null} The timeline route config
+   * @returns {object | null} The timeline route config
    * @private
    */
   _resolveTimelineRoute() {
@@ -819,7 +828,8 @@ export class SmileAPI {
       // Strip /dev or /presentation prefix to get the experiment path
       const path = this.route.path.replace(/^\/(dev|presentation)(\/|$)/, '/') || '/'
       return timeline.getViewForPath(path)
-    } catch {
+    }
+    catch {
       return null
     }
   }
@@ -877,7 +887,7 @@ export class SmileAPI {
   // Randomization and conditions
   /**
    * Sets a random seed for the random number generator
-   * @param {string} [seed=uuidv4()] - The seed to use, defaults to a random UUID
+   * @param {string} [seed] - The seed to use, defaults to a random UUID
    * @returns {void}
    */
   randomSeed(seed = uuidv4()) {
@@ -886,14 +896,14 @@ export class SmileAPI {
 
   /**
    * Randomly assigns a condition from a set of possible conditions
-   * @param {Object} conditionObject - Object containing condition name and possible values
+   * @param {object} conditionObject - Object containing condition name and possible values
    * @param {string[]} conditionObject[name] - Array of possible condition values
    * @param {number[]} [conditionObject.weights] - Optional weights for sampling conditions
    * @returns {string|null} The assigned condition value, or null if error
    */
   randomAssignCondition(conditionObject) {
     const keys = Object.keys(conditionObject)
-    const conditionNames = keys.filter((key) => key !== 'weights')
+    const conditionNames = keys.filter(key => key !== 'weights')
 
     if (conditionNames.length > 1) {
       this.logStore.error('SMILE API: randomAssignCondition() only accepts one condition name at a time')
@@ -915,7 +925,7 @@ export class SmileAPI {
 
     if (hasWeights && weights.length !== possibleConditions.length) {
       this.logStore.error(
-        'SMILE API: randomAssignCondition() weights must be the same length as the condition possibilities'
+        'SMILE API: randomAssignCondition() weights must be the same length as the condition possibilities',
       )
       return null
     }

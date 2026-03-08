@@ -21,6 +21,6 @@ export default defineNuxtPlugin(() => {
       const encoded = encodeURIComponent(JSON.stringify(val))
       document.cookie = `${cookieName}=${encoded}; path=/; max-age=${86400 * 365}; SameSite=Lax`
     },
-    { deep: true }
+    { deep: true },
   )
 })

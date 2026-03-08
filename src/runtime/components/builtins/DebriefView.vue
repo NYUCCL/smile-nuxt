@@ -15,10 +15,10 @@ const api = useViewAPI()
 
 /**
  * Component props definition
- * @typedef {Object} Props
- * @property {Object} debriefText - The debrief text component to display
+ * @typedef {object} Props
+ * @property {object} debriefText - The debrief text component to display
  */
-const props = defineProps({
+const _props = defineProps({
   debriefText: {
     type: Object,
     required: true,
@@ -40,7 +40,7 @@ function finish() {
   <!-- Main debrief container with responsive task window layout -->
   <ConstrainedTaskWindow
     variant="ghost"
-    :responsiveUI="api.config.responsiveUI"
+    :responsive-u-i="api.config.responsiveUI"
     :width="api.config.windowsizerRequest.width"
     :height="api.config.windowsizerRequest.height"
     class="p-8"
@@ -51,11 +51,14 @@ function finish() {
       <component :is="debriefText" />
 
       <!-- Visual separator between content and navigation -->
-      <hr class="border-border my-6" />
+      <hr class="border-border my-6">
 
       <!-- Navigation section with next button -->
       <div class="flex justify-end mt-4">
-        <Button variant="default" @click="finish()">
+        <Button
+          variant="default"
+          @click="finish()"
+        >
           next
           <i-fa6-solid-arrow-right />
         </Button>

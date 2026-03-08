@@ -1,4 +1,4 @@
-import { type Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
 
 /**
  * Clear all browser state so each test starts as a fresh user.
@@ -52,10 +52,10 @@ export async function fillDemographicsPage1(page: Page) {
 export async function fillDemographicsPage2(page: Page) {
   const selects = page.locator('[role="combobox"]')
   await selectOption(page, selects.nth(0), 'Yes') // normal vision
-  await selectOption(page, selects.nth(1), 'No')  // color blind
-  await selectOption(page, selects.nth(2), 'No')  // learning disability
-  await selectOption(page, selects.nth(3), 'No')  // neurodevelopmental
-  await selectOption(page, selects.nth(4), 'No')  // psychiatric
+  await selectOption(page, selects.nth(1), 'No') // color blind
+  await selectOption(page, selects.nth(2), 'No') // learning disability
+  await selectOption(page, selects.nth(3), 'No') // neurodevelopmental
+  await selectOption(page, selects.nth(4), 'No') // psychiatric
 
   await page.getByRole('button', { name: /Continue/i }).click()
 }

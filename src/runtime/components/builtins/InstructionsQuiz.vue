@@ -55,13 +55,13 @@ function init() {
  */
 function getRandomizedQuestions() {
   api.randomSeed() // randomize seed
-  return props.questions.map((page) => ({
+  return props.questions.map(page => ({
     ...page,
     questions: api.shuffle(
-      page.questions.map((q) => ({
+      page.questions.map(q => ({
         ...q,
         answers: api.shuffle(q.answers),
-      }))
+      })),
     ),
   }))
 }
@@ -74,7 +74,7 @@ function autofill() {
   function updateQuestionsInState(state) {
     // Check if this state has questions
     if (state.data?.questions && Array.isArray(state.data.questions)) {
-      state.data.questions = state.data.questions.map((question) => ({
+      state.data.questions = state.data.questions.map(question => ({
         ...question,
         answer: question.multiSelect ? question.correctAnswer : question.correctAnswer[0],
       }))
@@ -97,15 +97,15 @@ api.setAutofill(autofill)
  */
 const quizCorrect = computed(() => {
   // Get all questions from all pages using queryStepData with a path filter
-  const allQuestions = api.queryStepData('pages*').flatMap((page) => page.questions || [])
+  const allQuestions = api.queryStepData('pages*').flatMap(page => page.questions || [])
 
   return allQuestions.every((question) => {
     if (Array.isArray(question.correctAnswer)) {
       // For multiselect, check if arrays have same values regardless of order
       const selectedAnswers = Array.isArray(question.answer) ? question.answer : [question.answer]
       return (
-        question.correctAnswer.length === selectedAnswers.length &&
-        question.correctAnswer.every((answer) => selectedAnswers.includes(answer))
+        question.correctAnswer.length === selectedAnswers.length
+        && question.correctAnswer.every(answer => selectedAnswers.includes(answer))
       )
     }
     // For single select, keep existing behavior
@@ -144,7 +144,8 @@ function submitQuiz() {
   })
   if (quizCorrect.value) {
     api.goToStep('feedback/success')
-  } else {
+  }
+  else {
     api.goToStep('feedback/retry')
   }
 }
@@ -189,11 +190,15 @@ init()
   <!-- Quiz pages - Main quiz interface with questions -->
   <ConstrainedPage
     v-if="api.stepIndex < qs.length && /^pages\/pg\d+$/.test(api.pathString)"
-    :responsiveUI="api.config.responsiveUI"
+    :responsive-u-i="api.config.responsiveUI"
     :width="api.config.windowsizerRequest.width"
     :height="api.config.windowsizerRequest.height"
   >
-    <TitleTwoCol leftFirst leftWidth="w-1/3" :responsiveUI="api.config.responsiveUI">
+    <TitleTwoCol
+      left-first
+      left-width="w-1/3"
+      :responsive-u-i="api.config.responsiveUI"
+    >
       <template #title>
         <h3 class="text-3xl font-bold mb-4">
           <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Did we explain things clearly?
@@ -205,8 +210,12 @@ init()
       </template>
       <template #left>
         <div class="text-left text-muted-foreground">
-          <h3 class="text-lg font-bold mb-2">Test your understanding</h3>
-          <p class="text-md font-light text-muted-foreground">You must answer all the questions to move on.</p>
+          <h3 class="text-lg font-bold mb-2">
+            Test your understanding
+          </h3>
+          <p class="text-md font-light text-muted-foreground">
+            You must answer all the questions to move on.
+          </p>
         </div>
       </template>
       <template #right>
@@ -223,10 +232,13 @@ init()
             </label>
 
             <!-- Multi-select checkbox -->
-            <div v-if="question.multiSelect" class="mb-9">
+            <div
+              v-if="question.multiSelect"
+              class="mb-9"
+            >
               <MultiSelect
-                :options="question.answers"
                 v-model="api.stepData.questions[index].answer"
+                :options="question.answers"
                 variant="success"
                 help="Select all that apply"
                 size="lg"
@@ -234,27 +246,38 @@ init()
             </div>
 
             <!-- Single select dropdown -->
-            <Select v-else v-model="api.stepData.questions[index].answer">
+            <Select
+              v-else
+              v-model="api.stepData.questions[index].answer"
+            >
               <SelectTrigger class="w-full bg-background dark:bg-background text-base">
                 <SelectValue placeholder="Select an option" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem v-for="answer in question.answers" :key="answer" :value="answer">
+                <SelectItem
+                  v-for="answer in question.answers"
+                  :key="answer"
+                  :value="answer"
+                >
                   {{ answer }}
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <hr class="border-border my-6" />
+          <hr class="border-border my-6">
 
           <!-- Navigation buttons -->
           <div class="flex justify-between">
-            <Button variant="outline" v-if="api.stepIndex >= 1" @click="api.goPrevStep()">
+            <Button
+              v-if="api.stepIndex >= 1"
+              variant="outline"
+              @click="api.goPrevStep()"
+            >
               <i-fa6-solid-arrow-left />
               Previous page
             </Button>
-            <div v-else></div>
+            <div v-else />
             <Button
               :variant="api.isLastBlockStep() ? 'default' : 'outline'"
               :disabled="!currentPageComplete"
@@ -273,7 +296,7 @@ init()
   <ConstrainedTaskWindow
     v-else-if="api.pathString === 'feedback/success'"
     variant="ghost"
-    :responsiveUI="api.config.responsiveUI"
+    :responsive-u-i="api.config.responsiveUI"
     :width="api.config.windowsizerRequest.width"
     :height="api.config.windowsizerRequest.height"
   >
@@ -284,8 +307,15 @@ init()
         </div>
         Congrats! You passed.
       </h3>
-      <p class="text-lg mb-6">Click here to begin the next phase of the experiment.</p>
-      <Button variant="default" @click="finish">Let's begin.</Button>
+      <p class="text-lg mb-6">
+        Click here to begin the next phase of the experiment.
+      </p>
+      <Button
+        variant="default"
+        @click="finish"
+      >
+        Let's begin.
+      </Button>
     </div>
   </ConstrainedTaskWindow>
 
@@ -293,7 +323,7 @@ init()
   <ConstrainedTaskWindow
     v-else-if="api.pathString === 'feedback/retry'"
     variant="ghost"
-    :responsiveUI="api.config.responsiveUI"
+    :responsive-u-i="api.config.responsiveUI"
     :width="api.config.windowsizerRequest.width"
     :height="api.config.windowsizerRequest.height"
   >
@@ -304,8 +334,15 @@ init()
         </div>
         Sorry! You did not get all the answers correct.
       </h3>
-      <p class="text-lg mb-6">Please re-read the instructions and try again.</p>
-      <Button variant="warning-light" @click="returnInstructions">Back to Instructions</Button>
+      <p class="text-lg mb-6">
+        Please re-read the instructions and try again.
+      </p>
+      <Button
+        variant="warning-light"
+        @click="returnInstructions"
+      >
+        Back to Instructions
+      </Button>
     </div>
   </ConstrainedTaskWindow>
 </template>

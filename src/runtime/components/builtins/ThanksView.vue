@@ -38,7 +38,7 @@ const uploadProgress = ref(alreadyCompleted ? 100 : 0)
  * after saveData succeeds (so the cookie acts as proof that data was saved).
  */
 const completionCode = ref(
-  alreadyCompleted ? api.store.cookieState.completionCode : api.computeCompletionCode()
+  alreadyCompleted ? api.store.cookieState.completionCode : api.computeCompletionCode(),
 )
 
 /**
@@ -94,21 +94,40 @@ onMounted(() => {
 
 <template>
   <!-- Upload progress screen -->
-  <div v-if="isUploading" class="w-full h-screen flex flex-col items-center mt-30">
+  <div
+    v-if="isUploading"
+    class="w-full h-screen flex flex-col items-center mt-30"
+  >
     <div class="w-4/5 max-w-md text-center">
-      <h1 class="text-3xl font-bold mb-4">Uploading Your Data</h1>
-      <p class="text-lg text-muted-foreground mb-8">Do not close your browser window yet!</p>
-      <Progress :model-value="uploadProgress" class="h-3 mb-4" />
-      <p class="text-sm text-muted-foreground">{{ uploadProgress }}%</p>
+      <h1 class="text-3xl font-bold mb-4">
+        Uploading Your Data
+      </h1>
+      <p class="text-lg text-muted-foreground mb-8">
+        Do not close your browser window yet!
+      </p>
+      <Progress
+        :model-value="uploadProgress"
+        class="h-3 mb-4"
+      />
+      <p class="text-sm text-muted-foreground">
+        {{ uploadProgress }}%
+      </p>
     </div>
   </div>
 
   <!-- Main container with responsive padding and centering -->
-  <div v-else class="w-full mx-auto py-10">
+  <div
+    v-else
+    class="w-full mx-auto py-10"
+  >
     <div class="w-4/5 mx-auto text-left">
       <!-- Prolific recruitment service completion -->
       <div v-if="api.getRecruitmentService() == 'prolific'">
-        <TitleTwoCol leftFirst leftWidth="w-1/3" :responsiveUI="api.config.responsiveUI">
+        <TitleTwoCol
+          left-first
+          left-width="w-1/3"
+          :responsive-u-i="api.config.responsiveUI"
+        >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
               <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
@@ -121,7 +140,9 @@ onMounted(() => {
           </template>
           <template #left>
             <div class="text-left text-muted-foreground">
-              <h3 class="text-lg font-bold mb-2">Payment Process</h3>
+              <h3 class="text-lg font-bold mb-2">
+                Payment Process
+              </h3>
               <p class="text-sm text-muted-foreground">
                 Click the button to complete your submission and receive payment through Prolific.
               </p>
@@ -144,7 +165,11 @@ onMounted(() => {
 
       <!-- CloudResearch recruitment service completion -->
       <div v-if="api.getRecruitmentService() == 'cloudresearch'">
-        <TitleTwoCol leftFirst leftWidth="w-1/3" :responsiveUI="api.config.responsiveUI">
+        <TitleTwoCol
+          left-first
+          left-width="w-1/3"
+          :responsive-u-i="api.config.responsiveUI"
+        >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
               <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
@@ -157,7 +182,9 @@ onMounted(() => {
           </template>
           <template #left>
             <div class="text-left text-muted-foreground">
-              <h3 class="text-lg font-bold mb-2">Completion Code</h3>
+              <h3 class="text-lg font-bold mb-2">
+                Completion Code
+              </h3>
               <p class="text-sm text-muted-foreground">
                 Copy this unique code and paste it into the Mechanical Turk submission form.
               </p>
@@ -165,10 +192,19 @@ onMounted(() => {
           </template>
           <template #right>
             <div class="border border-border text-left bg-muted p-6 rounded-lg">
-              <h3 class="text-lg font-semibold mb-4 text-foreground">Unique completion code:</h3>
+              <h3 class="text-lg font-semibold mb-4 text-foreground">
+                Unique completion code:
+              </h3>
               <div class="flex items-center gap-4 mb-4">
-                <Input v-model="completionCode" readonly class="text-3xl completioncode-cloudresearch" />
-                <Button variant="default" data-clipboard-target=".completioncode-cloudresearch">
+                <Input
+                  v-model="completionCode"
+                  readonly
+                  class="text-3xl completioncode-cloudresearch"
+                />
+                <Button
+                  variant="default"
+                  data-clipboard-target=".completioncode-cloudresearch"
+                >
                   Copy Code
                   <i-fa6-solid-clipboard />
                 </Button>
@@ -180,7 +216,11 @@ onMounted(() => {
 
       <!-- MTurk recruitment service completion -->
       <div v-if="api.getRecruitmentService() == 'mturk'">
-        <TitleTwoCol leftFirst leftWidth="w-1/3" :responsiveUI="api.config.responsiveUI">
+        <TitleTwoCol
+          left-first
+          left-width="w-1/3"
+          :responsive-u-i="api.config.responsiveUI"
+        >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
               <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
@@ -194,7 +234,9 @@ onMounted(() => {
           </template>
           <template #left>
             <div class="text-left text-muted-foreground">
-              <h3 class="text-lg font-bold mb-2">Completion Code</h3>
+              <h3 class="text-lg font-bold mb-2">
+                Completion Code
+              </h3>
               <p class="text-sm text-muted-foreground">
                 Verify this code appears in your Mechanical Turk submission form, or copy it manually.
               </p>
@@ -202,10 +244,19 @@ onMounted(() => {
           </template>
           <template #right>
             <div class="border border-border text-left bg-muted p-6 rounded-lg">
-              <h3 class="text-lg font-semibold mb-4 text-foreground">Unique completion code:</h3>
+              <h3 class="text-lg font-semibold mb-4 text-foreground">
+                Unique completion code:
+              </h3>
               <div class="flex items-center gap-4 mb-4">
-                <Input v-model="completionCode" readonly class="text-2xl completioncode-mturk" />
-                <Button variant="default" data-clipboard-target=".completioncode-mturk">
+                <Input
+                  v-model="completionCode"
+                  readonly
+                  class="text-2xl completioncode-mturk"
+                />
+                <Button
+                  variant="default"
+                  data-clipboard-target=".completioncode-mturk"
+                >
                   Copy Code
                   <i-fa6-solid-clipboard />
                 </Button>
@@ -217,17 +268,27 @@ onMounted(() => {
 
       <!-- Citizen Science recruitment service completion -->
       <div v-if="api.getRecruitmentService() == 'citizensci'">
-        <TitleTwoCol leftFirst leftWidth="w-1/3" :responsiveUI="api.config.responsiveUI">
+        <TitleTwoCol
+          left-first
+          left-width="w-1/3"
+          :responsive-u-i="api.config.responsiveUI"
+        >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
               <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
             </h1>
-            <p class="text-lg mb-8">This still needs to be implemented</p>
+            <p class="text-lg mb-8">
+              This still needs to be implemented
+            </p>
           </template>
           <template #left>
             <div class="text-left text-muted-foreground">
-              <h3 class="text-lg font-bold mb-2">Submission</h3>
-              <p class="text-sm text-muted-foreground">Click the button to complete your submission.</p>
+              <h3 class="text-lg font-bold mb-2">
+                Submission
+              </h3>
+              <p class="text-sm text-muted-foreground">
+                Click the button to complete your submission.
+              </p>
             </div>
           </template>
           <template #right>
@@ -247,7 +308,11 @@ onMounted(() => {
 
       <!-- SONA (credit) recruitment service completion -->
       <div v-if="api.getRecruitmentService() == 'sona'">
-        <TitleTwoCol leftFirst leftWidth="w-1/3" :responsiveUI="api.config.responsiveUI">
+        <TitleTwoCol
+          left-first
+          left-width="w-1/3"
+          :responsive-u-i="api.config.responsiveUI"
+        >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
               <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks, let's record your credit!
@@ -259,7 +324,9 @@ onMounted(() => {
           </template>
           <template #left>
             <div class="text-left text-muted-foreground">
-              <h3 class="text-lg font-bold mb-2">Credit Assignment</h3>
+              <h3 class="text-lg font-bold mb-2">
+                Credit Assignment
+              </h3>
               <p class="text-sm text-muted-foreground">
                 Click the button to return to SONA and automatically receive your course credit.
               </p>
@@ -282,7 +349,11 @@ onMounted(() => {
 
       <!-- SONA (paid) recruitment service completion -->
       <div v-if="api.getRecruitmentService() == 'sona_paid'">
-        <TitleTwoCol leftFirst leftWidth="w-1/3" :responsiveUI="api.config.responsiveUI">
+        <TitleTwoCol
+          left-first
+          left-width="w-1/3"
+          :responsive-u-i="api.config.responsiveUI"
+        >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
               <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
@@ -294,7 +365,9 @@ onMounted(() => {
           </template>
           <template #left>
             <div class="text-left text-muted-foreground">
-              <h3 class="text-lg font-bold mb-2">Payment Process</h3>
+              <h3 class="text-lg font-bold mb-2">
+                Payment Process
+              </h3>
               <p class="text-sm text-muted-foreground">
                 Click the button to return to SONA and receive your payment.
               </p>
@@ -317,7 +390,11 @@ onMounted(() => {
 
       <!-- SPARK recruitment service completion -->
       <div v-if="api.getRecruitmentService() == 'spark'">
-        <TitleTwoCol leftFirst leftWidth="w-1/3" :responsiveUI="api.config.responsiveUI">
+        <TitleTwoCol
+          left-first
+          left-width="w-1/3"
+          :responsive-u-i="api.config.responsiveUI"
+        >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
               <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks for your contribution to science!
@@ -329,7 +406,9 @@ onMounted(() => {
           </template>
           <template #left>
             <div class="text-left text-muted-foreground">
-              <h3 class="text-lg font-bold mb-2">Session Complete</h3>
+              <h3 class="text-lg font-bold mb-2">
+                Session Complete
+              </h3>
               <p class="text-sm text-muted-foreground">
                 Click the button to return to SPARK and finalize your session.
               </p>
@@ -352,7 +431,11 @@ onMounted(() => {
 
       <!-- PANDA recruitment service completion -->
       <div v-if="api.getRecruitmentService() == 'panda'">
-        <TitleTwoCol leftFirst leftWidth="w-1/3" :responsiveUI="api.config.responsiveUI">
+        <TitleTwoCol
+          left-first
+          left-width="w-1/3"
+          :responsive-u-i="api.config.responsiveUI"
+        >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
               <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks for your contribution to science!
@@ -364,7 +447,9 @@ onMounted(() => {
           </template>
           <template #left>
             <div class="text-left text-muted-foreground">
-              <h3 class="text-lg font-bold mb-2">Study Complete</h3>
+              <h3 class="text-lg font-bold mb-2">
+                Study Complete
+              </h3>
               <p class="text-sm text-muted-foreground">
                 Thank you for participating. Your contribution helps advance scientific knowledge.
               </p>
@@ -372,7 +457,9 @@ onMounted(() => {
           </template>
           <template #right>
             <div class="border border-border text-left bg-muted p-6 rounded-lg">
-              <p class="text-foreground">You may now safely close this browser window.</p>
+              <p class="text-foreground">
+                You may now safely close this browser window.
+              </p>
             </div>
           </template>
         </TitleTwoCol>
@@ -380,7 +467,11 @@ onMounted(() => {
 
       <!-- Web recruitment service completion -->
       <div v-if="api.getRecruitmentService() == 'web'">
-        <TitleTwoCol leftFirst leftWidth="w-1/3" :responsiveUI="api.config.responsiveUI">
+        <TitleTwoCol
+          left-first
+          left-width="w-1/3"
+          :responsive-u-i="api.config.responsiveUI"
+        >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
               <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks for your contribution to science!
@@ -391,7 +482,9 @@ onMounted(() => {
           </template>
           <template #left>
             <div class="text-left text-muted-foreground">
-              <h3 class="text-lg font-bold mb-2">Study Complete</h3>
+              <h3 class="text-lg font-bold mb-2">
+                Study Complete
+              </h3>
               <p class="text-sm text-muted-foreground">
                 Thank you for participating in our research study. Your contribution helps advance scientific knowledge.
               </p>
@@ -399,7 +492,9 @@ onMounted(() => {
           </template>
           <template #right>
             <div class="border border-border text-left bg-muted p-6 rounded-lg">
-              <p class="text-foreground">You may now safely close this browser window.</p>
+              <p class="text-foreground">
+                You may now safely close this browser window.
+              </p>
             </div>
           </template>
         </TitleTwoCol>

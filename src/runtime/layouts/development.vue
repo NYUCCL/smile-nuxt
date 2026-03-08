@@ -24,7 +24,8 @@ function initializeDashboardUrl() {
   const savedUrl = localStorage.getItem('smile-dashboard-url')
   if (savedUrl) {
     dashboardUrl.value = savedUrl
-  } else {
+  }
+  else {
     dashboardUrl.value = api.getPublicUrl('dashboard.html')
   }
 }
@@ -44,7 +45,8 @@ function monitorIframeUrl() {
         saveDashboardUrl(currentUrl)
       }
     }
-  } catch (error) {
+  }
+  catch {
     console.log('Cannot access iframe content (cross-origin)')
   }
 }
@@ -70,100 +72,123 @@ onMounted(() => {
 
 <template>
   <ClientOnly>
-  <!-- Toast notification system -->
-  <Toaster closeButton position="top-left" :rich-colors="true" class="custom-toaster" />
+    <!-- Toast notification system -->
+    <Toaster
+      close-button
+      position="top-left"
+      :rich-colors="true"
+      class="custom-toaster"
+    />
 
-  <!-- Main sidebar provider for developer tools -->
-  <SidebarProvider
-    :default-open="false"
-    :style="{
-      '--sidebar-width': '48px',
-    }"
-  >
-    <!-- Developer app menu sidebar -->
-    <SmileDevAppMenu />
+    <!-- Main sidebar provider for developer tools -->
+    <SidebarProvider
+      :default-open="false"
+      :style="{
+        '--sidebar-width': '48px',
+      }"
+    >
+      <!-- Developer app menu sidebar -->
+      <SmileDevAppMenu />
 
-    <!-- Main content area -->
-    <SidebarInset>
-      <!-- Main app container for developer mode -->
-      <div class="app-container">
-        <!-- Analyze Mode - Clean full-screen dashboard -->
-        <div v-if="api.store.dev.mainView === 'dashboard'" class="analyze-container">
-          <iframe
-            ref="dashboardIframe"
-            :src="dashboardUrl"
-            class="dashboard-iframe"
-            frameborder="0"
-            title="Dashboard"
-            @load="onIframeLoad"
-          ></iframe>
-        </div>
-
-        <!-- Recruit Mode - Clean full-screen recruit page -->
-        <div v-else-if="api.store.dev.mainView === 'recruit'" class="recruit-container">
-          <iframe
-            :src="api.getPublicUrl('recruit.html')"
-            class="recruit-iframe"
-            frameborder="0"
-            title="Recruit"
-          ></iframe>
-        </div>
-
-        <!-- Docs Mode - Clean full-screen documentation -->
-        <div v-else-if="api.store.dev.mainView === 'docs'" class="docs-container">
-          <iframe
-            src="https://smile.gureckislab.org"
-            class="docs-iframe"
-            frameborder="0"
-            title="Documentation"
-          ></iframe>
-        </div>
-
-        <!-- Developer Mode - Full interface with toolbar, sidebar, console -->
-        <template v-else>
-          <!-- Top toolbar with navigation controls -->
-          <div class="toolbar">
-            <DevNavBar />
+      <!-- Main content area -->
+      <SidebarInset>
+        <!-- Main app container for developer mode -->
+        <div class="app-container">
+          <!-- Analyze Mode - Clean full-screen dashboard -->
+          <div
+            v-if="api.store.dev.mainView === 'dashboard'"
+            class="analyze-container"
+          >
+            <iframe
+              ref="dashboardIframe"
+              :src="dashboardUrl"
+              class="dashboard-iframe"
+              frameborder="0"
+              title="Dashboard"
+              @load="onIframeLoad"
+            />
           </div>
 
-          <!-- Middle row - content and sidebar -->
-          <div class="content-wrapper">
-            <!-- Main content area with console -->
-            <div class="content-and-console">
-              <!-- Main content - scrollable experiment container -->
-              <div class="main-content @container bg-background text-foreground">
-                <!-- Loading state -->
-                <div v-if="isLoading" class="loading-container">
-                  <div class="loading-spinner"></div>
-                  <p>Loading...</p>
+          <!-- Recruit Mode - Clean full-screen recruit page -->
+          <div
+            v-else-if="api.store.dev.mainView === 'recruit'"
+            class="recruit-container"
+          >
+            <iframe
+              :src="api.getPublicUrl('recruit.html')"
+              class="recruit-iframe"
+              frameborder="0"
+              title="Recruit"
+            />
+          </div>
+
+          <!-- Docs Mode - Clean full-screen documentation -->
+          <div
+            v-else-if="api.store.dev.mainView === 'docs'"
+            class="docs-container"
+          >
+            <iframe
+              src="https://smile.gureckislab.org"
+              class="docs-iframe"
+              frameborder="0"
+              title="Documentation"
+            />
+          </div>
+
+          <!-- Developer Mode - Full interface with toolbar, sidebar, console -->
+          <template v-else>
+            <!-- Top toolbar with navigation controls -->
+            <div class="toolbar">
+              <DevNavBar />
+            </div>
+
+            <!-- Middle row - content and sidebar -->
+            <div class="content-wrapper">
+              <!-- Main content area with console -->
+              <div class="content-and-console">
+                <!-- Main content - scrollable experiment container -->
+                <div class="main-content @container bg-background text-foreground">
+                  <!-- Loading state -->
+                  <div
+                    v-if="isLoading"
+                    class="loading-container"
+                  >
+                    <div class="loading-spinner" />
+                    <p>Loading...</p>
+                  </div>
+                  <!-- Experiment content via slot -->
+                  <template v-else>
+                    <ResponsiveDeviceContainer>
+                      <slot />
+                    </ResponsiveDeviceContainer>
+                  </template>
                 </div>
-                <!-- Experiment content via slot -->
-                <template v-else>
-                  <ResponsiveDeviceContainer>
-                    <slot />
-                  </ResponsiveDeviceContainer>
-                </template>
+
+                <!-- Bottom console - can be toggled -->
+                <Transition name="console-slide">
+                  <div
+                    v-if="api.config.mode == 'development' && api.store.dev.showConsoleBar"
+                    class="console"
+                  >
+                    <DevConsole />
+                  </div>
+                </Transition>
               </div>
 
-              <!-- Bottom console - can be toggled -->
-              <Transition name="console-slide">
-                <div v-if="api.config.mode == 'development' && api.store.dev.showConsoleBar" class="console">
-                  <DevConsole />
+              <!-- Sidebar - can be toggled, transitions in/out -->
+              <Transition name="sidebar-slide">
+                <div
+                  v-if="api.config.mode == 'development' && api.store.dev.showSideBar"
+                  class="sidebar"
+                >
+                  <DevSideBar />
                 </div>
               </Transition>
             </div>
-
-            <!-- Sidebar - can be toggled, transitions in/out -->
-            <Transition name="sidebar-slide">
-              <div v-if="api.config.mode == 'development' && api.store.dev.showSideBar" class="sidebar">
-                <DevSideBar />
-              </div>
-            </Transition>
-          </div>
-        </template>
-      </div>
-    </SidebarInset>
-  </SidebarProvider>
+          </template>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   </ClientOnly>
 </template>
 

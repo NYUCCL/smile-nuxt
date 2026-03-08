@@ -10,7 +10,7 @@ import { executeGuards } from '../../src/runtime/middleware/timeline.global.js'
 
 // --- Mock #imports (Nuxt auto-imports used in the middleware) ---
 vi.mock('#imports', () => ({
-  defineNuxtRouteMiddleware: (fn) => fn,
+  defineNuxtRouteMiddleware: fn => fn,
   useNuxtApp: vi.fn(),
   navigateTo: vi.fn((path, opts) => ({ __navigateTo: true, path, opts })),
   abortNavigation: vi.fn(() => ({ __abortNavigation: true })),
@@ -29,7 +29,7 @@ vi.mock('../../src/runtime/utils/utils', () => ({
 
 // --- Helpers ---
 
-const MockComponent = (text = 'Mock') =>
+const MockComponent = (_text = 'Mock') =>
   defineComponent({
     render() {
       return null
@@ -56,9 +56,9 @@ function createTestTimeline() {
       config: { mode: 'production' },
       localState: { seqtimeline: [], routes: [] },
     },
-    sampleWithReplacement: vi.fn((options) => [options[0]]),
+    sampleWithReplacement: vi.fn(options => [options[0]]),
     getConditionByName: vi.fn(),
-    randomAssignCondition: vi.fn((options) => options.conditionname[0]),
+    randomAssignCondition: vi.fn(options => options.conditionname[0]),
   }
 
   const timeline = new Timeline(mockApi)
@@ -308,7 +308,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/welcome'),
         mockRoute('/'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeUndefined() // undefined = allow
     })
@@ -317,7 +317,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/always_allow'),
         mockRoute('/welcome'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeUndefined()
     })
@@ -327,7 +327,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/demograph'),
         mockRoute('/welcome'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeDefined()
       expect(result.path).toBe('/welcome')
@@ -339,7 +339,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/'),
         mockRoute('/'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeUndefined() // allowed (landing is allowAlways)
     })
@@ -356,7 +356,7 @@ describe('Timeline middleware guards', () => {
       await executeGuards(
         mockRoute('/demograph'),
         mockRoute('/consent'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(api.completeConsent).toHaveBeenCalled()
     })
@@ -370,7 +370,7 @@ describe('Timeline middleware guards', () => {
       await executeGuards(
         mockRoute('/consent'),
         mockRoute('/welcome'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
 
       // Now try to go to task without consenting (not forced)
@@ -380,7 +380,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/demograph'),
         mockRoute('/consent'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       // demograph requires consent (default), user hasn't consented
       expect(result).toBeDefined()
@@ -398,7 +398,7 @@ describe('Timeline middleware guards', () => {
       await executeGuards(
         mockRoute('/thanks'),
         mockRoute('/feedback'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(api.setDone).toHaveBeenCalled()
     })
@@ -412,7 +412,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/thanks'),
         mockRoute('/feedback'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeDefined()
       expect(result.path).toBe('/feedback')
@@ -430,7 +430,7 @@ describe('Timeline middleware guards', () => {
       await executeGuards(
         mockRoute('/thanks'),
         mockRoute('/feedback'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(api.resetApp).toHaveBeenCalled()
     })
@@ -445,7 +445,7 @@ describe('Timeline middleware guards', () => {
       await executeGuards(
         mockRoute('/thanks2'),
         mockRoute('/feedback'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(api.resetApp).not.toHaveBeenCalled()
     })
@@ -458,7 +458,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/demograph'),
         mockRoute('/welcome'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeDefined()
       expect(result.path).toBe('/withdraw')
@@ -470,7 +470,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/withdraw'),
         mockRoute('/welcome'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeUndefined() // allowed
     })
@@ -483,7 +483,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/demograph'),
         mockRoute('/welcome'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeUndefined() // allowed
     })
@@ -495,7 +495,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/instructions'),
         mockRoute('/welcome'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeUndefined()
     })
@@ -506,7 +506,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/instructions'),
         mockRoute('/welcome'),
-        { timeline, store, log, api, skipBlockingGuards: true }
+        { timeline, store, log, api, skipBlockingGuards: true },
       )
       expect(result).toBeUndefined()
     })
@@ -521,7 +521,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/consent'),
         mockRoute('/welcome'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeUndefined() // allowed
     })
@@ -534,7 +534,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/consent'),
         mockRoute('/welcome'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeDefined()
       expect(result.path).toBe('/welcome') // redirect to lastRoute
@@ -548,7 +548,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/demograph'),
         mockRoute('/demograph'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeUndefined() // allowed
     })
@@ -563,7 +563,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/demograph'),
         mockRoute('/welcome'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeUndefined() // allowed (same as lastRoute)
     })
@@ -577,7 +577,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/instructions'),
         mockRoute('/demograph'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeDefined()
       expect(result.path).toBe('/demograph') // redirect back to lastRoute
@@ -591,7 +591,7 @@ describe('Timeline middleware guards', () => {
       await executeGuards(
         mockRoute('/welcome'),
         mockRoute('/'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       // After guard allows navigation, post-guard should reset currentViewDone
       expect(store.browserEphemeral.currentViewDone).toBe(false)
@@ -601,7 +601,7 @@ describe('Timeline middleware guards', () => {
       await executeGuards(
         mockRoute('/welcome'),
         mockRoute('/'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(api.removeAutofill).toHaveBeenCalled()
     })
@@ -612,7 +612,7 @@ describe('Timeline middleware guards', () => {
       await executeGuards(
         mockRoute('/welcome'),
         mockRoute('/'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(store.dev.viewProvidesStepper).toBe(false)
     })
@@ -625,7 +625,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/demograph'),
         mockRoute('/welcome'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeDefined() // redirected
       // currentViewDone should NOT be reset (post-guard didn't run)
@@ -638,7 +638,7 @@ describe('Timeline middleware guards', () => {
       await executeGuards(
         mockRoute('/welcome'),
         mockRoute('/'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(store.setLastRoute).toHaveBeenCalledWith('welcome_anonymous')
       expect(store.recordRoute).toHaveBeenCalledWith('welcome_anonymous')
@@ -650,7 +650,7 @@ describe('Timeline middleware guards', () => {
       await executeGuards(
         mockRoute('/demograph'),
         mockRoute('/welcome'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(store.setLastRoute).toHaveBeenCalledWith('demograph')
     })
@@ -711,7 +711,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/nonexistent'),
         mockRoute('/welcome'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeDefined()
       expect(result.path).toBe('/welcome')
@@ -725,7 +725,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/nonexistent'),
         mockRoute('/demograph'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeDefined()
       expect(result.path).toBe('/demograph')
@@ -739,7 +739,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/recruit'),
         mockRoute('/'),
-        { timeline, store, log, api }
+        { timeline, store, log, api },
       )
       expect(result).toBeDefined()
       expect(result.path).toBe('/welcome') // falls back to welcome, not /recruit
@@ -753,7 +753,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/instructions'),
         mockRoute('/welcome'),
-        { timeline, store, log, api, skipBlockingGuards: true }
+        { timeline, store, log, api, skipBlockingGuards: true },
       )
       expect(result).toBeUndefined() // allowed
     })
@@ -767,7 +767,7 @@ describe('Timeline middleware guards', () => {
       await executeGuards(
         mockRoute('/demograph'),
         mockRoute('/consent'),
-        { timeline, store, log, api, skipBlockingGuards: true }
+        { timeline, store, log, api, skipBlockingGuards: true },
       )
       expect(api.completeConsent).toHaveBeenCalled()
     })
@@ -782,7 +782,7 @@ describe('Timeline middleware guards', () => {
       await executeGuards(
         mockRoute('/thanks'),
         mockRoute('/feedback'),
-        { timeline, store, log, api, skipBlockingGuards: true }
+        { timeline, store, log, api, skipBlockingGuards: true },
       )
       expect(api.setDone).toHaveBeenCalled()
     })
@@ -793,7 +793,7 @@ describe('Timeline middleware guards', () => {
       await executeGuards(
         mockRoute('/welcome'),
         mockRoute('/'),
-        { timeline, store, log, api, skipBlockingGuards: true }
+        { timeline, store, log, api, skipBlockingGuards: true },
       )
       expect(store.setLastRoute).toHaveBeenCalledWith('welcome_anonymous')
       expect(store.recordRoute).toHaveBeenCalledWith('welcome_anonymous')
@@ -804,7 +804,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/nonexistent'),
         mockRoute('/welcome'),
-        { timeline, store, log, api, skipBlockingGuards: true }
+        { timeline, store, log, api, skipBlockingGuards: true },
       )
       expect(result).toBeUndefined() // allowed — dev page handles its own resolution
     })
@@ -817,7 +817,7 @@ describe('Timeline middleware guards', () => {
       const result = await executeGuards(
         mockRoute('/instructions'),
         mockRoute('/welcome'),
-        { timeline, store, log, api, skipBlockingGuards: true }
+        { timeline, store, log, api, skipBlockingGuards: true },
       )
       expect(result).toEqual({ __navigateTo: true, path: '/demograph', opts: { replace: true } })
     })
@@ -837,9 +837,9 @@ describe('Timeline middleware guards', () => {
           config: { mode: 'production' },
           localState: { seqtimeline: [], routes: [] },
         },
-        sampleWithReplacement: vi.fn((options) => [options[0]]),
+        sampleWithReplacement: vi.fn(options => [options[0]]),
         getConditionByName: vi.fn(),
-        randomAssignCondition: vi.fn((options) => options.conditionname[0]),
+        randomAssignCondition: vi.fn(options => options.conditionname[0]),
       }
 
       paramTimeline = new Timeline(mockApi)

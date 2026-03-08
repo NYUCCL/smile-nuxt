@@ -4,7 +4,7 @@
  * Navigates back to the presentation homepage
  */
 
-const props = defineProps(['icon'])
+const _props = defineProps(['icon'])
 
 function goHome() {
   navigateTo('/presentation/')
@@ -15,7 +15,11 @@ function goHome() {
   <TooltipProvider>
     <Tooltip>
       <TooltipTrigger as-child>
-        <Button size="menu" variant="outline" @click="goHome">
+        <Button
+          size="menu"
+          variant="outline"
+          @click="goHome"
+        >
           <i-lucide-home />
         </Button>
       </TooltipTrigger>

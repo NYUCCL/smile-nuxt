@@ -26,7 +26,9 @@ import LogoutButton from './LogoutButton.vue'
         </div>
         <!-- Mobile presentation mode label -->
         <div class="block sm:hidden">
-          <div class="flex items-center text-xs font-semibold"><i-lucide-presentation class="size-4 mr-1" /><b>PRES</b></div>
+          <div class="flex items-center text-xs font-semibold">
+            <i-lucide-presentation class="size-4 mr-1" /><b>PRES</b>
+          </div>
         </div>
       </div>
     </div>
@@ -51,22 +53,22 @@ import LogoutButton from './LogoutButton.vue'
 
         <!-- Dark mode toggle button -->
         <div class="flex items-center">
-          <DarkModeButton></DarkModeButton>
+          <DarkModeButton />
         </div>
 
         <!-- QR code generation button -->
         <div class="flex items-center">
-          <QRCodeButton></QRCodeButton>
+          <QRCodeButton />
         </div>
 
         <!-- Reset to main page button -->
         <div class="flex items-center">
-          <ResetButton></ResetButton>
+          <ResetButton />
         </div>
 
         <!-- Route information buttons (desktop only) -->
         <div class="hidden md:flex items-center">
-          <RouteInfoButton></RouteInfoButton>
+          <RouteInfoButton />
         </div>
       </div>
     </div>

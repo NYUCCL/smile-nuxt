@@ -2,7 +2,7 @@
 import { ref, watch, onBeforeUnmount } from 'vue'
 import { animate } from 'motion'
 
-const props = defineProps({
+const _props = defineProps({
   informedConsentText: {
     type: Object,
     required: true,
@@ -51,11 +51,15 @@ onBeforeUnmount(() => {
 
 <template>
   <ConstrainedPage
-    :responsiveUI="api.config.responsiveUI"
+    :responsive-u-i="api.config.responsiveUI"
     :width="api.config.windowsizerRequest.width"
     :height="api.config.windowsizerRequest.height"
   >
-    <TwoCol rightFirst leftWidth="w-3/5" class="px-6">
+    <TwoCol
+      right-first
+      left-width="w-3/5"
+      class="px-6"
+    >
       <template #left>
         <div class="text-foreground">
           <component :is="informedConsentText" />
@@ -70,39 +74,55 @@ onBeforeUnmount(() => {
               read the consent form (you can scroll the page).
             </p>
 
-            <div class="border-t border-gray-200 my-4"></div>
+            <div class="border-t border-gray-200 my-4" />
 
             <div class="flex items-center space-x-2 mb-4">
               <Switch
-                variant="success"
-                v-model="api.persist.agree"
                 id="consent_toggle"
+                v-model="api.persist.agree"
+                variant="success"
                 name="consent_toggle"
                 size="lg"
               />
-              <Label for="consent_toggle" class="text-left text-sm font-medium">
+              <Label
+                for="consent_toggle"
+                class="text-left text-sm font-medium"
+              >
                 I consent and am over 18 years old.
               </Label>
             </div>
 
             <div class="hidden">
-              <Label for="your_name" class="text-sm font-medium text-gray-700 mb-2 block">
+              <Label
+                for="your_name"
+                class="text-sm font-medium text-gray-700 mb-2 block"
+              >
                 Required! Please enter your name:
               </Label>
-              <Input id="your_name" name="your_name" v-model="name" placeholder="Enter your name" class="w-full" />
+              <Input
+                id="your_name"
+                v-model="name"
+                name="your_name"
+                placeholder="Enter your name"
+                class="w-full"
+              />
             </div>
 
             <div class="mt-6">
               <Button
+                v-if="api.persist.agree"
                 ref="button"
                 variant="success"
                 size="lg"
                 class="w-full"
-                v-if="api.persist.agree"
                 @click="finish()"
               >
                 Let's start
-                <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg
+                  class="w-4 h-4 ml-2"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
                   <path
                     fill-rule="evenodd"
                     d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"

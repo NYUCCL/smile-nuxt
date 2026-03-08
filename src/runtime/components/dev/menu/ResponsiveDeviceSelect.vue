@@ -26,7 +26,7 @@ import { devicePresets } from '../devicePresets.js'
 
 /**
  * Initialize SMILE API instance
- * @constant {Object} api Global API instance
+ * @constant {object} api Global API instance
  */
 const api = useAPI()
 
@@ -57,7 +57,8 @@ const handleDeviceChange = (value) => {
     api.store.dev.deviceHeight = preset.height
     api.store.dev.selectedDevice = value
     console.log('Updated dimensions to:', api.store.dev.deviceWidth, 'x', api.store.dev.deviceHeight)
-  } else {
+  }
+  else {
     console.log('No preset found for value:', value)
   }
 }
@@ -65,43 +66,82 @@ const handleDeviceChange = (value) => {
 
 <template>
   <!-- Device selection dropdown -->
-  <Select v-model="api.store.dev.selectedDevice" @update:modelValue="handleDeviceChange">
+  <Select
+    v-model="api.store.dev.selectedDevice"
+    @update:model-value="handleDeviceChange"
+  >
     <SelectTrigger class="select-small">
       <SelectValue placeholder="Custom size" />
     </SelectTrigger>
     <SelectContent>
       <!-- Mobile devices group -->
       <SelectGroup>
-        <SelectLabel class="mt-2">Mobile</SelectLabel>
-        <SelectItem value="iphone"> iPhone </SelectItem>
-        <SelectItem value="iphone-plus"> iPhone Plus </SelectItem>
-        <SelectItem value="iphone-pro"> iPhone Pro </SelectItem>
-        <SelectItem value="iphone-pro-max"> iPhone Pro Max </SelectItem>
-        <SelectItem value="iphone-se"> iPhone SE </SelectItem>
+        <SelectLabel class="mt-2">
+          Mobile
+        </SelectLabel>
+        <SelectItem value="iphone">
+          iPhone
+        </SelectItem>
+        <SelectItem value="iphone-plus">
+          iPhone Plus
+        </SelectItem>
+        <SelectItem value="iphone-pro">
+          iPhone Pro
+        </SelectItem>
+        <SelectItem value="iphone-pro-max">
+          iPhone Pro Max
+        </SelectItem>
+        <SelectItem value="iphone-se">
+          iPhone SE
+        </SelectItem>
       </SelectGroup>
 
       <!-- Tablet devices group -->
       <SelectGroup>
-        <SelectLabel class="mt-2">Tablet</SelectLabel>
-        <SelectItem value="ipad-11"> iPad 11-inch </SelectItem>
-        <SelectItem value="ipad-13"> iPad 13-inch</SelectItem>
+        <SelectLabel class="mt-2">
+          Tablet
+        </SelectLabel>
+        <SelectItem value="ipad-11">
+          iPad 11-inch
+        </SelectItem>
+        <SelectItem value="ipad-13">
+          iPad 13-inch
+        </SelectItem>
       </SelectGroup>
 
       <!-- Desktop resolutions group -->
       <SelectGroup>
-        <SelectLabel class="mt-2">Desktop</SelectLabel>
-        <SelectItem value="desktop1"> 800x600</SelectItem>
-        <SelectItem value="desktop2"> 1024x768</SelectItem>
-        <SelectItem value="desktop3"> 1280x1024</SelectItem>
-        <SelectItem value="desktop4"> 1440x900</SelectItem>
-        <SelectItem value="desktop5"> 1600x1200</SelectItem>
-        <SelectItem value="desktop16"> 1920x1080</SelectItem>
+        <SelectLabel class="mt-2">
+          Desktop
+        </SelectLabel>
+        <SelectItem value="desktop1">
+          800x600
+        </SelectItem>
+        <SelectItem value="desktop2">
+          1024x768
+        </SelectItem>
+        <SelectItem value="desktop3">
+          1280x1024
+        </SelectItem>
+        <SelectItem value="desktop4">
+          1440x900
+        </SelectItem>
+        <SelectItem value="desktop5">
+          1600x1200
+        </SelectItem>
+        <SelectItem value="desktop16">
+          1920x1080
+        </SelectItem>
       </SelectGroup>
 
       <!-- Other options group -->
       <SelectGroup>
-        <SelectLabel class="mt-2">Other</SelectLabel>
-        <SelectItem value="custom"> Custom size </SelectItem>
+        <SelectLabel class="mt-2">
+          Other
+        </SelectLabel>
+        <SelectItem value="custom">
+          Custom size
+        </SelectItem>
       </SelectGroup>
     </SelectContent>
   </Select>

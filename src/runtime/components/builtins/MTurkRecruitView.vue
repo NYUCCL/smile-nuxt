@@ -28,7 +28,7 @@ const mturkPreview = ref(true)
 const launched = ref(false)
 const completionCode = ref('')
 const formError = ref('')
-let redirectURL = ref('/#/welcome/mturk/?')
+const redirectURL = ref('/#/welcome/mturk/?')
 
 /**
  * Initialize component on mount
@@ -38,7 +38,7 @@ let redirectURL = ref('/#/welcome/mturk/?')
  */
 onMounted(() => {
   const urlParams = api.route.query
-  let queryStr = api.route.fullPath.split('?')
+  const queryStr = api.route.fullPath.split('?')
 
   if (queryStr.length == 2) {
     redirectURL.value += queryStr[1]
@@ -49,7 +49,8 @@ onMounted(() => {
       api.log.debug('AMT mode, but no assignment (preview mode)')
       // supposed to show the ad here
       mturkPreview.value = true
-    } else {
+    }
+    else {
       api.log.debug('AMT mode, with assignment')
       mturkPreview.value = false
     }
@@ -109,15 +110,24 @@ function submitForm(event) {
   <!-- Main container with centered layout -->
   <div class="mt-20 w-4/5 mx-auto">
     <!-- Study preview section - shown when in MTurk preview mode -->
-    <StudyPreviewText :estimated_time="props.estimated_time" :payrate="payrate" v-if="mturkPreview"></StudyPreviewText>
+    <StudyPreviewText
+      v-if="mturkPreview"
+      :estimated_time="props.estimated_time"
+      :payrate="payrate"
+    />
 
     <!-- Assignment mode section - shown when worker has accepted the HIT -->
     <div v-else>
       <!-- Header section -->
-      <h1 class="text-2xl font-bold mb-4">Thanks for accepting our HIT</h1>
+      <h1 class="text-2xl font-bold mb-4">
+        Thanks for accepting our HIT
+      </h1>
 
       <!-- Task completion section - shown after study is launched -->
-      <div class="mx-auto" v-if="launched">
+      <div
+        v-if="launched"
+        class="mx-auto"
+      >
         <!-- Instructions for completion -->
         <p class="text-left mb-4">
           Please complete the task in the window that was launched. When you are finished you will be provided with a
@@ -125,33 +135,56 @@ function submitForm(event) {
         </p>
 
         <!-- Visual separator -->
-        <hr class="border-gray-300 my-4" />
+        <hr class="border-gray-300 my-4">
 
         <!-- Completion code submission form -->
-        <form :action="turkSubmitTo" method="post" @submit="submitForm">
+        <form
+          :action="turkSubmitTo"
+          method="post"
+          @submit="submitForm"
+        >
           <div class="space-y-4">
             <!-- Completion code input field -->
             <div>
-              <label for="completioncode" class="block text-sm font-medium mb-2">Completion Code</label>
+              <label
+                for="completioncode"
+                class="block text-sm font-medium mb-2"
+              >Completion Code</label>
               <Input
                 id="completioncode"
-                name="completioncode"
                 v-model="completionCode"
+                name="completioncode"
                 placeholder="Paste your completion code here"
                 :class="{ 'border-red-500': formError }"
               />
-              <p v-if="formError" class="text-red-500 text-sm mt-1">{{ formError }}</p>
+              <p
+                v-if="formError"
+                class="text-red-500 text-sm mt-1"
+              >
+                {{ formError }}
+              </p>
             </div>
 
             <!-- Submit button -->
-            <Button type="submit" variant="default">Submit to Mechanical Turk</Button>
+            <Button
+              type="submit"
+              variant="default"
+            >
+              Submit to Mechanical Turk
+            </Button>
           </div>
         </form>
       </div>
 
       <!-- Launch button section - shown before study is launched -->
       <div v-else>
-        <Button variant="default" @click="clicked()" target="_new"> Begin Task in New Window </Button>
+        <Button
+          variant="default"
+          target="_new"
+          @click="clicked()"
+        >
+          Begin Task in New Window
+        </Button>
       </div>
     </div>
   </div>

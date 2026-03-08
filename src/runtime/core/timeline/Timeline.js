@@ -11,12 +11,12 @@ import _ from 'lodash'
 /**
  * Timeline class for managing the sequence of routes in the application
  * @class Timeline
- * @param {Object} api - API instance
+ * @param {object} api - API instance
  */
 class Timeline {
   /**
    * Constructor for the Timeline class
-   * @param {Object} api - API instance
+   * @param {object} api - API instance
    */
   constructor(api) {
     this.api = api
@@ -41,15 +41,15 @@ class Timeline {
 
   /**
    * Clones a route and fills in default values
-   * @param {Object} route - The route to clone
-   * @returns {Object} The cloned route with default values
+   * @param {object} route - The route to clone
+   * @returns {object} The cloned route with default values
    */
   cloneRouteAndFillDefaults(route) {
     const newroute = _.cloneDeep(route)
 
     if (newroute.path == null) {
       const nameAsPath = `/${encodeURIComponent(newroute.name.toLowerCase().replace(/\s/g, '_'))}`
-      //this.api.log.debug(`Assigning path by name for route ${newroute.name}: ${nameAsPath}`)
+      // this.api.log.debug(`Assigning path by name for route ${newroute.name}: ${nameAsPath}`)
       newroute.path = nameAsPath
     }
 
@@ -58,7 +58,7 @@ class Timeline {
 
   /**
    * Pushes a route to the routes array
-   * @param {Object} route - The route to push
+   * @param {object} route - The route to push
    * @throws {Error} If a route with the same path or name already exists
    */
   pushToRoutes(route) {
@@ -77,7 +77,7 @@ class Timeline {
 
   /**
    * Pushes a route to the timeline array
-   * @param {Object} route - The route to push
+   * @param {object} route - The route to push
    * @throws {Error} If a route with the same path or name already exists
    */
   pushToTimeline(route) {
@@ -96,7 +96,7 @@ class Timeline {
 
   /**
    * Pushes a sequential route to the timeline array
-   * @param {Object} routeConfig - The route configuration
+   * @param {object} routeConfig - The route configuration
    * @throws {Error} If a route with the same path or name already exists
    */
   pushSeqView(routeConfig) {
@@ -104,7 +104,8 @@ class Timeline {
 
     if (!newroute.meta) {
       newroute.meta = { next: undefined, prev: undefined } // need to configure it
-    } else {
+    }
+    else {
       if (!newroute.meta.next) {
         // need to configure next
         newroute.meta.next = undefined
@@ -133,14 +134,16 @@ class Timeline {
 
     try {
       this.pushToRoutes(newroute)
-    } catch (err) {
+    }
+    catch (err) {
       this.api.log.error('Smile FATAL ERROR: ', err)
       throw err
     }
 
     try {
       this.pushToTimeline(newroute) // by reference so should update together
-    } catch (err) {
+    }
+    catch (err) {
       this.api.log.error('Smile FATAL ERROR: ', err)
       throw err
     }
@@ -152,7 +155,7 @@ class Timeline {
 
   /**
    * Registers a view in the timeline
-   * @param {Object} routeConfig - The route configuration
+   * @param {object} routeConfig - The route configuration
    * @throws {Error} If a route with the same path or name already exists
    */
   registerView(routeConfig) {
@@ -160,7 +163,8 @@ class Timeline {
     // should NOT allow meta next/prev to exist
     if (!newroute.meta) {
       newroute.meta = { prev: null, next: null, type: 'route' }
-    } else if (newroute.meta.prev || newroute.meta.next) {
+    }
+    else if (newroute.meta.prev || newroute.meta.next) {
       throw new Error(`NonSequentialRouteError: Can't have meta.next or meta.prev defined for non-sequential route`)
     }
     newroute.meta.sequential = false
@@ -180,7 +184,8 @@ class Timeline {
 
     try {
       this.pushToRoutes(newroute)
-    } catch (err) {
+    }
+    catch (err) {
       this.api.log.error('Smile FATAL ERROR: ', err)
       throw err
     }
@@ -192,8 +197,8 @@ class Timeline {
 
   /**
    * Pushes a randomized node to the timeline
-   * @param {Object} routeConfig - The route configuration
-   * @param {boolean} [push=true] - Whether to push the node to the timeline
+   * @param {object} routeConfig - The route configuration
+   * @param {boolean} [push] - Whether to push the node to the timeline
    */
   pushRandomizedNode(routeConfig, push = true) {
     const newroute = this.cloneRouteAndFillDefaults(routeConfig)
@@ -202,7 +207,8 @@ class Timeline {
       if (this.registered[newroute.name]) {
         this.api.log.debug(`Randomized node ${newroute.name} already registered`)
         return
-      } else {
+      }
+      else {
         this.registered[newroute.name] = []
       }
     }
@@ -231,19 +237,21 @@ class Timeline {
     if (randomOption != null) {
       // is the currently selected option actually one of the available options, as currently defined in the design file?
       const isContained = currentRouteOptions.some(
-        (option) => option.length === randomOption.length && option.every((val, i) => val === randomOption[i])
+        option => option.length === randomOption.length && option.every((val, i) => val === randomOption[i]),
       )
       if (isContained) {
-        //if yes,
-        this.api.log.debug(`Randomized node ${newroute.name} already assigned option ${randomOption}`) //we can stick with the existing one
-      } else {
+        // if yes,
+        this.api.log.debug(`Randomized node ${newroute.name} already assigned option ${randomOption}`) // we can stick with the existing one
+      }
+      else {
         // otherwise, we need to select a new random option
         needsNewOption = true
         randomOption = this.api.sampleWithReplacement(options, 1, weights)[0]
         this.api.log.debug(`Randomized node ${newroute.name} selected option ${randomOption}`)
         this.api.store.setRandomizedRoute(newroute.name, randomOption)
       }
-    } else {
+    }
+    else {
       // also select new if there's no current option
       needsNewOption = true
     }
@@ -260,14 +268,14 @@ class Timeline {
 
   /**
    * Handles a randomized option
-   * @param {Object} newroute - The new route
-   * @param {Object} randomOption - The random option
+   * @param {object} newroute - The new route
+   * @param {object} randomOption - The random option
    * @param {boolean} push - Whether to push the option to the timeline
    */
   _handleRandomizedOption(newroute, randomOption, push) {
     for (let i = 0; i < randomOption.length; i += 1) {
       const option = randomOption[i]
-      const route = this.routes.find((r) => r.name === option)
+      const route = this.routes.find(r => r.name === option)
       if (!route) {
         if (option in this.registered) {
           // if the route(s) are in the registered list, pull it from there
@@ -284,14 +292,16 @@ class Timeline {
               registeredRoutes.forEach((r) => {
                 this.pushToTimeline(r)
               })
-            } else {
+            }
+            else {
               this.registered[newroute.name].push(...registeredRoutes)
             }
           }
           continue
-        } else {
+        }
+        else {
           this.api.log.error(
-            `Randomized node option ${option} not found in routes. You must add randomized route options to the timeline using registerView() before adding a randomized node`
+            `Randomized node option ${option} not found in routes. You must add randomized route options to the timeline using registerView() before adding a randomized node`,
           )
           throw new Error('RandomizedNodeOptionNotFoundError')
         }
@@ -310,7 +320,8 @@ class Timeline {
       if (push) {
         // add the route to the sequential timeline
         this.pushToTimeline(route)
-      } else {
+      }
+      else {
         // add the route to the registered list to be consumed later
         this.registered[newroute.name].push(route)
       }
@@ -319,7 +330,7 @@ class Timeline {
 
   /**
    * Registers a randomized node
-   * @param {Object} routeConfig - The route configuration
+   * @param {object} routeConfig - The route configuration
    */
   registerRandomizedNode(routeConfig) {
     this.pushRandomizedNode(routeConfig, false)
@@ -327,8 +338,8 @@ class Timeline {
 
   /**
    * Pushes a conditional node to the timeline
-   * @param {Object} routeConfig - The route configuration
-   * @param {boolean} [push=true] - Whether to push the node to the timeline
+   * @param {object} routeConfig - The route configuration
+   * @param {boolean} [push] - Whether to push the node to the timeline
    */
   pushConditionalNode(routeConfig, push = true) {
     // newroute should have name and a condition name (user specified, has to match something in data.conditions)
@@ -339,13 +350,14 @@ class Timeline {
       if (this.registered[newroute.name]) {
         this.api.log.debug(`Randomized node ${newroute.name} already registered`)
         return
-      } else {
+      }
+      else {
         this.registered[newroute.name] = []
       }
     }
 
     // get condition name—anything that's not name or path
-    const conditionname = Object.keys(newroute).filter((key) => key !== 'name' && key !== 'path')
+    const conditionname = Object.keys(newroute).filter(key => key !== 'name' && key !== 'path')
     if (conditionname.length > 1) {
       this.api.log.error('Can only branch routes based on one condition at a time')
       throw new Error('TooManyConditionNamesError')
@@ -355,7 +367,7 @@ class Timeline {
     if (!assignedCondition) {
       const possibleConditions = Object.keys(newroute[name])
       this.api.log.warn(
-        `Condition ${name} not found in data.conditions -- assigning uniformly from keys of condition object: ${possibleConditions}`
+        `Condition ${name} not found in data.conditions -- assigning uniformly from keys of condition object: ${possibleConditions}`,
       )
 
       assignedCondition = this.api.randomAssignCondition({
@@ -372,7 +384,7 @@ class Timeline {
 
   /**
    * Registers a conditional node
-   * @param {Object} routeConfig - The route configuration
+   * @param {object} routeConfig - The route configuration
    */
   registerConditionalNode(routeConfig) {
     this.pushConditionalNode(routeConfig, false)
@@ -397,57 +409,65 @@ class Timeline {
    * Builds the graph
    */
   buildGraph() {
-    //this.api.log.debug('DEV MODE: building DAG for timeline')
+    // this.api.log.debug('DEV MODE: building DAG for timeline')
 
     for (let i = 0; i < this.seqtimeline.length; i += 1) {
       if (this.seqtimeline[i].meta.next === undefined) {
         if (this.seqtimeline.length === 1) {
           this.seqtimeline[i].meta.next = null
-        } else if (i === 0) {
+        }
+        else if (i === 0) {
           this.seqtimeline[i].meta.next = this.seqtimeline[i + 1].name
-        } else if (i === this.seqtimeline.length - 1) {
+        }
+        else if (i === this.seqtimeline.length - 1) {
           this.seqtimeline[i].meta.next = null
-        } else {
+        }
+        else {
           this.seqtimeline[i].meta.next = this.seqtimeline[i + 1].name
         }
       }
       if (!this.seqtimeline[i].meta.root && this.seqtimeline[i].meta.prev === undefined) {
         if (this.seqtimeline.length === 1) {
           this.seqtimeline[i].meta.prev = null
-        } else if (i === 0) {
+        }
+        else if (i === 0) {
           this.seqtimeline[i].meta.prev = null
-        } else if (i === this.seqtimeline.length - 1) {
-          this.seqtimeline[i].meta.prev = this.seqtimeline[i - 1].name
-        } else {
+        }
+        else if (i === this.seqtimeline.length - 1) {
           this.seqtimeline[i].meta.prev = this.seqtimeline[i - 1].name
         }
-      } else {
+        else {
+          this.seqtimeline[i].meta.prev = this.seqtimeline[i - 1].name
+        }
+      }
+      else {
         this.seqtimeline[i].meta.prev = null
       }
     }
   }
+
   /**
    * Looks up a route config from the routes array by name.
    * Used by middleware to resolve name → path for redirects.
    * @param {string} name - The route name to look up
-   * @returns {Object|null} The matching route config, or null if not found
+   * @returns {object | null} The matching route config, or null if not found
    */
   getRouteByName(name) {
-    return this.routes.find((r) => r.name === name) || null
+    return this.routes.find(r => r.name === name) || null
   }
 
   /**
    * Looks up a route config from the routes array by path.
    * Used by the catch-all page to resolve which component to render.
    * @param {string} path - The URL path to look up
-   * @returns {Object|null} The matching route config, or null if not found
+   * @returns {object | null} The matching route config, or null if not found
    */
   getViewForPath(path) {
     // Normalize path (strip trailing slash, etc.)
     const normalized = path === '' ? '/' : path.replace(/\/$/, '') || '/'
 
     // First try exact match, then pattern match for parameterized routes (e.g., /welcome/:service)
-    let match = this.routes.find((r) => r.path === normalized)
+    let match = this.routes.find(r => r.path === normalized)
     if (!match) {
       match = this.routes.find((r) => {
         if (!r.path.includes(':')) return false

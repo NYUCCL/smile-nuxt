@@ -26,7 +26,7 @@ const height_pct = computed(() => `${api.store.dev.consoleBarHeight - 55}px`)
 
 /**
  * Filter log messages based on search text and log type
- * @param {Object} msg - Log message object
+ * @param {object} msg - Log message object
  * @param {string} msg.message - Log message text
  * @param {string} msg.type - Log type (debug, warn, error, etc.)
  * @returns {boolean} Whether the message should be displayed
@@ -55,7 +55,7 @@ function filter_log(msg) {
 
 /**
  * Get the background CSS class for a log message based on its type
- * @param {Object} msg - Log message object
+ * @param {object} msg - Log message object
  * @param {string} msg.type - Log type
  * @returns {string} CSS class name for background styling
  */
@@ -86,13 +86,20 @@ function getBgClass(msg) {
         <!-- Since last view toggle -->
         <div class="flex items-center gap-2">
           <Label class="text-xs font-semibold">Since last view:</Label>
-          <Switch v-model="api.store.dev.lastViewLimit" size="sm" />
+          <Switch
+            v-model="api.store.dev.lastViewLimit"
+            size="sm"
+          />
         </div>
 
         <!-- Search input -->
         <div class="flex items-center gap-2">
           <Label class="text-xs font-semibold">Search:</Label>
-          <Input v-model="api.store.dev.searchParams" placeholder="Search..." class="h-6 w-24 text-xs" />
+          <Input
+            v-model="api.store.dev.searchParams"
+            placeholder="Search..."
+            class="h-6 w-24 text-xs"
+          />
         </div>
 
         <!-- Log type filter -->
@@ -103,12 +110,24 @@ function getBgClass(msg) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="All">All</SelectItem>
-              <SelectItem value="Current page only">Current page only</SelectItem>
-              <SelectItem value="Debug only">Debug only</SelectItem>
-              <SelectItem value="Warnings and Errors only">Warnings and Errors only</SelectItem>
-              <SelectItem value="Warnings only">Warnings only</SelectItem>
-              <SelectItem value="Errors only">Errors only</SelectItem>
+              <SelectItem value="All">
+                All
+              </SelectItem>
+              <SelectItem value="Current page only">
+                Current page only
+              </SelectItem>
+              <SelectItem value="Debug only">
+                Debug only
+              </SelectItem>
+              <SelectItem value="Warnings and Errors only">
+                Warnings and Errors only
+              </SelectItem>
+              <SelectItem value="Warnings only">
+                Warnings only
+              </SelectItem>
+              <SelectItem value="Errors only">
+                Errors only
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -121,12 +140,24 @@ function getBgClass(msg) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="All">All</SelectItem>
-              <SelectItem value="None">None</SelectItem>
-              <SelectItem value="Warnings and Errors">Warnings and Errors</SelectItem>
-              <SelectItem value="Warnings only">Warnings only</SelectItem>
-              <SelectItem value="Errors only">Errors only</SelectItem>
-              <SelectItem value="Success only">Success only</SelectItem>
+              <SelectItem value="All">
+                All
+              </SelectItem>
+              <SelectItem value="None">
+                None
+              </SelectItem>
+              <SelectItem value="Warnings and Errors">
+                Warnings and Errors
+              </SelectItem>
+              <SelectItem value="Warnings only">
+                Warnings only
+              </SelectItem>
+              <SelectItem value="Errors only">
+                Errors only
+              </SelectItem>
+              <SelectItem value="Success only">
+                Success only
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -140,8 +171,11 @@ function getBgClass(msg) {
     >
       <div class="w-full min-w-0">
         <!-- Log messages list - filtered by last view setting -->
-        <ul v-if="api.store.dev.lastViewLimit" class="w-full min-w-0">
-          <template v-for="msg in log.page_history">
+        <ul
+          v-if="api.store.dev.lastViewLimit"
+          class="w-full min-w-0"
+        >
+          <template v-for="(msg, idx) in log.page_history" :key="idx">
             <li
               v-if="filter_log(msg)"
               :class="[
@@ -157,21 +191,32 @@ function getBgClass(msg) {
                   <i-fa6-solid-gear v-else-if="msg.message.includes('DEV MODE')" />
                   <i-fa6-solid-clock v-else-if="msg.message.includes('TIMELINE STEPPER')" />
                   <i-fa6-regular-clock v-else-if="msg.message.includes('TRIAL STEPPER')" />
-                  <img src="/src/assets/dev/firebase-bw.svg" width="15" v-else-if="msg.message.includes('FIRESTORE')" />
+                  <img
+                    v-else-if="msg.message.includes('FIRESTORE')"
+                    src="/src/assets/dev/firebase-bw.svg"
+                    width="15"
+                  >
                   <i-fa6-solid-angle-right v-else />
                 </div>
                 <!-- Message content -->
                 <div class="min-w-0 flex-1">
-                  <div class="font-semibold break-words break-all">{{ msg.time }} {{ msg.message }}</div>
-                  <div class="break-words break-all text-xs opacity-75">{{ msg.trace }}</div>
+                  <div class="font-semibold break-words break-all">
+                    {{ msg.time }} {{ msg.message }}
+                  </div>
+                  <div class="break-words break-all text-xs opacity-75">
+                    {{ msg.trace }}
+                  </div>
                 </div>
               </div>
             </li>
           </template>
         </ul>
         <!-- Log messages list - full history -->
-        <ul v-else class="w-full min-w-0">
-          <template v-for="msg in log.history">
+        <ul
+          v-else
+          class="w-full min-w-0"
+        >
+          <template v-for="(msg, idx) in log.history" :key="idx">
             <li
               v-if="filter_log(msg)"
               :class="[
@@ -187,13 +232,21 @@ function getBgClass(msg) {
                   <i-fa6-solid-gear v-else-if="msg.message.includes('DEV MODE')" />
                   <i-fa6-solid-clock v-else-if="msg.message.includes('TIMELINE STEPPER')" />
                   <i-fa6-regular-clock v-else-if="msg.message.includes('TRIAL STEPPER')" />
-                  <img src="/src/assets/dev/firebase-bw.svg" width="15" v-else-if="msg.message.includes('FIRESTORE')" />
+                  <img
+                    v-else-if="msg.message.includes('FIRESTORE')"
+                    src="/src/assets/dev/firebase-bw.svg"
+                    width="15"
+                  >
                   <i-fa6-solid-angle-right v-else />
                 </div>
                 <!-- Message content -->
                 <div class="min-w-0 flex-1">
-                  <div class="font-semibold break-words break-all">{{ msg.time }} {{ msg.message }}</div>
-                  <div class="break-words break-all text-xs opacity-75">{{ msg.trace }}</div>
+                  <div class="font-semibold break-words break-all">
+                    {{ msg.time }} {{ msg.message }}
+                  </div>
+                  <div class="break-words break-all text-xs opacity-75">
+                    {{ msg.trace }}
+                  </div>
                 </div>
               </div>
             </li>

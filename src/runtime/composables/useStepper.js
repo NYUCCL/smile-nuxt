@@ -18,7 +18,7 @@ import useLog from '../stores/log'
  * Creates or retrieves a stepper instance for the current view
  * @function useStepper
  * @param {string} view - The view name to create/retrieve the stepper for
- * @returns {Object} The stepper instance for the current view
+ * @returns {object} The stepper instance for the current view
  * @description This composable manages stepper instances on a per-view basis.
  * It ensures that:
  * - Each view has its own stepper instance stored in the global smilestore
@@ -46,17 +46,19 @@ export function useStepper(view) {
       try {
         log.debug('STEPPER: Loading saved stepper state from smilestore for view', view)
         stepper = new Stepper({ serializedState: savedState.stepperState, store: smilestore })
-      } catch (error) {
+      }
+      catch (error) {
         log.error('STEPPER: Failed to load saved state, creating new stepper:', error.message)
         stepper = new Stepper({ id: '/', parent: null, data: { gvars: {} }, store: smilestore })
       }
-    } else {
+    }
+    else {
       log.debug('STEPPER: Initializing stepper for view', view)
       stepper = new Stepper({ id: '/', parent: null, data: { gvars: {} }, store: smilestore })
     }
     stepper.name = view
     // Register stepper if not already registered
-    //console.log('STEPPER: Registering stepper for view', stepper.name)
+    // console.log('STEPPER: Registering stepper for view', stepper.name)
     if (view) {
       stepper = smilestore.registerStepper(view, stepper)
     }

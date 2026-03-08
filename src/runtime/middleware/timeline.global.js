@@ -8,7 +8,7 @@
  */
 import seedrandom from 'seedrandom'
 import { v4 as uuidv4 } from 'uuid'
-import { defineNuxtRouteMiddleware, useNuxtApp, navigateTo, abortNavigation } from '#imports'
+import { defineNuxtRouteMiddleware, useNuxtApp, navigateTo } from '#imports'
 import useSmileStore from '../stores/smilestore'
 import useLog from '../stores/log'
 import { getQueryParams, processQuery, initService } from '../utils/utils'
@@ -17,14 +17,14 @@ import { getQueryParams, processQuery, initService } from '../utils/utils'
  * Core guard logic extracted for testability.
  * Returns the guard decision, then runs post-guard logic if navigation is allowed.
  *
- * @param {Object} to - Nuxt route location (to)
- * @param {Object} from - Nuxt route location (from)
- * @param {Object} deps - Injected dependencies
- * @param {Object} deps.timeline - Timeline instance ($timeline)
- * @param {Object} deps.store - SmileStore (Pinia)
- * @param {Object} deps.log - Log store
- * @param {Object} deps.api - API-like object with methods guards need
- * @returns {undefined|Object} undefined = allow, navigateTo() result = redirect
+ * @param {object} to - Nuxt route location (to)
+ * @param {object} from - Nuxt route location (from)
+ * @param {object} deps - Injected dependencies
+ * @param {object} deps.timeline - Timeline instance ($timeline)
+ * @param {object} deps.store - SmileStore (Pinia)
+ * @param {object} deps.log - Log store
+ * @param {object} deps.api - API-like object with methods guards need
+ * @returns {undefined | object} undefined = allow, navigateTo() result = redirect
  */
 export async function executeGuards(to, from, { timeline, store, log, api, skipBlockingGuards = false }) {
   const result = await _runGuards(to, from, { timeline, store, log, api, skipBlockingGuards })
@@ -109,11 +109,13 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
     // If pinned route doesn't exist in timeline, clear it
     if (!timeline.getRouteByName(store.dev.pinnedRoute)) {
       store.dev.pinnedRoute = null
-    } else {
+    }
+    else {
       await api.connectDB()
       if (toName === store.dev.pinnedRoute) {
         return // allow
-      } else {
+      }
+      else {
         log.error('ROUTER GUARD: Pinned route, redirecting to ' + store.dev.pinnedRoute)
         return navigateTo(resolveNameToPath(store.dev.pinnedRoute), { replace: true })
       }
@@ -167,9 +169,9 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
   // skip blocking guards and never reach here.
   if (store.config.mode === 'development' && store.browserEphemeral.forceNavigate) {
     log.warn(
-      'ROUTER GUARD: Allowing direct, out-of-order navigation to /' +
-        toName +
-        '.  This is allowed in development mode but not in production.'
+      'ROUTER GUARD: Allowing direct, out-of-order navigation to /'
+      + toName
+      + '.  This is allowed in development mode but not in production.',
     )
     store.setLastRoute(toName)
     store.recordRoute(toName)
@@ -179,9 +181,9 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
   // --- Guard 12: Force navigate flag ---
   if (store.browserEphemeral.forceNavigate) {
     log.warn(
-      'ROUTER GUARD: Allowing direct, out-of-order navigation to /' +
-        toName +
-        '.  This is being forced by api.goToView().'
+      'ROUTER GUARD: Allowing direct, out-of-order navigation to /'
+      + toName
+      + '.  This is being forced by api.goToView().',
     )
     store.setLastRoute(toName)
     store.recordRoute(toName)
@@ -191,8 +193,8 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
   // --- Guard 13: Consent required ---
   if (toMeta.requiresConsent && !store.isConsented) {
     log.error(
-      `ROUTER GUARD: This route (${toName}) requires consent, but the user has not consented (${store.isConsented}).` +
-        ` Redirecting to the last route visited. (${store.lastRoute})`
+      `ROUTER GUARD: This route (${toName}) requires consent, but the user has not consented (${store.isConsented}).`
+      + ` Redirecting to the last route visited. (${store.lastRoute})`,
     )
     return navigateTo(resolveNameToPath(store.lastRoute), { replace: true })
   }
@@ -200,8 +202,8 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
   // --- Guard 14: Done required ---
   if (toMeta.requiresDone && !store.isDone) {
     log.error(
-      `ROUTER GUARD: This route (${toName}) requires being marked as done, but the user is not done.` +
-        ` Redirecting to the last route visited. (${store.lastRoute})`
+      `ROUTER GUARD: This route (${toName}) requires being marked as done, but the user is not done.`
+      + ` Redirecting to the last route visited. (${store.lastRoute})`,
     )
     return navigateTo(resolveNameToPath(store.lastRoute), { replace: true })
   }
@@ -209,11 +211,11 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
   // --- Guard 15: Next route with currentViewDone=true ---
   if (fromMeta.next === toName && store.browserEphemeral.currentViewDone) {
     log.log(
-      'ROUTER GUARD: You are trying to go to the next route from ' +
-        fromName +
-        ' to ' +
-        toName +
-        ' and the current page is done so allowing it.'
+      'ROUTER GUARD: You are trying to go to the next route from '
+      + fromName
+      + ' to '
+      + toName
+      + ' and the current page is done so allowing it.',
     )
     store.setLastRoute(toName)
     store.recordRoute(toName)
@@ -223,11 +225,11 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
   // --- Guard 16: Next route with currentViewDone=false ---
   if (fromMeta.next === toName && !store.browserEphemeral.currentViewDone) {
     log.error(
-      'ROUTER GUARD: You are trying to go to the next route from ' +
-        fromName +
-        ' to ' +
-        toName +
-        ' but the current page is not marked as done, so returning you to the current page.'
+      'ROUTER GUARD: You are trying to go to the next route from '
+      + fromName
+      + ' to '
+      + toName
+      + ' but the current page is not marked as done, so returning you to the current page.',
     )
     return navigateTo(resolveNameToPath(store.lastRoute), { replace: true })
   }
@@ -235,9 +237,9 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
   // --- Guard 17: Same route as lastRoute ---
   if (store.lastRoute === toName) {
     log.log(
-      "ROUTER GUARD: You're trying to go to the same route as lastRoute (" +
-        store.lastRoute +
-        '), so allowing it.'
+      'ROUTER GUARD: You\'re trying to go to the same route as lastRoute ('
+      + store.lastRoute
+      + '), so allowing it.',
     )
     return // allow
   }
@@ -245,8 +247,8 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
   // --- Guard 18: Known user not going to next route ---
   if (fromMeta.next !== toName && store.isKnownUser) {
     log.error(
-      `ROUTER GUARD: You are known and trying to access a route (${toName}) which is not 'next' ` +
-        `on the timeline.  Returning you to the last route you were on (${store.lastRoute}).`
+      `ROUTER GUARD: You are known and trying to access a route (${toName}) which is not 'next' `
+      + `on the timeline.  Returning you to the last route you were on (${store.lastRoute}).`,
     )
     return navigateTo(resolveNameToPath(store.lastRoute), { replace: true })
   }
@@ -254,8 +256,8 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
   // --- Guard 19: Known user fallback ---
   if (store.isKnownUser) {
     log.error(
-      "ROUTER GUARD: You are known and trying to access a route you can't see yet.  lastRoute: " +
-        store.lastRoute
+      'ROUTER GUARD: You are known and trying to access a route you can\'t see yet.  lastRoute: '
+      + store.lastRoute,
     )
     return navigateTo(resolveNameToPath(store.lastRoute), { replace: true })
   }
@@ -283,7 +285,8 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
  * Handles seed setup and view state reset.
  * Runs only when navigation is allowed (guard returned undefined).
  */
-function _postGuard({ timeline, store, log, api, toName, toPath }) {
+// eslint-disable-next-line no-unused-vars
+function _postGuard({ timeline: _timeline, store, log, api, toName, toPath }) {
   store.setLastRoute(toName)
   store.recordRoute(toName)
 
@@ -305,7 +308,8 @@ function _postGuard({ timeline, store, log, api, toName, toPath }) {
     const seed = `${seedID}-${toName}`
     seedrandom(seed, { global: true })
     log.log('ROUTER GUARD: Seed set to ' + seed)
-  } else {
+  }
+  else {
     api.randomSeed()
     log.log('ROUTER GUARD: Not using participant-specific seed; seed set randomly')
   }
@@ -338,8 +342,8 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   // --- Dev/Presentation mode: prefix preservation ---
   // If FROM a prefixed route TO a non-prefixed route, redirect to preserve prefix.
   // This catches goNextView() navigations that use unprefixed paths like '/consent'.
-  const hasDevPrefix = (p) => p.startsWith('/dev/') || p === '/dev'
-  const hasPresentationPrefix = (p) => p.startsWith('/presentation/') || p === '/presentation'
+  const hasDevPrefix = p => p.startsWith('/dev/') || p === '/dev'
+  const hasPresentationPrefix = p => p.startsWith('/presentation/') || p === '/presentation'
 
   if (hasDevPrefix(from.path) && !hasDevPrefix(to.path)) {
     return navigateTo('/dev' + to.path, { replace: true })
@@ -408,7 +412,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   // but skip blocking guards (free navigation in dev/presentation mode).
   // Strip the prefix so timeline route lookup works.
   if (isDevOrPresentation) {
-    const stripPrefix = (p) => p.replace(/^\/(dev|presentation)(\/|$)/, '/') || '/'
+    const stripPrefix = p => p.replace(/^\/(dev|presentation)(\/|$)/, '/') || '/'
     const strippedTo = { ...to, path: stripPrefix(to.path) }
     const strippedFrom = { ...from, path: stripPrefix(from.path) }
     return executeGuards(strippedTo, strippedFrom, { timeline, store, log, api, skipBlockingGuards: true })

@@ -49,7 +49,8 @@ const portalSelectors = [
 const experimentPortalTriggers = new Set()
 
 // Function to check if an element is within an experiment context
-const isInExperimentContext = (element) => {
+// eslint-disable-next-line no-unused-vars
+const _isInExperimentContext = (element) => {
   // Check if the element or its ancestors have experiment-related selectors
   const experimentSelectors = [
     '#main-app',
@@ -107,8 +108,8 @@ const setupPortalObserver = () => {
                 el.setAttribute('data-experiment-portal', 'true')
 
                 // Apply current experiment color mode
-                const currentMode =
-                  experimentColorMode.value === 'auto'
+                const currentMode
+                  = experimentColorMode.value === 'auto'
                     ? usePreferredDark().value
                       ? 'dark'
                       : 'light'
@@ -133,7 +134,8 @@ const setupPortalObserver = () => {
 }
 
 // Function to determine if a portaled element should use experiment color mode
-const shouldBeExperimentPortal = (portalElement) => {
+// eslint-disable-next-line no-unused-vars
+const shouldBeExperimentPortal = (_portalElement) => {
   // Simple approach: check if any experiment containers exist and have focus/active elements
   const experimentContainer = document.querySelector('[data-experiment-scope]')
   if (!experimentContainer) return false
@@ -163,17 +165,18 @@ const setupExperimentPortalTracking = () => {
         }, 1000)
       }
     },
-    true
+    true,
   ) // Use capture phase to catch before portal creation
 }
 
 /**
  * Creates a color mode manager for different UI contexts
  * @param {string} scope - Either 'global' or 'experiment' to specify which scope to manage
- * @param {Object} options - Configuration options
- * @returns {Object} Color mode management object
+ * @param {object} options - Configuration options
+ * @returns {object} Color mode management object
  */
-export function useSmileColorMode(scope = 'experiment', options = {}) {
+// eslint-disable-next-line no-unused-vars
+export function useSmileColorMode(scope = 'experiment', _options = {}) {
   ensureInit()
   const preferredDark = usePreferredDark()
 
@@ -210,7 +213,8 @@ export function useSmileColorMode(scope = 'experiment', options = {}) {
           applyColorMode('html', newMode)
           // Also apply to elements with global-color-mode class
           applyColorMode('.global-color-mode', newMode)
-        } else if (scope === 'experiment') {
+        }
+        else if (scope === 'experiment') {
           // Apply to experiment containers only
           applyColorMode('.device-container', newMode)
           applyColorMode('.dev-color-mode', newMode)
@@ -223,7 +227,7 @@ export function useSmileColorMode(scope = 'experiment', options = {}) {
         }
       })
     },
-    { immediate: true }
+    { immediate: true },
   )
 
   return {
@@ -251,9 +255,11 @@ export function useSmileColorMode(scope = 'experiment', options = {}) {
     toggle: () => {
       if (modeRef.value === 'auto') {
         modeRef.value = 'light'
-      } else if (modeRef.value === 'light') {
+      }
+      else if (modeRef.value === 'light') {
         modeRef.value = 'dark'
-      } else {
+      }
+      else {
         modeRef.value = 'auto'
       }
     },
@@ -279,7 +285,8 @@ export function setColorMode(scope, mode) {
   ensureInit()
   if (scope === 'global') {
     globalColorMode.value = mode
-  } else {
+  }
+  else {
     experimentColorMode.value = mode
   }
 }

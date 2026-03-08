@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { StepState } from '@/core/stepper/StepState'
 
 describe('StepState', () => {
@@ -11,11 +11,11 @@ describe('StepState', () => {
   describe.skip('basic interactive checks', () => {
     it('should make sense to use', () => {
       const a = stepper.push('a')
-      const a1 = a.push()
+      const _a1 = a.push()
       const a2 = a.push()
 
       const b = stepper.push('b')
-      const c = stepper.push('c')
+      const _c = stepper.push('c')
       console.log(stepper.treeDiagram)
 
       stepper.reset()
@@ -31,8 +31,8 @@ describe('StepState', () => {
       console.log(stepper.next()) // 1
       console.log(stepper.next()) // b
       console.log(stepper.next()) // c
-      console.log(stepper.next()) //null
-      console.log(stepper.next()) //null
+      console.log(stepper.next()) // null
+      console.log(stepper.next()) // null
       console.log(stepper.prev()) // b
       console.log(stepper.prev()) // a
     })
@@ -204,11 +204,11 @@ describe('StepState', () => {
     it('should correctly track blockIndex and blockLength with nested structure', () => {
       // Create a nested structure
       const child1 = stepper.push('child1')
-      const grandchild1 = child1.push('grandchild1')
-      const grandchild2 = child1.push('grandchild2')
+      const _grandchild1 = child1.push('grandchild1')
+      const _grandchild2 = child1.push('grandchild2')
 
       const child2 = stepper.push('child2')
-      const grandchild3 = child2.push('grandchild3')
+      const _grandchild3 = child2.push('grandchild3')
 
       // Initially at root, blockIndex should be 0 (root's index)
       expect(stepper.currentPathString).toBe('child1/grandchild1')
@@ -253,7 +253,7 @@ describe('StepState', () => {
   describe('insert operations', () => {
     it('should insert at beginning with index 0', () => {
       const root = new StepState()
-      const first = root.push('first')
+      const _first = root.push('first')
       const inserted = root.insert('inserted', 0)
 
       expect(root.states[0].id).toBe('inserted')
@@ -263,8 +263,8 @@ describe('StepState', () => {
 
     it('should insert at beginning with index 0 and data', () => {
       const root = new StepState()
-      const first = root.push('first')
-      const inserted = root.insert('inserted', 0, 'data')
+      const _first = root.push('first')
+      const _inserted = root.insert('inserted', 0, 'data')
 
       expect(root.states[0].id).toBe('inserted')
       expect(root.states[0].data).toBe('data')
@@ -272,7 +272,7 @@ describe('StepState', () => {
 
     it('should insert at end with -1', () => {
       const root = new StepState()
-      const first = root.push('first')
+      const _first = root.push('first')
       const inserted = root.insert('inserted', -1)
 
       expect(root.states[0].id).toBe('first')
@@ -282,8 +282,8 @@ describe('StepState', () => {
 
     it('should insert at end with -1 for a list of more items', () => {
       const root = new StepState()
-      const first = root.push('first')
-      const second = root.push('second')
+      const _first = root.push('first')
+      const _second = root.push('second')
       const inserted = root.insert('inserted', -1)
 
       expect(root.states[0].id).toBe('first')
@@ -294,8 +294,8 @@ describe('StepState', () => {
 
     it('should insert at second to end with -2', () => {
       const root = new StepState()
-      const first = root.push('first')
-      const second = root.push('second')
+      const _first = root.push('first')
+      const _second = root.push('second')
       const inserted = root.insert('inserted', -2)
 
       expect(root.states[0].id).toBe('first')
@@ -306,8 +306,8 @@ describe('StepState', () => {
 
     it('should insert at second position with index 1', () => {
       const root = new StepState()
-      const first = root.push('first')
-      const third = root.push('third')
+      const _first = root.push('first')
+      const _third = root.push('third')
       const inserted = root.insert('inserted', 1)
 
       expect(root.states[0].id).toBe('first')
@@ -318,7 +318,7 @@ describe('StepState', () => {
 
     it('should handle inserting beyond list length gracefully', () => {
       const root = new StepState()
-      const first = root.push('first')
+      const _first = root.push('first')
       // insert at a positive index that is beyond the list length
       const inserted = root.insert('inserted', 5)
 
@@ -329,7 +329,7 @@ describe('StepState', () => {
 
     it('should handle excessively negative indices gracefully', () => {
       const root = new StepState()
-      const first = root.push('first')
+      const _first = root.push('first')
       const inserted = root.insert('inserted', -5)
 
       expect(root.states[0].id).toBe('inserted')
@@ -355,74 +355,74 @@ describe('StepState', () => {
 
     it('should maintain currentPath when inserting at current position', () => {
       const root = new StepState()
-      const first = root.push('first')
-      const second = root.push('second')
+      const _first = root.push('first')
+      const _second = root.push('second')
 
       // Initially at first leaf
       expect(root.currentPath).toEqual(['first'])
 
       // Insert new node at current position
-      const inserted = root.insert('inserted', 0)
+      const _inserted = root.insert('inserted', 0)
       expect(root.currentPath).toEqual(['inserted'])
     })
 
     it('should maintain currentPath when inserting between existing nodes', () => {
       const root = new StepState()
-      const first = root.push('first')
-      const second = root.push('second')
-      const third = root.push('third')
+      const _first = root.push('first')
+      const _second = root.push('second')
+      const _third = root.push('third')
 
       // Move to second node
       root.next()
       expect(root.currentPath).toEqual(['second'])
 
       // Insert between first and second
-      const inserted = root.insert('inserted', 1)
+      const _inserted = root.insert('inserted', 1)
       expect(root.currentPath).toEqual(['inserted'])
     })
 
     it('should maintain currentPath when inserting at end', () => {
       const root = new StepState()
-      const first = root.push('first')
-      const second = root.push('second')
+      const _first = root.push('first')
+      const _second = root.push('second')
 
       // Move to second node
       root.next()
       expect(root.currentPath).toEqual(['second'])
 
       // Insert at end
-      const inserted = root.insert('inserted', -1)
+      const _inserted = root.insert('inserted', -1)
       expect(root.currentPath).toEqual(['second'])
     })
 
     it('should maintain currentPath when inserting into nested structure', () => {
       const root = new StepState()
       const first = root.push('first')
-      const firstChild = first.push('firstChild')
-      const second = root.push('second')
+      const _firstChild = first.push('firstChild')
+      const _second = root.push('second')
 
       // Move to firstChild
-      //root.next()
+      // root.next()
       expect(root.currentPath).toEqual(['first', 'firstChild'])
 
       // Insert new sibling to firstChild
-      const inserted = first.insert('inserted', 0)
+      const _inserted = first.insert('inserted', 0)
       expect(root.currentPath).toEqual(['first', 'inserted'])
     })
 
     it('should maintain currentPath when inserting multiple nodes', () => {
       const root = new StepState()
-      const first = root.push('first')
-      const second = root.push('second')
+      const _first = root.push('first')
+      const _second = root.push('second')
 
       // Move to first node
       expect(root.currentPath).toEqual(['first'])
 
       // Insert multiple nodes at current position
-      const inserted1 = root.insert('inserted1', 0)
+      const _inserted1 = root.insert('inserted1', 0)
       expect(root.currentPath).toEqual(['inserted1'])
 
-      const inserted2 = root.insert('inserted2', 0)
+      const _inserted2 = root.insert('inserted2', 0)
       expect(root.currentPath).toEqual(['inserted2'])
     })
 
@@ -524,8 +524,8 @@ describe('StepState', () => {
 
       it('should get current path correctly', () => {
         const child1 = stepper.push('child1')
-        const grandchild1 = child1.push('grandchild1')
-        const child2 = stepper.push('child2')
+        const _grandchild1 = child1.push('grandchild1')
+        const _child2 = stepper.push('child2')
 
         // Initially at first child
         expect(stepper.currentPath).toEqual(['child1', 'grandchild1'])
@@ -537,8 +537,8 @@ describe('StepState', () => {
 
       it('should get current path correctly when called on a child', () => {
         const child1 = stepper.push('child1')
-        const grandchild1 = child1.push('grandchild1')
-        const child2 = stepper.push('child2')
+        const _grandchild1 = child1.push('grandchild1')
+        const _child2 = stepper.push('child2')
 
         // Initially at first child
         expect(stepper.currentPath).toEqual(['child1', 'grandchild1'])
@@ -552,10 +552,10 @@ describe('StepState', () => {
 
       it('should get current path string correctly with mixed named and indexed nodes', () => {
         const child1 = stepper.push('child1')
-        const autoChild1 = child1.push() // Will be '0'
-        const autoChild2 = child1.push() // Will be '1'
+        const _autoChild1 = child1.push() // Will be '0'
+        const _autoChild2 = child1.push() // Will be '1'
         const child2 = stepper.push('child2')
-        const namedChild = child2.push('named')
+        const _namedChild = child2.push('named')
 
         expect(stepper.currentPathString).toBe('child1/0')
 
@@ -600,17 +600,17 @@ describe('StepState', () => {
       const grandchild1 = child1.push('grandchild1')
       const grandchild2 = child1.push('grandchild2')
       const grandchild3 = child1.push('grandchild3')
-      const grandchild4 = child2.push('grandchild4')
-      const grandchild5 = child2.push('grandchild5')
-      const grandchild6 = child3.push('grandchild6')
+      const _grandchild4 = child2.push('grandchild4')
+      const _grandchild5 = child2.push('grandchild5')
+      const _grandchild6 = child3.push('grandchild6')
       const grandchild7 = child4.push('grandchild7')
       // add greatgrandchild to some of the grandchildren
-      const greatgrandchild1 = grandchild1.push('greatgrandchild1')
-      const greatgrandchild2 = grandchild2.push('greatgrandchild2')
-      const greatgrandchild3 = grandchild3.push('greatgrandchild3')
-      const greatgrandchild4 = grandchild3.push('greatgrandchild4')
-      const greatgrandchild6 = grandchild7.push('greatgrandchild6')
-      const greatgrandchild7 = grandchild7.push('greatgrandchild7')
+      const _greatgrandchild1 = grandchild1.push('greatgrandchild1')
+      const _greatgrandchild2 = grandchild2.push('greatgrandchild2')
+      const _greatgrandchild3 = grandchild3.push('greatgrandchild3')
+      const _greatgrandchild4 = grandchild3.push('greatgrandchild4')
+      const _greatgrandchild6 = grandchild7.push('greatgrandchild6')
+      const _greatgrandchild7 = grandchild7.push('greatgrandchild7')
 
       expect(stepper.currentPath).toEqual(['child1', 'grandchild1', 'greatgrandchild1'])
 
@@ -634,9 +634,9 @@ describe('StepState', () => {
   describe('goTo operations', () => {
     it('should reset to a leaf node correctly', () => {
       const child1 = stepper.push('child1')
-      const child2 = stepper.push('child2')
-      const grandchild1 = child1.push('grandchild1')
-      const grandchild2 = child1.push('grandchild2')
+      const _child2 = stepper.push('child2')
+      const _grandchild1 = child1.push('grandchild1')
+      const _grandchild2 = child1.push('grandchild2')
 
       // Reset to a leaf node
       stepper.goTo(['child1', 'grandchild1'])
@@ -646,9 +646,9 @@ describe('StepState', () => {
     it('should reset to a non-leaf node and traverse to leftmost leaf', () => {
       const child1 = stepper.push('child1')
       const child2 = stepper.push('child2')
-      const grandchild1 = child1.push('grandchild1')
-      const grandchild2 = child1.push('grandchild2')
-      const grandchild3 = child2.push('grandchild3')
+      const _grandchild1 = child1.push('grandchild1')
+      const _grandchild2 = child1.push('grandchild2')
+      const _grandchild3 = child2.push('grandchild3')
 
       stepper.next()
       stepper.next()
@@ -661,9 +661,9 @@ describe('StepState', () => {
 
     it('should handle numeric path values correctly', () => {
       const child1 = stepper.push()
-      const child2 = stepper.push()
-      const grandchild1 = child1.push()
-      const grandchild2 = child1.push()
+      const _child2 = stepper.push()
+      const _grandchild1 = child1.push()
+      const _grandchild2 = child1.push()
 
       // Reset using numeric values
       stepper.goTo([0, 0])
@@ -672,9 +672,9 @@ describe('StepState', () => {
 
     it('should handle mixed string and numeric path values', () => {
       const child1 = stepper.push('child1')
-      const child2 = stepper.push()
-      const grandchild1 = child1.push('grandchild1')
-      const grandchild2 = child1.push()
+      const _child2 = stepper.push()
+      const _grandchild1 = child1.push('grandchild1')
+      const _grandchild2 = child1.push()
 
       // Reset using mixed values
       stepper.goTo(['child1', 'grandchild1'])
@@ -683,9 +683,9 @@ describe('StepState', () => {
 
     it('should handle slash-separated string paths', () => {
       const child1 = stepper.push('child1')
-      const child2 = stepper.push('child2')
-      const grandchild1 = child1.push('grandchild1')
-      const grandchild2 = child1.push('grandchild2')
+      const _child2 = stepper.push('child2')
+      const _grandchild1 = child1.push('grandchild1')
+      const _grandchild2 = child1.push('grandchild2')
 
       // Reset using hyphen-separated string
       stepper.goTo('child1/grandchild1')
@@ -693,8 +693,8 @@ describe('StepState', () => {
     })
 
     it('should throw error for invalid path', () => {
-      const child1 = stepper.push('child1')
-      const child2 = stepper.push('child2')
+      const _child1 = stepper.push('child1')
+      const _child2 = stepper.push('child2')
 
       // Try to reset to non-existent path
       expect(() => stepper.goTo(['nonexistent'])).toThrow('Invalid path')
@@ -703,8 +703,8 @@ describe('StepState', () => {
     it('should handle deep nested paths correctly', () => {
       const child1 = stepper.push('child1')
       const grandchild1 = child1.push('grandchild1')
-      const greatgrandchild1 = grandchild1.push('greatgrandchild1')
-      const greatgrandchild2 = grandchild1.push('greatgrandchild2')
+      const _greatgrandchild1 = grandchild1.push('greatgrandchild1')
+      const _greatgrandchild2 = grandchild1.push('greatgrandchild2')
 
       // Reset to deepest leaf
       stepper.goTo(['child1', 'grandchild1', 'greatgrandchild1'])
@@ -712,8 +712,8 @@ describe('StepState', () => {
     })
 
     it('should handle root path correctly', () => {
-      const child1 = stepper.push('child1')
-      const child2 = stepper.push('child2')
+      const _child1 = stepper.push('child1')
+      const _child2 = stepper.push('child2')
 
       // Reset to root
       stepper.goTo(['/'])
@@ -722,9 +722,9 @@ describe('StepState', () => {
 
     it('should maintain state after multiple goTo calls', () => {
       const child1 = stepper.push('child1')
-      const child2 = stepper.push('child2')
-      const grandchild1 = child1.push('grandchild1')
-      const grandchild2 = child1.push('grandchild2')
+      const _child2 = stepper.push('child2')
+      const _grandchild1 = child1.push('grandchild1')
+      const _grandchild2 = child1.push('grandchild2')
 
       // Reset to different paths
       stepper.goTo(['child1', 'grandchild1'])
@@ -778,16 +778,16 @@ describe('StepState', () => {
     })
 
     it('should navigate forward correctly', () => {
-      const child1 = stepper.push('child1')
-      const child2 = stepper.push('child2')
+      const _child1 = stepper.push('child1')
+      const _child2 = stepper.push('child2')
 
       expect(stepper.next().id).toBe('child2')
       expect(stepper.next()).toBeNull()
     })
 
     it('should navigate backward correctly', () => {
-      const child1 = stepper.push('child1')
-      const child2 = stepper.push('child2')
+      const _child1 = stepper.push('child1')
+      const _child2 = stepper.push('child2')
 
       stepper.next() // child1
       stepper.next() // child2
@@ -798,8 +798,8 @@ describe('StepState', () => {
 
     it('should correctly report hasNext state', () => {
       const child1 = stepper.push('child1')
-      const child2 = stepper.push('child2')
-      const grandchild = child1.push('grandchild')
+      const _child2 = stepper.push('child2')
+      const _grandchild = child1.push('grandchild')
 
       // Initially at root
       expect(stepper.hasNext()).toBe(true)
@@ -811,8 +811,8 @@ describe('StepState', () => {
 
     it('should correctly report hasPrev state', () => {
       const child1 = stepper.push('child1')
-      const child2 = stepper.push('child2')
-      const grandchild = child1.push('grandchild')
+      const _child2 = stepper.push('child2')
+      const _grandchild = child1.push('grandchild')
 
       // Initially at root
       expect(stepper.hasPrev()).toBe(false)
@@ -838,18 +838,18 @@ describe('StepState', () => {
       const grandchild1 = child1.push('grandchild1')
       const grandchild2 = child1.push('grandchild2')
       const grandchild3 = child1.push('grandchild3')
-      const grandchild4 = child2.push('grandchild4')
-      const grandchild5 = child2.push('grandchild5')
-      const grandchild6 = child3.push('grandchild6')
+      const _grandchild4 = child2.push('grandchild4')
+      const _grandchild5 = child2.push('grandchild5')
+      const _grandchild6 = child3.push('grandchild6')
       const grandchild7 = child4.push('grandchild7')
 
       // add greatgrandchild to some of the grandchildren
-      const greatgrandchild1 = grandchild1.push('greatgrandchild1')
-      const greatgrandchild2 = grandchild2.push('greatgrandchild2')
-      const greatgrandchild3 = grandchild3.push('greatgrandchild3')
-      const greatgrandchild4 = grandchild3.push('greatgrandchild4')
-      const greatgrandchild6 = grandchild7.push('greatgrandchild6')
-      const greatgrandchild7 = grandchild7.push('greatgrandchild7')
+      const _greatgrandchild1 = grandchild1.push('greatgrandchild1')
+      const _greatgrandchild2 = grandchild2.push('greatgrandchild2')
+      const _greatgrandchild3 = grandchild3.push('greatgrandchild3')
+      const _greatgrandchild4 = grandchild3.push('greatgrandchild4')
+      const _greatgrandchild6 = grandchild7.push('greatgrandchild6')
+      const _greatgrandchild7 = grandchild7.push('greatgrandchild7')
 
       // now navigate through the tree
       expect(stepper.next().id).toBe('greatgrandchild2')
@@ -876,16 +876,16 @@ describe('StepState', () => {
     })
 
     it('should peek next correctly', () => {
-      const child1 = stepper.push('child1')
-      const child2 = stepper.push('child2')
+      const _child1 = stepper.push('child1')
+      const _child2 = stepper.push('child2')
 
       expect(stepper.peekNext().id).toBe('child2')
       expect(stepper.index).toBe(0) // Should not change position
     })
 
     it('should peek prev correctly', () => {
-      const child1 = stepper.push('child1')
-      const child2 = stepper.push('child2')
+      const _child1 = stepper.push('child1')
+      const _child2 = stepper.push('child2')
 
       stepper.next() // child1
       stepper.next() // child2
@@ -974,7 +974,7 @@ describe('StepState', () => {
       const root = new StepState()
       const a = root.push('A')
       const b = a.push('B')
-      const c = b.push('C')
+      const _c = b.push('C')
       root.data = { test: 'data' }
 
       // Clear the state
@@ -991,7 +991,7 @@ describe('StepState', () => {
       const root = new StepState()
       const a = root.push('A')
       const b = a.push('B')
-      const c = b.push('C')
+      const _c = b.push('C')
       a.data = { test: 'data' }
 
       // Clear a nested state
@@ -1007,7 +1007,7 @@ describe('StepState', () => {
     it('should maintain root reference after clearing', () => {
       const root = new StepState()
       const a = root.push('A')
-      const b = a.push('B')
+      const _b = a.push('B')
 
       // Clear a nested state
       a.clear()
@@ -1022,7 +1022,7 @@ describe('StepState', () => {
       const root = new StepState()
       const a = root.push('A')
       const b = a.push('B')
-      const c = b.push('C')
+      const _c = b.push('C')
       root.data = { test: 'data' }
 
       // Clear the tree
@@ -1038,7 +1038,7 @@ describe('StepState', () => {
       const root = new StepState()
       const a = root.push('A')
       const b = a.push('B')
-      const c = b.push('C')
+      const _c = b.push('C')
       a.data = { test: 'data' }
 
       // Clear a nested state
@@ -1053,7 +1053,7 @@ describe('StepState', () => {
     it('should maintain root reference after clearing tree', () => {
       const root = new StepState()
       const a = root.push('A')
-      const b = a.push('B')
+      const _b = a.push('B')
 
       // Clear a nested state
       a.clearSubTree()
@@ -1067,7 +1067,7 @@ describe('StepState', () => {
     it('should generate tree representation', () => {
       const a = stepper.push('A')
       const b = a.push('B')
-      const c = b.push('C')
+      const _c = b.push('C')
 
       const diagram = stepper.treeDiagram
       expect(diagram).toBeTypeOf('string')
@@ -1084,38 +1084,38 @@ describe('StepState', () => {
       const grandchild1 = child1.push('grandchild1')
       const grandchild2 = child1.push('grandchild2')
       const grandchild3 = child1.push('grandchild3')
-      const grandchild4 = child2.push('grandchild4')
-      const grandchild5 = child2.push('grandchild5')
-      const grandchild6 = child3.push('grandchild6')
+      const _grandchild4 = child2.push('grandchild4')
+      const _grandchild5 = child2.push('grandchild5')
+      const _grandchild6 = child3.push('grandchild6')
       const grandchild7 = child4.push('grandchild7')
       // add greatgrandchild to some of the grandchildren
-      const greatgrandchild1 = grandchild1.push('greatgrandchild1')
-      const greatgrandchild2 = grandchild2.push('greatgrandchild2')
-      const greatgrandchild3 = grandchild3.push('greatgrandchild3')
-      const greatgrandchild4 = grandchild3.push('greatgrandchild4')
-      const greatgrandchild6 = grandchild7.push('greatgrandchild6')
-      const greatgrandchild7 = grandchild7.push('greatgrandchild7')
-      //console.log(stepper.treeDiagram)
+      const _greatgrandchild1 = grandchild1.push('greatgrandchild1')
+      const _greatgrandchild2 = grandchild2.push('greatgrandchild2')
+      const _greatgrandchild3 = grandchild3.push('greatgrandchild3')
+      const _greatgrandchild4 = grandchild3.push('greatgrandchild4')
+      const _greatgrandchild6 = grandchild7.push('greatgrandchild6')
+      const _greatgrandchild7 = grandchild7.push('greatgrandchild7')
+      // console.log(stepper.treeDiagram)
       expect(stepper.treeDiagram).toBe(
-        '/' +
-          '\n├── child1' +
-          '\n│   ├── grandchild1' +
-          '\n│   │   └── greatgrandchild1' +
-          '\n│   ├── grandchild2' +
-          '\n│   │   └── greatgrandchild2' +
-          '\n│   └── grandchild3' +
-          '\n│       ├── greatgrandchild3' +
-          '\n│       └── greatgrandchild4' +
-          '\n├── child2' +
-          '\n│   ├── grandchild4' +
-          '\n│   └── grandchild5' +
-          '\n├── child3' +
-          '\n│   └── grandchild6' +
-          '\n└── child4' +
-          '\n    └── grandchild7' +
-          '\n        ├── greatgrandchild6' +
-          '\n        └── greatgrandchild7' +
-          '\n'
+        '/'
+        + '\n├── child1'
+        + '\n│   ├── grandchild1'
+        + '\n│   │   └── greatgrandchild1'
+        + '\n│   ├── grandchild2'
+        + '\n│   │   └── greatgrandchild2'
+        + '\n│   └── grandchild3'
+        + '\n│       ├── greatgrandchild3'
+        + '\n│       └── greatgrandchild4'
+        + '\n├── child2'
+        + '\n│   ├── grandchild4'
+        + '\n│   └── grandchild5'
+        + '\n├── child3'
+        + '\n│   └── grandchild6'
+        + '\n└── child4'
+        + '\n    └── grandchild7'
+        + '\n        ├── greatgrandchild6'
+        + '\n        └── greatgrandchild7'
+        + '\n',
       )
     })
 
@@ -1127,20 +1127,20 @@ describe('StepState', () => {
       const grandchild1 = child1.push('grandchild1')
       const grandchild2 = child1.push('grandchild2')
       const grandchild3 = child1.push('grandchild3')
-      const grandchild4 = child2.push('grandchild4')
-      const grandchild5 = child2.push('grandchild5')
-      const grandchild6 = child3.push('grandchild6')
+      const _grandchild4 = child2.push('grandchild4')
+      const _grandchild5 = child2.push('grandchild5')
+      const _grandchild6 = child3.push('grandchild6')
       const grandchild7 = child4.push('grandchild7')
       // add greatgrandchild to some of the grandchildren
-      const greatgrandchild1 = grandchild1.push('greatgrandchild1')
-      const greatgrandchild2 = grandchild2.push('greatgrandchild2')
-      const greatgrandchild3 = grandchild3.push('greatgrandchild3')
-      const greatgrandchild4 = grandchild3.push('greatgrandchild4')
-      const greatgrandchild6 = grandchild7.push('greatgrandchild6')
-      const greatgrandchild7 = grandchild7.push('greatgrandchild7')
-      //console.log(grandchild7.treeDiagram)
+      const _greatgrandchild1 = grandchild1.push('greatgrandchild1')
+      const _greatgrandchild2 = grandchild2.push('greatgrandchild2')
+      const _greatgrandchild3 = grandchild3.push('greatgrandchild3')
+      const _greatgrandchild4 = grandchild3.push('greatgrandchild4')
+      const _greatgrandchild6 = grandchild7.push('greatgrandchild6')
+      const _greatgrandchild7 = grandchild7.push('greatgrandchild7')
+      // console.log(grandchild7.treeDiagram)
       expect(grandchild7.treeDiagram).toBe(
-        '└── grandchild7' + '\n    ├── greatgrandchild6' + '\n    └── greatgrandchild7' + '\n'
+        '└── grandchild7' + '\n    ├── greatgrandchild6' + '\n    └── greatgrandchild7' + '\n',
       )
     })
 
@@ -1152,17 +1152,17 @@ describe('StepState', () => {
       const grandchild1 = child1.push('grandchild1')
       const grandchild2 = child1.push('grandchild2')
       const grandchild3 = child1.push('grandchild3')
-      const grandchild4 = child2.push('grandchild4')
-      const grandchild5 = child2.push('grandchild5')
-      const grandchild6 = child3.push('grandchild6')
+      const _grandchild4 = child2.push('grandchild4')
+      const _grandchild5 = child2.push('grandchild5')
+      const _grandchild6 = child3.push('grandchild6')
       const grandchild7 = child4.push('grandchild7')
       // add greatgrandchild to some of the grandchildren
-      const greatgrandchild1 = grandchild1.push('greatgrandchild1')
-      const greatgrandchild2 = grandchild2.push('greatgrandchild2')
-      const greatgrandchild3 = grandchild3.push('greatgrandchild3')
-      const greatgrandchild4 = grandchild3.push('greatgrandchild4')
-      const greatgrandchild6 = grandchild7.push('greatgrandchild6')
-      const greatgrandchild7 = grandchild7.push('greatgrandchild7')
+      const _greatgrandchild1 = grandchild1.push('greatgrandchild1')
+      const _greatgrandchild2 = grandchild2.push('greatgrandchild2')
+      const _greatgrandchild3 = grandchild3.push('greatgrandchild3')
+      const _greatgrandchild4 = grandchild3.push('greatgrandchild4')
+      const _greatgrandchild6 = grandchild7.push('greatgrandchild6')
+      const _greatgrandchild7 = grandchild7.push('greatgrandchild7')
 
       expect(stepper.leafNodes).toEqual([
         'child1/grandchild1/greatgrandchild1',
@@ -1294,7 +1294,7 @@ describe('StepState', () => {
 
     it('should require object data in setDataAtPath', () => {
       const first = stepper.push('first')
-      const second = first.push('second')
+      const _second = first.push('second')
 
       // Should accept objects
       expect(() => stepper.setDataAtPath(['first', 'second'], {})).not.toThrow()
@@ -1324,14 +1324,14 @@ describe('StepState', () => {
       it('should collect data from all nodes along current path', () => {
         // Set up a path with data
         const child1 = stepper.push('child1')
-        const child2 = stepper.push('child2')
+        const _child2 = stepper.push('child2')
         const grandchild = child1.push('grandchild')
 
         child1.data = { level: 1 }
         grandchild.data = { level: 2 }
 
         // Navigate to grandchild
-        //stepper.next() // moves to grandchild
+        // stepper.next() // moves to grandchild
 
         // Should get data from child1 and grandchild
         expect(stepper.dataAlongPath).toEqual([{ level: 1 }, { level: 2 }])
@@ -1348,13 +1348,13 @@ describe('StepState', () => {
 
       it('should skip nodes without data', () => {
         const child1 = stepper.push('child1')
-        const child2 = stepper.push('child2')
+        const _child2 = stepper.push('child2')
         const grandchild = child1.push('grandchild')
 
         // Only set data on grandchild
         grandchild.data = { data: 'test' }
 
-        //stepper.next() // moves to grandchild
+        // stepper.next() // moves to grandchild
 
         // Should only get grandchild data
         expect(stepper.dataAlongPath).toEqual([{ data: 'test' }])
@@ -1383,7 +1383,7 @@ describe('StepState', () => {
         child2.data = { unused: 'data' } // This shouldn't appear in result
 
         // Navigate to greatgrandchild
-        //stepper.next() // moves to greatgrandchild
+        // stepper.next() // moves to greatgrandchild
 
         // Should get data from the path child1 -> grandchild1 -> greatgrandchild
         expect(stepper.dataAlongPath).toEqual([{ level: 1 }, { level: 2 }, { level: 3 }])
@@ -1391,9 +1391,9 @@ describe('StepState', () => {
 
       it('should return empty array when no data exists along path', () => {
         const child = stepper.push('child')
-        const grandchild = child.push('grandchild')
+        const _grandchild = child.push('grandchild')
 
-        //stepper.next() // move to grandchild
+        // stepper.next() // move to grandchild
 
         expect(stepper.dataAlongPath).toEqual([])
       })
@@ -1420,7 +1420,7 @@ describe('StepState', () => {
 
       it('should return empty object for leaf node without data', () => {
         const child = stepper.push('child')
-        const grandchild = child.push('grandchild')
+        const _grandchild = child.push('grandchild')
 
         // No data set on any nodes
         expect(stepper.currentData).toEqual({})
@@ -1534,8 +1534,8 @@ describe('StepState', () => {
     it('should handle deep nesting', () => {
       const child1 = stepper.push('child1')
       const grandchild1 = child1.push('grandchild1')
-      const greatgrandchild1 = grandchild1.push('greatgrandchild1')
-      const greatgrandchild2 = grandchild1.push('greatgrandchild2')
+      const _greatgrandchild1 = grandchild1.push('greatgrandchild1')
+      const _greatgrandchild2 = grandchild1.push('greatgrandchild2')
 
       const expectedPaths = new Set(['child1/grandchild1/greatgrandchild1', 'child1/grandchild1/greatgrandchild2'])
       expect(stepper.existingPaths).toEqual(expectedPaths)
@@ -1546,9 +1546,9 @@ describe('StepState', () => {
       const child2 = stepper.push('child2')
       const grandchild1 = child1.push('grandchild1')
       const grandchild2 = child1.push('grandchild2')
-      const grandchild3 = child2.push('grandchild3')
-      const greatgrandchild1 = grandchild1.push('greatgrandchild1')
-      const greatgrandchild2 = grandchild2.push('greatgrandchild2')
+      const _grandchild3 = child2.push('grandchild3')
+      const _greatgrandchild1 = grandchild1.push('greatgrandchild1')
+      const _greatgrandchild2 = grandchild2.push('greatgrandchild2')
 
       const expectedPaths = new Set([
         'child1/grandchild1/greatgrandchild1',

@@ -8,7 +8,7 @@
 /**
  * Parses a string in the format "WIDTHxHEIGHT" into width and height values
  * @param {string} value - String in format "WIDTHxHEIGHT" (e.g. "800x600")
- * @returns {Object} Object containing parsed width and height as integers
+ * @returns {object} Object containing parsed width and height as integers
  * @property {number} width - The parsed width value
  * @property {number} height - The parsed height value
  */
@@ -17,12 +17,12 @@ function parseWidthHeight(value) {
   // split based on 'x' and assign to objects
   if (!value) return { width: 0, height: 0 }
   const w_h = value.split('x')
-  return { width: parseInt(w_h[0]), height: parseInt(w_h[1]) }
+  return { width: Number.parseInt(w_h[0]), height: Number.parseInt(w_h[1]) }
 }
 
 /**
  * Global configuration object for the Smile application
- * @typedef {Object} Config
+ * @typedef {object} Config
  * @property {string} mode - Application mode ('development', 'production', 'testing')
  * @property {string} projectName - Name of the project
  * @property {string} projectRef - Project reference derived from deploy base path
@@ -30,7 +30,7 @@ function parseWidthHeight(value) {
  * @property {string} codeNameURL - Deploy URL for code name
  * @property {string} localStorageKey - Key for storing data in localStorage
  * @property {string} devLocalStorageKey - Key for storing dev data in localStorage
- * @property {Object} github - GitHub repository information
+ * @property {object} github - GitHub repository information
  * @property {string} github.repoName - Repository name
  * @property {string} github.owner - Repository owner
  * @property {string} github.branch - Current branch name
@@ -47,10 +47,10 @@ function parseWidthHeight(value) {
  * @property {string} labURL - URL of the lab website
  * @property {string} brandLogoFn - Function name for brand logo
  * @property {string} googleAnalyticsID - Google Analytics tracking ID
- * @property {Object} windowsizerRequest - Requested window dimensions
+ * @property {object} windowsizerRequest - Requested window dimensions
  * @property {boolean} windowsizerAggressive - Whether to force window sizing
  * @property {boolean} anonymousMode - Whether to enable anonymous mode
- * @property {Object} firebaseConfig - Firebase configuration object
+ * @property {object} firebaseConfig - Firebase configuration object
  * @property {string} firebaseConfig.apiKey - Firebase API key
  * @property {string} firebaseConfig.authDomain - Firebase auth domain
  * @property {string} firebaseConfig.projectId - Firebase project ID

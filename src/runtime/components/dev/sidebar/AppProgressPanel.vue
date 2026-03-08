@@ -1,5 +1,4 @@
 <script setup>
-
 /**
  * API instance for accessing Smile app state and actions
  * @type {import('@/core/composables/useAPI')}
@@ -11,7 +10,10 @@ const api = useAPI()
   <!-- App progress stepper panel -->
   <Stepper class="flex w-full items-start gap-2 my-0 pt-4 pb-2 border-t border-border">
     <!-- Step 1: User known/unknown -->
-    <StepperItem class="relative flex w-full flex-col items-center justify-center" :step="1">
+    <StepperItem
+      class="relative flex w-full flex-col items-center justify-center"
+      :step="1"
+    >
       <StepperSeparator
         class="absolute left-[calc(50%+20px)] right-[calc(-50%+10px)] top-5 block h-0.5 shrink-0 rounded-full bg-muted"
         :class="[api.store.cookieState.knownUser ? 'bg-green-500' : 'bg-gray-300']"
@@ -39,7 +41,10 @@ const api = useAPI()
     </StepperItem>
 
     <!-- Step 2: Record created -->
-    <StepperItem class="relative flex w-full flex-col items-center justify-center" :step="2">
+    <StepperItem
+      class="relative flex w-full flex-col items-center justify-center"
+      :step="2"
+    >
       <StepperSeparator
         class="absolute left-[calc(50%+20px)] right-[calc(-50%+10px)] top-5 block h-0.5 shrink-0 rounded-full bg-muted"
         :class="[
@@ -72,7 +77,10 @@ const api = useAPI()
     </StepperItem>
 
     <!-- Step 3: Sync status -->
-    <StepperItem class="relative flex w-full flex-col items-center justify-center" :step="3">
+    <StepperItem
+      class="relative flex w-full flex-col items-center justify-center"
+      :step="3"
+    >
       <StepperTrigger as-child>
         <div
           class="z-10 rounded-full shrink-0 p-3"

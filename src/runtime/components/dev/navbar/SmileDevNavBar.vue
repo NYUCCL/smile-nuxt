@@ -101,15 +101,18 @@ onKeyDown((e) => {
       api.store.dev.showSideBar = true
       api.store.dev.showConsoleBar = false
       showTemporaryNotification('Ctrl + 1', 'Showing Sidebar')
-    } else if (sideBar && !consoleBar) {
+    }
+    else if (sideBar && !consoleBar) {
       api.store.dev.showSideBar = false
       api.store.dev.showConsoleBar = true
       showTemporaryNotification('Ctrl + 1', 'Showing Console')
-    } else if (!sideBar && consoleBar) {
+    }
+    else if (!sideBar && consoleBar) {
       api.store.dev.showSideBar = true
       api.store.dev.showConsoleBar = true
       showTemporaryNotification('Ctrl + 1', 'Showing Both Panels')
-    } else {
+    }
+    else {
       api.store.dev.showSideBar = false
       api.store.dev.showConsoleBar = false
       showTemporaryNotification('Ctrl + 1', 'Hiding All Panels')
@@ -134,10 +137,12 @@ onKeyDown((e) => {
     if (currentTab === 'steps') {
       api.store.dev.sideBarTab = 'randomization'
       showTemporaryNotification('Ctrl + 2', 'Switched to Random Tab')
-    } else if (currentTab === 'randomization') {
+    }
+    else if (currentTab === 'randomization') {
       api.store.dev.sideBarTab = 'db'
       showTemporaryNotification('Ctrl + 2', 'Switched to DB Info Tab')
-    } else {
+    }
+    else {
       api.store.dev.sideBarTab = 'steps'
       showTemporaryNotification('Ctrl + 2', 'Switched to Steps Tab')
     }
@@ -161,10 +166,12 @@ onKeyDown((e) => {
     if (currentTab === 'browse') {
       api.store.dev.consoleBarTab = 'log'
       showTemporaryNotification('Ctrl + 3', 'Switched to Log Tab')
-    } else if (currentTab === 'log') {
+    }
+    else if (currentTab === 'log') {
       api.store.dev.consoleBarTab = 'config'
       showTemporaryNotification('Ctrl + 3', 'Switched to Config Tab')
-    } else {
+    }
+    else {
       api.store.dev.consoleBarTab = 'browse'
       showTemporaryNotification('Ctrl + 3', 'Switched to Browse Tab')
     }
@@ -207,7 +214,8 @@ onKeyDown((e) => {
     if (api.hasAutofill()) {
       api.autofill()
       showTemporaryNotification('Ctrl + A', 'Autofilled Current View')
-    } else {
+    }
+    else {
       showTemporaryNotification('Ctrl + A', 'No Autofill Available', 'error')
     }
   }
@@ -225,7 +233,8 @@ onKeyDown((e) => {
     if (isCurrentlyPinned) {
       api.store.dev.pinnedRoute = null
       showTemporaryNotification('Ctrl + P', 'Unpinned Route')
-    } else {
+    }
+    else {
       api.store.dev.pinnedRoute = currentRoute
       showTemporaryNotification('Ctrl + P', 'Pinned Current Route')
     }
@@ -284,12 +293,18 @@ onKeyDown((e) => {
         </div>
 
         <!-- Color mode button (only in fullscreen mode and not on recruit page) -->
-        <div class="flex items-center" v-if="api.store.dev.isFullscreen && api.currentRouteName() !== 'recruit'">
+        <div
+          v-if="api.store.dev.isFullscreen && api.currentRouteName() !== 'recruit'"
+          class="flex items-center"
+        >
           <ColorModeButton />
         </div>
 
         <!-- Fullscreen button (not on recruit page) -->
-        <div class="flex items-center" v-if="api.currentRouteName() !== 'recruit'">
+        <div
+          v-if="api.currentRouteName() !== 'recruit'"
+          class="flex items-center"
+        >
           <FullScreenButton />
         </div>
 

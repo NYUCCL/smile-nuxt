@@ -20,12 +20,12 @@ class StepperProxy {
    * @returns {*} The value of the property
    */
   get(target, prop) {
-    //console.log('get', prop)
+    // console.log('get', prop)
     // Handle array/object access
     if (typeof prop === 'string' || typeof prop === 'number') {
       // Convert string numbers to actual numbers
       if (typeof prop === 'string' && /^-?\d+$/.test(prop)) {
-        prop = parseInt(prop)
+        prop = Number.parseInt(prop)
       }
 
       // Handle negative indices first

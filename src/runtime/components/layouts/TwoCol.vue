@@ -43,7 +43,10 @@ const containerClasses = computed(() => {
       <div :class="leftColumnClasses">
         <slot name="left" />
       </div>
-      <div class="flex-1" :class="leftFirst ? 'mb-10' : ''">
+      <div
+        class="flex-1"
+        :class="leftFirst ? 'mb-10' : ''"
+      >
         <slot name="right" />
       </div>
     </div>

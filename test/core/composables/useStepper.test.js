@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 // general testing functions
 import { defineComponent } from 'vue'
 import { setActivePinia } from 'pinia'
@@ -8,8 +7,12 @@ import { createRouter, createWebHashHistory, useRoute } from 'vue-router'
 import { describe, it, expect, beforeEach, afterEach, beforeAll, vi } from 'vitest'
 
 // import shared mocks
-import '../../setup/mocks' // Import shared mocks
 import { setupBrowserEnvironment } from '../../setup/mocks'
+
+// import the composable
+import useStepper from '@/core/composables/useStepper'
+import useSmileStore from '@/core/stores/smilestore'
+import useLog from '@/core/stores/log'
 
 // Mock the config import
 vi.mock('@/core/config', () => ({
@@ -17,11 +20,6 @@ vi.mock('@/core/config', () => ({
     maxSteps: 5000,
   },
 }))
-
-// import the composable
-import useStepper from '@/core/composables/useStepper'
-import useSmileStore from '@/core/stores/smilestore'
-import useLog from '@/core/stores/log'
 
 // Create a test component that uses the composable
 const TestComponent = defineComponent({
@@ -253,16 +251,16 @@ describe('useStepper composable', () => {
     pinia = setupPinia()
 
     // Now we can safely access the store
-    const smilestore = useSmileStore()
+    const _smilestore = useSmileStore()
 
     // you do have to do this because the store is not reset between tests
     // because the composable is not reset between calls to useSmileStore
-    smilestore.browserEphemeral.steppers = {}
-    smilestore.localState.viewSteppers = {}
-    smilestore.dev.viewProvidesStepper = false
-    expect(smilestore.browserEphemeral.steppers).toEqual({})
-    expect(smilestore.localState.viewSteppers).toEqual({})
-    expect(smilestore.dev.viewProvidesStepper).toEqual(false)
+    _smilestore.browserEphemeral.steppers = {}
+    _smilestore.localState.viewSteppers = {}
+    _smilestore.dev.viewProvidesStepper = false
+    expect(_smilestore.browserEphemeral.steppers).toEqual({})
+    expect(_smilestore.localState.viewSteppers).toEqual({})
+    expect(_smilestore.dev.viewProvidesStepper).toEqual(false)
   })
 
   afterEach(async () => {
@@ -339,13 +337,13 @@ describe('useStepper composable', () => {
       // Verify error was logged with the correct message
       expect(log.error).toHaveBeenCalledWith(
         expect.stringContaining('STEPPER: Failed to load saved state'),
-        expect.stringContaining('Missing required fields in data')
+        expect.stringContaining('Missing required fields in data'),
       )
     })
 
     it('should preserve stepper state across route changes', async () => {
       testEnv = await setupTestEnvironmentWithSerializedState(pinia, mockSerializedState)
-      const { router, getCurrentRouteStepper, smilestore } = testEnv
+      const { router, getCurrentRouteStepper } = testEnv
 
       // Get initial stepper
       const initialStepper = getCurrentRouteStepper()

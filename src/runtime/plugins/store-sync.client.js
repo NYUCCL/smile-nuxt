@@ -11,8 +11,7 @@
  */
 import { defineNuxtPlugin } from '#imports'
 import { watch } from 'vue'
-import useSmileStore from '../stores/smilestore'
-import { initCookieState, initLocalState, initDev, COOKIE_MAX_AGE } from '../stores/smilestore'
+import useSmileStore, { initLocalState, initDev, COOKIE_MAX_AGE } from '../stores/smilestore'
 import appconfig from '../core/config.js'
 
 export default defineNuxtPlugin((nuxtApp) => {
@@ -34,7 +33,8 @@ export default defineNuxtPlugin((nuxtApp) => {
           store.localState[key] = saved[key]
         }
       })
-    } catch (e) {
+    }
+    catch (e) {
       console.warn('[store-sync] Failed to parse localStorage:', e)
     }
   }
@@ -48,7 +48,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         document.cookie = `${prefix}${key}=${encoded}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`
       })
     },
-    { deep: true }
+    { deep: true },
   )
 
   // --- 3. Watch store.dev — reset to defaults if externally cleared to null ---
@@ -59,7 +59,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         if (val === null || val === undefined) {
           store.dev = { ...initDev }
         }
-      }
+      },
     )
   }
 
@@ -69,6 +69,6 @@ export default defineNuxtPlugin((nuxtApp) => {
     (val) => {
       localStorage.setItem(appconfig.localStorageKey, JSON.stringify(val))
     },
-    { deep: true }
+    { deep: true },
   )
 })

@@ -1,5 +1,5 @@
 <script setup>
-import { CalendarRoot, useForwardPropsEmits, useDateFormatter } from 'reka-ui'
+import { CalendarRoot, useDateFormatter } from 'reka-ui'
 import { createDecade, createYear, toDate } from 'reka-ui/date'
 import { getLocalTimeZone, today, CalendarDate } from '@internationalized/date'
 import { computed, ref, watch } from 'vue'
@@ -54,7 +54,7 @@ function calendarDateToIso(calendarDate) {
 const placeholderRef = ref(
   props.modelValue && typeof props.modelValue === 'string'
     ? isoToCalendarDate(props.modelValue)
-    : today(getLocalTimeZone())
+    : today(getLocalTimeZone()),
 )
 
 // Watch for external changes to modelValue and update placeholder
@@ -68,7 +68,7 @@ watch(
     if (newDate && (!placeholderRef.value || calendarDateToIso(newDate) !== calendarDateToIso(placeholderRef.value))) {
       placeholderRef.value = newDate
     }
-  }
+  },
 )
 
 // Forward only the props we need to CalendarRoot (exclude modelValue, placeholder, class)
@@ -89,6 +89,8 @@ const yearRange = createDecade({ dateObj: currentDate, startIndex: -100, endInde
     v-slot="{ grid, weekDays, date }"
     v-model:placeholder="placeholderRef"
     :model-value="isoToCalendarDate(props.modelValue)"
+    :class="cn('p-3', props.class)"
+    v-bind="calendarProps"
     @update:model-value="
       (val) => {
         if (val) {
@@ -97,8 +99,6 @@ const yearRange = createDecade({ dateObj: currentDate, startIndex: -100, endInde
       }
     "
     @update:placeholder="(val) => emits('update:placeholder', val)"
-    :class="cn('p-3', props.class)"
-    v-bind="calendarProps"
   >
     <CalendarHeader>
       <CalendarHeading class="flex w-full items-center justify-between gap-2">
@@ -117,7 +117,10 @@ const yearRange = createDecade({ dateObj: currentDate, startIndex: -100, endInde
             }
           "
         >
-          <SelectTrigger aria-label="Select month" class="w-[60%]">
+          <SelectTrigger
+            aria-label="Select month"
+            class="w-[60%]"
+          >
             <SelectValue placeholder="Select month" />
           </SelectTrigger>
           <SelectContent class="max-h-[200px]">
@@ -146,11 +149,18 @@ const yearRange = createDecade({ dateObj: currentDate, startIndex: -100, endInde
             }
           "
         >
-          <SelectTrigger aria-label="Select year" class="w-[40%]">
+          <SelectTrigger
+            aria-label="Select year"
+            class="w-[40%]"
+          >
             <SelectValue placeholder="Select year" />
           </SelectTrigger>
           <SelectContent class="max-h-[200px]">
-            <SelectItem v-for="yearValue in yearRange" :key="yearValue.toString()" :value="yearValue.year.toString()">
+            <SelectItem
+              v-for="yearValue in yearRange"
+              :key="yearValue.toString()"
+              :value="yearValue.year.toString()"
+            >
               {{ yearValue.year }}
             </SelectItem>
           </SelectContent>
@@ -159,18 +169,35 @@ const yearRange = createDecade({ dateObj: currentDate, startIndex: -100, endInde
     </CalendarHeader>
 
     <div class="flex flex-col gap-y-4 mt-4 sm:flex-row sm:gap-x-4 sm:gap-y-0">
-      <CalendarGrid v-for="month in grid" :key="month.value.toString()">
+      <CalendarGrid
+        v-for="month in grid"
+        :key="month.value.toString()"
+      >
         <CalendarGridHead>
           <CalendarGridRow>
-            <CalendarHeadCell v-for="day in weekDays" :key="day">
+            <CalendarHeadCell
+              v-for="day in weekDays"
+              :key="day"
+            >
               {{ day }}
             </CalendarHeadCell>
           </CalendarGridRow>
         </CalendarGridHead>
         <CalendarGridBody>
-          <CalendarGridRow v-for="(weekDates, index) in month.rows" :key="`weekDate-${index}`" class="mt-2 w-full">
-            <CalendarCell v-for="weekDate in weekDates" :key="weekDate.toString()" :date="weekDate">
-              <CalendarCellTrigger :day="weekDate" :month="month.value" />
+          <CalendarGridRow
+            v-for="(weekDates, index) in month.rows"
+            :key="`weekDate-${index}`"
+            class="mt-2 w-full"
+          >
+            <CalendarCell
+              v-for="weekDate in weekDates"
+              :key="weekDate.toString()"
+              :date="weekDate"
+            >
+              <CalendarCellTrigger
+                :day="weekDate"
+                :month="month.value"
+              />
             </CalendarCell>
           </CalendarGridRow>
         </CalendarGridBody>

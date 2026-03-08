@@ -33,8 +33,11 @@ async function copyToClipboard(text, label) {
   try {
     await navigator.clipboard.writeText(text)
     copied.value = label
-    setTimeout(() => { copied.value = '' }, 2000)
-  } catch {
+    setTimeout(() => {
+      copied.value = ''
+    }, 2000)
+  }
+  catch {
     // fallback
     const el = document.createElement('textarea')
     el.value = text
@@ -43,7 +46,9 @@ async function copyToClipboard(text, label) {
     document.execCommand('copy')
     document.body.removeChild(el)
     copied.value = label
-    setTimeout(() => { copied.value = '' }, 2000)
+    setTimeout(() => {
+      copied.value = ''
+    }, 2000)
   }
 }
 
@@ -184,10 +189,11 @@ const currentService = computed(() => services[selectedService.value])
 <template>
   <div class="min-h-screen bg-gray-50 text-gray-900 font-sans">
     <div class="max-w-3xl mx-auto px-4 py-10">
-
       <!-- Header -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold mb-2">Experiment Info</h1>
+        <h1 class="text-3xl font-bold mb-2">
+          Experiment Info
+        </h1>
         <p class="text-gray-600">
           Deployment details, recruitment URLs, and setup instructions for your experiment.
         </p>
@@ -195,19 +201,29 @@ const currentService = computed(() => services[selectedService.value])
 
       <!-- Experiment Details Card -->
       <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <h2 class="text-lg font-semibold mb-4">Experiment Details</h2>
+        <h2 class="text-lg font-semibold mb-4">
+          Experiment Details
+        </h2>
         <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-          <dt class="text-gray-500 font-medium">Project</dt>
+          <dt class="text-gray-500 font-medium">
+            Project
+          </dt>
           <dd>{{ config.projectName || config.projectRef || '(not set)' }}</dd>
 
-          <dt class="text-gray-500 font-medium">Code Name</dt>
+          <dt class="text-gray-500 font-medium">
+            Code Name
+          </dt>
           <dd>{{ config.codeName || '(not set)' }}</dd>
 
-          <dt class="text-gray-500 font-medium">Version</dt>
+          <dt class="text-gray-500 font-medium">
+            Version
+          </dt>
           <dd>{{ config.smileVersion || '(not set)' }}</dd>
 
           <template v-if="config.github?.repoName">
-            <dt class="text-gray-500 font-medium">Repository</dt>
+            <dt class="text-gray-500 font-medium">
+              Repository
+            </dt>
             <dd>
               <a
                 :href="`https://github.com/${config.github.owner}/${config.github.repoName}`"
@@ -218,10 +234,14 @@ const currentService = computed(() => services[selectedService.value])
               </a>
             </dd>
 
-            <dt class="text-gray-500 font-medium">Branch</dt>
+            <dt class="text-gray-500 font-medium">
+              Branch
+            </dt>
             <dd>{{ config.github.branch || '(unknown)' }}</dd>
 
-            <dt class="text-gray-500 font-medium">Last Commit</dt>
+            <dt class="text-gray-500 font-medium">
+              Last Commit
+            </dt>
             <dd>
               <a
                 v-if="config.github.lastCommitHash"
@@ -231,21 +251,34 @@ const currentService = computed(() => services[selectedService.value])
               >
                 {{ config.github.lastCommitHash }}
               </a>
-              <span v-if="config.github.lastCommitMsg" class="ml-2 text-gray-500">
+              <span
+                v-if="config.github.lastCommitMsg"
+                class="ml-2 text-gray-500"
+              >
                 {{ config.github.lastCommitMsg }}
               </span>
             </dd>
           </template>
 
-          <dt class="text-gray-500 font-medium">Deploy URL</dt>
-          <dd class="font-mono text-xs break-all">{{ baseUrl }}</dd>
+          <dt class="text-gray-500 font-medium">
+            Deploy URL
+          </dt>
+          <dd class="font-mono text-xs break-all">
+            {{ baseUrl }}
+          </dd>
         </dl>
 
         <!-- QR Code for production URL -->
         <div class="mt-4 pt-4 border-t border-gray-100 flex items-center gap-4">
-          <img :src="`/api/qr?url=${encodeURIComponent(baseUrl)}`" alt="QR Code" class="w-32 h-32" />
+          <img
+            :src="`/api/qr?url=${encodeURIComponent(baseUrl)}`"
+            alt="QR Code"
+            class="w-32 h-32"
+          >
           <div class="text-sm text-gray-500">
-            <p class="font-medium text-gray-700 mb-1">QR Code</p>
+            <p class="font-medium text-gray-700 mb-1">
+              QR Code
+            </p>
             <p>Scan to open the experiment on a mobile device, or download for posters and presentations.</p>
             <a
               :href="`/api/qr?url=${encodeURIComponent(baseUrl)}`"
@@ -260,7 +293,9 @@ const currentService = computed(() => services[selectedService.value])
 
       <!-- Quick Links -->
       <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <h2 class="text-lg font-semibold mb-4">Mode URLs</h2>
+        <h2 class="text-lg font-semibold mb-4">
+          Mode URLs
+        </h2>
         <div class="space-y-3 text-sm">
           <div class="flex items-center justify-between">
             <div>
@@ -270,8 +305,8 @@ const currentService = computed(() => services[selectedService.value])
             <div class="flex items-center gap-2">
               <code class="text-xs bg-gray-100 px-2 py-1 rounded">{{ baseUrl }}/</code>
               <button
-                @click="copyToClipboard(`${baseUrl}/`, 'prod')"
                 class="text-xs px-2 py-1 border rounded hover:bg-gray-50"
+                @click="copyToClipboard(`${baseUrl}/`, 'prod')"
               >
                 {{ copied === 'prod' ? 'Copied!' : 'Copy' }}
               </button>
@@ -285,8 +320,8 @@ const currentService = computed(() => services[selectedService.value])
             <div class="flex items-center gap-2">
               <code class="text-xs bg-gray-100 px-2 py-1 rounded">{{ baseUrl }}/dev/</code>
               <button
-                @click="copyToClipboard(`${baseUrl}/dev/`, 'dev')"
                 class="text-xs px-2 py-1 border rounded hover:bg-gray-50"
+                @click="copyToClipboard(`${baseUrl}/dev/`, 'dev')"
               >
                 {{ copied === 'dev' ? 'Copied!' : 'Copy' }}
               </button>
@@ -300,8 +335,8 @@ const currentService = computed(() => services[selectedService.value])
             <div class="flex items-center gap-2">
               <code class="text-xs bg-gray-100 px-2 py-1 rounded">{{ baseUrl }}/presentation/</code>
               <button
-                @click="copyToClipboard(`${baseUrl}/presentation/`, 'pres')"
                 class="text-xs px-2 py-1 border rounded hover:bg-gray-50"
+                @click="copyToClipboard(`${baseUrl}/presentation/`, 'pres')"
               >
                 {{ copied === 'pres' ? 'Copied!' : 'Copy' }}
               </button>
@@ -312,11 +347,16 @@ const currentService = computed(() => services[selectedService.value])
 
       <!-- Recruitment Service Section -->
       <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <h2 class="text-lg font-semibold mb-4">Recruitment Service Setup</h2>
+        <h2 class="text-lg font-semibold mb-4">
+          Recruitment Service Setup
+        </h2>
 
         <!-- Service Selector -->
         <div class="mb-6">
-          <label for="service-select" class="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            for="service-select"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >
             Select a recruitment platform:
           </label>
           <select
@@ -324,37 +364,68 @@ const currentService = computed(() => services[selectedService.value])
             v-model="selectedService"
             class="w-full max-w-xs border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="prolific">Prolific</option>
-            <option value="cloudresearch">CloudResearch</option>
-            <option value="mturk">Mechanical Turk</option>
-            <option value="sona">SONA (Credit)</option>
-            <option value="sona_paid">SONA (Paid)</option>
-            <option value="spark">SPARK</option>
-            <option value="panda">PANDA</option>
-            <option value="citizensci">Citizen Science</option>
-            <option value="web">Anonymous Web</option>
+            <option value="prolific">
+              Prolific
+            </option>
+            <option value="cloudresearch">
+              CloudResearch
+            </option>
+            <option value="mturk">
+              Mechanical Turk
+            </option>
+            <option value="sona">
+              SONA (Credit)
+            </option>
+            <option value="sona_paid">
+              SONA (Paid)
+            </option>
+            <option value="spark">
+              SPARK
+            </option>
+            <option value="panda">
+              PANDA
+            </option>
+            <option value="citizensci">
+              Citizen Science
+            </option>
+            <option value="web">
+              Anonymous Web
+            </option>
           </select>
         </div>
 
         <!-- Selected Service Details -->
-        <div class="border rounded-lg overflow-hidden" :class="currentService.color.replace(/text-\S+/, '').trim()">
-          <div class="px-4 py-3 border-b" :class="currentService.color">
-            <h3 class="font-semibold">{{ currentService.name }}</h3>
-            <p class="text-sm mt-1 opacity-80">{{ currentService.description }}</p>
+        <div
+          class="border rounded-lg overflow-hidden"
+          :class="currentService.color.replace(/text-\S+/, '').trim()"
+        >
+          <div
+            class="px-4 py-3 border-b"
+            :class="currentService.color"
+          >
+            <h3 class="font-semibold">
+              {{ currentService.name }}
+            </h3>
+            <p class="text-sm mt-1 opacity-80">
+              {{ currentService.description }}
+            </p>
           </div>
 
           <div class="p-4 bg-white">
             <!-- Study URL -->
             <div class="mb-4">
               <label class="block text-sm font-medium text-gray-700 mb-1">Study URL</label>
-              <p class="text-xs text-gray-500 mb-2" v-html="currentService.urlNote"></p>
+              <p
+                class="text-xs text-gray-500 mb-2"
+                v-html="currentService.urlNote"
+              />
               <div class="flex items-center gap-2">
                 <code class="flex-1 text-xs bg-gray-50 border rounded px-3 py-2 break-all select-all">
                   {{ currentService.studyUrl.value }}
                 </code>
                 <button
-                  @click="copyToClipboard(currentService.studyUrl.value, 'study')"
                   class="shrink-0 text-xs px-3 py-2 border rounded hover:bg-gray-50 font-medium"
+                  @click="copyToClipboard(currentService.studyUrl.value, 'study')"
                 >
                   {{ copied === 'study' ? 'Copied!' : 'Copy' }}
                 </button>
@@ -369,8 +440,8 @@ const currentService = computed(() => services[selectedService.value])
                   {{ fullUrls[selectedService] }}
                 </code>
                 <button
-                  @click="copyToClipboard(fullUrls[selectedService], 'test')"
                   class="shrink-0 text-xs px-3 py-2 border rounded hover:bg-gray-50 font-medium"
+                  @click="copyToClipboard(fullUrls[selectedService], 'test')"
                 >
                   {{ copied === 'test' ? 'Copied!' : 'Copy' }}
                 </button>
@@ -379,14 +450,16 @@ const currentService = computed(() => services[selectedService.value])
 
             <!-- Setup Instructions -->
             <div>
-              <h4 class="text-sm font-medium text-gray-700 mb-2">Setup Instructions</h4>
+              <h4 class="text-sm font-medium text-gray-700 mb-2">
+                Setup Instructions
+              </h4>
               <ol class="list-decimal list-outside ml-5 space-y-2 text-sm text-gray-700">
                 <li
                   v-for="(step, i) in currentService.setupSteps"
                   :key="i"
-                  v-html="step"
                   class="leading-relaxed"
-                ></li>
+                  v-html="step"
+                />
               </ol>
             </div>
           </div>
@@ -395,7 +468,10 @@ const currentService = computed(() => services[selectedService.value])
 
       <!-- Back link -->
       <div class="text-center text-sm text-gray-500">
-        <NuxtLink to="/dev/" class="text-blue-600 underline">Back to Dev Mode</NuxtLink>
+        <NuxtLink
+          to="/dev/"
+          class="text-blue-600 underline"
+        >Back to Dev Mode</NuxtLink>
       </div>
     </div>
   </div>

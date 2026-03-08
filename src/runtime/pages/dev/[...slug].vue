@@ -4,7 +4,10 @@
     <RecruitmentChooserView v-if="isDevRoot && timelineReady" />
     <template v-else-if="viewConfig && viewConfig.component">
       <ExperimentStatusBar />
-      <component :is="viewConfig.component" v-bind="viewConfig.props" />
+      <component
+        :is="viewConfig.component"
+        v-bind="viewConfig.props"
+      />
     </template>
     <div v-else-if="viewConfig === null && timelineReady">
       <h1>Page not found</h1>
@@ -50,11 +53,12 @@ onMounted(() => {
 watch(viewConfig, (config) => {
   if (config && config.redirect) {
     if (config.redirect.name) {
-      const target = nuxtApp.$timeline.routes.find((r) => r.name === config.redirect.name)
+      const target = nuxtApp.$timeline.routes.find(r => r.name === config.redirect.name)
       if (target) {
         navigateTo('/dev' + target.path)
       }
-    } else if (config.redirect.path) {
+    }
+    else if (config.redirect.path) {
       navigateTo('/dev' + config.redirect.path)
     }
   }

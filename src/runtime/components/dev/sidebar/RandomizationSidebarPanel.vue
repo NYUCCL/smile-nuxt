@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue'
-import { v4 as uuidv4 } from 'uuid'
+// uuid removed - not currently used
 
 /**
  * API instance for logging and navigation
@@ -25,7 +25,7 @@ const seed = ref(smilestore.getSeedID)
  */
 function set_seed() {
   // seed.value = uuidv4()
-  //seed = smilestore.randomizeSeed()
+  // seed = smilestore.randomizeSeed()
   api.log.debug('Setting seed to ', seed.value)
   smilestore.setSeedID(seed.value)
   // Force a reload to resample conditions and variables
@@ -34,7 +34,7 @@ function set_seed() {
 
 /**
  * Selected conditions from the store
- * @type {Object}
+ * @type {object}
  */
 const selected = smilestore.getConditions
 
@@ -59,7 +59,7 @@ watch(
     Object.keys(newConds).forEach((key) => {
       selected[key] = newConds[key]
     })
-  }
+  },
 )
 
 /**
@@ -71,9 +71,11 @@ watch(
 const getBranchType = (index, total) => {
   if (index === 0) {
     return '┌─ '
-  } else if (index === total - 1) {
+  }
+  else if (index === total - 1) {
     return '└─ '
-  } else {
+  }
+  else {
     return '├─ '
   }
 }
@@ -125,11 +127,11 @@ const getBranchType = (index, total) => {
               />
             </div>
             <Button
-              @click="set_seed"
               :disabled="!smilestore.localState.useSeed"
               size="sm"
               variant="outline"
               class="font-mono text-xs"
+              @click="set_seed"
             >
               Update seed
             </Button>
@@ -139,11 +141,11 @@ const getBranchType = (index, total) => {
 
       <!-- Random variables section -->
       <div
-        class="subsection"
         v-if="
-          smilestore.localState.possibleConditions &&
-          Object.keys(smilestore.localState.possibleConditions).length > 0
+          smilestore.localState.possibleConditions
+            && Object.keys(smilestore.localState.possibleConditions).length > 0
         "
+        class="subsection"
       >
         <!-- Random variables header -->
         <div
@@ -162,17 +164,29 @@ const getBranchType = (index, total) => {
           <!-- Variables list -->
           <div class="relative m-0 p-0 pt-1.5 mb-3 mt-2">
             <ul class="list-none p-0 m-0 text-left ml-1.5 pb-2">
-              <template v-for="(value, key, index) in smilestore.localState.possibleConditions" :key="key">
+              <template
+                v-for="(value, key, index) in smilestore.localState.possibleConditions"
+                :key="key"
+              >
                 <li class="flex items-center mb-0 ml-0.5 mt-1">
                   <span class="font-mono text-sm text-gray-500 whitespace-pre mr-0">{{
                     getBranchType(index, Object.keys(smilestore.localState.possibleConditions).length)
                   }}</span>
-                  <Select :model-value="selected[key]" @update:model-value="(val) => changeCond(key, val)">
+                  <Select
+                    :model-value="selected[key]"
+                    @update:model-value="(val) => changeCond(key, val)"
+                  >
                     <SelectTrigger class="h-7 text-[0.65rem] py-1 px-3 font-mono">
                       <SelectValue :placeholder="`${key}: ${selected[key]}`" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem v-for="cond in value" :key="cond" :value="cond"> {{ key }}: {{ cond }} </SelectItem>
+                      <SelectItem
+                        v-for="cond in value"
+                        :key="cond"
+                        :value="cond"
+                      >
+                        {{ key }}: {{ cond }}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </li>

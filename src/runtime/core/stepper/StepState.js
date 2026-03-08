@@ -16,7 +16,7 @@
  * @property {number} _depth - Depth of this node in the tree (0 for root)
  * @property {StepState|null} _parent - Reference to parent node
  * @property {StepState} _root - Reference to root node
- * @property {Object} _data - Associated data for this node
+ * @property {object} _data - Associated data for this node
  */
 export class StepState {
   /**
@@ -103,7 +103,8 @@ export class StepState {
   set index(index) {
     if (Number.isInteger(index) && index >= 0 && index <= Math.max(0, this._states.length - 1)) {
       this._currentIndex = index
-    } else {
+    }
+    else {
       throw new Error(`Invalid index: ${index}. Index must be between 0 and ${this._states.length - 1}`)
     }
   }
@@ -205,7 +206,7 @@ export class StepState {
    * @returns {Array} Array of data values from all child states
    */
   get rowsData() {
-    return this._states.map((item) => item.data)
+    return this._states.map(item => item.data)
   }
 
   /**
@@ -214,7 +215,7 @@ export class StepState {
    * @returns {Array} Array of data values from all child states
    */
   get statesData() {
-    return this._states.map((item) => item.data)
+    return this._states.map(item => item.data)
   }
 
   /**
@@ -233,7 +234,7 @@ export class StepState {
     if (this._states.length === 0) {
       return 0 // this is a leaf node
     }
-    return Math.max(...this._states.map((state) => state.treeDepth)) + 1
+    return Math.max(...this._states.map(state => state.treeDepth)) + 1
   }
 
   /**
@@ -374,7 +375,7 @@ export class StepState {
     const autoid = id === null ? this._states.length : id
 
     // Check for existing state with same id and warn if found
-    if (this._states.some((state) => state.id === autoid)) {
+    if (this._states.some(state => state.id === autoid)) {
       throw new Error(`State id already exists in at this node (id: "${autoid}")`)
     }
 
@@ -410,7 +411,7 @@ export class StepState {
    */
   reset() {
     this._currentIndex = 0
-    this._states.forEach((state) => state.reset())
+    this._states.forEach(state => state.reset())
   }
 
   /**
@@ -436,7 +437,7 @@ export class StepState {
       if (id === '/') continue
 
       // Find the child state with matching id, converting to string for comparison
-      const childState = current._states.find((state) => String(state.id) === String(id))
+      const childState = current._states.find(state => String(state.id) === String(id))
       if (!childState) {
         throw new Error(`Invalid path: ${path} (Could not find child with id "${id}" in node "${current.id}")`)
       }
@@ -553,7 +554,7 @@ export class StepState {
     if (typeof identifier === 'number') {
       return this._states[identifier] || null
     }
-    return this._states.find((state) => state.id === identifier) || null
+    return this._states.find(state => state.id === identifier) || null
   }
 
   /**
@@ -646,7 +647,7 @@ export class StepState {
   /**
    * Sets data for a node at the specified path
    * @param {Array|string} path - Path to the node (array of ids or slash-separated string)
-   * @param {Object} data - Data to associate with the node
+   * @param {object} data - Data to associate with the node
    * @throws {Error} If the path doesn't exist
    */
   setDataAtPath(path, data) {

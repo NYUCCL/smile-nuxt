@@ -39,8 +39,8 @@ function save_path() {
  * @returns {number} Count of non-null path segments
  */
 const n_active_panels = computed(() => {
-  var count = 0
-  for (var i = 0; i < browse_panels.path.length; i++) {
+  let count = 0
+  for (let i = 0; i < browse_panels.path.length; i++) {
     if (browse_panels.path[i] !== null) {
       count++
     }
@@ -54,11 +54,12 @@ const n_active_panels = computed(() => {
  * @returns {string|null} Path string or null if invalid
  */
 function panel_path(cutoff) {
-  var path = ''
+  let path = ''
   if (browse_panels.path[browse_panels.path.length - cutoff - 1] == null) {
     return null
-  } else {
-    for (var i = 0; i < browse_panels.path.length - cutoff; i++) {
+  }
+  else {
+    for (let i = 0; i < browse_panels.path.length - cutoff; i++) {
       path += String(browse_panels.path[i])
       if (i < browse_panels.path.length - cutoff - 1) {
         path += '.'
@@ -107,7 +108,7 @@ function panel3_select(option) {
  */
 function panel_jump(index) {
   // for everything after index set to null
-  for (var i = index + 1; i < browse_panels.path.length; i++) {
+  for (let i = index + 1; i < browse_panels.path.length; i++) {
     browse_panels.path[i] = null
   }
   // trim browse_panels to length three
@@ -121,14 +122,23 @@ function panel_jump(index) {
     <!-- Breadcrumb navigation bar -->
     <Breadcrumb class="bg-muted border-b border-t border-dev-lines px-3 py-2 font-mono">
       <BreadcrumbList>
-        <template v-for="(option, index) in browse_panels.path" :key="index">
+        <template
+          v-for="(option, index) in browse_panels.path"
+          :key="index"
+        >
           <template v-if="option !== null">
             <BreadcrumbItem>
-              <BreadcrumbLink as="button" @click="panel_jump(index)" class="flex items-center text-xs">
+              <BreadcrumbLink
+                as="button"
+                class="flex items-center text-xs"
+                @click="panel_jump(index)"
+              >
                 <template v-if="option == '/'">
                   <i-fa6-solid-house />
                 </template>
-                <template v-else>{{ option }}</template>
+                <template v-else>
+                  {{ option }}
+                </template>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator v-if="index < n_active_panels - 1" />
@@ -146,7 +156,7 @@ function panel_jump(index) {
           :data="panel_path(2)"
           :selected="browse_panels.path[browse_panels.path.length - 2]"
           @selected="panel1_select"
-        ></DatabaseList>
+        />
       </div>
       <!-- Middle panel - 25% width -->
       <div class="w-1/4 h-full border-r border-dev-lines p-0 m-0 bg-gray-50">
@@ -155,12 +165,15 @@ function panel_jump(index) {
           :data="panel_path(1)"
           :selected="browse_panels.path[browse_panels.path.length - 1]"
           @selected="panel2_select"
-        ></DatabaseList>
+        />
       </div>
       <!-- Right panel - 50% width -->
       <div class="w-1/2 h-full p-0 m-0 bg-gray-50">
         <!-- zero from end -->
-        <DatabaseList :data="panel_path(0)" @selected="panel3_select"></DatabaseList>
+        <DatabaseList
+          :data="panel_path(0)"
+          @selected="panel3_select"
+        />
       </div>
     </div>
   </div>

@@ -26,7 +26,7 @@ const api = useAPI()
         <!-- Magnifying glass button - Browse tab -->
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger asChild>
+            <TooltipTrigger as-child>
               <Button
                 variant="ghost"
                 size="icon"
@@ -49,7 +49,7 @@ const api = useAPI()
         <!-- Book button - Log tab -->
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger asChild>
+            <TooltipTrigger as-child>
               <Button
                 variant="ghost"
                 size="icon"
@@ -72,7 +72,7 @@ const api = useAPI()
         <!-- Config gear button - Config tab -->
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger asChild>
+            <TooltipTrigger as-child>
               <Button
                 variant="ghost"
                 size="icon"
@@ -96,7 +96,7 @@ const api = useAPI()
       <!-- Hide button - anchored to bottom -->
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger as-child>
             <Button
               variant="ghost"
               size="icon"

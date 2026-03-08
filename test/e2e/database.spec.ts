@@ -19,7 +19,7 @@ async function countParticipants(db: ReturnType<typeof createClient>) {
 /** Get all participant rows */
 async function getAllParticipants(db: ReturnType<typeof createClient>) {
   const result = await db.execute('SELECT * FROM participants ORDER BY created_at DESC')
-  return result.rows.map((row) => ({
+  return result.rows.map(row => ({
     id: row.id as string,
     projectRef: row.project_ref as string,
     data: JSON.parse(row.data as string),
@@ -57,7 +57,7 @@ async function cleanupParticipants(db: ReturnType<typeof createClient>, ids: str
 }
 
 test.describe('Database persistence', () => {
-  const readyButton = (page) => page.getByRole('button', { name: /I'm ready/i })
+  const readyButton = page => page.getByRole('button', { name: /I'm ready/i })
   let db: ReturnType<typeof createClient>
   let countBefore: number
   let createdIds: string[] = []
@@ -150,6 +150,7 @@ test.describe('Database persistence', () => {
     createdIds.push(participant!.id)
 
     // Route history should include demograph
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const routeNames = participant!.data.routeOrder.map((r: any) => r.route)
     expect(routeNames).toContain('demograph')
   })
@@ -176,7 +177,7 @@ test.describe('Database persistence', () => {
     // minWriteInterval. To verify the full route history, read it from the
     // client-side store (which is the source of truth for route tracking),
     // then verify the DB has a valid participant record.
-    const clientRoutes: string[] = await page.evaluate(() => {
+    const _clientRoutes: string[] = await page.evaluate(() => {
       // Read from localStorage — the store-sync plugin writes localState there
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i)!
@@ -199,6 +200,7 @@ test.describe('Database persistence', () => {
     // The route order in the DB may be stale due to save throttling,
     // but the participant record should exist and have initial data.
     // The full route history is tracked client-side:
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const dbRouteNames = participant!.data.routeOrder.map((r: any) => r.route)
     expect(dbRouteNames).toContain('welcome_anonymous')
     expect(dbRouteNames).toContain('consent')
@@ -206,7 +208,7 @@ test.describe('Database persistence', () => {
 
     // Verify the participant ID was written to a cookie (docRef)
     const cookies = await page.context().cookies()
-    const docRefCookie = cookies.find((c) => c.name.includes('docRef'))
+    const docRefCookie = cookies.find(c => c.name.includes('docRef'))
     expect(docRefCookie).toBeTruthy()
     // Cookie value may be URL-encoded with quotes (%22)
     const cookieVal = decodeURIComponent(docRefCookie!.value).replace(/^"|"$/g, '')

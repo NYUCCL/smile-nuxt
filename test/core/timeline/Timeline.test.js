@@ -22,7 +22,7 @@ describe('Timeline tests', () => {
         config: { mode: 'production' },
         localState: { seqtimeline: [], routes: [] },
       },
-      sampleWithReplacement: vi.fn((options) => [options[0]]),
+      sampleWithReplacement: vi.fn(options => [options[0]]),
       getConditionByName: vi.fn(),
       setCondition: vi.fn(),
     }
@@ -450,7 +450,7 @@ describe('Timeline tests', () => {
       api.store.getRandomizedRouteByName = vi.fn().mockReturnValue(null)
       api.store.setRandomizedRoute = vi.fn()
       // Mock sampleWithReplacement to return first option deterministically
-      api.sampleWithReplacement = vi.fn().mockImplementation((options) => [options[0]])
+      api.sampleWithReplacement = vi.fn().mockImplementation(options => [options[0]])
     })
 
     it('should push a randomized node and connect routes in correct order', () => {
@@ -504,7 +504,7 @@ describe('Timeline tests', () => {
 
     it('should select second option when randomizer returns it', () => {
       // Change mock to return second option
-      api.sampleWithReplacement = vi.fn().mockImplementation((options) => [options[1]])
+      api.sampleWithReplacement = vi.fn().mockImplementation(options => [options[1]])
 
       const timeline = new Timeline(api)
       addWelcomeRoute(timeline)
@@ -793,7 +793,7 @@ describe('Timeline tests', () => {
 
       // Verify full sequence: welcome -> instructions -> taskA -> taskB -> debrief
       expect(timeline.seqtimeline.length).toBe(5)
-      expect(timeline.seqtimeline.map((r) => r.name)).toEqual([
+      expect(timeline.seqtimeline.map(r => r.name)).toEqual([
         'welcome_anonymous',
         'instructions',
         'taskA',

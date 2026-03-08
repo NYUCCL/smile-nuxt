@@ -51,36 +51,54 @@ const colorModeDisplayText = computed(() => {
       <tbody>
         <!-- Consent, Known, Done, Withdrew, Viz toggles -->
         <tr class="table-row-base">
-          <td class="table-cell-base table-cell-left table-cell-small font-mono" colspan="4">
+          <td
+            class="table-cell-base table-cell-left table-cell-small font-mono"
+            colspan="4"
+          >
             <div class="flex flex-wrap gap-4">
               <div class="flex flex-col items-center">
                 <span>Consent</span>
                 <div class="field">
-                  <Switch v-model="api.store.cookieState.consented" class="mt-1" />
+                  <Switch
+                    v-model="api.store.cookieState.consented"
+                    class="mt-1"
+                  />
                 </div>
               </div>
               <div class="flex flex-col items-center">
                 <span>Known</span>
                 <div class="field">
-                  <Switch v-model="api.store.cookieState.knownUser" class="mt-1" />
+                  <Switch
+                    v-model="api.store.cookieState.knownUser"
+                    class="mt-1"
+                  />
                 </div>
               </div>
               <div class="flex flex-col items-center">
                 <span>Done</span>
                 <div class="field">
-                  <Switch v-model="api.store.cookieState.done" class="mt-1" />
+                  <Switch
+                    v-model="api.store.cookieState.done"
+                    class="mt-1"
+                  />
                 </div>
               </div>
               <div class="flex flex-col items-center">
                 <span>Withdrew</span>
                 <div class="field">
-                  <Switch v-model="api.store.cookieState.withdrawn" class="mt-1" />
+                  <Switch
+                    v-model="api.store.cookieState.withdrawn"
+                    class="mt-1"
+                  />
                 </div>
               </div>
               <div class="flex flex-col items-center">
                 <span>Viz</span>
                 <div class="field">
-                  <Switch v-model="api.store.data.verifiedVisibility" class="mt-1" />
+                  <Switch
+                    v-model="api.store.data.verifiedVisibility"
+                    class="mt-1"
+                  />
                 </div>
               </div>
             </div>
@@ -117,7 +135,10 @@ const colorModeDisplayText = computed(() => {
               <div class="flex flex-col items-center">
                 <span>Aggressive</span>
                 <div class="field">
-                  <Checkbox v-model="api.config.windowsizerAggressive" class="mt-1" />
+                  <Checkbox
+                    v-model="api.config.windowsizerAggressive"
+                    class="mt-1"
+                  />
                 </div>
               </div>
             </div>
@@ -125,24 +146,51 @@ const colorModeDisplayText = computed(() => {
         </tr>
         <!-- Responsive UI and color mode -->
         <tr class="table-row-base table-row-base-bottom">
-          <td class="table-cell-base table-cell-left table-cell-small font-mono" colspan="4">
+          <td
+            class="table-cell-base table-cell-left table-cell-small font-mono"
+            colspan="4"
+          >
             <div class="flex flex-wrap gap-4 items-center">
               <div class="flex flex-col items-center">
                 <span>Resp. UI</span>
                 <div class="field">
-                  <Checkbox v-model="api.config.responsiveUI" class="mt-1" />
+                  <Checkbox
+                    v-model="api.config.responsiveUI"
+                    class="mt-1"
+                  />
                 </div>
               </div>
               <div class="flex flex-col items-left">
                 <span>Color Mode</span>
-                <Select v-model="colorModeSelect" class="mt-1 h-8">
-                  <SelectTrigger size="sm" class="h-6 text-[1.1em] font-mono">
+                <Select
+                  v-model="colorModeSelect"
+                  class="mt-1 h-8"
+                >
+                  <SelectTrigger
+                    size="sm"
+                    class="h-6 text-[1.1em] font-mono"
+                  >
                     <SelectValue>{{ colorModeDisplayText }}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="light" key="light">Light</SelectItem>
-                    <SelectItem value="dark" key="dark">Dark</SelectItem>
-                    <SelectItem value="auto" key="auto">System ({{ system }})</SelectItem>
+                    <SelectItem
+                      key="light"
+                      value="light"
+                    >
+                      Light
+                    </SelectItem>
+                    <SelectItem
+                      key="dark"
+                      value="dark"
+                    >
+                      Dark
+                    </SelectItem>
+                    <SelectItem
+                      key="auto"
+                      value="auto"
+                    >
+                      System ({{ system }})
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -151,16 +199,29 @@ const colorModeDisplayText = computed(() => {
         </tr>
         <!-- Recruitment service select -->
         <tr class="table-row-base table-row-base-bottom">
-          <td class="table-cell-base table-cell-left table-cell-small font-mono" colspan="4">
+          <td
+            class="table-cell-base table-cell-left table-cell-small font-mono"
+            colspan="4"
+          >
             <div class="flex flex-wrap gap-4 items-center">
               <div class="flex flex-col items-left">
-                Service<br />
-                <Select v-model="api.store.data.recruitmentService" class="mt-1 h-8">
-                  <SelectTrigger size="sm" class="h-8 text-[1.2em] font-mono">
+                Service<br>
+                <Select
+                  v-model="api.store.data.recruitmentService"
+                  class="mt-1 h-8"
+                >
+                  <SelectTrigger
+                    size="sm"
+                    class="h-8 text-[1.2em] font-mono"
+                  >
                     <SelectValue :placeholder="api.store.data.recruitmentService" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="(cond, key) in api.store.browserEphemeral.urls" :key="cond" :value="key">
+                    <SelectItem
+                      v-for="(cond, key) in api.store.browserEphemeral.urls"
+                      :key="cond"
+                      :value="key"
+                    >
                       {{ key }}
                     </SelectItem>
                   </SelectContent>

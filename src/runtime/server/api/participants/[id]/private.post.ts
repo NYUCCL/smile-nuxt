@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 import { useDB } from '../../../utils/db'
 import { privateData } from '../../../database/schema'
 

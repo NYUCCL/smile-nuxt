@@ -11,7 +11,7 @@ const api = useViewAPI()
 
 /**
  * Computed state machine visualization data
- * @type {import('vue').ComputedRef<Object>}
+ * @type {import('vue').ComputedRef<object>}
  */
 const stateMachine = computed(() => api.steps.visualize())
 
@@ -20,7 +20,7 @@ const stateMachine = computed(() => api.steps.visualize())
  * @param {Array} pathArray - The path array to convert
  * @returns {string} The path as a string
  */
-const pathToString = (pathArray) => {
+const _pathToString = (pathArray) => {
   return Array.isArray(pathArray) ? pathArray.join('/') : ''
 }
 
@@ -55,7 +55,7 @@ const formatObjectWithIndent = (obj, indent = 0, seen = new WeakSet()) => {
   if (Array.isArray(obj)) {
     if (obj.length === 0) return '[]'
     seen.add(obj)
-    const items = obj.map((item) => formatObjectWithIndent(item, indent + 1, seen)).join(',\n' + spaces + '  ')
+    const items = obj.map(item => formatObjectWithIndent(item, indent + 1, seen)).join(',\n' + spaces + '  ')
     return `[\n${spaces}  ${items}\n${spaces}]`
   }
 
@@ -81,7 +81,7 @@ const formatObjectWithIndent = (obj, indent = 0, seen = new WeakSet()) => {
  * Computed formatted root node for display
  * @type {import('vue').ComputedRef<string>}
  */
-const formattedRootNode = computed(() => {
+const _formattedRootNode = computed(() => {
   return formatObjectWithIndent(stateMachine.value)
 })
 
@@ -102,8 +102,8 @@ const formatData = (data) => {
         const preview = previewKeys
           .map((k) => {
             const val = data[k]
-            const valStr =
-              typeof val === 'object'
+            const valStr
+              = typeof val === 'object'
                 ? '{...}'
                 : typeof val === 'string'
                   ? `"${val.substring(0, 15)}${val.length > 15 ? '...' : ''}"`
@@ -114,12 +114,15 @@ const formatData = (data) => {
         return `{${preview}${keys.length > 3 ? ', ...' : ''}}`
       }
       return '{}'
-    } else if (Array.isArray(data)) {
+    }
+    else if (Array.isArray(data)) {
       return `[${data.length > 0 ? '...' + data.length + ' items...' : ''}]`
-    } else {
+    }
+    else {
       return `(${String(data)})`
     }
-  } catch (e) {
+  }
+  catch {
     return '(data)'
   }
 }
@@ -133,7 +136,8 @@ const handleNodeClick = (path) => {
   if (api.steps) {
     api.goToStep(path)
     // Scroll will happen via the watcher
-  } else {
+  }
+  else {
     console.warn('Stepper not available for path reset')
   }
 }
@@ -141,7 +145,7 @@ const handleNodeClick = (path) => {
 /**
  * Handles page reload
  */
-const handleReload = () => {
+const _handleReload = () => {
   window.location.reload()
 }
 
@@ -172,14 +176,15 @@ const scrollToSelectedNode = () => {
 
       // Calculate the relative position of the node within the container
       const relativeTop = nodeRect.top - containerRect.top
-      const relativeBottom = nodeRect.bottom - containerRect.top
+      const _relativeBottom = nodeRect.bottom - containerRect.top
 
       // Calculate the center position we want
       const targetPosition = relativeTop - containerRect.height / 2 + nodeRect.height / 2
 
       // Smoothly scroll to the target position
       container.scrollTop += targetPosition
-    } catch (e) {
+    }
+    catch (e) {
       console.error('Error scrolling to selected node:', e)
     }
   }, 100)
@@ -194,58 +199,86 @@ watch(
     if (newPath) {
       scrollToSelectedNode()
     }
-  }
+  },
 )
 </script>
 
 <template>
   <!-- Main step explorer container -->
-  <div class="tree-viewer-container" v-if="api.steps">
+  <div
+    v-if="api.steps"
+    class="tree-viewer-container"
+  >
     <!-- Navigation controls section -->
     <div :class="{ disabled: api.nSteps === 0 }">
       <div class="path-display-container">
         <!-- Current path display -->
         <div class="path-info">
-          <div class="path-display">{{ api.pathString }}</div>
+          <div class="path-display">
+            {{ api.pathString }}
+          </div>
         </div>
 
         <!-- Navigation buttons -->
         <TooltipProvider>
-          <ButtonGroup variant="outline" size="menu">
+          <ButtonGroup
+            variant="outline"
+            size="menu"
+          >
             <Tooltip>
-              <TooltipTrigger asChild>
-                <ButtonGroupItem @click="api.goPrevStep()" :disabled="!api.hasSteps()">
+              <TooltipTrigger as-child>
+                <ButtonGroupItem
+                  :disabled="!api.hasSteps()"
+                  @click="api.goPrevStep()"
+                >
                   <i-lucide-chevron-left />
                 </ButtonGroupItem>
               </TooltipTrigger>
-              <TooltipContent side="bottom">Previous Step</TooltipContent>
+              <TooltipContent side="bottom">
+                Previous Step
+              </TooltipContent>
             </Tooltip>
 
             <Tooltip>
-              <TooltipTrigger asChild>
-                <ButtonGroupItem @click="api.goNextStep()" :disabled="!api.hasSteps()">
+              <TooltipTrigger as-child>
+                <ButtonGroupItem
+                  :disabled="!api.hasSteps()"
+                  @click="api.goNextStep()"
+                >
                   <i-lucide-chevron-right />
                 </ButtonGroupItem>
               </TooltipTrigger>
-              <TooltipContent side="bottom">Next Step</TooltipContent>
+              <TooltipContent side="bottom">
+                Next Step
+              </TooltipContent>
             </Tooltip>
 
             <Tooltip>
-              <TooltipTrigger asChild>
-                <ButtonGroupItem @click="api.goFirstStep()" :disabled="!api.hasSteps()">
+              <TooltipTrigger as-child>
+                <ButtonGroupItem
+                  :disabled="!api.hasSteps()"
+                  @click="api.goFirstStep()"
+                >
                   <i-famicons-home />
                 </ButtonGroupItem>
               </TooltipTrigger>
-              <TooltipContent side="bottom">First Step</TooltipContent>
+              <TooltipContent side="bottom">
+                First Step
+              </TooltipContent>
             </Tooltip>
 
             <Tooltip>
-              <TooltipTrigger asChild>
-                <ButtonGroupItem @click="api.clear()" :disabled="!api.hasSteps()">
+              <TooltipTrigger as-child>
+                <ButtonGroupItem
+                  :disabled="!api.hasSteps()"
+                  @click="api.clear()"
+                >
                   <i-mdi-trash />
                 </ButtonGroupItem>
               </TooltipTrigger>
-              <TooltipContent side="bottom">Clear Steps</TooltipContent>
+              <TooltipContent side="bottom">
+                Clear Steps
+              </TooltipContent>
             </Tooltip>
           </ButtonGroup>
         </TooltipProvider>
@@ -253,24 +286,39 @@ watch(
     </div>
 
     <!-- Tree structure display -->
-    <div class="tree-container" ref="treeContainer">
+    <div
+      ref="treeContainer"
+      class="tree-container"
+    >
       <div v-if="api.nSteps > 0">
         <!-- Step index display -->
         <div class="index-display">
           <Tooltip>
             <TooltipTrigger>{{ api.stepIndex }}/{{ api.nSteps }}</TooltipTrigger>
-            <TooltipContent side="bottom">Step index</TooltipContent>
+            <TooltipContent side="bottom">
+              Step index
+            </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger class="ml-1 text-teal-500">({{ api.blockIndex }}/{{ api.blockLength }})</TooltipTrigger>
-            <TooltipContent side="bottom">Index within block</TooltipContent>
+            <TooltipTrigger class="ml-1 text-teal-500">
+              ({{ api.blockIndex }}/{{ api.blockLength }})
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Index within block
+            </TooltipContent>
           </Tooltip>
         </div>
 
         <!-- Tree structure -->
         <ul class="tree-root">
-          <li v-if="stateMachine" class="tree-node root-node">
-            <ul v-if="stateMachine.rows && stateMachine.rows.length > 0" class="children">
+          <li
+            v-if="stateMachine"
+            class="tree-node root-node"
+          >
+            <ul
+              v-if="stateMachine.rows && stateMachine.rows.length > 0"
+              class="children"
+            >
               <StepNode
                 v-for="(state, index) in stateMachine.rows"
                 :key="index"
@@ -289,31 +337,50 @@ watch(
         </ul>
       </div>
       <!-- Empty state when no steps defined -->
-      <div class="tree-viewer-container-empty disabled" v-else>No steps defined</div>
+      <div
+        v-else
+        class="tree-viewer-container-empty disabled"
+      >
+        No steps defined
+      </div>
     </div>
 
     <!-- Global persisted variables section -->
-    <div class="data-container-global" :class="{ disabled: Object.keys(api.persist).length === 0 }">
+    <div
+      class="data-container-global"
+      :class="{ disabled: Object.keys(api.persist).length === 0 }"
+    >
       <div class="section-title">
         <span>Persisted Vars <span class="data-label">(.persist)</span></span>
         <Button
-          @click="api.clearPersist()"
           variant="outline"
           size="menu"
           class="has-tooltip-arrow has-tooltip-bottom"
           data-tooltip="Delete Global Variables"
+          @click="api.clearPersist()"
         >
           <i-fa6-solid-trash />
         </Button>
       </div>
       <div class="global-data-display">
-        <StepDataViewer :data="api.persist" v-if="Object.keys(api.persist).length !== 0" />
-        <div class="italic text-xs" v-else>No variables persisted</div>
+        <StepDataViewer
+          v-if="Object.keys(api.persist).length !== 0"
+          :data="api.persist"
+        />
+        <div
+          v-else
+          class="italic text-xs"
+        >
+          No variables persisted
+        </div>
       </div>
     </div>
 
     <!-- Step data section -->
-    <div class="data-container" :class="{ disabled: api.nSteps === 0 }">
+    <div
+      class="data-container"
+      :class="{ disabled: api.nSteps === 0 }"
+    >
       <div class="section-title">
         <span>Step Data <span class="data-label">(.stepData)</span></span>
       </div>
@@ -327,8 +394,16 @@ watch(
           <span><i-fa6-solid-trash" /></span>
         </button>
         -->
-        <StepDataViewer :data="api.stepData" v-if="api.nSteps !== 0" />
-        <div class="italic text-xs" v-else>Data defined on this step</div>
+        <StepDataViewer
+          v-if="api.nSteps !== 0"
+          :data="api.stepData"
+        />
+        <div
+          v-else
+          class="italic text-xs"
+        >
+          Data defined on this step
+        </div>
       </div>
     </div>
   </div>

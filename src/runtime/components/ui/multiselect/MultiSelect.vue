@@ -52,7 +52,8 @@ function toggleOption(option) {
 
   if (index > -1) {
     currentValues.splice(index, 1)
-  } else {
+  }
+  else {
     currentValues.push(option)
   }
 
@@ -74,19 +75,26 @@ function isSelected(option) {
       {{ label }}
     </div>
 
-    <div v-if="help" class="text-xs text-muted-foreground">
+    <div
+      v-if="help"
+      class="text-xs text-muted-foreground"
+    >
       {{ help }}
     </div>
 
     <div class="space-y-2">
-      <div v-for="(option, index) in options" :key="index" class="flex items-center space-x-2">
+      <div
+        v-for="(option, index) in options"
+        :key="index"
+        class="flex items-center space-x-2"
+      >
         <Checkbox
           :id="`multiselect-${index}`"
-          :modelValue="isSelected(option)"
+          :model-value="isSelected(option)"
           :disabled="disabled"
           :variant="variant"
           :size="size"
-          @update:modelValue="(checked) => toggleOption(option)"
+          @update:model-value="(checked) => toggleOption(option)"
         />
         <Label
           :for="`multiselect-${index}`"

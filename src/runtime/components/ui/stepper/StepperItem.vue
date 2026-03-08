@@ -20,7 +20,7 @@ const forwarded = useForwardProps(delegatedProps)
 <template>
   <TooltipProvider>
     <Tooltip v-if="tooltip">
-      <TooltipTrigger asChild>
+      <TooltipTrigger as-child>
         <StepperItem
           v-slot="slotProps"
           v-bind="forwarded"

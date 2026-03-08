@@ -71,8 +71,12 @@ const cycleState = () => {
   <!-- Panel toggle button with tooltip -->
   <TooltipProvider>
     <Tooltip>
-      <TooltipTrigger asChild>
-        <Button size="menu" variant="outline" @click="cycleState">
+      <TooltipTrigger as-child>
+        <Button
+          size="menu"
+          variant="outline"
+          @click="cycleState"
+        >
           <!-- Both panels visible -->
           <svg
             v-if="currentState === 'both'"
@@ -86,7 +90,13 @@ const cycleState = () => {
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <rect width="18" height="18" x="3" y="3" rx="2" />
+            <rect
+              width="18"
+              height="18"
+              x="3"
+              y="3"
+              rx="2"
+            />
             <path d="M3 15h12" />
             <path d="M15 3v18" />
           </svg>
@@ -104,7 +114,13 @@ const cycleState = () => {
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <rect width="18" height="18" x="3" y="3" rx="2" />
+            <rect
+              width="18"
+              height="18"
+              x="3"
+              y="3"
+              rx="2"
+            />
             <path d="M8 8h.01" />
             <path d="M12 8h.01" />
             <path d="M16 8h.01" />
@@ -123,7 +139,13 @@ const cycleState = () => {
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <rect width="18" height="18" x="3" y="3" rx="2" />
+            <rect
+              width="18"
+              height="18"
+              x="3"
+              y="3"
+              rx="2"
+            />
             <path d="M15 3v18" />
           </svg>
 
@@ -140,12 +162,20 @@ const cycleState = () => {
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <rect width="18" height="18" x="3" y="3" rx="2" />
+            <rect
+              width="18"
+              height="18"
+              x="3"
+              y="3"
+              rx="2"
+            />
             <path d="M3 15h18" />
           </svg>
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="bottom"> {{ tooltipText }} (Ctrl + 1) </TooltipContent>
+      <TooltipContent side="bottom">
+        {{ tooltipText }} (Ctrl + 1)
+      </TooltipContent>
     </Tooltip>
   </TooltipProvider>
 </template>

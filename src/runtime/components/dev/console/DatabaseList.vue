@@ -8,12 +8,11 @@ import { computed } from 'vue'
 
 /**
  * Component props for data and selection state
- * @typedef {Object} Props
+ * @typedef {object} Props
  * @property {string|null} data - The data path to display
  * @property {string|null} selected - Currently selected item
  */
 const props = defineProps(['data', 'selected'])
-
 
 /**
  * Initialize the API instance for accessing data and store
@@ -45,27 +44,29 @@ function truncateText(text, maxLength = 20) {
 const header = computed(() => {
   if (props.data === undefined || props.data === null) {
     return null
-  } else {
-    var pieces = props.data.split('.')
+  }
+  else {
+    const pieces = props.data.split('.')
     return pieces[pieces.length - 1]
   }
 })
 
 /**
  * Compute the data field to display based on the current path
- * @returns {Object|null} Data object or null if invalid path
+ * @returns {object | null} Data object or null if invalid path
  */
 const data_field = computed(() => {
   if (props.data !== undefined && props.data !== null) {
-    var pieces = props.data.split('.')
-    var view_data = api.all_data
-    for (var i = 0; i < pieces.length; i++) {
+    const pieces = props.data.split('.')
+    let view_data = api.all_data
+    for (let i = 0; i < pieces.length; i++) {
       if (view_data[pieces[i]]) {
         view_data = view_data[pieces[i]]
       }
     }
     return view_data
-  } else {
+  }
+  else {
     return null
   }
 })
@@ -81,15 +82,21 @@ function option_selected(option) {
 
 <template>
   <!-- Database list container with header and scrollable content -->
-  <aside class="w-full h-full flex flex-col database-list-container" style="background-color: var(--background)">
+  <aside
+    class="w-full h-full flex flex-col database-list-container"
+    style="background-color: var(--background)"
+  >
     <!-- Header section with navigation title -->
-    <div v-if="header" class="bg-muted text-dev-text px-3 py-2 text-xs font-medium border-b border-dev-lines">
+    <div
+      v-if="header"
+      class="bg-muted text-dev-text px-3 py-2 text-xs font-medium border-b border-dev-lines"
+    >
       <template v-if="header == '/'">
         <i-fa6-solid-house class="mr-1" />
       </template>
-      <template v-else
-        ><span class="font-mono">{{ header }}</span></template
-      >
+      <template v-else>
+        <span class="font-mono">{{ header }}</span>
+      </template>
     </div>
 
     <!-- Scrollable list content -->
@@ -101,32 +108,35 @@ function option_selected(option) {
             (data_field === null || data_field === undefined || Object.keys(data_field).length == 0) && header !== null
           "
         >
-          <div class="px-2 py-1.5 text-foreground text-xs font-mono">Empty currently</div>
+          <div class="px-2 py-1.5 text-foreground text-xs font-mono">
+            Empty currently
+          </div>
         </li>
 
         <!-- Data items list -->
-        <li v-for="(option, key) in data_field" :key="key">
+        <li
+          v-for="(option, key) in data_field"
+          :key="key"
+        >
           <!-- Non-object values (display only) -->
           <div
             v-if="option === null || (typeof option != 'object' && !Array.isArray(option))"
             class="px-2 py-1.5 text-xs font-mono primitive-item"
           >
             <span class="font-mono font-semibold text-foreground item-key">{{ truncateText(key) }}</span>
-            <span class="text-foreground item-value"
-              >: {{ option === null ? 'null' : truncateText(String(option)) }}</span
-            >
+            <span class="text-foreground item-value">: {{ option === null ? 'null' : truncateText(String(option)) }}</span>
           </div>
 
           <!-- Object values (clickable navigation) -->
           <button
             v-else
-            @click="option_selected(key)"
             :class="[
               'w-full text-left px-2 py-1.5 text-xs font-mono rounded transition-colors duration-150 object-item',
               'hover:bg-ring hover:text-blue-700',
               'focus:outline-none focus:ring-1 focus:ring-blue-300 focus:bg-blue-50',
               key === props.selected ? 'bg-blue-100 text-blue-800 border border-muted' : 'text-gray-700',
             ]"
+            @click="option_selected(key)"
           >
             <div class="flex items-center justify-between">
               <span class="font-semibold text-foreground item-key">{{ truncateText(key) }}</span>

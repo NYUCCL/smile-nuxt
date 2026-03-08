@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia } from 'pinia'
 import { createTestingPinia } from '@pinia/testing'
 import { Stepper } from '@/core/stepper/Stepper'
@@ -55,11 +55,11 @@ describe('Stepper test', () => {
 
       // Test iteration
       const items = [...stepper.states]
-      expect(items.map((s) => s.data)).toEqual(trials)
+      expect(items.map(s => s.data)).toEqual(trials)
 
       // Test array methods
       expect(stepper.states.indexOf(stepper.states[1])).toBe(1)
-      expect(stepper.states.map((s) => s.data)).toEqual(trials)
+      expect(stepper.states.map(s => s.data)).toEqual(trials)
     })
 
     it('should allow iterating on the states', () => {
@@ -69,7 +69,7 @@ describe('Stepper test', () => {
 
       // Test forEach
       const results = []
-      stepper.states.forEach((state, index) => {
+      stepper.states.forEach((state, _index) => {
         results.push(state.data)
       })
       expect(results).toEqual([1, 2, 3])
@@ -257,7 +257,7 @@ describe('Stepper test', () => {
       expect(items).toHaveLength(2)
 
       // Test slice operation
-      const slicedItems = s1.states.slice(1, 3).map((s) => s.data)
+      const slicedItems = s1.states.slice(1, 3).map(s => s.data)
       expect(slicedItems).toEqual([
         { color: 'blue', shape: 'square' },
         { color: 'green', shape: 'circle' },
@@ -338,7 +338,7 @@ describe('Stepper test', () => {
     })
 
     it('should throw error when outer would exceed safety limit', () => {
-      const maxRows = Number(config.maxSteps)
+      const _maxRows = Number(config.maxSteps)
       // Create arrays that would generate more combinations than maxSteps
       const trials = {
         x: Array(100).fill('x'),
@@ -440,7 +440,7 @@ describe('Stepper test', () => {
       expect(stepper.states[0].data).toEqual({ id: 'test1', value: 'initial' })
 
       // Verify only the non-duplicate combinations were added
-      const addedStates = stepper.states
+      const _addedStates = stepper.states
       expect(stepper.states).toHaveLength(2)
       expect(stepper.states[1].data).toEqual({ id: 'test2', value: 'a' })
     })
@@ -451,7 +451,7 @@ describe('Stepper test', () => {
       stepper.append([{ value: 1 }, { value: 2 }, { value: 3 }])
 
       const results = []
-      stepper.forEach((item, index) => {
+      stepper.forEach((item, _index) => {
         results.push(item.data.value)
       })
 
@@ -461,7 +461,7 @@ describe('Stepper test', () => {
     it.skip('should allow updating items through callback', () => {
       stepper.append([{ value: 1 }, { value: 2 }])
 
-      stepper.forEach((item, index) => {
+      stepper.forEach((item, _index) => {
         return { value: item.data.value * 2 }
       })
 
@@ -479,12 +479,12 @@ describe('Stepper test', () => {
       // Try to transform data in a way that would create duplicate paths
       stepper.forEach((row) => {
         // Create a path string similar to BowerTrabasso's logic
-        const pathString =
-          (row.data.color === 'red' ? 'r' : 'b') +
-          (row.data.size === 'small' ? 's' : 'l') +
-          row.data.number +
-          (row.data.position === 'down' ? 'd' : 'u') +
-          (row.data.area === 'right' ? 'r' : 'l')
+        const pathString
+          = (row.data.color === 'red' ? 'r' : 'b')
+            + (row.data.size === 'small' ? 's' : 'l')
+            + row.data.number
+            + (row.data.position === 'down' ? 'd' : 'u')
+            + (row.data.area === 'right' ? 'r' : 'l')
 
         // Return transformed data with new path
         return {
@@ -505,7 +505,7 @@ describe('Stepper test', () => {
       expect(paths.size).toBe(2)
 
       // Verify the transformed data
-      const states = stepper.states.filter((s) => s.data.id)
+      const states = stepper.states.filter(s => s.data.id)
       expect(states).toHaveLength(2)
       expect(states[0].data.id).toBe('rs1ul') // red, small, 1, up, left
       expect(states[1].data.id).toBe('bl2dr') // blue, large, 2, down, right
@@ -519,7 +519,7 @@ describe('Stepper test', () => {
       // Shuffle with a specific seed
       stepper.shuffle('test-seed-123')
       // The order should be deterministic with this seed
-      expect(stepper.rowsData.map((r) => r.value)).toEqual(['c', 'a', 'e', 'b', 'd'])
+      expect(stepper.rowsData.map(r => r.value)).toEqual(['c', 'a', 'e', 'b', 'd'])
     })
 
     it('should produce consistent order with same seed', () => {
@@ -536,8 +536,8 @@ describe('Stepper test', () => {
       stepper2.shuffle('test-seed-123')
 
       // They should have the same order
-      expect(stepper1.rowsData.map((r) => r.value).filter((v) => v !== undefined)).toEqual(
-        stepper2.rowsData.map((r) => r.value).filter((v) => v !== undefined)
+      expect(stepper1.rowsData.map(r => r.value).filter(v => v !== undefined)).toEqual(
+        stepper2.rowsData.map(r => r.value).filter(v => v !== undefined),
       )
     })
 
@@ -554,7 +554,7 @@ describe('Stepper test', () => {
       stepper.shuffle()
 
       // The order should be deterministic with our mocked Math.random
-      expect(stepper.rowsData.map((r) => r.value).filter((v) => v !== undefined)).toEqual(['b', 'c', 'd', 'e', 'a'])
+      expect(stepper.rowsData.map(r => r.value).filter(v => v !== undefined)).toEqual(['b', 'c', 'd', 'e', 'a'])
 
       // Restore Math.random
       Math.random = originalRandom
@@ -570,11 +570,11 @@ describe('Stepper test', () => {
       ]
 
       stepper.append(originalData)
-      const originalIds = [...stepper.rowsData.map((r) => r.id)].sort()
+      const originalIds = [...stepper.rowsData.map(r => r.id)].sort()
 
       // Shuffle with a specific seed
       stepper.shuffle('test-seed-123')
-      const shuffledIds = [...stepper.rowsData.map((r) => r.id)].sort()
+      const shuffledIds = [...stepper.rowsData.map(r => r.id)].sort()
 
       // All elements should still be present, just in different order
       expect(shuffledIds).toEqual(originalIds)
@@ -614,11 +614,11 @@ describe('Stepper test', () => {
 
       // First shuffle
       stepper.shuffle('test-seed-123')
-      const firstShuffleOrder = [...stepper.rowsData.map((r) => r.id)]
+      const firstShuffleOrder = [...stepper.rowsData.map(r => r.id)]
 
       // Second shuffle with same seed but always=false (default)
       stepper.shuffle('test-seed-123')
-      const secondShuffleOrder = [...stepper.rowsData.map((r) => r.id)]
+      const secondShuffleOrder = [...stepper.rowsData.map(r => r.id)]
 
       // Order should remain the same
       expect(secondShuffleOrder).toEqual(firstShuffleOrder)
@@ -633,11 +633,11 @@ describe('Stepper test', () => {
 
       // First shuffle
       stepper.shuffle('test-seed-123')
-      const firstShuffleOrder = [...stepper.rowsData.map((r) => r.id)]
+      const firstShuffleOrder = [...stepper.rowsData.map(r => r.id)]
 
       // Second shuffle with always=true
       stepper.shuffle({ seed: 'test-seed-123', always: true })
-      const secondShuffleOrder = [...stepper.rowsData.map((r) => r.id)]
+      const secondShuffleOrder = [...stepper.rowsData.map(r => r.id)]
 
       // Order should be different
       expect(secondShuffleOrder).not.toEqual(firstShuffleOrder)
@@ -652,7 +652,7 @@ describe('Stepper test', () => {
 
       // First shuffle
       stepper.shuffle('test-seed-123')
-      const firstShuffleOrder = [...stepper.rowsData.map((r) => r.value).filter((v) => v !== undefined)]
+      const firstShuffleOrder = [...stepper.rowsData.map(r => r.value).filter(v => v !== undefined)]
 
       // Clear the subtree
       stepper.clearSubTree()
@@ -666,7 +666,7 @@ describe('Stepper test', () => {
 
       // Shuffle again with different
       stepper.shuffle('test-seed-456')
-      const secondShuffleOrder = [...stepper.rowsData.map((r) => r.value).filter((v) => v !== undefined)]
+      const secondShuffleOrder = [...stepper.rowsData.map(r => r.value).filter(v => v !== undefined)]
 
       // Order should be the same as first shuffle
       expect(secondShuffleOrder).not.toEqual(firstShuffleOrder)
@@ -683,7 +683,7 @@ describe('Stepper test', () => {
 
       // Shuffle again with different
       stepper.shuffle('test-seed-123')
-      const thirdShuffleOrder = [...stepper.rowsData.map((r) => r.value).filter((v) => v !== undefined)]
+      const thirdShuffleOrder = [...stepper.rowsData.map(r => r.value).filter(v => v !== undefined)]
 
       // Order should be the same as first shuffle
       expect(thirdShuffleOrder).toEqual(firstShuffleOrder)
@@ -714,7 +714,7 @@ describe('Stepper test', () => {
       expect(() => {
         stepper.zip(trials)
       }).toThrow(
-        'All columns must have the same length when using zip(). Specify a method (loop, pad, last) to handle different lengths.'
+        'All columns must have the same length when using zip(). Specify a method (loop, pad, last) to handle different lengths.',
       )
     })
 

@@ -24,10 +24,12 @@ export default defineNuxtPlugin(() => {
   if (useSeed) {
     if (seedSet && existingSeedID) {
       seed = existingSeedID
-    } else {
+    }
+    else {
       seed = uuidv4()
     }
-  } else {
+  }
+  else {
     seed = null
   }
 

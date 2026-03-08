@@ -55,7 +55,7 @@ import DevConfigPanel from './DevConfigPanel.vue'
 
 /**
  * Component props for sidebar configuration
- * @typedef {Object} Props
+ * @typedef {object} Props
  * @property {string} [side] - Side of the sidebar ('left' or 'right')
  * @property {string} [variant] - Variant of the sidebar styling
  * @property {string} [collapsible] - Collapsible behavior ('icon' or 'none')
@@ -70,14 +70,14 @@ const props = defineProps({
 
 /**
  * Initialize SMILE API instance
- * @constant {Object} api Global API instance
+ * @constant {object} api Global API instance
  */
 const api = useAPI()
 
 /**
  * Initialize global color mode for the entire application (html element)
  * Uses global scope to apply color mode to the entire application
- * @type {Object}
+ * @type {object}
  * @property {import('vue').Ref<string>} globalColorMode Current global color mode state
  * @property {Function} setLight Function to set light mode
  * @property {Function} setDark Function to set dark mode
@@ -98,7 +98,8 @@ const isDarkMode = computed({
   set: (value) => {
     if (value) {
       setDark()
-    } else {
+    }
+    else {
       setLight()
     }
   },
@@ -107,12 +108,19 @@ const isDarkMode = computed({
 
 <template>
   <!-- Main sidebar container with icon-only layout -->
-  <Sidebar class="w-[calc(var(--sidebar-width-icon)+1px)]! border-r" v-bind="props">
+  <Sidebar
+    class="w-[calc(var(--sidebar-width-icon)+1px)]! border-r"
+    v-bind="props"
+  >
     <!-- Sidebar header with main logo button -->
     <SidebarHeader>
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton size="lg" as-child class="md:h-8 md:p-0">
+          <SidebarMenuButton
+            size="lg"
+            as-child
+            class="md:h-8 md:p-0"
+          >
             <a href="#">
               <div class="mainbutton text-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                 <i-lucide-smile />
@@ -143,11 +151,11 @@ const isDarkMode = computed({
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <!-- Analyze 
+            <!-- Analyze
             <SidebarMenuItem>
               <SidebarMenuButton
                 class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
-                :class="{ 
+                :class="{
                   'bg-chart-4 hover:!bg-chart-4/80': api.store.dev.mainView === 'dashboard',
                   'hover:!bg-sidebar-border': api.store.dev.mainView !== 'dashboard'
                 }"
@@ -159,7 +167,7 @@ const isDarkMode = computed({
             </SidebarMenuItem>
             -->
 
-            <!-- Recruit 
+            <!-- Recruit
             <SidebarMenuItem>
               <SidebarMenuButton
                 class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
@@ -194,7 +202,10 @@ const isDarkMode = computed({
                 class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1 hover:!bg-sidebar-border"
                 tooltip="Experiment Info & Recruitment"
               >
-                <a href="/info" target="_blank">
+                <a
+                  href="/info"
+                  target="_blank"
+                >
                   <i-lucide-info class="!size-5" />
                 </a>
               </SidebarMenuButton>
@@ -209,14 +220,20 @@ const isDarkMode = computed({
       <!-- Color mode toggle button -->
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger as-child>
             <SidebarMenuButton
               class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
               tooltip="Toggle Dark Mode"
               @click="isDarkMode = !isDarkMode"
             >
-              <i-lucide-moon v-if="isDarkMode" class="!size-5" />
-              <i-lucide-sun v-else class="!size-5" />
+              <i-lucide-moon
+                v-if="isDarkMode"
+                class="!size-5"
+              />
+              <i-lucide-sun
+                v-else
+                class="!size-5"
+              />
             </SidebarMenuButton>
           </TooltipTrigger>
           <TooltipContent side="right">
@@ -230,13 +247,16 @@ const isDarkMode = computed({
         <PopoverTrigger>
           <SidebarMenuButton
             class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
-            asChild
+            as-child
             tooltip="Configuration"
           >
             <i-lucide-settings class="!size-5" />
           </SidebarMenuButton>
         </PopoverTrigger>
-        <PopoverContent side="right" align="end">
+        <PopoverContent
+          side="right"
+          align="end"
+        >
           <DevConfigPanel />
         </PopoverContent>
       </Popover>

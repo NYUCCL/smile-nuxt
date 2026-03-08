@@ -15,6 +15,26 @@ export default createConfigForNuxt({
     ],
   },
 })
+  .prepend({
+    ignores: [
+      'docs/**',
+      'plans/**',
+      'starter-template/**',
+    ],
+  })
   .append(
-    // your custom flat config here...
+    {
+      rules: {
+        // UI components use single-word names (Button, Card, etc.)
+        'vue/multi-word-component-names': 'off',
+      },
+    },
+    {
+      // Test files frequently create variables for side effects (tree building)
+      files: ['test/**/*.{js,ts}'],
+      rules: {
+        'no-unused-vars': ['error', { varsIgnorePattern: '^_', argsIgnorePattern: '^_' }],
+        '@typescript-eslint/no-unused-vars': ['error', { varsIgnorePattern: '^_', argsIgnorePattern: '^_' }],
+      },
+    },
   )

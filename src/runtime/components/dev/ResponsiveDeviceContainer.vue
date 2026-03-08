@@ -8,7 +8,7 @@ import { devicePresets } from './devicePresets.js'
 const api = useAPI()
 
 const fullScreenDiv = ref(null)
-const { width: fullScreenWidth, height: fullScreenHeight } = useElementSize(fullScreenDiv)
+const { width: _fullScreenWidth, height: _fullScreenHeight } = useElementSize(fullScreenDiv)
 
 const {
   state: experimentColorMode,
@@ -122,7 +122,11 @@ const colorMode = computed(() => {
   </div>
 
   <!-- Normal device container mode with responsive controls -->
-  <div v-else class="device-container-wrapper" :style="containerStyle">
+  <div
+    v-else
+    class="device-container-wrapper"
+    :style="containerStyle"
+  >
     <div class="device-content-wrapper">
       <!-- Device information and control panel -->
       <div class="device-info">
@@ -131,8 +135,12 @@ const colorMode = computed(() => {
 
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="xs" @click="toggleRotation">
+              <TooltipTrigger as-child>
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  @click="toggleRotation"
+                >
                   <i-carbon-rotate-counterclockwise-filled :class="{ 'text-blue-400': api.store.dev.isRotated }" />
                 </Button>
               </TooltipTrigger>
@@ -144,29 +152,45 @@ const colorMode = computed(() => {
 
           <Separator orientation="vertical" />
 
-          <div class="device-dimensions">{{ api.store.dev.deviceWidth }} x {{ api.store.dev.deviceHeight }}</div>
+          <div class="device-dimensions">
+            {{ api.store.dev.deviceWidth }} x {{ api.store.dev.deviceHeight }}
+          </div>
 
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="xs" @click="toggleColorMode">
+              <TooltipTrigger as-child>
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  @click="toggleColorMode"
+                >
                   <i-lucide-moon v-if="experimentColorModeRaw === 'light'" />
                   <i-lucide-sun-moon v-else-if="experimentColorModeRaw === 'dark'" />
                   <i-lucide-sun v-else />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                <p v-if="experimentColorModeRaw === 'light'">Switch to Dark Mode</p>
-                <p v-else-if="experimentColorModeRaw === 'dark'">Switch to System ({{ system }})</p>
-                <p v-else>Switch to Light Mode</p>
+                <p v-if="experimentColorModeRaw === 'light'">
+                  Switch to Dark Mode
+                </p>
+                <p v-else-if="experimentColorModeRaw === 'dark'">
+                  Switch to System ({{ system }})
+                </p>
+                <p v-else>
+                  Switch to Light Mode
+                </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="xs" @click="toggleFullscreen">
+              <TooltipTrigger as-child>
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  @click="toggleFullscreen"
+                >
                   <i-ic-outline-fullscreen />
                 </Button>
               </TooltipTrigger>
@@ -187,9 +211,18 @@ const colorMode = computed(() => {
           <slot />
         </div>
 
-        <div class="resize-handle resize-handle-left" @mousedown="startResize('left', $event)"></div>
-        <div class="resize-handle resize-handle-right" @mousedown="startResize('right', $event)"></div>
-        <div class="resize-handle resize-handle-bottom" @mousedown="startResize('bottom', $event)"></div>
+        <div
+          class="resize-handle resize-handle-left"
+          @mousedown="startResize('left', $event)"
+        />
+        <div
+          class="resize-handle resize-handle-right"
+          @mousedown="startResize('right', $event)"
+        />
+        <div
+          class="resize-handle resize-handle-bottom"
+          @mousedown="startResize('bottom', $event)"
+        />
       </div>
     </div>
   </div>

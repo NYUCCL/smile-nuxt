@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/libsql'
 import { createClient } from '@libsql/client'
-import { mkdirSync } from 'fs'
-import { dirname } from 'path'
+import { mkdirSync } from 'node:fs'
+import { dirname } from 'node:path'
 import * as schema from '../database/schema'
 
 let _db: ReturnType<typeof drizzle> | null = null

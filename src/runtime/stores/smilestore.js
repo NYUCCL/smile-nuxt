@@ -32,7 +32,7 @@ function getLocalTimeString() {
   const now = new Date()
   const offset = -now.getTimezoneOffset()
   const sign = offset >= 0 ? '+' : '-'
-  const pad = (n) => String(Math.abs(n)).padStart(2, '0')
+  const pad = n => String(Math.abs(n)).padStart(2, '0')
   const offsetHours = pad(Math.floor(Math.abs(offset) / 60))
   const offsetMins = pad(Math.abs(offset) % 60)
 
@@ -212,23 +212,23 @@ export default defineStore('smilestore', {
 
   getters: {
     // Compatibility getter: merges both tiers for read-only access
-    browserPersisted: (state) => ({ ...state.localState, ...state.cookieState }),
-    isDataBarVisible: (state) => state.dev.showConsoleBar,
-    isKnownUser: (state) => state.cookieState.knownUser,
-    isConsented: (state) => state.cookieState.consented,
-    isWithdrawn: (state) => state.cookieState.withdrawn,
-    isDone: (state) => state.cookieState.done,
-    lastRoute: (state) => state.cookieState.lastRoute,
-    isDataLoaded: (state) => state.browserEphemeral.dataLoaded,
-    hasAutofill: (state) => state.dev?.viewProvidesAutofill,
-    searchParams: (state) => state.dev?.searchParams,
-    recruitmentService: (state) => state.data.recruitmentService,
-    isSeedSet: (state) => state.cookieState.seedSet,
-    getSeedID: (state) => state.cookieState.seedID,
-    getLocal: (state) => ({ ...state.localState, ...state.cookieState }),
-    getConditions: (state) => state.localState.conditions,
-    getRandomizedRoutes: (state) => state.localState.randomizedRoutes,
-    verifiedVisibility: (state) => state.data.verifiedVisibility,
+    browserPersisted: state => ({ ...state.localState, ...state.cookieState }),
+    isDataBarVisible: state => state.dev.showConsoleBar,
+    isKnownUser: state => state.cookieState.knownUser,
+    isConsented: state => state.cookieState.consented,
+    isWithdrawn: state => state.cookieState.withdrawn,
+    isDone: state => state.cookieState.done,
+    lastRoute: state => state.cookieState.lastRoute,
+    isDataLoaded: state => state.browserEphemeral.dataLoaded,
+    hasAutofill: state => state.dev?.viewProvidesAutofill,
+    searchParams: state => state.dev?.searchParams,
+    recruitmentService: state => state.data.recruitmentService,
+    isSeedSet: state => state.cookieState.seedSet,
+    getSeedID: state => state.cookieState.seedID,
+    getLocal: state => ({ ...state.localState, ...state.cookieState }),
+    getConditions: state => state.localState.conditions,
+    getRandomizedRoutes: state => state.localState.randomizedRoutes,
+    verifiedVisibility: state => state.data.verifiedVisibility,
     getAllPageData: (state) => {
       const pageDataFields = {}
       for (const key in state.data) {
@@ -352,7 +352,8 @@ export default defineStore('smilestore', {
           timestamp: Date.now(),
           event_data,
         })
-      } else {
+      }
+      else {
         this.data.browserData.push({
           event_type: type,
           timestamp: Date.now(),
@@ -450,7 +451,8 @@ export default defineStore('smilestore', {
         })
         this.localState.privateDocRef = privateId
         this.setDataLoaded()
-      } catch (err) {
+      }
+      catch (err) {
         log.error('SMILESTORE: could not create participant record: ' + err)
       }
     },
@@ -464,7 +466,8 @@ export default defineStore('smilestore', {
             this.localState.approxDataSize = JSON.stringify(result.data).length
             this.setDataLoaded()
           }
-        } catch (err) {
+        }
+        catch (err) {
           const log = useLog()
           log.error('SMILESTORE: could not load participant data: ' + err)
         }
@@ -500,18 +503,18 @@ export default defineStore('smilestore', {
       if (this.isDataLoaded) {
         if (!force && this.localState.totalWrites >= appconfig.maxWrites) {
           log.error(
-            'SMILESTORE: max writes reached. Data NOT saved. Call saveData() less frequently.'
+            'SMILESTORE: max writes reached. Data NOT saved. Call saveData() less frequently.',
           )
           return
         }
 
         if (
-          !force &&
-          this.localState.lastWrite &&
-          Date.now() - this.localState.lastWrite < appconfig.minWriteInterval
+          !force
+          && this.localState.lastWrite
+          && Date.now() - this.localState.lastWrite < appconfig.minWriteInterval
         ) {
           log.error(
-            `SMILESTORE: write interval too short (${appconfig.minWriteInterval}ms). Data NOT saved.`
+            `SMILESTORE: write interval too short (${appconfig.minWriteInterval}ms). Data NOT saved.`,
           )
           return
         }
@@ -532,13 +535,16 @@ export default defineStore('smilestore', {
           this.localState.lastWrite = Date.now()
           this.browserEphemeral.unsavedChanges = false
           log.success('SMILESTORE: saveData() successful (force = ' + force + ')')
-        } catch (err) {
+        }
+        catch (err) {
           log.error('SMILESTORE: error saving data: ' + err)
         }
-      } else if (!this.data.consented && !this.cookieState.consented) {
+      }
+      else if (!this.data.consented && !this.cookieState.consented) {
         log.log('SMILESTORE: not saving because not consented')
-      } else {
-        log.error("SMILESTORE: can't save data, not connected to server")
+      }
+      else {
+        log.error('SMILESTORE: can\'t save data, not connected to server')
       }
     },
 

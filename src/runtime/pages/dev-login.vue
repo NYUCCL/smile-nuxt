@@ -10,11 +10,19 @@
           placeholder="Password"
           autofocus
           :disabled="loading"
-        />
-        <button type="submit" :disabled="loading">
+        >
+        <button
+          type="submit"
+          :disabled="loading"
+        >
           {{ loading ? 'Logging in...' : 'Login' }}
         </button>
-        <p v-if="error" class="error">{{ error }}</p>
+        <p
+          v-if="error"
+          class="error"
+        >
+          {{ error }}
+        </p>
       </form>
     </div>
   </div>
@@ -37,9 +45,11 @@ async function login() {
       body: { password: password.value },
     })
     await navigateTo('/dev/', { replace: true })
-  } catch (err) {
+  }
+  catch (err) {
     error.value = err.statusCode === 401 ? 'Invalid password' : 'Login failed'
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }

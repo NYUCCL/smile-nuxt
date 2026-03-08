@@ -1,5 +1,5 @@
 // general testing functions
-import { defineComponent, h, markRaw } from 'vue'
+import { defineComponent, markRaw } from 'vue'
 import { setActivePinia } from 'pinia'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { createTestingPinia } from '@pinia/testing'
@@ -7,8 +7,10 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { vi, describe, beforeEach, afterEach, it, expect } from 'vitest'
 
 // import shared mocks
-import '../../setup/mocks' // Import shared mocks
 import { setupBrowserEnvironment } from '../../setup/mocks'
+
+// import the composable
+import useViewAPI from '@/core/composables/useViewAPI'
 
 /* eslint-disable no-undef */
 // Mock the config import before any other imports
@@ -19,9 +21,6 @@ vi.mock('@/core/config', () => ({
     devLocalStorageKey: 'smile_dev_test',
   },
 }))
-
-// import the composable
-import useViewAPI from '@/core/composables/useViewAPI'
 
 // Helper function to set up Pinia
 const setupPinia = () => {
@@ -298,16 +297,16 @@ describe('useViewAPI composable', () => {
       })
       .forEach((row) => {
         // Create a unique identifier for each combination
-        const pathString =
-          (row.data.color === 'red' ? 'r' : 'b') +
-          (row.data.size === 'small' ? 's' : 'l') +
-          (row.data.shape === 'square' ? 's' : 'c')
+        const pathString
+          = (row.data.color === 'red' ? 'r' : 'b')
+            + (row.data.size === 'small' ? 's' : 'l')
+            + (row.data.shape === 'square' ? 's' : 'c')
         row.data.path = pathString
         row.id = pathString
       })
 
     // Wait for state machine updates to complete
-    await new Promise((resolve) => setTimeout(resolve, 100))
+    await new Promise(resolve => setTimeout(resolve, 100))
     // Verify the structure was created correctly
     expect(api.nSteps).toBe(9) // 8 factorial combinations + 1 summary step
     expect(api.pathString).toBe('trial/rss')
@@ -368,7 +367,7 @@ describe('useViewAPI composable', () => {
       { id: 'initial2', test: 'value2' },
     ])
 
-    //console.log('api.steps', api.steps._states)
+    // console.log('api.steps', api.steps._states)
 
     // Verify initial state
     expect(api.nSteps).toBe(2)
@@ -500,7 +499,7 @@ describe('useViewAPI composable', () => {
     ])
 
     // Wait for state machine updates
-    await new Promise((resolve) => setTimeout(resolve, 200))
+    await new Promise(resolve => setTimeout(resolve, 200))
 
     // Test initial state
     expect(api.pathString).toBe('practice/trial1')
@@ -837,7 +836,7 @@ describe('useViewAPI composable', () => {
     expect(api.pathString).toBe('trial1')
 
     // Wait for any pending updates
-    await new Promise((resolve) => setTimeout(resolve, 100))
+    await new Promise(resolve => setTimeout(resolve, 100))
 
     // Run autofill
     autofill()
@@ -942,7 +941,7 @@ describe('useViewAPI composable', () => {
     ])
 
     // Wait for state machine updates
-    await new Promise((resolve) => setTimeout(resolve, 100))
+    await new Promise(resolve => setTimeout(resolve, 100))
 
     // Test initial state
     expect(api.pathString).toBe('practice/trial1')
@@ -1027,7 +1026,7 @@ describe('useViewAPI composable', () => {
 
     // Verify data is preserved for previous trial
     const allData = api.queryStepData()
-    const previousTrialData = allData.find((d) => d.path === 'main/A_easy')
+    const _previousTrialData = allData.find(d => d.path === 'main/A_easy')
 
     // Instead of checking the previous trial directly, let's go back to it
     api.goPrevStep()
@@ -1068,7 +1067,7 @@ describe('useViewAPI composable', () => {
     // Create a mock storage object to track localStorage operations
     const mockStorage = {}
     const mockLocalStorage = {
-      getItem: vi.fn((key) => mockStorage[key] || null),
+      getItem: vi.fn(key => mockStorage[key] || null),
       setItem: vi.fn((key, value) => {
         mockStorage[key] = value
       }),
@@ -1076,7 +1075,7 @@ describe('useViewAPI composable', () => {
         delete mockStorage[key]
       }),
       clear: vi.fn(() => {
-        Object.keys(mockStorage).forEach((key) => delete mockStorage[key])
+        Object.keys(mockStorage).forEach(key => delete mockStorage[key])
       }),
     }
 
@@ -1139,7 +1138,7 @@ describe('useViewAPI composable', () => {
     await flushPromises()
 
     // Wait for the route to be properly initialized
-    await new Promise((resolve) => setTimeout(resolve, 10))
+    await new Promise(resolve => setTimeout(resolve, 10))
 
     // Get the new API instance
     console.log('newApi being created')

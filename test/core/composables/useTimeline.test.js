@@ -32,10 +32,10 @@ const timelineRoutes = [
 // Create a mock $timeline that mimics the real Timeline API
 const mockTimeline = {
   getViewForPath: vi.fn((path) => {
-    return timelineRoutes.find((r) => r.path === path) || null
+    return timelineRoutes.find(r => r.path === path) || null
   }),
   getRouteByName: vi.fn((name) => {
-    return timelineRoutes.find((r) => r.name === name) || null
+    return timelineRoutes.find(r => r.name === name) || null
   }),
 }
 
@@ -158,7 +158,7 @@ describe('useTimeline composable', () => {
 
     // New impl uses navigateTo with path objects
     expect(navigateTo).toHaveBeenCalledWith(
-      expect.objectContaining({ path: '/about' })
+      expect.objectContaining({ path: '/about' }),
     )
     expect(mockSmilestore.browserEphemeral.currentViewDone).toBe(true)
   })
@@ -174,7 +174,7 @@ describe('useTimeline composable', () => {
     timeline.goPrevView()
 
     expect(navigateTo).toHaveBeenCalledWith(
-      expect.objectContaining({ path: '/' })
+      expect.objectContaining({ path: '/' }),
     )
     expect(mockSmilestore.browserEphemeral.currentViewDone).toBe(true)
   })
@@ -215,7 +215,7 @@ describe('useTimeline composable', () => {
     const nextRoute = timeline.lookupNext('home')
 
     expect(nextRoute).toEqual(
-      expect.objectContaining({ path: '/about' })
+      expect.objectContaining({ path: '/about' }),
     )
   })
 

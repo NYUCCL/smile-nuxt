@@ -3,10 +3,10 @@ import { ref } from 'vue'
 
 /**
  * Props for the StepDataViewer component
- * @typedef {Object} Props
- * @property {Object|Array|String|Number|Boolean|null} data - The data to be displayed in the viewer
+ * @typedef {object} Props
+ * @property {object | Array | string | number | boolean | null} data - The data to be displayed in the viewer
  */
-const props = defineProps({
+const _props = defineProps({
   data: {
     type: [Object, Array, String, Number, Boolean, null],
     required: true,
@@ -26,7 +26,8 @@ const expandedNodes = ref(new Set())
 const toggleNode = (path) => {
   if (expandedNodes.value.has(path)) {
     expandedNodes.value.delete(path)
-  } else {
+  }
+  else {
     expandedNodes.value.add(path)
   }
 }
@@ -67,7 +68,11 @@ const isSinglePrimitive = (value) => {
   <div class="data-path-viewer">
     <!-- Render expandable objects/arrays -->
     <template v-if="isExpandable(data)">
-      <div v-for="(value, key) in data" :key="key" class="data-node">
+      <div
+        v-for="(value, key) in data"
+        :key="key"
+        class="data-node"
+      >
         <!-- Render primitive values directly -->
         <template v-if="isSinglePrimitive(value)">
           <div class="node-content">
@@ -77,15 +82,24 @@ const isSinglePrimitive = (value) => {
         </template>
         <!-- Render expandable objects/arrays with toggle functionality -->
         <template v-else>
-          <div class="node-content" @click="toggleNode(key)">
+          <div
+            class="node-content"
+            @click="toggleNode(key)"
+          >
             <span class="expand-icon">{{ expandedNodes.has(key) ? '▼' : '▶' }}</span>
             <span class="key">{{ key }}:</span>
-            <span v-if="!expandedNodes.has(key)" class="preview">
+            <span
+              v-if="!expandedNodes.has(key)"
+              class="preview"
+            >
               {{ Array.isArray(value) ? `[${value.length} items]` : '{...}' }}
             </span>
           </div>
           <!-- Nested content when expanded -->
-          <div v-if="expandedNodes.has(key)" class="nested-content">
+          <div
+            v-if="expandedNodes.has(key)"
+            class="nested-content"
+          >
             <StepDataViewer :data="value" />
           </div>
         </template>

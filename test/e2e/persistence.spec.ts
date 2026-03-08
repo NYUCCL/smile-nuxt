@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 import { clearState } from './helpers'
 
 test.describe('State persistence', () => {
-  const readyButton = (page) => page.getByRole('button', { name: /I'm ready/i })
+  const readyButton = page => page.getByRole('button', { name: /I'm ready/i })
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/welcome')

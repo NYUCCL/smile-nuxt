@@ -4,7 +4,6 @@
  * @author Smile UI
  */
 
-
 /**
  * @description Initialize the Smile API for navigation and data management
  */
@@ -25,21 +24,26 @@ function finish() {
   <ConstrainedTaskWindow
     variant="ghost"
     class="p-8"
-    :responsiveUI="api.config.responsiveUI"
+    :responsive-u-i="api.config.responsiveUI"
     :width="api.config.windowsizerRequest.width"
     :height="api.config.windowsizerRequest.height"
   >
     <!-- Experiment content area -->
     <div class="w-[80%] h-[80%]">
       <!-- Experiment title -->
-      <h1 class="text-2xl font-bold mb-4">Experiment</h1>
+      <h1 class="text-2xl font-bold mb-4">
+        Experiment
+      </h1>
 
       <!-- Visual separator -->
-      <hr class="border-gray-300 my-4" />
+      <hr class="border-gray-300 my-4">
 
       <!-- Navigation controls -->
       <div class="flex justify-end">
-        <Button variant="default" @click="finish()">
+        <Button
+          variant="default"
+          @click="finish()"
+        >
           next
           <i-fa6-solid-arrow-right />
         </Button>

@@ -13,12 +13,18 @@ const api = useAPI()
   <!-- Reset local state button with tooltip -->
   <TooltipProvider>
     <Tooltip>
-      <TooltipTrigger asChild>
-        <Button size="menu" variant="outline" @click="api.resetLocalState()">
+      <TooltipTrigger as-child>
+        <Button
+          size="menu"
+          variant="outline"
+          @click="api.resetLocalState()"
+        >
           <i-f7-bolt-fill />
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="bottom"> Reset local state (Ctrl + R) </TooltipContent>
+      <TooltipContent side="bottom">
+        Reset local state (Ctrl + R)
+      </TooltipContent>
     </Tooltip>
   </TooltipProvider>
 </template>

@@ -7,7 +7,6 @@
  * It includes both initial and triggered states for different user scenarios.
  */
 
-
 const api = useViewAPI()
 const props = defineProps(['triggered'])
 
@@ -35,7 +34,10 @@ function finish() {
       }"
     >
       <!-- Initial state: Instructions and continue button -->
-      <div class="w-2/3 pt-8 mx-auto text-center" v-if="!props.triggered">
+      <div
+        v-if="!props.triggered"
+        class="w-2/3 pt-8 mx-auto text-center"
+      >
         <!-- Resize icon -->
         <div class="text-4xl text-window-sizer-text mb-4 flex justify-center">
           <i-fa6-solid-arrows-up-down-left-right />
@@ -47,7 +49,7 @@ function finish() {
         </h1>
 
         <!-- Warning separator -->
-        <hr class="border-window-sizer-border my-4" />
+        <hr class="border-window-sizer-border my-4">
 
         <!-- Warning message about withdrawal -->
         <div class="text-sm text-left mb-4 text-window-sizer-text">
@@ -56,7 +58,7 @@ function finish() {
         </div>
 
         <!-- Action separator -->
-        <hr class="border-window-sizer-border my-4" />
+        <hr class="border-window-sizer-border my-4">
 
         <!-- Continue button -->
         <div class="mt-8">
@@ -72,7 +74,10 @@ function finish() {
       </div>
 
       <!-- Triggered state: Re-adjustment instructions -->
-      <div class="w-2/3 pt-8 mx-auto text-center" v-else>
+      <div
+        v-else
+        class="w-2/3 pt-8 mx-auto text-center"
+      >
         <!-- Resize icon -->
         <span class="text-4xl text-window-sizer-text mb-4 flex justify-center">
           <i-fa6-solid-arrows-up-down-left-right />
@@ -80,12 +85,12 @@ function finish() {
 
         <!-- Re-adjustment instruction text -->
         <h1 class="text-xl font-semibold text-window-sizer-text mb-4">
-          <b>We don't want you to miss anything!</b><br />Please re-adjust the size of your browser window until
+          <b>We don't want you to miss anything!</b><br>Please re-adjust the size of your browser window until
           <b>ALL</b> four edges of this box are visible.
         </h1>
 
         <!-- Warning separator -->
-        <hr class="border-window-sizer-border my-4" />
+        <hr class="border-window-sizer-border my-4">
 
         <!-- Warning message about withdrawal -->
         <div class="text-sm text-left text-window-sizer-text">

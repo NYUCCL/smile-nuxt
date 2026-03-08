@@ -14,11 +14,11 @@ const props = defineProps({
   name: { type: String, required: false },
   required: { type: Boolean, required: false },
   class: { type: null, required: false },
-  size: { type: String, default: 'default', validator: (value) => ['default', 'sm', 'lg', 'xl'].includes(value) },
+  size: { type: String, default: 'default', validator: value => ['default', 'sm', 'lg', 'xl'].includes(value) },
   variant: {
     type: String,
     default: 'default',
-    validator: (value) => ['default', 'primary', 'info', 'success', 'warning', 'danger'].includes(value),
+    validator: value => ['default', 'primary', 'info', 'success', 'warning', 'danger'].includes(value),
   },
 })
 
@@ -64,7 +64,7 @@ const sizeClasses = {
         cn(
           'bg-background dark:bg-background dark:data-[state=unchecked]:bg-background dark:data-[state=checked]:bg-primary-foreground pointer-events-none block rounded-full ring-0 transition-transform data-[state=unchecked]:translate-x-0 shadow-sm',
           sizeClasses[size].thumb,
-          sizeClasses[size].translate
+          sizeClasses[size].translate,
         )
       "
     >

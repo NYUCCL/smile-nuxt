@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+
 const smilestore = useSmileStore() // get the global store
 const api = useAPI() // get the api
 const email = ref('')
@@ -56,44 +57,75 @@ function submitWithdraw() {
 
 <template>
   <!-- Main navigation bar with study info and action buttons -->
-  <div class="flex flex-row items-stretch relative px-5" role="navigation" aria-label="main navigation">
+  <div
+    class="flex flex-row items-stretch relative px-5"
+    role="navigation"
+    aria-label="main navigation"
+  >
     <!-- Left section: Brand logo and study information -->
     <div class="flex items-stretch flex-shrink-0 min-h-[3.25rem]">
-      <a class="flex items-center pt-3" :href="api.config.labURL" target="_new" v-if="!api.config.anonymousMode">
-        <img :src="api.getPublicUrl(api.config.brandLogoFn)" width="90" class="dark-aware-img" />
+      <a
+        v-if="!api.config.anonymousMode"
+        class="flex items-center pt-3"
+        :href="api.config.labURL"
+        target="_new"
+      >
+        <img
+          :src="api.getPublicUrl(api.config.brandLogoFn)"
+          width="90"
+          class="dark-aware-img"
+        >
       </a>
       <div class="flex items-center pt-1">
         <p class="text-xs text-left pl-2.5 text-muted-foreground pt-2 @[600px]:block hidden font-mono">
-          Study: {{ smilestore.config.codeName }}<br />Version: {{ smilestore.config.github.lastCommitHash
-          }}{{ isDev ? '-' + api.config.mode : '' }}<br />
-          <template v-if="smilestore.getShortId != 'N/A'"> User ID: {{ smilestore.getShortId }} </template>
+          Study: {{ smilestore.config.codeName }}<br>Version: {{ smilestore.config.github.lastCommitHash
+          }}{{ isDev ? '-' + api.config.mode : '' }}<br>
+          <template v-if="smilestore.getShortId != 'N/A'">
+            User ID: {{ smilestore.getShortId }}
+          </template>
         </p>
       </div>
     </div>
 
     <!-- Right section: Action buttons -->
-    <div id="infobar" class="flex-grow flex-shrink-0 flex items-stretch z-10">
+    <div
+      id="infobar"
+      class="flex-grow flex-shrink-0 flex items-stretch z-10"
+    >
       <div class="flex justify-end ml-auto items-stretch">
-        <div class="flex items-center pt-1" v-if="!api.config.anonymousMode">
+        <div
+          v-if="!api.config.anonymousMode"
+          class="flex items-center pt-1"
+        >
           <div class="flex gap-2">
-            <Button variant="outline" size="xs" v-if="api.store.cookieState.consented" @click="toggleConsent()">
+            <Button
+              v-if="api.store.cookieState.consented"
+              variant="outline"
+              size="xs"
+              @click="toggleConsent()"
+            >
               <i-fa6-solid-magnifying-glass />
               <span class="@[400px]:inline hidden">View consent</span>
             </Button>
             <Button
+              v-if="
+                api.store.cookieState.consented
+                  && !api.store.cookieState.withdrawn
+                  && !api.store.cookieState.done
+              "
               variant="danger-light"
               size="xs"
-              v-if="
-                api.store.cookieState.consented &&
-                !api.store.cookieState.withdrawn &&
-                !api.store.cookieState.done
-              "
               @click="toggleWithdraw()"
             >
               <i-fa6-solid-circle-xmark />
               <span class="@[400px]:inline hidden">Withdraw</span>
             </Button>
-            <Button variant="warning-light" size="xs" @click="toggleReport()" v-if="false">
+            <Button
+              v-if="false"
+              variant="warning-light"
+              size="xs"
+              @click="toggleReport()"
+            >
               <i-fa6-solid-hand />
               Report issue
             </Button>
@@ -105,7 +137,10 @@ function submitWithdraw() {
 
   <!-- Modal components -->
   <!-- Modal for viewing consent form -->
-  <InformedConsentModal :show="showconsentmodal" @toggle-consent="toggleConsent()" />
+  <InformedConsentModal
+    :show="showconsentmodal"
+    @toggle-consent="toggleConsent()"
+  />
 
   <!-- Modal for withdrawing from study -->
   <WithdrawModal

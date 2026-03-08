@@ -42,7 +42,7 @@ export function initService(service) {
 
 /**
  * Gets URL query parameters from the current window location
- * @returns {Object} Dictionary of query parameter key-value pairs
+ * @returns {object} Dictionary of query parameter key-value pairs
  */
 export function getQueryParams() {
   if (typeof window === 'undefined') return {}
@@ -57,7 +57,7 @@ export function getQueryParams() {
 
 /**
  * Processes URL query parameters to determine recruitment service and store participant info
- * @param {Object} query - Query parameters object
+ * @param {object} query - Query parameters object
  * @param {string} service - Recruitment service name ('prolific', 'cloudresearch', 'mturk', 'citizensci')
  */
 export function processQuery(query, service) {
@@ -75,18 +75,21 @@ export function processQuery(query, service) {
       study_id: urlParams.STUDY_ID,
       session_id: urlParams.SESSION_ID,
     })
-  } else if (service === 'cloudresearch' && urlParams.assignmentId && urlParams.hitId && urlParams.workerId) {
+  }
+  else if (service === 'cloudresearch' && urlParams.assignmentId && urlParams.hitId && urlParams.workerId) {
     log.log('CloudResearch mode')
     smilestore.setRecruitmentService(service, {
       worker_id: urlParams.workerId,
       hit_id: urlParams.hitId,
       assignment_id: urlParams.assignmentId,
     })
-  } else if (service === 'mturk' && urlParams.assignmentId && urlParams.hitId && urlParams.workerId) {
+  }
+  else if (service === 'mturk' && urlParams.assignmentId && urlParams.hitId && urlParams.workerId) {
     if (urlParams.assignmentId == 'ASSIGNMENT_ID_NOT_AVAILABLE') {
       log.log('AMT mode, but no assignment (preview mode)')
       // supposed to show the ad here
-    } else {
+    }
+    else {
       log.log('AMT mode, with assignment')
       smilestore.setRecruitmentService(service, {
         worker_id: urlParams.workerId,
@@ -94,11 +97,12 @@ export function processQuery(query, service) {
         assignment_id: urlParams.assignmentId,
       })
     }
-  } else if (
-    service === 'citizensci' &&
-    urlParams.CITIZEN_ID &&
-    urlParams.CITIZEN_STUDY_ID &&
-    urlParams.CITIZEN_SESSION_ID
+  }
+  else if (
+    service === 'citizensci'
+    && urlParams.CITIZEN_ID
+    && urlParams.CITIZEN_STUDY_ID
+    && urlParams.CITIZEN_SESSION_ID
   ) {
     log.log('Future citizen mode')
     smilestore.setRecruitmentService(service, {
@@ -106,17 +110,20 @@ export function processQuery(query, service) {
       study_id: urlParams.CITIZEN_STUDY_ID,
       session_id: urlParams.CITIZEN_SESSION_ID,
     })
-  } else if (service === 'sona' && urlParams.survey_code) {
+  }
+  else if (service === 'sona' && urlParams.survey_code) {
     log.log('SONA (credit) mode')
     smilestore.setRecruitmentService(service, {
       survey_code: urlParams.survey_code,
     })
-  } else if (service === 'sona_paid' && urlParams.survey_code) {
+  }
+  else if (service === 'sona_paid' && urlParams.survey_code) {
     log.log('SONA (paid) mode')
     smilestore.setRecruitmentService(service, {
       survey_code: urlParams.survey_code,
     })
-  } else if (service === 'spark' && urlParams.subject_ID) {
+  }
+  else if (service === 'spark' && urlParams.subject_ID) {
     log.log('SPARK mode')
     smilestore.setRecruitmentService(service, {
       subject_ID: urlParams.subject_ID,
@@ -124,13 +131,15 @@ export function processQuery(query, service) {
       age: urlParams.age,
       gender: urlParams.gender,
     })
-  } else if (service === 'panda' && urlParams.ID) {
+  }
+  else if (service === 'panda' && urlParams.ID) {
     log.log('PANDA mode')
     smilestore.data.panda_id = urlParams.ID
     smilestore.setRecruitmentService(service, {
       panda_id: urlParams.ID,
     })
-  } else {
+  }
+  else {
     // log.log('const { next, prev } = useTimeline() mode')
   }
 }

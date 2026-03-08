@@ -37,7 +37,8 @@ const containerStyle = computed(() => {
       height: props.height + 'px',
       minHeight: props.height + 'px',
     }
-  } else {
+  }
+  else {
     return {
       width: '90vw',
       minHeight: props.height + 'px',
@@ -50,7 +51,10 @@ const containerStyle = computed(() => {
 
 <template>
   <div class="flex justify-center">
-    <div :class="containerClasses" :style="containerStyle">
+    <div
+      :class="containerClasses"
+      :style="containerStyle"
+    >
       <slot />
     </div>
   </div>

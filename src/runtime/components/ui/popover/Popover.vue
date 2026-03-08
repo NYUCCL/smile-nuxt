@@ -12,7 +12,10 @@ const forwarded = useForwardPropsEmits(props, emits)
 </script>
 
 <template>
-  <PopoverRoot data-slot="popover" v-bind="forwarded">
+  <PopoverRoot
+    data-slot="popover"
+    v-bind="forwarded"
+  >
     <slot />
   </PopoverRoot>
 </template>

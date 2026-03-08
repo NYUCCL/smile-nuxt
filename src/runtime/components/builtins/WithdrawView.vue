@@ -82,7 +82,7 @@ const content = computed(() => {
   <!-- Main container with responsive task window -->
   <ConstrainedTaskWindow
     variant="ghost"
-    :responsiveUI="api.config.responsiveUI"
+    :responsive-u-i="api.config.responsiveUI"
     :width="api.config.windowsizerRequest.width"
     :height="api.config.windowsizerRequest.height"
   >
@@ -96,7 +96,7 @@ const content = computed(() => {
         <CardHeader>
           <p class="text-xl font-semibold text-center">
             <i-icon-park-outline-bye class="text-withdraw-text inline-block text-5xl mb-2" />
-            <br />{{ content.title }}
+            <br>{{ content.title }}
           </p>
         </CardHeader>
         <CardContent>
@@ -105,11 +105,14 @@ const content = computed(() => {
       </Card>
 
       <!-- Error card - shown when user accesses page without withdrawing -->
-      <Card v-else class="border-warning-border bg-warning-bg text-warning-text">
+      <Card
+        v-else
+        class="border-warning-border bg-warning-bg text-warning-text"
+      >
         <CardHeader>
           <p class="text-xl font-semibold text-center">
             <i-icon-park-outline-attention class="text-warning-text inline-block text-5xl mb-2" />
-            <br />Access Error
+            <br>Access Error
           </p>
         </CardHeader>
         <CardContent>

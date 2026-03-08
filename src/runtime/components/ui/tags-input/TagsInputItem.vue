@@ -22,7 +22,7 @@ const forwardedProps = useForwardProps(delegatedProps)
     :class="
       cn(
         'flex h-5 items-center rounded-md bg-secondary data-[state=active]:ring-ring data-[state=active]:ring-2 data-[state=active]:ring-offset-2 ring-offset-background',
-        props.class
+        props.class,
       )
     "
   >

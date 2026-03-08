@@ -7,7 +7,8 @@ onMounted(async () => {
   try {
     const result = await $fetch('/api/auth/session')
     isLoggedIn.value = result?.authenticated === true
-  } catch {
+  }
+  catch {
     isLoggedIn.value = false
   }
 })
@@ -15,7 +16,8 @@ onMounted(async () => {
 async function logout() {
   try {
     await $fetch('/api/auth/logout', { method: 'POST' })
-  } catch {}
+  }
+  catch { /* empty */ }
   window.location.href = '/dev-login'
 }
 </script>
@@ -24,7 +26,11 @@ async function logout() {
   <TooltipProvider v-if="isLoggedIn">
     <Tooltip>
       <TooltipTrigger as-child>
-        <Button size="menu" variant="outline" @click="logout">
+        <Button
+          size="menu"
+          variant="outline"
+          @click="logout"
+        >
           <i-lucide-log-out />
         </Button>
       </TooltipTrigger>

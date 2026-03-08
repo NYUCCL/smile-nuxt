@@ -12,31 +12,34 @@ const isLoading = computed(() => {
 
 <template>
   <ClientOnly>
-  <!-- Main app container for presentation mode -->
-  <div class="app-container">
-    <!-- Top toolbar with navigation -->
-    <div class="toolbar">
-      <PresentationNavBar />
-    </div>
+    <!-- Main app container for presentation mode -->
+    <div class="app-container">
+      <!-- Top toolbar with navigation -->
+      <div class="toolbar">
+        <PresentationNavBar />
+      </div>
 
-    <!-- Middle row - content area -->
-    <div class="content-wrapper">
-      <div class="content-and-console">
-        <!-- Main content - scrollable -->
-        <div class="main-content @container bg-background text-foreground">
-          <!-- Loading state -->
-          <div v-if="isLoading" class="loading-container">
-            <div class="loading-spinner"></div>
-            <p>Loading...</p>
+      <!-- Middle row - content area -->
+      <div class="content-wrapper">
+        <div class="content-and-console">
+          <!-- Main content - scrollable -->
+          <div class="main-content @container bg-background text-foreground">
+            <!-- Loading state -->
+            <div
+              v-if="isLoading"
+              class="loading-container"
+            >
+              <div class="loading-spinner" />
+              <p>Loading...</p>
+            </div>
+            <!-- Main app content via slot -->
+            <template v-else>
+              <slot />
+            </template>
           </div>
-          <!-- Main app content via slot -->
-          <template v-else>
-            <slot />
-          </template>
         </div>
       </div>
     </div>
-  </div>
   </ClientOnly>
 </template>
 

@@ -1,6 +1,6 @@
 <script setup>
 // Vue composables
-import { ref, onMounted } from 'vue'
+// Vue composables (defineProps auto-imported by Vue compiler)
 
 /**
  * Props for the key command notification
@@ -9,7 +9,7 @@ import { ref, onMounted } from 'vue'
  * @property {boolean} show - Whether to show the notification
  * @property {string} type - Notification type ('default' or 'error')
  */
-const props = defineProps({
+const _props = defineProps({
   command: {
     type: String,
     required: true,
@@ -25,7 +25,7 @@ const props = defineProps({
   type: {
     type: String,
     default: 'default',
-    validator: (value) => ['default', 'error'].includes(value),
+    validator: value => ['default', 'error'].includes(value),
   },
 })
 </script>
@@ -33,14 +33,32 @@ const props = defineProps({
 <template>
   <!-- Slide-up transition for notification -->
   <Transition name="slide-up">
-    <div v-if="show" class="notification" :class="{ 'error-notification': type === 'error' }">
-      <div class="notification-content" :class="{ 'error-content': type === 'error' }">
+    <div
+      v-if="show"
+      class="notification"
+      :class="{ 'error-notification': type === 'error' }"
+    >
+      <div
+        class="notification-content"
+        :class="{ 'error-content': type === 'error' }"
+      >
         <div class="command-badge">
-          <kbd class="command-key" :class="{ 'error-key': type === 'error' }">{{ command }}</kbd>
+          <kbd
+            class="command-key"
+            :class="{ 'error-key': type === 'error' }"
+          >{{ command }}</kbd>
         </div>
-        <div class="action-text" :class="{ 'error-text': type === 'error' }">{{ action }}</div>
+        <div
+          class="action-text"
+          :class="{ 'error-text': type === 'error' }"
+        >
+          {{ action }}
+        </div>
       </div>
-      <div class="notification-arrow" :class="{ 'error-arrow': type === 'error' }"></div>
+      <div
+        class="notification-arrow"
+        :class="{ 'error-arrow': type === 'error' }"
+      />
     </div>
   </Transition>
 </template>

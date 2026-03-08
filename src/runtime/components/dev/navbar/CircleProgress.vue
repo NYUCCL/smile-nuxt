@@ -7,7 +7,7 @@
  * @property {string} basecolor - The base color of the circle
  * @property {string} slicecolor - The color of the progress slice
  */
-const props = defineProps({
+const _props = defineProps({
   percentage: Number,
   size: Number,
   strokeWidth: Number,
@@ -20,7 +20,11 @@ const props = defineProps({
   <!-- SVG pie chart for progress display -->
   <div class="pie-chart">
     <svg viewBox="0 0 32 32">
-      <circle r="16" cx="16" cy="16" />
+      <circle
+        r="16"
+        cx="16"
+        cy="16"
+      />
     </svg>
   </div>
 </template>

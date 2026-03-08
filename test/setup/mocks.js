@@ -5,22 +5,22 @@ export const DEBUG = false
 
 // Mock log store — used by many modules
 vi.mock('../../src/runtime/stores/log', () => {
-  const mockLogFn =
-    (type) =>
-    (...args) => {
-      if (DEBUG) {
-        switch (type) {
-          case 'error':
-            console.error(...args)
-            break
-          case 'warn':
-            console.warn(...args)
-            break
-          default:
-            console.log(`[${type}]`, ...args)
+  const mockLogFn
+    = type =>
+      (...args) => {
+        if (DEBUG) {
+          switch (type) {
+            case 'error':
+              console.error(...args)
+              break
+            case 'warn':
+              console.warn(...args)
+              break
+            default:
+              console.log(`[${type}]`, ...args)
+          }
         }
       }
-    }
 
   return {
     default: vi.fn().mockReturnValue({
@@ -46,8 +46,8 @@ vi.mock('axios', () => ({
 
 // Mock Nuxt auto-imports used by runtime code
 vi.mock('#imports', () => ({
-  defineNuxtPlugin: (fn) => fn,
-  defineNuxtRouteMiddleware: (fn) => fn,
+  defineNuxtPlugin: fn => fn,
+  defineNuxtRouteMiddleware: fn => fn,
   useNuxtApp: vi.fn(() => ({ $timeline: null })),
   useRoute: vi.fn(() => ({ path: '/', name: 'index', query: {}, params: {} })),
   useRouter: vi.fn(() => ({ push: vi.fn(), replace: vi.fn(), getRoutes: vi.fn(() => []) })),

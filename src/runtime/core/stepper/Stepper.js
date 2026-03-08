@@ -33,11 +33,11 @@ import seedrandom from 'seedrandom'
 export class Stepper extends StepState {
   /**
    * Creates a new Stepper instance
-   * @param {Object} [options] - Configuration options for the stepper
+   * @param {object} [options] - Configuration options for the stepper
    * @param {*} [options.id] - The id for this node. If null, defaults to '/'
    * @param {StepState|null} [options.parent] - The parent node. If null, this is a root node
    * @param {string} [options.serializedState] - Optional serialized JSON state to load
-   * @param {Object} [options.store] - Optional reference to the store where this stepper is saved
+   * @param {object} [options.store] - Optional reference to the store where this stepper is saved
    */
   constructor(options = {}) {
     const { id = null, parent = null, data = null, serializedState = null, store = null } = options
@@ -78,6 +78,7 @@ export class Stepper extends StepState {
       this._onModify()
     }
   }
+
   /**
    * Creates a new state instance. Overridden to return Stepper instances.
    * @protected
@@ -92,7 +93,7 @@ export class Stepper extends StepState {
   /**
    * Checks if any of the given items would create duplicate paths in the tree
    * @private
-   * @param {Object|Array<Object>} items - Single object or array of objects to check for duplicates
+   * @param {object | Array<object>} items - Single object or array of objects to check for duplicates
    * @param {string} [items[].id] - Optional path property on each item
    * @returns {boolean} True if any items would create duplicate paths, false otherwise
    * @description
@@ -127,7 +128,7 @@ export class Stepper extends StepState {
 
     // Get all existing paths in the tree
     const existingPaths = this.existingPaths
-    const existingData = new Set(this._states.map((state) => JSON.stringify(state.data)))
+    const existingData = new Set(this._states.map(state => JSON.stringify(state.data)))
 
     // Check if any new items would create duplicate paths with existing ones
     return itemsToCheck.some((item) => {
@@ -135,7 +136,8 @@ export class Stepper extends StepState {
       let state
       if (item.id !== undefined) {
         state = new Stepper({ id: item.id, parent: this })
-      } else {
+      }
+      else {
         state = new Stepper({ parent: this })
       }
       state.data = item
@@ -149,7 +151,7 @@ export class Stepper extends StepState {
   /**
    * Creates a new state and assigns data to it
    * @private
-   * @param {Object} item - The item to create a state for
+   * @param {object} item - The item to create a state for
    * @returns {Stepper} The newly created state
    * @description
    * If the item contains an 'id' field, it will be used as the state's id.
@@ -160,10 +162,12 @@ export class Stepper extends StepState {
       // Create a new state with auto-incremented id
       if (item.id !== undefined) {
         state = this.push(item.id, item)
-      } else {
+      }
+      else {
         state = this.push(null, item)
       }
-    } catch (error) {
+    }
+    catch (error) {
       this._log.error(error.message)
     }
     return state
@@ -171,7 +175,7 @@ export class Stepper extends StepState {
 
   /**
    * Appends one or more objects as new states to the current node
-   * @param {Object|Array<Object>} items - Single object or array of objects to append as new states
+   * @param {object | Array<object>} items - Single object or array of objects to append as new states
    * @returns {Stepper} Returns this instance for method chaining
    * @throws {Error} If items is not an object or array, or if adding items would exceed maxSteps
    */
@@ -191,7 +195,8 @@ export class Stepper extends StepState {
       // Check if this specific item would create a duplicate path
       if (this._hasDuplicatePaths(item)) {
         this._log.warn(`Warning: Skipping item that would create duplicate path`)
-      } else {
+      }
+      else {
         this._addState(item)
       }
     })
@@ -204,7 +209,7 @@ export class Stepper extends StepState {
    * Creates a factorial combination (Cartesian product) of all provided arrays.
    * Each combination will be a row in the resulting table.
    *
-   * @param {Object} trials - Object with arrays as values
+   * @param {object} trials - Object with arrays as values
    * @param {Function} [idGenerator] - Optional function to generate custom IDs for each combination
    * @returns {Stepper} Returns this instance for method chaining
    * @throws {Error} If trials is not an object or if operation would exceed maxSteps
@@ -226,12 +231,12 @@ export class Stepper extends StepState {
     })
 
     // Calculate total number of combinations
-    const totalCombinations = processedColumns.reduce((total, [_, arr]) => total * arr.length, 1)
+    const totalCombinations = processedColumns.reduce((total, [, arr]) => total * arr.length, 1)
 
     // Check if adding these combinations would exceed maxSteps
     if (this._states.length + totalCombinations > config.maxSteps) {
       throw new Error(
-        `Cannot create ${totalCombinations} combinations: would exceed maximum of ${config.maxSteps} rows`
+        `Cannot create ${totalCombinations} combinations: would exceed maximum of ${config.maxSteps} rows`,
       )
     }
 
@@ -243,11 +248,11 @@ export class Stepper extends StepState {
       const rest = arrays.slice(1)
       const restCombinations = generateCombinations(rest)
 
-      return values.flatMap((value) =>
-        restCombinations.map((combo) => ({
+      return values.flatMap(value =>
+        restCombinations.map(combo => ({
           [key]: value,
           ...combo,
-        }))
+        })),
       )
     }
 
@@ -263,7 +268,8 @@ export class Stepper extends StepState {
       // Check if this specific combination would create a duplicate path
       if (this._hasDuplicatePaths(row)) {
         this._log.warn(`Warning: Skipping combination that would create duplicate path`)
-      } else {
+      }
+      else {
         this._addState(row)
       }
     })
@@ -276,9 +282,9 @@ export class Stepper extends StepState {
    * Combines multiple arrays into a single table by matching elements at corresponding indices.
    * Supports different methods for handling arrays of different lengths.
    *
-   * @param {Object} trials - Object with arrays as values
-   * @param {Function|Object} [idGeneratorOrOptions] - Either a function to generate custom IDs or options object
-   * @param {Object} [options] - Options for handling arrays of different lengths (only used if idGeneratorOrOptions is a function)
+   * @param {object} trials - Object with arrays as values
+   * @param {Function | object} [idGeneratorOrOptions] - Either a function to generate custom IDs or options object
+   * @param {object} [options] - Options for handling arrays of different lengths (only used if idGeneratorOrOptions is a function)
    * @param {string} [options.method] - Method to use: 'loop', 'pad', or 'last'
    * @param {*} [options.padValue] - Value to use for padding when method is 'pad'
    * @returns {Stepper} Returns this instance for method chaining
@@ -307,7 +313,7 @@ export class Stepper extends StepState {
     })
 
     // Get the maximum length of any column
-    const maxLength = Math.max(...processedColumns.map(([_, arr]) => arr.length))
+    const maxLength = Math.max(...processedColumns.map(([, arr]) => arr.length))
 
     // Check if adding these combinations would exceed maxSteps
     if (this._states.length + maxLength > config.maxSteps) {
@@ -315,12 +321,12 @@ export class Stepper extends StepState {
     }
 
     // Check if any column has a different length
-    const hasDifferentLengths = processedColumns.some(([_, arr]) => arr.length !== maxLength)
+    const hasDifferentLengths = processedColumns.some(([, arr]) => arr.length !== maxLength)
 
     // By default, throw error if lengths are different
     if (hasDifferentLengths && !actualOptions.method) {
       throw new Error(
-        'All columns must have the same length when using zip(). Specify a method (loop, pad, last) to handle different lengths.'
+        'All columns must have the same length when using zip(). Specify a method (loop, pad, last) to handle different lengths.',
       )
     }
 
@@ -334,7 +340,8 @@ export class Stepper extends StepState {
           result.push(arr[i % arr.length])
         }
         return result
-      } else if (method === 'pad' || method === 'last') {
+      }
+      else if (method === 'pad' || method === 'last') {
         const value = method === 'last' ? arr[arr.length - 1] : padValue
         return [...arr, ...Array(targetLength - arr.length).fill(value)]
       }
@@ -342,7 +349,7 @@ export class Stepper extends StepState {
     }
 
     // Process each column according to the specified method
-    const processedArrays = processedColumns.map(([key, arr]) => {
+    const processedArrays = processedColumns.map(([, arr]) => {
       if (arr.length === maxLength) return arr
 
       const method = actualOptions.method
@@ -350,14 +357,17 @@ export class Stepper extends StepState {
 
       if (method === 'loop') {
         return adjustArrayLength(arr, maxLength, 'loop')
-      } else if (method === 'pad') {
+      }
+      else if (method === 'pad') {
         if (padValue === undefined) {
           throw new Error('padValue is required when using the pad method')
         }
         return adjustArrayLength(arr, maxLength, 'pad', padValue)
-      } else if (method === 'last') {
+      }
+      else if (method === 'last') {
         return adjustArrayLength(arr, maxLength, 'pad', arr[arr.length - 1])
-      } else {
+      }
+      else {
         throw new Error(`Invalid method: ${method}. Must be one of: loop, pad, last`)
       }
     })
@@ -383,7 +393,8 @@ export class Stepper extends StepState {
       // Check if this specific combination would create a duplicate path
       if (this._hasDuplicatePaths(row)) {
         this._log.warn(`Warning: Skipping combination that would create duplicate path`)
-      } else {
+      }
+      else {
         this._addState(row)
       }
     })
@@ -396,9 +407,9 @@ export class Stepper extends StepState {
    * Shuffles the current states using the Fisher-Yates algorithm.
    * If a seed is provided, ensures deterministic shuffling.
    *
-   * @param {Object} options - Options for shuffling
+   * @param {object} options - Options for shuffling
    * @param {string} [options.seed] - Optional seed for deterministic shuffling
-   * @param {boolean} [options.always=false] - If true, allows shuffling even if already shuffled
+   * @param {boolean} [options.always] - If true, allows shuffling even if already shuffled
    * @returns {Stepper} Returns this instance for method chaining
    */
   shuffle(options = {}) {
@@ -418,7 +429,8 @@ export class Stepper extends StepState {
       // Create a new seeded RNG instance
       const seededRng = seedrandom(seed)
       rng = () => seededRng()
-    } else {
+    }
+    else {
       rng = Math.random
     }
 
@@ -467,12 +479,12 @@ export class Stepper extends StepState {
           Object.keys(result).forEach((key) => {
             // Only copy properties that are not internal properties of the Stepper
             if (
-              key !== '_id' &&
-              key !== '_states' &&
-              key !== '_parent' &&
-              key !== '_path' &&
-              key !== 'data' &&
-              typeof result[key] !== 'function'
+              key !== '_id'
+              && key !== '_states'
+              && key !== '_parent'
+              && key !== '_path'
+              && key !== 'data'
+              && typeof result[key] !== 'function'
             ) {
               newData[key] = result[key]
             }
@@ -510,7 +522,7 @@ export class Stepper extends StepState {
   /**
    * Visualizes the Stepper object as a tree structure.
    * Used by the dev bar to display the stepper tree.
-   * @returns {Object} A clean object representation of the Stepper tree
+   * @returns {object} A clean object representation of the Stepper tree
    */
   visualize() {
     // Helper function to recursively process each state

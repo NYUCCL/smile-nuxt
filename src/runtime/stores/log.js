@@ -22,17 +22,18 @@ import useSmileStore from './smilestore.js'
  */
 function getLogTrace() {
   // some browsers use 'at ', some use '@'
-  const lines = new Error().stack.split('\n').filter((line) => line.includes('at ') || line.includes('@'))
+  const lines = new Error('trace').stack.split('\n').filter(line => line.includes('at ') || line.includes('@'))
   if (lines.length < 4) {
     return '(could not parse trace)'
   }
   // strip leading 'http://localhost:xxx/.../.../.../' and '?t=xxx' query param, if present
-  const regex =
-    /(?:at\s|@)(?:.*?\s\()?(http:\/\/localhost:\d+\/\w+\/\w+\/\w+\/)?(?<filePath>.+?)(?:\?.*?)?(?::(?<lineNumber>\d+):(?<columnNumber>\d+))\)?/
+  const regex
+    = /(?:at\s|@)(?:.*?\s\()?(?:http:\/\/localhost:\d+\/\w+\/\w+\/\w+\/)?(?<filePath>[^?:]+)(?:\?[^:]*)?:(?<lineNumber>\d+):(?<columnNumber>\d+)\)?/
   const match = regex.exec(lines[3])
   if (match) {
     return `${match.groups.filePath} (line ${match.groups.lineNumber}, column ${match.groups.columnNumber})`
-  } else {
+  }
+  else {
     return '(could not parse trace)'
   }
 }
@@ -51,10 +52,12 @@ function argsToString(args) {
       if (typeof arg === 'object') {
         try {
           return JSON.stringify(arg)
-        } catch (e) {
+        }
+        catch {
           return ''
         }
-      } else {
+      }
+      else {
         return String(arg)
       }
     })
@@ -63,7 +66,7 @@ function argsToString(args) {
 
 /**
  * Pinia store for managing application logging functionality
- * @returns {Object} Store instance with state and actions for logging
+ * @returns {object} Store instance with state and actions for logging
  * @example
  * const logStore = useLogStore()
  * logStore.log('Hello world') // Logs a message
@@ -73,7 +76,7 @@ function argsToString(args) {
 export default defineStore('log', {
   /**
    * State for the log store
-   * @returns {Object} Store state object
+   * @returns {object} Store state object
    * @property {Array} history - Array containing all log messages across the entire session
    * @property {Array} page_history - Array containing log messages for the current page/route only
    */
@@ -84,7 +87,7 @@ export default defineStore('log', {
   actions: {
     /**
      * Adds a message to both the global history and page history arrays
-     * @param {Object} msg - The message object to add to history
+     * @param {object} msg - The message object to add to history
      */
     addToHistory(msg) {
       this.history.push(msg)
@@ -145,10 +148,10 @@ export default defineStore('log', {
         trace: getLogTrace(),
       }
       if (
-        smilestore.dev.notificationFilter !== 'None' &&
-        (smilestore.dev.notificationFilter == 'Warnings and Errors' ||
-          smilestore.dev.notificationFilter == 'Warnings only') &&
-        appconfig.mode === 'development'
+        smilestore.dev.notificationFilter !== 'None'
+        && (smilestore.dev.notificationFilter == 'Warnings and Errors'
+          || smilestore.dev.notificationFilter == 'Warnings only')
+        && appconfig.mode === 'development'
       ) {
         toast.warning(message)
       }
@@ -170,10 +173,10 @@ export default defineStore('log', {
         trace: getLogTrace(),
       }
       if (
-        smilestore.dev.notificationFilter !== 'None' &&
-        (smilestore.dev.notificationFilter == 'Warnings and Errors' ||
-          smilestore.dev.notificationFilter == 'Errors only') &&
-        appconfig.mode === 'development'
+        smilestore.dev.notificationFilter !== 'None'
+        && (smilestore.dev.notificationFilter == 'Warnings and Errors'
+          || smilestore.dev.notificationFilter == 'Errors only')
+        && appconfig.mode === 'development'
       ) {
         toast.error(message)
       }
@@ -195,9 +198,9 @@ export default defineStore('log', {
         trace: getLogTrace(),
       }
       if (
-        smilestore.dev.notificationFilter !== 'None' &&
-        (smilestore.dev.notificationFilter == 'All' || smilestore.dev.notificationFilter == 'Success only') &&
-        appconfig.mode === 'development'
+        smilestore.dev.notificationFilter !== 'None'
+        && (smilestore.dev.notificationFilter == 'All' || smilestore.dev.notificationFilter == 'Success only')
+        && appconfig.mode === 'development'
       ) {
         toast.success(message)
       }

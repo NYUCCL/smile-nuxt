@@ -21,12 +21,13 @@ import useLog from '../stores/log'
 /**
  * Timeline management composable for handling view navigation
  * @function useTimeline
- * @returns {Object} Timeline methods and utilities
+ * @returns {object} Timeline methods and utilities
  */
 export default function useTimeline() {
   const smilestore = useSmileStore()
   const route = useRoute()
-  const router = useRouter()
+  // eslint-disable-next-line no-unused-vars
+  const _router = useRouter()
   const log = useLog()
 
   /**
@@ -65,7 +66,7 @@ export default function useTimeline() {
   /**
    * Looks up the next route in the navigation sequence for a given route name
    * @param {string} routeName - The name of the route to look up the next route for
-   * @returns {Object|null} Route object with path and query params, or null if no next route found
+   * @returns {object | null} Route object with path and query params, or null if no next route found
    */
   const lookupNext = (routeName) => {
     const nuxtApp = useNuxtApp()
@@ -90,7 +91,7 @@ export default function useTimeline() {
 
   /**
    * Gets the next view in the navigation sequence based on current route metadata
-   * @returns {Object|null} Route object with path and query params, or null if no next view
+   * @returns {object | null} Route object with path and query params, or null if no next view
    */
   const nextView = () => {
     const config = _getTimelineRoute()
@@ -108,7 +109,7 @@ export default function useTimeline() {
 
   /**
    * Gets the previous view in the navigation sequence based on current route metadata
-   * @returns {Object|null} Route object with path and query params, or null if no previous view
+   * @returns {object | null} Route object with path and query params, or null if no previous view
    */
   const prevView = () => {
     const config = _getTimelineRoute()
@@ -127,7 +128,7 @@ export default function useTimeline() {
   /**
    * Navigates to a specific view with optional force parameter
    * @param {string} view - Name of the view to navigate to
-   * @param {boolean} [force=true] - Whether to force navigation by temporarily disabling navigation guards
+   * @param {boolean} [force] - Whether to force navigation by temporarily disabling navigation guards
    * @returns {Promise<void>}
    */
   const goToView = async (view, force = true) => {
@@ -143,7 +144,8 @@ export default function useTimeline() {
       smilestore.browserEphemeral.forceNavigate = true
       await nuxtNavigateTo(target)
       smilestore.browserEphemeral.forceNavigate = false
-    } else {
+    }
+    else {
       await nuxtNavigateTo(target)
     }
   }
@@ -151,7 +153,7 @@ export default function useTimeline() {
   /**
    * Internal navigation handler that manages state updates and data saving
    * @private
-   * @param {Object} goto - Route object to navigate to (with path, not name)
+   * @param {object} goto - Route object to navigate to (with path, not name)
    */
   const _doNavigate = (goto) => {
     // sets the current page as done

@@ -4,13 +4,12 @@
  * Provides participants with information about the study, compensation, and researchers
  */
 
-
 const api = useAPI()
 
 /**
  * Component props for study information
  */
-const props = defineProps({
+const _props = defineProps({
   estimated_time: {
     type: String,
     required: true,
@@ -24,11 +23,17 @@ const props = defineProps({
 
 <template>
   <!-- Two-column layout for study preview -->
-  <TwoCol leftWidth="w-3/5" leftFirst :responsiveUI="api.config.responsiveUI">
+  <TwoCol
+    left-width="w-3/5"
+    left-first
+    :responsive-u-i="api.config.responsiveUI"
+  >
     <!-- Left column: Study description and summary -->
     <template #left>
       <!-- Main study title -->
-      <h1 class="text-3xl font-bold mb-4">Welcome to our study!</h1>
+      <h1 class="text-3xl font-bold mb-4">
+        Welcome to our study!
+      </h1>
 
       <!-- Study description with compensation and time details -->
       <p class="text-lg text-left mb-4">
@@ -41,7 +46,7 @@ const props = defineProps({
       </p>
 
       <!-- Visual separator -->
-      <hr class="border-gray-300 my-4" />
+      <hr class="border-gray-300 my-4">
 
       <!-- Study summary -->
       <p>
@@ -53,7 +58,11 @@ const props = defineProps({
     <!-- Right column: Lab information and branding -->
     <template #right>
       <!-- Lab logo (hidden on smaller screens) -->
-      <img src="@/user/assets/brain.svg" width="220" class="mb-4 hidden @xl:block" />
+      <img
+        src="@/user/assets/brain.svg"
+        width="220"
+        class="mb-4 hidden @xl:block"
+      >
 
       <!-- Lab information card -->
       <article class="border border-gray-300 rounded-lg shadow-lg">
@@ -66,28 +75,35 @@ const props = defineProps({
         <div class="p-3 text-xs text-left">
           <div v-if="!api.config.anonymousMode">
             We are the
-            <a href="http://gureckislab.org" target="_blank" class="text-green-500 hover:text-green-600"
-              >Computation and Cognition Lab</a
-            >
+            <a
+              href="http://gureckislab.org"
+              target="_blank"
+              class="text-green-500 hover:text-green-600"
+            >Computation and Cognition Lab</a>
             at New York University under the direction to
-            <a href="http://todd.gureckislab.org" target="_blank" class="text-green-500 hover:text-green-600"
-              >Dr. Todd Gureckis</a
-            >. Our lab uses games and other fun tasks to study human intellience. Our research is funded in the public
+            <a
+              href="http://todd.gureckislab.org"
+              target="_blank"
+              class="text-green-500 hover:text-green-600"
+            >Dr. Todd Gureckis</a>. Our lab uses games and other fun tasks to study human intellience. Our research is funded in the public
             interest by the United States
-            <a href="https://nsf.gov" target="_new" class="text-green-500 hover:text-green-600"
-              >National Science Foundation</a
-            >
+            <a
+              href="https://nsf.gov"
+              target="_new"
+              class="text-green-500 hover:text-green-600"
+            >National Science Foundation</a>
             among other organizations and non-profit foundations and we publish our work, code, and results for the
             public. We very much appreciate research participants in our studies and have a public
             <a
               href="http://gureckislab.org/research-code-of-ethics.html"
               target="_new"
               class="text-green-500 hover:text-green-600"
-              >code of ethics</a
-            >
+            >code of ethics</a>
             we strive to uphold in all our studies.
           </div>
-          <div v-else>You can try our experiment here.</div>
+          <div v-else>
+            You can try our experiment here.
+          </div>
         </div>
       </article>
     </template>
