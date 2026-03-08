@@ -1,5 +1,5 @@
 <template>
-  <div class="prose dark:prose-invert max-w-none">
+  <div class="max-w-none [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:first:mt-0 [&_p]:mb-4 [&_p]:leading-relaxed">
     <h3>About This Study</h3>
     <p>
       You are being asked to participate in a research study. This document
