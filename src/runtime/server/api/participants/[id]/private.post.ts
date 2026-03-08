@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { defineEventHandler, readBody, createError, getRouterParam } from 'h3'
 import { useDB } from '../../../utils/db'
 import { privateData } from '../../../database/schema'
 

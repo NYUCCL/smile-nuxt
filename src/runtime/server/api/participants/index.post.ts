@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { defineEventHandler, readBody } from 'h3'
 import { useDB } from '../../utils/db'
 import { participants } from '../../database/schema'
 

@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm'
+import { defineEventHandler, readBody, createError, getRouterParam } from 'h3'
 import { useDB } from '../../utils/db'
 import { participants } from '../../database/schema'
 

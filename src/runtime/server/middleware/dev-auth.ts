@@ -1,4 +1,6 @@
 import { eq } from 'drizzle-orm'
+import { defineEventHandler, getCookie, getRequestURL, sendRedirect } from 'h3'
+import { useRuntimeConfig } from 'nitropack/runtime'
 import { useDB } from '../utils/db'
 import { devSessions } from '../database/schema'
 

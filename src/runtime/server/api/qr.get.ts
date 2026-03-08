@@ -1,4 +1,5 @@
 import QRCode from 'qrcode-svg'
+import { defineEventHandler, getQuery, getRequestURL, setResponseHeader } from 'h3'
 
 export default defineEventHandler((event) => {
   const query = getQuery(event)

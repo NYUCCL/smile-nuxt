@@ -1,3 +1,4 @@
+import { defineNitroPlugin } from 'nitropack/runtime'
 import { useDB } from '../utils/db'
 import { sql } from 'drizzle-orm'
 import { participants as _participants, privateData as _privateData, devSessions as _devSessions } from '../database/schema'

@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm'
+import { defineEventHandler, getCookie } from 'h3'
 import { useDB } from '../../utils/db'
 import { devSessions } from '../../database/schema'
 
