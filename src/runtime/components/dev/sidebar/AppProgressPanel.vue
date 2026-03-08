@@ -38,14 +38,14 @@ const api = useAPI()
       </div>
     </StepperItem>
 
-    <!-- Step 2: Database connection -->
+    <!-- Step 2: Record created -->
     <StepperItem class="relative flex w-full flex-col items-center justify-center" :step="2">
       <StepperSeparator
         class="absolute left-[calc(50%+20px)] right-[calc(-50%+10px)] top-5 block h-0.5 shrink-0 rounded-full bg-muted"
         :class="[
-          api.store.browserEphemeral.dbConnected && !api.store.browserEphemeral.dbChanges
+          api.store.browserEphemeral.dataLoaded && !api.store.browserEphemeral.unsavedChanges
             ? 'bg-green-500'
-            : api.store.browserEphemeral.dbConnected && api.store.browserEphemeral.dbChanges
+            : api.store.browserEphemeral.dataLoaded && api.store.browserEphemeral.unsavedChanges
               ? 'bg-yellow-500'
               : 'bg-gray-300',
         ]"
@@ -54,19 +54,19 @@ const api = useAPI()
       <StepperTrigger as-child>
         <div
           class="z-10 rounded-full shrink-0 p-3 cursor-pointer"
-          :class="[api.store.browserEphemeral.dbConnected ? 'bg-green-200' : 'bg-muted']"
+          :class="[api.store.browserEphemeral.dataLoaded ? 'bg-green-200' : 'bg-muted']"
           @click="api.connectDB()"
         >
-          <i-mdi-firebase :class="[api.store.browserEphemeral.dbConnected ? 'text-green-500' : 'text-gray-500']" />
+          <i-lucide-database :class="[api.store.browserEphemeral.dataLoaded ? 'text-green-500' : 'text-gray-500']" />
         </div>
       </StepperTrigger>
 
       <div class="flex flex-col items-center text-center">
         <StepperDescription
-          :class="[api.store.browserEphemeral.dbConnected ? 'text-green-500' : 'text-gray-500']"
+          :class="[api.store.browserEphemeral.dataLoaded ? 'text-green-500' : 'text-gray-500']"
           class="text-[0.6rem] text-muted-foreground transition font-mono"
         >
-          {{ api.store.browserEphemeral.dbConnected ? 'Connected' : 'Not connected' }}
+          {{ api.store.browserEphemeral.dataLoaded ? 'Record created' : 'No record yet' }}
         </StepperDescription>
       </div>
     </StepperItem>
@@ -77,18 +77,18 @@ const api = useAPI()
         <div
           class="z-10 rounded-full shrink-0 p-3"
           :class="[
-            api.store.browserEphemeral.dbConnected && !api.store.browserEphemeral.dbChanges
+            api.store.browserEphemeral.dataLoaded && !api.store.browserEphemeral.unsavedChanges
               ? 'bg-green-200'
-              : api.store.browserEphemeral.dbConnected && api.store.browserEphemeral.dbChanges
+              : api.store.browserEphemeral.dataLoaded && api.store.browserEphemeral.unsavedChanges
                 ? 'bg-amber-100'
                 : 'bg-muted',
           ]"
         >
           <i-fluent-cloud-sync-24-filled
             :class="[
-              api.store.browserEphemeral.dbConnected && !api.store.browserEphemeral.dbChanges
+              api.store.browserEphemeral.dataLoaded && !api.store.browserEphemeral.unsavedChanges
                 ? 'text-green-500'
-                : api.store.browserEphemeral.dbConnected && api.store.browserEphemeral.dbChanges
+                : api.store.browserEphemeral.dataLoaded && api.store.browserEphemeral.unsavedChanges
                   ? 'text-yellow-500'
                   : 'text-gray-500',
             ]"
@@ -99,20 +99,20 @@ const api = useAPI()
       <div class="flex flex-col items-center text-center">
         <StepperDescription
           :class="[
-            api.store.browserEphemeral.dbConnected && !api.store.browserEphemeral.dbChanges
+            api.store.browserEphemeral.dataLoaded && !api.store.browserEphemeral.unsavedChanges
               ? 'text-green-500'
-              : api.store.browserEphemeral.dbConnected && api.store.browserEphemeral.dbChanges
+              : api.store.browserEphemeral.dataLoaded && api.store.browserEphemeral.unsavedChanges
                 ? 'text-red-500'
                 : 'text-gray-500',
           ]"
           class="text-[0.6rem] text-muted-foreground transition font-mono"
         >
           {{
-            !api.store.browserEphemeral.dbConnected
-              ? 'Never synced'
-              : api.store.browserEphemeral.dbChanges
-                ? 'Out of sync'
-                : 'Synced'
+            !api.store.browserEphemeral.dataLoaded
+              ? 'Never saved'
+              : api.store.browserEphemeral.unsavedChanges
+                ? 'Unsaved changes'
+                : 'Saved'
           }}
         </StepperDescription>
       </div>

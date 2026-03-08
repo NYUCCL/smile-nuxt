@@ -2,14 +2,8 @@
 // Vue composables
 import { computed } from 'vue'
 
-// UI components
-
-// Icons
-
-// API composable
-
 // Local components
-import CircleProgress from './CircleProgress.vue'
+import CircleProgress from '../sidebar/CircleProgress.vue'
 
 /**
  * API instance for accessing application state and methods
@@ -17,23 +11,23 @@ import CircleProgress from './CircleProgress.vue'
 const api = useAPI()
 
 /**
- * Computed tooltip text showing database connection status and data usage
+ * Computed tooltip text showing database status and data usage
  *
- * @returns {string} Formatted tooltip message with connection status, sync status, and data usage
+ * @returns {string} Formatted tooltip message with record status, sync status, and data usage
  */
 const database_tooltip = computed(() => {
-  var msg = ''
-  if (api.store.browserEphemeral.dbConnected == true) {
-    msg += 'Database connected | '
+  let msg = ''
+  if (api.store.browserEphemeral.dataLoaded) {
+    msg += 'Record created | '
   } else {
-    msg += 'Database not connected | '
+    msg += 'No record yet | '
   }
-  if (api.store.browserEphemeral.dbChanges == true) {
-    msg += 'Unsynced data '
+  if (api.store.browserEphemeral.unsavedChanges) {
+    msg += 'Unsaved changes '
   } else {
-    msg += 'Data in sync '
+    msg += 'Saved '
   }
-  if (api.store.browserEphemeral.dbConnected == true) {
+  if (api.store.browserEphemeral.dataLoaded) {
     msg += '| '
     msg += Math.round((api.store.localState.approxDataSize / 1048576) * 1000) / 1000 + '% data used'
   }
@@ -42,23 +36,23 @@ const database_tooltip = computed(() => {
 </script>
 
 <template>
-  <!-- Database connection status button with tooltip -->
+  <!-- Database status button with tooltip -->
   <TooltipProvider>
     <Tooltip>
       <TooltipTrigger asChild>
         <Button size="menu" variant="outline">
-          <!-- Database icon with connection status styling -->
-          <i-ix-database-filled
+          <!-- Database icon with status styling -->
+          <i-lucide-database
             style="font-size: 2em"
             class="disconnected"
-            :class="{ connected: api.store.browserEphemeral.dbConnected == true }"
+            :class="{ connected: api.store.browserEphemeral.dataLoaded }"
           />
 
-          <!-- Refresh icon with sync status styling -->
-          <template v-if="!api.store.browserEphemeral.dbConnected">
+          <!-- Sync icon with status styling -->
+          <template v-if="!api.store.browserEphemeral.dataLoaded">
             <i-lucide-refresh-cw class="has-text-grey" />
           </template>
-          <template v-else-if="api.store.browserEphemeral.dbChanges && api.store.browserEphemeral.dbConnected">
+          <template v-else-if="api.store.browserEphemeral.unsavedChanges && api.store.browserEphemeral.dataLoaded">
             <i-lucide-refresh-cw class="outofsync" />
           </template>
           <template v-else>
@@ -66,7 +60,7 @@ const database_tooltip = computed(() => {
           </template>
 
           <!-- Progress circle for data usage -->
-          <template v-if="!api.store.browserEphemeral.dbConnected">
+          <template v-if="!api.store.browserEphemeral.dataLoaded">
             <div class="mt-1">
               <CircleProgress
                 :percentage="Math.round(api.store.localState.approxDataSize / 1048576) * 100"

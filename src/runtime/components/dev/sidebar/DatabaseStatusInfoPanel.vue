@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 
 /**
  * API instance for accessing Smile app state and actions
@@ -14,30 +14,13 @@ const api = useAPI()
 var timer = ref(null)
 
 /**
- * Computed Firebase console URL for the current document
- * @type {import('vue').ComputedRef<string>}
- */
-const firebase_url = computed(() => {
-  const mode = api.config.mode == 'development' ? 'testing' : 'real'
-  return `https://console.firebase.google.com/u/0/project/${api.config.firebaseConfig.projectId}/firestore/data/~2F${mode}~2F${api.config.projectRef}~2Fdata~2F${api.store.cookieState.docRef}`
-})
-
-/**
- * Opens the Firebase console in a new tab
- * @param {string} url - The URL to open
- */
-function open_firebase_console(url) {
-  window.open(url, '_new')
-}
-
-/**
  * Computed sync state for UI display
  * @type {import('vue').ComputedRef<string>}
  */
 const sync_state = computed(() => {
-  if (api.store.browserEphemeral.dbChanges && api.store.browserEphemeral.dbConnected) {
+  if (api.store.browserEphemeral.unsavedChanges && api.store.browserEphemeral.dataLoaded) {
     return 'is-warning is-completed'
-  } else if (!api.store.browserEphemeral.dbChanges && api.store.browserEphemeral.dbConnected) {
+  } else if (!api.store.browserEphemeral.unsavedChanges && api.store.browserEphemeral.dataLoaded) {
     return 'is-success is-completed'
   } else {
     return ''
@@ -57,8 +40,8 @@ const stopTimer = () => {
  */
 const startTimer = () => {
   timer.value = setInterval(() => {
-    if (!api.store.browserEphemeral.dbConnected) {
-      last_write_time_string.value = `Never happened`
+    if (!api.store.browserEphemeral.dataLoaded) {
+      last_write_time_string.value = `Never saved`
     } else {
       var time = ((Date.now() - api.store.localState.lastWrite) / 1000).toFixed(1)
       if (time < 60) {
@@ -88,8 +71,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   stopTimer()
 })
-
-const showServiceSelect = ref(false)
 </script>
 
 <template>
@@ -110,47 +91,36 @@ const showServiceSelect = ref(false)
           {{ api.config.mode }}
         </td>
       </tr>
-      <!-- Project row -->
-      <tr class="table-row-base table-row-even hidden sm:table-row">
-        <td class="table-cell-base table-cell-left table-cell-small"><b>Project:</b></td>
-        <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
-          {{ api.config.firebaseConfig.projectId }}
-        </td>
-      </tr>
       <!-- DocRef row -->
-      <tr class="table-row-base table-row-odd">
+      <tr class="table-row-base table-row-even">
         <td class="table-cell-base table-cell-left table-cell-small"><b>DocRef:</b></td>
         <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
-          {{ api.store.cookieState.docRef }}&nbsp;&nbsp;<a
-            v-if="api.store.cookieState.docRef"
-            @click.prevent="open_firebase_console(firebase_url)"
-            ><i-fa6-solid-square-up-right
-          /></a>
+          {{ api.store.cookieState.docRef || '(none)' }}
         </td>
       </tr>
       <!-- Writes row -->
-      <tr class="table-row-base table-row-even hidden sm:table-row">
+      <tr class="table-row-base table-row-odd hidden sm:table-row">
         <td class="table-cell-base table-cell-left table-cell-small"><b>Writes:</b></td>
         <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
           {{ api.store.localState.totalWrites }} out of {{ api.config.maxWrites }} max
         </td>
       </tr>
       <!-- Last write row -->
-      <tr class="table-row-base table-row-odd hidden sm:table-row">
-        <td class="table-cell-base table-cell-left table-cell-small"><b>Last write:</b></td>
+      <tr class="table-row-base table-row-even hidden sm:table-row">
+        <td class="table-cell-base table-cell-left table-cell-small"><b>Last save:</b></td>
         <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
           {{ last_write_time_string }}
         </td>
       </tr>
       <!-- Auto save row -->
-      <tr class="table-row-base table-row-even hidden sm:table-row">
+      <tr class="table-row-base table-row-odd hidden sm:table-row">
         <td class="table-cell-base table-cell-left table-cell-small"><b>Auto save:</b></td>
         <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
           {{ api.config.autoSave }}
         </td>
       </tr>
       <!-- Size row -->
-      <tr class="table-row-base table-row-odd hidden sm:table-row table-border-bottom">
+      <tr class="table-row-base table-row-even hidden sm:table-row table-border-bottom">
         <td class="table-cell-base table-cell-left table-cell-small"><b>Size:</b></td>
         <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
           {{ api.store.localState.approxDataSize }} / 1,048,576 max ({{
@@ -160,11 +130,4 @@ const showServiceSelect = ref(false)
       </tr>
     </tbody>
   </table>
-
-  <!-- Firebase browse button -->
-  <div class="flex justify-end mt-4 mr-4">
-    <Button @click="open_firebase_console(firebase_url)" variant="outline" size="sm" class="text-xs font-mono">
-      Browse in Firebase
-    </Button>
-  </div>
 </template>

@@ -116,8 +116,8 @@ const initBrowserEphemeral = {
   forceNavigate: false,
   tooSmall: false,
   steppers: {},
-  dbConnected: false,
-  dbChanges: true,
+  dataLoaded: false,
+  unsavedChanges: true,
   urls: {
     prolific: '/welcome/prolific?PROLIFIC_PID=XXXX&STUDY_ID=XXXX&SESSION_ID=XXXXX',
     cloudresearch:
@@ -219,7 +219,7 @@ export default defineStore('smilestore', {
     isWithdrawn: (state) => state.cookieState.withdrawn,
     isDone: (state) => state.cookieState.done,
     lastRoute: (state) => state.cookieState.lastRoute,
-    isDBConnected: (state) => state.browserEphemeral.dbConnected,
+    isDataLoaded: (state) => state.browserEphemeral.dataLoaded,
     hasAutofill: (state) => state.dev?.viewProvidesAutofill,
     searchParams: (state) => state.dev?.searchParams,
     recruitmentService: (state) => state.data.recruitmentService,
@@ -253,11 +253,11 @@ export default defineStore('smilestore', {
       this.data.seedID = this.cookieState.seedID
     },
 
-    setDBConnected() {
-      if (this.browserEphemeral.dbConnected === false) {
+    setDataLoaded() {
+      if (this.browserEphemeral.dataLoaded === false) {
         this.manualSyncLocalToData()
       }
-      this.browserEphemeral.dbConnected = true
+      this.browserEphemeral.dataLoaded = true
     },
 
     setSearchParams(searchParams) {
@@ -449,7 +449,7 @@ export default defineStore('smilestore', {
           body: { data: this.private },
         })
         this.localState.privateDocRef = privateId
-        this.setDBConnected()
+        this.setDataLoaded()
       } catch (err) {
         log.error('SMILESTORE: could not create participant record: ' + err)
       }
@@ -462,7 +462,7 @@ export default defineStore('smilestore', {
           if (result?.data) {
             this.data = result.data
             this.localState.approxDataSize = JSON.stringify(result.data).length
-            this.setDBConnected()
+            this.setDataLoaded()
           }
         } catch (err) {
           const log = useLog()
@@ -497,7 +497,7 @@ export default defineStore('smilestore', {
 
     async saveData(force = false) {
       const log = useLog()
-      if (this.isDBConnected) {
+      if (this.isDataLoaded) {
         if (!force && this.localState.totalWrites >= appconfig.maxWrites) {
           log.error(
             'SMILESTORE: max writes reached. Data NOT saved. Call saveData() less frequently.'
@@ -530,7 +530,7 @@ export default defineStore('smilestore', {
           this.localState.approxDataSize = JSON.stringify(this.data).length
           this.localState.totalWrites += 1
           this.localState.lastWrite = Date.now()
-          this.browserEphemeral.dbChanges = false
+          this.browserEphemeral.unsavedChanges = false
           log.success('SMILESTORE: saveData() successful (force = ' + force + ')')
         } catch (err) {
           log.error('SMILESTORE: error saving data: ' + err)

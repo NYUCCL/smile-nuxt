@@ -135,7 +135,7 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
   to.query = newQueries
 
   // --- Guard 7: Load data for known user ---
-  if (store.isKnownUser && !store.isDBConnected) {
+  if (store.isKnownUser && !store.isDataLoaded) {
     await store.loadData()
   }
 

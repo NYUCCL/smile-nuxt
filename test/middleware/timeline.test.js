@@ -184,7 +184,7 @@ function createMockStore(overrides = {}) {
     browserEphemeral: {
       currentViewDone: false,
       forceNavigate: false,
-      dbConnected: false,
+      dataLoaded: false,
       ...overrides.browserEphemeral,
     },
     // Compatibility getter (matches the real store)
@@ -207,8 +207,8 @@ function createMockStore(overrides = {}) {
     get lastRoute() {
       return this.cookieState.lastRoute
     },
-    get isDBConnected() {
-      return this.browserEphemeral.dbConnected
+    get isDataLoaded() {
+      return this.browserEphemeral.dataLoaded
     },
     get getSeedID() {
       return this.cookieState.seedID
@@ -234,7 +234,7 @@ function createMockStore(overrides = {}) {
       this.cookieState.withdrawn = true
     }),
     loadData: vi.fn(async function () {
-      this.browserEphemeral.dbConnected = true
+      this.browserEphemeral.dataLoaded = true
     }),
     removeAutofill: vi.fn(),
     clearSmileCookies: vi.fn(),
