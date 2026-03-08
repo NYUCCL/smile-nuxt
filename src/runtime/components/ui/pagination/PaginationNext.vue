@@ -1,4 +1,5 @@
 <script setup>
+import { cn } from '../../../lib/utils'
 import { reactiveOmit } from '@vueuse/core'
 import { ChevronRightIcon } from 'lucide-vue-next'
 import { PaginationNext, useForwardProps } from 'reka-ui'

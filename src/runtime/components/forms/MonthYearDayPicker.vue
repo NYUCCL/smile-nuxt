@@ -3,6 +3,7 @@ import { CalendarRoot, useDateFormatter } from 'reka-ui'
 import { createDecade, createYear, toDate } from 'reka-ui/date'
 import { getLocalTimeZone, today, CalendarDate } from '@internationalized/date'
 import { computed, ref, watch } from 'vue'
+import { cn } from '../../lib/utils'
 // Calendar components (CalendarCell, CalendarCellTrigger, etc.) are auto-imported
 
 const props = defineProps({

@@ -1,4 +1,5 @@
 <script setup>
+import { cn } from '../../../lib/utils'
 import { SIDEBAR_WIDTH_MOBILE, useSidebar } from './utils'
 
 defineOptions({

@@ -1,4 +1,5 @@
 <script setup>
+import { cn } from '../../../lib/utils'
 import { computed } from 'vue'
 
 const props = defineProps({

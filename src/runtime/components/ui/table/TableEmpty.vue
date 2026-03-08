@@ -1,4 +1,5 @@
 <script setup>
+import { cn } from '../../../lib/utils'
 import { reactiveOmit } from '@vueuse/core'
 import TableCell from './TableCell.vue'
 import TableRow from './TableRow.vue'
