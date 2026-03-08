@@ -1,5 +1,5 @@
 <script setup>
-import IFa6SolidArrowRight from '~icons/fa6-solid/arrow-right'
+import { ArrowRight } from 'lucide-vue-next'
 /**
  * @fileoverview DebriefView component for displaying study completion information
  * @description This component shows debrief text to participants and provides navigation
@@ -61,7 +61,7 @@ function finish() {
           @click="finish()"
         >
           next
-          <i-fa6-solid-arrow-right />
+          <ArrowRight />
         </Button>
       </div>
     </div>

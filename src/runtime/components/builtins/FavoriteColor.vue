@@ -1,5 +1,5 @@
 <script setup>
-import IFa6SolidArrowRight from '~icons/fa6-solid/arrow-right'
+import { ArrowRight } from 'lucide-vue-next'
 /**
  * @description Task 1 view component for collecting favorite color
  * @author Smile UI
@@ -73,7 +73,7 @@ function finish() {
             @click="finish()"
           >
             next
-            <i-fa6-solid-arrow-right />
+            <ArrowRight />
           </Button>
         </div>
       </div>

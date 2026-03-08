@@ -1,5 +1,5 @@
 <script setup>
-import IFa6SolidHouse from '~icons/fa6-solid/house'
+import { House } from 'lucide-vue-next'
 /**
  * @fileoverview Database browsing panel component
  * Provides a hierarchical navigation interface for exploring data structures
@@ -136,7 +136,7 @@ function panel_jump(index) {
                 @click="panel_jump(index)"
               >
                 <template v-if="option == '/'">
-                  <i-fa6-solid-house />
+                  <House />
                 </template>
                 <template v-else>
                   {{ option }}

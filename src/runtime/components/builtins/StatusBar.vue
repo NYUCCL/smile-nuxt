@@ -1,7 +1,5 @@
 <script setup>
-import IFa6SolidCircleXmark from '~icons/fa6-solid/circle-xmark'
-import IFa6SolidHand from '~icons/fa6-solid/hand'
-import IFa6SolidMagnifyingGlass from '~icons/fa6-solid/magnifying-glass'
+import { CircleX, Hand, Search } from 'lucide-vue-next'
 import { ref } from 'vue'
 import useSmileStore from '../../stores/smilestore'
 import useAPI from '../../composables/useAPI'
@@ -109,7 +107,7 @@ function submitWithdraw() {
               size="xs"
               @click="toggleConsent()"
             >
-              <i-fa6-solid-magnifying-glass />
+              <Search />
               <span class="@[400px]:inline hidden">View consent</span>
             </Button>
             <Button
@@ -122,7 +120,7 @@ function submitWithdraw() {
               size="xs"
               @click="toggleWithdraw()"
             >
-              <i-fa6-solid-circle-xmark />
+              <CircleX />
               <span class="@[400px]:inline hidden">Withdraw</span>
             </Button>
             <Button
@@ -131,7 +129,7 @@ function submitWithdraw() {
               size="xs"
               @click="toggleReport()"
             >
-              <i-fa6-solid-hand />
+              <Hand />
               Report issue
             </Button>
           </div>

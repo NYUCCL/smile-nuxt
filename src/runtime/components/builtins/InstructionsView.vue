@@ -1,6 +1,5 @@
 <script setup>
-import IFa6SolidArrowRight from '~icons/fa6-solid/arrow-right'
-import IMaterialSymbolsIntegrationInstructions from '~icons/material-symbols/integration-instructions'
+import { ArrowRight, BookOpen } from 'lucide-vue-next'
 import { computed } from 'vue'
 import useViewAPI from '../../composables/useViewAPI'
 
@@ -55,7 +54,7 @@ function finish(_goto) {
     <div class="w-[80%] h-[80%]">
       <!-- Instruction header with icon -->
       <h1 class="text-2xl font-bold mb-4">
-        <i-material-symbols-integration-instructions class="inline-block mr-2 text-3xl" /> Instructions
+        <BookOpen class="inline-block mr-2 text-3xl" /> Instructions
       </h1>
 
       <!-- Dynamic instruction text based on condition -->
@@ -73,7 +72,7 @@ function finish(_goto) {
           @click="finish()"
         >
           next
-          <i-fa6-solid-arrow-right />
+          <ArrowRight />
         </Button>
       </div>
     </div>

@@ -1,6 +1,5 @@
 <script setup>
-import IIcOutlineFullscreen from '~icons/ic/outline-fullscreen'
-import IIcOutlineFullscreenExit from '~icons/ic/outline-fullscreen-exit'
+import { Maximize, Minimize } from 'lucide-vue-next'
 // UI components
 import useAPI from '../../../composables/useAPI'
 
@@ -22,11 +21,11 @@ const api = useAPI()
           variant="outline"
           @click="api.store.dev.isFullscreen = !api.store.dev.isFullscreen"
         >
-          <i-ic-outline-fullscreen
+          <Maximize
             v-if="!api.store.dev.isFullscreen"
             :stroke-width="2.5"
           />
-          <i-ic-outline-fullscreen-exit
+          <Minimize
             v-else
             :stroke-width="2.5"
           />

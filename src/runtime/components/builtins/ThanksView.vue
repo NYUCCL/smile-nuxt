@@ -1,7 +1,5 @@
 <script setup>
-import IFa6SolidArrowRight from '~icons/fa6-solid/arrow-right'
-import IFa6SolidClipboard from '~icons/fa6-solid/clipboard'
-import IFa6SolidSquareCheck from '~icons/fa6-solid/square-check'
+import { ArrowRight, ClipboardCopy, SquareCheckBig } from 'lucide-vue-next'
 /**
  * ThanksView Component
  *
@@ -131,7 +129,7 @@ onMounted(() => {
         >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
-              <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
+              <SquareCheckBig class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
             </h1>
             <p class="text-lg mb-8">
               Please click the button below to begin the process of payment. This will notify Prolific you successfully
@@ -157,7 +155,7 @@ onMounted(() => {
                 :href="`https://app.prolific.co/submissions/complete?cc=${completionCode}`"
               >
                 Submit my work to Prolific
-                <i-fa6-solid-arrow-right />
+                <ArrowRight />
               </Button>
             </div>
           </template>
@@ -173,7 +171,7 @@ onMounted(() => {
         >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
-              <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
+              <SquareCheckBig class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
             </h1>
             <p class="text-lg mb-8">
               Please copy the code displayed below (or click the button) and paste it into the Mechanical Turk window to
@@ -207,7 +205,7 @@ onMounted(() => {
                   data-clipboard-target=".completioncode-cloudresearch"
                 >
                   Copy Code
-                  <i-fa6-solid-clipboard />
+                  <ClipboardCopy />
                 </Button>
               </div>
             </div>
@@ -224,7 +222,7 @@ onMounted(() => {
         >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
-              <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
+              <SquareCheckBig class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
             </h1>
             <p class="text-lg mb-8">
               Please verify the code displayed below is visible in the form on the Mechanical Turk website. If it is not
@@ -259,7 +257,7 @@ onMounted(() => {
                   data-clipboard-target=".completioncode-mturk"
                 >
                   Copy Code
-                  <i-fa6-solid-clipboard />
+                  <ClipboardCopy />
                 </Button>
               </div>
             </div>
@@ -276,7 +274,7 @@ onMounted(() => {
         >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
-              <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
+              <SquareCheckBig class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
             </h1>
             <p class="text-lg mb-8">
               This still needs to be implemented
@@ -300,7 +298,7 @@ onMounted(() => {
                 :href="!api.config.anonymousMode ? 'http://gureckislab.org' : 'http://google.com'"
               >
                 Submit my work
-                <i-fa6-solid-arrow-right />
+                <ArrowRight />
               </Button>
             </div>
           </template>
@@ -316,7 +314,7 @@ onMounted(() => {
         >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
-              <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks, let's record your credit!
+              <SquareCheckBig class="inline mr-2" />&nbsp;Thanks, let's record your credit!
             </h1>
             <p class="text-lg mb-8">
               Please click the button below to return to SONA and receive credit for completing this study.
@@ -341,7 +339,7 @@ onMounted(() => {
                 :href="`${api.config.sona.url}/webstudy_credit.aspx?experiment_id=${api.config.sona.experimentId}&credit_token=${api.config.sona.creditToken}&survey_code=${api.store.private.recruitmentInfo.survey_code}`"
               >
                 Return to SONA for credit
-                <i-fa6-solid-arrow-right />
+                <ArrowRight />
               </Button>
             </div>
           </template>
@@ -357,7 +355,7 @@ onMounted(() => {
         >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
-              <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
+              <SquareCheckBig class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
             </h1>
             <p class="text-lg mb-8">
               Please click the button below to return to SONA and begin the payment process.
@@ -382,7 +380,7 @@ onMounted(() => {
                 :href="`${api.config.sonaPaid.url}/webstudy_credit.aspx?experiment_id=${api.config.sonaPaid.experimentId}&credit_token=${api.config.sonaPaid.creditToken}&survey_code=${api.store.private.recruitmentInfo.survey_code}`"
               >
                 Return to SONA for payment
-                <i-fa6-solid-arrow-right />
+                <ArrowRight />
               </Button>
             </div>
           </template>
@@ -398,7 +396,7 @@ onMounted(() => {
         >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
-              <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks for your contribution to science!
+              <SquareCheckBig class="inline mr-2" />&nbsp;Thanks for your contribution to science!
             </h1>
             <p class="text-lg mb-8">
               Please click the button below to return to SPARK and complete your session.
@@ -423,7 +421,7 @@ onMounted(() => {
                 :href="`${api.config.spark.completionUrl}/${api.store.private.recruitmentInfo.subject_ID}`"
               >
                 Return to SPARK
-                <i-fa6-solid-arrow-right />
+                <ArrowRight />
               </Button>
             </div>
           </template>
@@ -439,7 +437,7 @@ onMounted(() => {
         >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
-              <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks for your contribution to science!
+              <SquareCheckBig class="inline mr-2" />&nbsp;Thanks for your contribution to science!
             </h1>
             <p class="text-lg mb-8">
               Your data have been successfully recorded. You may now close this window or follow any
@@ -475,7 +473,7 @@ onMounted(() => {
         >
           <template #title>
             <h1 class="text-3xl font-bold mb-4">
-              <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Thanks for your contribution to science!
+              <SquareCheckBig class="inline mr-2" />&nbsp;Thanks for your contribution to science!
             </h1>
             <p class="text-lg mb-8">
               Your data have been successfully recorded and you can close this window or navigate to another page.

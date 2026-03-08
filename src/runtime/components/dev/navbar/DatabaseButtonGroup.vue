@@ -1,6 +1,5 @@
 <script setup>
-import ILucideDatabase from '~icons/lucide/database'
-import ILucideRefreshCw from '~icons/lucide/refresh-cw'
+import { Database, RefreshCw } from 'lucide-vue-next'
 // Vue composables
 import { computed } from 'vue'
 
@@ -50,7 +49,7 @@ const database_tooltip = computed(() => {
           variant="outline"
         >
           <!-- Database icon with status styling -->
-          <i-lucide-database
+          <Database
             style="font-size: 2em"
             class="disconnected"
             :class="{ connected: api.store.browserEphemeral.dataLoaded }"
@@ -58,13 +57,13 @@ const database_tooltip = computed(() => {
 
           <!-- Sync icon with status styling -->
           <template v-if="!api.store.browserEphemeral.dataLoaded">
-            <i-lucide-refresh-cw class="has-text-grey" />
+            <RefreshCw class="has-text-grey" />
           </template>
           <template v-else-if="api.store.browserEphemeral.unsavedChanges && api.store.browserEphemeral.dataLoaded">
-            <i-lucide-refresh-cw class="outofsync" />
+            <RefreshCw class="outofsync" />
           </template>
           <template v-else>
-            <i-lucide-refresh-cw class="insync" />
+            <RefreshCw class="insync" />
           </template>
 
           <!-- Progress circle for data usage -->

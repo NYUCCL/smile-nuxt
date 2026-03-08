@@ -1,6 +1,5 @@
 <script setup>
-import ILucideDownload from '~icons/lucide/download'
-import ILucideQrCode from '~icons/lucide/qr-code'
+import { Download, QrCode } from 'lucide-vue-next'
 /**
  * @fileoverview QR code button component for presentation mode
  * Provides a dropdown menu with QR code display and download functionality.
@@ -27,7 +26,7 @@ const qrUrl = computed(() => {
         size="menu"
         variant="outline"
       >
-        <i-lucide-qr-code />
+        <QrCode />
       </Button>
     </DropdownMenuTrigger>
     <!-- Dropdown content -->
@@ -66,7 +65,7 @@ const qrUrl = computed(() => {
               download="qr.svg"
               class="flex items-center gap-2"
             >
-              <i-lucide-download class="size-3" />
+              <Download class="size-3" />
               <span>Download QR</span>
             </a>
           </Button>

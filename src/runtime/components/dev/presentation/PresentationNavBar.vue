@@ -1,6 +1,5 @@
 <script setup>
-import ILucidePresentation from '~icons/lucide/presentation'
-import IUilPresentationLine from '~icons/uil/presentation-line'
+import { Presentation } from 'lucide-vue-next'
 /**
  * @fileoverview Navigation bar component for presentation mode
  * Provides a clean, minimal navigation interface with presentation controls
@@ -23,13 +22,13 @@ import LogoutButton from './LogoutButton.vue'
         <!-- Desktop presentation mode label -->
         <div class="hidden sm:block">
           <div class="flex items-center text-xs font-normal">
-            <i-uil-presentation-line class="size-4 mr-1" /><b>PRESENTATION MODE</b>
+            <Presentation class="size-4 mr-1" /><b>PRESENTATION MODE</b>
           </div>
         </div>
         <!-- Mobile presentation mode label -->
         <div class="block sm:hidden">
           <div class="flex items-center text-xs font-semibold">
-            <i-lucide-presentation class="size-4 mr-1" /><b>PRES</b>
+            <Presentation class="size-4 mr-1" /><b>PRES</b>
           </div>
         </div>
       </div>

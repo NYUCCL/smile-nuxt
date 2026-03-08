@@ -1,6 +1,5 @@
 <script setup>
-import IFa6SolidHouseFlag from '~icons/fa6-solid/house-flag'
-import IFa6SolidLeaf from '~icons/fa6-solid/leaf'
+import { Flag, Leaf } from 'lucide-vue-next'
 /**
  * Props for StepNode component
  * @typedef {object} StepNodeProps
@@ -100,11 +99,11 @@ const getChildVerticalLines = (verticalLines, index, total) => {
       <span
         class="node-path"
         :class="{ 'leaf-state': !state.isLeaf }"
-      >{{ state.path }} <i-fa6-solid-house-flag
+      >{{ state.path }} <Flag
         v-if="state.isFirstLeaf"
         class="home-icon inline"
       />
-        <i-fa6-solid-leaf
+        <Leaf
           v-else-if="state.isLeaf"
           class="text-green-400 dark:text-green-500 inline"
         />

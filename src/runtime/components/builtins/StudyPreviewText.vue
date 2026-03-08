@@ -1,5 +1,5 @@
 <script setup>
-import IFa6SolidBahai from '~icons/fa6-solid/bahai'
+import { Sparkles } from 'lucide-vue-next'
 /**
  * Study preview component that displays study information and lab details
  * Provides participants with information about the study, compensation, and researchers
@@ -70,7 +70,7 @@ const _props = defineProps({
       <article class="border border-gray-300 rounded-lg shadow-lg">
         <!-- Card header -->
         <div class="bg-gray-100 px-3 py-2 text-xs font-medium border-b border-gray-300 rounded-t-lg">
-          <p><i-fa6-solid-bahai class="inline" />&nbsp;&nbsp;Who are we?</p>
+          <p><Sparkles class="inline" />&nbsp;&nbsp;Who are we?</p>
         </div>
 
         <!-- Card content with lab details -->

@@ -1,7 +1,5 @@
 <script setup>
-import ILucideMoon from '~icons/lucide/moon'
-import ILucideSun from '~icons/lucide/sun'
-import ILucideSunMoon from '~icons/lucide/sun-moon'
+import { Moon, Sun, SunMoon } from 'lucide-vue-next'
 /**
  * @fileoverview Dark mode toggle button component for presentation mode
  * Provides a tooltip-enabled button to switch between light, dark, and system color modes
@@ -35,11 +33,11 @@ const {
           @click="toggleColorMode"
         >
           <!-- Light mode icon -->
-          <i-lucide-moon v-if="globalColorModeRaw === 'light'" />
+          <Moon v-if="globalColorModeRaw === 'light'" />
           <!-- Dark mode icon -->
-          <i-lucide-sun-moon v-else-if="globalColorModeRaw === 'dark'" />
+          <SunMoon v-else-if="globalColorModeRaw === 'dark'" />
           <!-- System mode icon -->
-          <i-lucide-sun v-else />
+          <Sun v-else />
         </Button>
       </TooltipTrigger>
       <!-- Tooltip content with dynamic text -->

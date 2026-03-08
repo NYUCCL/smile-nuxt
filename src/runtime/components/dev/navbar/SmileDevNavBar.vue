@@ -1,5 +1,5 @@
 <script setup>
-import ILucideBugPlay from '~icons/lucide/bug-play'
+import { BugPlay } from 'lucide-vue-next'
 // Component imports
 import StepInfoButtonGroup from './StepInfoButtonGroup.vue'
 import ViewInfoButtonGroup from './ViewInfoButtonGroup.vue'
@@ -253,14 +253,14 @@ onKeyDown((e) => {
         <!-- Desktop version -->
         <div class="hidden sm:block">
           <div class="flex items-center text-xs font-normal">
-            <i-lucide-bug-play class="size-4 mr-1" />
+            <BugPlay class="size-4 mr-1" />
             <b>DEVELOPER MODE</b> &nbsp;({{ api.config.smileVersion }})
           </div>
         </div>
         <!-- Mobile version -->
         <div class="block sm:hidden">
           <div class="flex items-center text-xs font-normal">
-            <i-lucide-bug-play class="size-4 mr-1" />
+            <BugPlay class="size-4 mr-1" />
             <b>DEV</b> &nbsp;({{ api.config.smileVersion }})
           </div>
         </div>

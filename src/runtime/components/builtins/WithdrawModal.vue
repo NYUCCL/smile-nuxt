@@ -1,6 +1,5 @@
 <script setup>
-import IFa6SolidXmark from '~icons/fa6-solid/xmark'
-import IPhHandWithdrawThin from '~icons/ph/hand-withdraw-thin'
+import { LogOut, X } from 'lucide-vue-next'
 import { reactive, watch, onUnmounted } from 'vue'
 import useAPI from '../../composables/useAPI'
 // import and initalize smile API
@@ -112,7 +111,7 @@ onUnmounted(() => {
       aria-label="close"
       @click="$emit('toggleWithdraw')"
     >
-      <i-fa6-solid-xmark class="text-xl" />
+      <X class="text-xl" />
     </Button>
 
     <!-- Modal content container -->
@@ -123,7 +122,7 @@ onUnmounted(() => {
           <!-- Modal header with title -->
           <template #title>
             <h3 class="text-3xl font-semibold">
-              <i-ph-hand-withdraw-thin class="text-red-500 inline-block mr-2" />Withdraw from study?
+              <LogOut class="text-red-500 inline-block mr-2" />Withdraw from study?
             </h3>
           </template>
 

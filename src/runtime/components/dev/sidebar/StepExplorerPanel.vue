@@ -1,9 +1,5 @@
 <script setup>
-import IFa6SolidTrash from '~icons/fa6-solid/trash'
-import IFamiconsHome from '~icons/famicons/home'
-import ILucideChevronLeft from '~icons/lucide/chevron-left'
-import ILucideChevronRight from '~icons/lucide/chevron-right'
-import IMdiTrash from '~icons/mdi/trash'
+import { ChevronLeft, ChevronRight, Home, Trash2 } from 'lucide-vue-next'
 import { ref, computed, watch } from 'vue'
 import StepNode from './StepNode.vue'
 import StepDataViewer from './StepDataViewer.vue'
@@ -237,7 +233,7 @@ watch(
                   :disabled="!api.hasSteps()"
                   @click="api.goPrevStep()"
                 >
-                  <i-lucide-chevron-left />
+                  <ChevronLeft />
                 </ButtonGroupItem>
               </TooltipTrigger>
               <TooltipContent side="bottom">
@@ -251,7 +247,7 @@ watch(
                   :disabled="!api.hasSteps()"
                   @click="api.goNextStep()"
                 >
-                  <i-lucide-chevron-right />
+                  <ChevronRight />
                 </ButtonGroupItem>
               </TooltipTrigger>
               <TooltipContent side="bottom">
@@ -265,7 +261,7 @@ watch(
                   :disabled="!api.hasSteps()"
                   @click="api.goFirstStep()"
                 >
-                  <i-famicons-home />
+                  <Home />
                 </ButtonGroupItem>
               </TooltipTrigger>
               <TooltipContent side="bottom">
@@ -279,7 +275,7 @@ watch(
                   :disabled="!api.hasSteps()"
                   @click="api.clear()"
                 >
-                  <i-mdi-trash />
+                  <Trash2 />
                 </ButtonGroupItem>
               </TooltipTrigger>
               <TooltipContent side="bottom">
@@ -365,7 +361,7 @@ watch(
           data-tooltip="Delete Global Variables"
           @click="api.clearPersist()"
         >
-          <i-fa6-solid-trash />
+          <Trash2 />
         </Button>
       </div>
       <div class="global-data-display">
@@ -397,7 +393,7 @@ watch(
           class="button is-small nav-button-small has-tooltip-arrow has-tooltip-bottom"
           data-tooltip="Delete Nodes"
         >
-          <span><i-fa6-solid-trash" /></span>
+          <span><Trash2 /></span>
         </button>
         -->
         <StepDataViewer

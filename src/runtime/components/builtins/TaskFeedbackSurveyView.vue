@@ -1,5 +1,5 @@
 <script setup>
-import IFa6SolidPencil from '~icons/fa6-solid/pencil'
+import { Pencil } from 'lucide-vue-next'
 import { reactive, computed } from 'vue'
 import useViewAPI from '../../composables/useViewAPI'
 
@@ -71,7 +71,7 @@ function finish() {
       <!-- Page title and description section -->
       <template #title>
         <h3 class="text-3xl font-bold mb-4">
-          <i-fa6-solid-pencil class="inline mr-2" />&nbsp;Give us feedback
+          <Pencil class="inline mr-2" />&nbsp;Give us feedback
         </h3>
         <p class="text-lg mb-8">
           Please give us feedback about your experience with the study. Your feedback will help us improve our study and

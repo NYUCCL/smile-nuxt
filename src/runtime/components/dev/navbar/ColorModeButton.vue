@@ -1,7 +1,5 @@
 <script setup>
-import ILucideMoon from '~icons/lucide/moon'
-import ILucideSun from '~icons/lucide/sun'
-import ILucideSunMoon from '~icons/lucide/sun-moon'
+import { Moon, Sun, SunMoon } from 'lucide-vue-next'
 // UI components
 
 // Color mode composable
@@ -23,9 +21,9 @@ const { mode: experimentColorMode, toggle: toggleColorMode, system } = useSmileC
           variant="outline"
           @click="toggleColorMode()"
         >
-          <i-lucide-moon v-if="experimentColorMode === 'light'" />
-          <i-lucide-sun-moon v-else-if="experimentColorMode === 'dark'" />
-          <i-lucide-sun v-else />
+          <Moon v-if="experimentColorMode === 'light'" />
+          <SunMoon v-else-if="experimentColorMode === 'dark'" />
+          <Sun v-else />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="bottom">

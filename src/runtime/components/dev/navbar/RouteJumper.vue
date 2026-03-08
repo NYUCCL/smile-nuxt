@@ -1,8 +1,5 @@
 <script setup>
-import ILucideArrowDown from '~icons/lucide/arrow-down'
-import ILucideDiamond from '~icons/lucide/diamond'
-import ILucideHouse from '~icons/lucide/house'
-import ILucidePresentation from '~icons/lucide/presentation'
+import { ArrowDown, Diamond, House, Presentation } from 'lucide-vue-next'
 // Vue composables
 import { watch, ref, computed } from 'vue'
 import useLog from '../../../stores/log'
@@ -90,7 +87,7 @@ function goHome() {
     >
       <span class="text-[0.65rem] font-mono">
         <div class="routename font-medium">
-          <i-lucide-house class="inline mr-1" />
+          <House class="inline mr-1" />
           {{ isPresentation ? '/home' : '/recruit' }}
         </div>
       </span>
@@ -116,15 +113,15 @@ function goHome() {
               style="margin-left: 5px"
             >&nbsp;</span>
           </template>
-          <i-lucide-arrow-down
+          <ArrowDown
             v-if="r.meta.sequential"
             class="inline mr-1"
           />
-          <i-lucide-presentation
+          <Presentation
             v-else-if="r.name === 'presentation_home'"
             class="inline mr-1"
           />
-          <i-lucide-diamond
+          <Diamond
             v-else
             class="inline mr-1"
           />

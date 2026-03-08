@@ -1,12 +1,5 @@
 <script setup>
-import IIcBaselinePinOff from '~icons/ic/baseline-pin-off'
-import IIcBaselinePushPin from '~icons/ic/baseline-push-pin'
-import ILucideArrowDown from '~icons/lucide/arrow-down'
-import ILucideDiamond from '~icons/lucide/diamond'
-import ILucidePresentation from '~icons/lucide/presentation'
-import IMdiMagic from '~icons/mdi/magic'
-import IMeteorIconsAnglesLeft from '~icons/meteor-icons/angles-left'
-import IMeteorIconsAnglesRight from '~icons/meteor-icons/angles-right'
+import { ArrowDown, ChevronsLeft, ChevronsRight, Diamond, Pin, PinOff, Presentation, WandSparkles } from 'lucide-vue-next'
 // Vue composables
 import { computed } from 'vue'
 
@@ -80,7 +73,7 @@ const togglePin = () => {
             :disabled="!api.hasAutofill()"
             @click="api.autofill()"
           >
-            <i-mdi-magic />
+            <WandSparkles />
           </ButtonGroupItem>
         </TooltipTrigger>
         <TooltipContent side="bottom">
@@ -96,7 +89,7 @@ const togglePin = () => {
               :disabled="api.store.dev.pinnedRoute !== null"
               @click="api.goToView(api.route?.meta?.prev)"
             >
-              <i-meteor-icons-angles-left />
+              <ChevronsLeft />
             </ButtonGroupItem>
           </TooltipTrigger>
           <TooltipContent side="bottom">
@@ -106,7 +99,7 @@ const togglePin = () => {
       </template>
       <template v-else>
         <ButtonGroupItem disabled>
-          <i-meteor-icons-angles-left />
+          <ChevronsLeft />
         </ButtonGroupItem>
       </template>
 
@@ -118,7 +111,7 @@ const togglePin = () => {
               :disabled="api.store.dev.pinnedRoute !== null"
               @click="api.goNextView()"
             >
-              <i-meteor-icons-angles-right />
+              <ChevronsRight />
             </ButtonGroupItem>
           </TooltipTrigger>
           <TooltipContent side="bottom">
@@ -128,7 +121,7 @@ const togglePin = () => {
       </template>
       <template v-else>
         <ButtonGroupItem disabled>
-          <i-meteor-icons-angles-right />
+          <ChevronsRight />
         </ButtonGroupItem>
       </template>
 
@@ -140,8 +133,8 @@ const togglePin = () => {
               :class="{ pinned: api.store.dev.pinnedRoute !== null }"
               @click="togglePin()"
             >
-              <i-ic-baseline-pin-off v-if="api.store.dev.pinnedRoute !== null" />
-              <i-ic-baseline-push-pin v-else />
+              <PinOff v-if="api.store.dev.pinnedRoute !== null" />
+              <Pin v-else />
             </ButtonGroupItem>
           </TooltipTrigger>
           <TooltipContent side="bottom">
@@ -159,15 +152,15 @@ const togglePin = () => {
           <ButtonGroupItem :class="buttonstyle">
             <div class="font-mono text-[0.65rem] font-medium min-w-[100px]">
               <!-- Route type icons -->
-              <i-lucide-arrow-down
+              <ArrowDown
                 v-if="currentTimelineMeta.sequential"
                 class="inline size-3 mr-1"
               />
-              <i-lucide-presentation
+              <Presentation
                 v-else-if="api.currentRouteName() === 'presentation_home'"
                 class="inline size-3 mr-1"
               />
-              <i-lucide-diamond
+              <Diamond
                 v-else
                 class="inline size-3 mr-1"
               />

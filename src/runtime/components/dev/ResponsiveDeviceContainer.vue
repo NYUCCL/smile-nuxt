@@ -1,9 +1,5 @@
 <script setup>
-import ICarbonRotateCounterclockwiseFilled from '~icons/carbon/rotate-counterclockwise-filled'
-import IIcOutlineFullscreen from '~icons/ic/outline-fullscreen'
-import ILucideMoon from '~icons/lucide/moon'
-import ILucideSun from '~icons/lucide/sun'
-import ILucideSunMoon from '~icons/lucide/sun-moon'
+import { Maximize, Moon, RotateCcw, Sun, SunMoon } from 'lucide-vue-next'
 import { ref, computed } from 'vue'
 import ResponsiveDeviceSelect from './menu/ResponsiveDeviceSelect.vue'
 import { useElementSize } from '@vueuse/core'
@@ -147,7 +143,7 @@ const colorMode = computed(() => {
                   size="xs"
                   @click="toggleRotation"
                 >
-                  <i-carbon-rotate-counterclockwise-filled :class="{ 'text-blue-400': api.store.dev.isRotated }" />
+                  <RotateCcw :class="{ 'text-blue-400': api.store.dev.isRotated }" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
@@ -170,9 +166,9 @@ const colorMode = computed(() => {
                   size="xs"
                   @click="toggleColorMode"
                 >
-                  <i-lucide-moon v-if="experimentColorModeRaw === 'light'" />
-                  <i-lucide-sun-moon v-else-if="experimentColorModeRaw === 'dark'" />
-                  <i-lucide-sun v-else />
+                  <Moon v-if="experimentColorModeRaw === 'light'" />
+                  <SunMoon v-else-if="experimentColorModeRaw === 'dark'" />
+                  <Sun v-else />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
@@ -197,7 +193,7 @@ const colorMode = computed(() => {
                   size="xs"
                   @click="toggleFullscreen"
                 >
-                  <i-ic-outline-fullscreen />
+                  <Maximize />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">

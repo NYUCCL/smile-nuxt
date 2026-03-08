@@ -1,11 +1,5 @@
 <script setup>
-import ILucideBookMarked from '~icons/lucide/book-marked'
-import ILucideBugPlay from '~icons/lucide/bug-play'
-import ILucideInfo from '~icons/lucide/info'
-import ILucideMoon from '~icons/lucide/moon'
-import ILucideSettings from '~icons/lucide/settings'
-import ILucideSmile from '~icons/lucide/smile'
-import ILucideSun from '~icons/lucide/sun'
+import { BookMarked, BugPlay, Info, Moon, Settings, Smile, Sun } from 'lucide-vue-next'
 /**
  * @fileoverview Sidebar component for the Smile application with navigation and configuration options
  */
@@ -131,7 +125,7 @@ const isDarkMode = computed({
           >
             <a href="#">
               <div class="mainbutton text-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                <i-lucide-smile />
+                <Smile />
               </div>
             </a>
           </SidebarMenuButton>
@@ -155,7 +149,7 @@ const isDarkMode = computed({
                 tooltip="Developer Mode"
                 @click="api.store.dev.mainView = 'devmode'"
               >
-                <i-lucide-bug-play class="!size-5" />
+                <BugPlay class="!size-5" />
               </SidebarMenuButton>
             </SidebarMenuItem>
 
@@ -199,7 +193,7 @@ const isDarkMode = computed({
                 tooltip="Documentation"
                 @click="api.store.dev.mainView = 'docs'"
               >
-                <i-lucide-book-marked class="!size-5" />
+                <BookMarked class="!size-5" />
               </SidebarMenuButton>
             </SidebarMenuItem>
 
@@ -214,7 +208,7 @@ const isDarkMode = computed({
                   href="/info"
                   target="_blank"
                 >
-                  <i-lucide-info class="!size-5" />
+                  <Info class="!size-5" />
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -234,11 +228,11 @@ const isDarkMode = computed({
               tooltip="Toggle Dark Mode"
               @click="isDarkMode = !isDarkMode"
             >
-              <i-lucide-moon
+              <Moon
                 v-if="isDarkMode"
                 class="!size-5"
               />
-              <i-lucide-sun
+              <Sun
                 v-else
                 class="!size-5"
               />
@@ -258,7 +252,7 @@ const isDarkMode = computed({
             as-child
             tooltip="Configuration"
           >
-            <i-lucide-settings class="!size-5" />
+            <Settings class="!size-5" />
           </SidebarMenuButton>
         </PopoverTrigger>
         <PopoverContent

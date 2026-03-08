@@ -1,6 +1,5 @@
 <script setup>
-import ILucideArrowRight from '~icons/lucide/arrow-right'
-import ILucideDices from '~icons/lucide/dices'
+import { ArrowRight, Dices } from 'lucide-vue-next'
 /**
  * RecruitmentChooserView.vue
  *
@@ -62,8 +61,8 @@ const devUrls = computed(() => {
             size="xs"
             class="is-blue"
           >
-            <a :href="devUrls['prolific']"><i-lucide-dices /> Prolific User
-              <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
+            <a :href="devUrls['prolific']"><Dices /> Prolific User
+              <ArrowRight class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
         </CardContent>
@@ -86,8 +85,8 @@ const devUrls = computed(() => {
             size="xs"
             class="is-pink"
           >
-            <a :href="devUrls['cloudresearch']"><i-lucide-dices /> CR User
-              <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
+            <a :href="devUrls['cloudresearch']"><Dices /> CR User
+              <ArrowRight class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
         </CardContent>
@@ -113,7 +112,7 @@ const devUrls = computed(() => {
             <a
               href="/dev/mturk?assignmentId=ASSIGNMENT_ID_NOT_AVAILABLE&hitId=123RVWYBAZW00EXAMPLE&turkSubmitTo=https://www.mturk.com/&workerId=AZ3456EXAMPLE"
             >AMT Preview Mode
-              <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
+              <ArrowRight class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
           <Button
@@ -123,8 +122,8 @@ const devUrls = computed(() => {
             size="xs"
             class="is-yellow"
           >
-            <a :href="devUrls['mturk']"><i-lucide-dices /> AMT User
-              <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
+            <a :href="devUrls['mturk']"><Dices /> AMT User
+              <ArrowRight class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
         </CardContent>
@@ -146,8 +145,8 @@ const devUrls = computed(() => {
             size="xs"
             class="is-green"
           >
-            <a :href="devUrls['citizensci']"><i-lucide-dices /> Citizen Sci User
-              <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
+            <a :href="devUrls['citizensci']"><Dices /> Citizen Sci User
+              <ArrowRight class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
         </CardContent>
@@ -169,8 +168,8 @@ const devUrls = computed(() => {
             size="xs"
             class="is-orange"
           >
-            <a :href="devUrls['sona']"><i-lucide-dices /> SONA User
-              <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
+            <a :href="devUrls['sona']"><Dices /> SONA User
+              <ArrowRight class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
         </CardContent>
@@ -192,8 +191,8 @@ const devUrls = computed(() => {
             size="xs"
             class="is-teal"
           >
-            <a :href="devUrls['sona_paid']"><i-lucide-dices /> SONA Paid User
-              <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
+            <a :href="devUrls['sona_paid']"><Dices /> SONA Paid User
+              <ArrowRight class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
         </CardContent>
@@ -215,8 +214,8 @@ const devUrls = computed(() => {
             size="xs"
             class="is-red"
           >
-            <a :href="devUrls['spark']"><i-lucide-dices /> SPARK User
-              <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
+            <a :href="devUrls['spark']"><Dices /> SPARK User
+              <ArrowRight class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
         </CardContent>
@@ -239,8 +238,8 @@ const devUrls = computed(() => {
             size="xs"
             class="is-coral"
           >
-            <a :href="devUrls['panda']"><i-lucide-dices /> PANDA User
-              <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
+            <a :href="devUrls['panda']"><Dices /> PANDA User
+              <ArrowRight class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
         </CardContent>
@@ -260,8 +259,8 @@ const devUrls = computed(() => {
             size="xs"
             class="is-purple"
           >
-            <a :href="devUrls['web']"><i-lucide-dices /> Anon Web User
-              <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
+            <a :href="devUrls['web']"><Dices /> Anon Web User
+              <ArrowRight class="inline-block ml-1 w-4 h-4" />
             </a>
           </Button>
         </CardContent>

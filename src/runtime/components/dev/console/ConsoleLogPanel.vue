@@ -1,10 +1,5 @@
 <script setup>
-import IFa6RegularClock from '~icons/fa6-regular/clock'
-import IFa6SolidAngleRight from '~icons/fa6-solid/angle-right'
-import IFa6SolidClock from '~icons/fa6-solid/clock'
-import IFa6SolidCodeBranch from '~icons/fa6-solid/code-branch'
-import IFa6SolidDatabase from '~icons/fa6-solid/database'
-import IFa6SolidGear from '~icons/fa6-solid/gear'
+import { ChevronRight, Clock, Database, GitBranch, Settings, Timer } from 'lucide-vue-next'
 /**
  * @fileoverview Console log panel component
  * Displays application logs with filtering and search capabilities
@@ -194,17 +189,17 @@ function getBgClass(msg) {
               <div class="flex items-start gap-1 min-w-0">
                 <!-- Icon indicator based on message content -->
                 <div class="flex-shrink-0 mt-0.5">
-                  <i-fa6-solid-code-branch v-if="msg.message.includes('ROUTER GUARD')" />
-                  <i-fa6-solid-database v-else-if="msg.message.includes('SMILESTORE')" />
-                  <i-fa6-solid-gear v-else-if="msg.message.includes('DEV MODE')" />
-                  <i-fa6-solid-clock v-else-if="msg.message.includes('TIMELINE STEPPER')" />
-                  <i-fa6-regular-clock v-else-if="msg.message.includes('TRIAL STEPPER')" />
+                  <GitBranch v-if="msg.message.includes('ROUTER GUARD')" />
+                  <Database v-else-if="msg.message.includes('SMILESTORE')" />
+                  <Settings v-else-if="msg.message.includes('DEV MODE')" />
+                  <Clock v-else-if="msg.message.includes('TIMELINE STEPPER')" />
+                  <Timer v-else-if="msg.message.includes('TRIAL STEPPER')" />
                   <img
                     v-else-if="msg.message.includes('FIRESTORE')"
                     :src="'/firebase-bw.svg'"
                     width="15"
                   >
-                  <i-fa6-solid-angle-right v-else />
+                  <ChevronRight v-else />
                 </div>
                 <!-- Message content -->
                 <div class="min-w-0 flex-1">
@@ -235,17 +230,17 @@ function getBgClass(msg) {
               <div class="flex items-start gap-1 min-w-0">
                 <!-- Icon indicator based on message content -->
                 <div class="flex-shrink-0 mt-0.5">
-                  <i-fa6-solid-code-branch v-if="msg.message.includes('ROUTER GUARD')" />
-                  <i-fa6-solid-database v-else-if="msg.message.includes('SMILESTORE')" />
-                  <i-fa6-solid-gear v-else-if="msg.message.includes('DEV MODE')" />
-                  <i-fa6-solid-clock v-else-if="msg.message.includes('TIMELINE STEPPER')" />
-                  <i-fa6-regular-clock v-else-if="msg.message.includes('TRIAL STEPPER')" />
+                  <GitBranch v-if="msg.message.includes('ROUTER GUARD')" />
+                  <Database v-else-if="msg.message.includes('SMILESTORE')" />
+                  <Settings v-else-if="msg.message.includes('DEV MODE')" />
+                  <Clock v-else-if="msg.message.includes('TIMELINE STEPPER')" />
+                  <Timer v-else-if="msg.message.includes('TRIAL STEPPER')" />
                   <img
                     v-else-if="msg.message.includes('FIRESTORE')"
                     :src="'/firebase-bw.svg'"
                     width="15"
                   >
-                  <i-fa6-solid-angle-right v-else />
+                  <ChevronRight v-else />
                 </div>
                 <!-- Message content -->
                 <div class="min-w-0 flex-1">

@@ -1,8 +1,5 @@
 <script setup>
-import IFa6SolidGear from '~icons/fa6-solid/gear'
-import IMdiConsoleLine from '~icons/mdi/console-line'
-import ITdesignDataBaseFilled from '~icons/tdesign/data-base-filled'
-import IUilDownArrow from '~icons/uil/down-arrow'
+import { ChevronDown, Database, Settings, Terminal } from 'lucide-vue-next'
 /**
  * @fileoverview Main console component for developer mode
  * Provides a tabbed interface for database browsing, log viewing, and configuration
@@ -42,7 +39,7 @@ const api = useAPI()
                 }"
                 @click="api.store.dev.consoleBarTab = 'browse'"
               >
-                <i-tdesign-data-base-filled />
+                <Database />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">
@@ -65,7 +62,7 @@ const api = useAPI()
                 }"
                 @click="api.store.dev.consoleBarTab = 'log'"
               >
-                <i-mdi-console-line class="w-4 h-4" />
+                <Terminal class="w-4 h-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">
@@ -88,7 +85,7 @@ const api = useAPI()
                 }"
                 @click="api.store.dev.consoleBarTab = 'config'"
               >
-                <i-fa6-solid-gear class="w-4 h-4" />
+                <Settings class="w-4 h-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">
@@ -108,7 +105,7 @@ const api = useAPI()
               class="w-8 h-8 hover:!bg-sidebar-border"
               @click="api.store.dev.showConsoleBar = false"
             >
-              <i-uil-down-arrow class="w-4 h-4" />
+              <ChevronDown class="w-4 h-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right">

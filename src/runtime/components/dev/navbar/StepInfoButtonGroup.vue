@@ -1,7 +1,5 @@
 <script setup>
-import IIconoirRemoveEmpty from '~icons/iconoir/remove-empty'
-import ILucideChevronLeft from '~icons/lucide/chevron-left'
-import ILucideChevronRight from '~icons/lucide/chevron-right'
+import { ChevronLeft, ChevronRight, SquareMinus } from 'lucide-vue-next'
 // API composable for stepper navigation
 import useViewAPI from '../../../composables/useViewAPI'
 
@@ -29,7 +27,7 @@ const api = useViewAPI()
             :disabled="!api.store.dev.viewProvidesStepper || !api.hasPrevStep()"
             @click="api.goPrevStep()"
           >
-            <i-lucide-chevron-left />
+            <ChevronLeft />
           </ButtonGroupItem>
         </TooltipTrigger>
         <TooltipContent side="bottom">
@@ -45,7 +43,7 @@ const api = useViewAPI()
               v-if="api.pathString"
               class="counter"
             >{{ api.pathString }}</span>
-            <i-iconoir-remove-empty v-else />
+            <SquareMinus v-else />
           </ButtonGroupItem>
         </TooltipTrigger>
         <TooltipContent side="bottom">
@@ -60,7 +58,7 @@ const api = useViewAPI()
             :disabled="!api.store.dev.viewProvidesStepper || !api.hasNextStep()"
             @click="api.goNextStep()"
           >
-            <i-lucide-chevron-right />
+            <ChevronRight />
           </ButtonGroupItem>
         </TooltipTrigger>
         <TooltipContent side="bottom">

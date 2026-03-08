@@ -1,5 +1,5 @@
 <script setup>
-import ILucideHome from '~icons/lucide/home'
+import { Home } from 'lucide-vue-next'
 /**
  * @fileoverview Home button component for presentation mode
  * Navigates back to the presentation homepage
@@ -21,7 +21,7 @@ function goHome() {
           variant="outline"
           @click="goHome"
         >
-          <i-lucide-home />
+          <Home />
         </Button>
       </TooltipTrigger>
       <TooltipContent>

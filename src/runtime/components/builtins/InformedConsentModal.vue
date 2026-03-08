@@ -1,5 +1,5 @@
 <script setup>
-import IFa6SolidXmark from '~icons/fa6-solid/xmark'
+import { X } from 'lucide-vue-next'
 import { watch, onUnmounted } from 'vue'
 import useAPI from '../../composables/useAPI'
 
@@ -69,7 +69,7 @@ onUnmounted(() => {
       aria-label="close"
       @click="$emit('toggleConsent')"
     >
-      <i-fa6-solid-xmark class="text-xl" />
+      <X class="text-xl" />
     </Button>
 
     <!-- Modal content container -->

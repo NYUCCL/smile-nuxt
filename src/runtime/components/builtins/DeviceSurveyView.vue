@@ -1,7 +1,5 @@
 <script setup>
-import IFa6SolidArrowLeft from '~icons/fa6-solid/arrow-left'
-import IFa6SolidArrowRight from '~icons/fa6-solid/arrow-right'
-import IFa6SolidDesktop from '~icons/fa6-solid/desktop'
+import { ArrowLeft, ArrowRight, Monitor } from 'lucide-vue-next'
 import { reactive, computed } from 'vue'
 import useViewAPI from '../../composables/useViewAPI'
 
@@ -106,7 +104,7 @@ function finish() {
       <!-- Title and description section -->
       <template #title>
         <h3 class="text-3xl font-bold mb-4">
-          <i-fa6-solid-desktop class="inline mr-2" />&nbsp;Computer/Device Information
+          <Monitor class="inline mr-2" />&nbsp;Computer/Device Information
         </h3>
         <p class="text-lg mb-8">
           We request some basic information about the computer you are using right now. We also can use this information
@@ -322,7 +320,7 @@ function finish() {
               @click="api.goNextStep()"
             >
               Continue
-              <i-fa6-solid-arrow-right />
+              <ArrowRight />
             </Button>
           </div>
         </div>
@@ -479,7 +477,7 @@ function finish() {
               variant="outline"
               @click="api.goPrevStep()"
             >
-              <i-fa6-solid-arrow-left />
+              <ArrowLeft />
               Previous
             </Button>
             <Button

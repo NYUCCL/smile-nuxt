@@ -1,8 +1,5 @@
 <script setup>
-import IBxError from '~icons/bx/error'
-import IFa6SolidArrowLeft from '~icons/fa6-solid/arrow-left'
-import IFa6SolidArrowRight from '~icons/fa6-solid/arrow-right'
-import IFa6SolidSquareCheck from '~icons/fa6-solid/square-check'
+import { ArrowLeft, ArrowRight, CircleAlert, SquareCheckBig } from 'lucide-vue-next'
 import { computed } from 'vue'
 import useViewAPI from '../../composables/useViewAPI'
 
@@ -206,7 +203,7 @@ init()
     >
       <template #title>
         <h3 class="text-3xl font-bold mb-4">
-          <i-fa6-solid-square-check class="inline mr-2" />&nbsp;Did we explain things clearly?
+          <SquareCheckBig class="inline mr-2" />&nbsp;Did we explain things clearly?
         </h3>
         <p class="text-lg mb-8">
           Using the information provided in the previous pages, please select the correct answer for each question. Do
@@ -279,7 +276,7 @@ init()
               variant="outline"
               @click="api.goPrevStep()"
             >
-              <i-fa6-solid-arrow-left />
+              <ArrowLeft />
               Previous page
             </Button>
             <div v-else />
@@ -289,7 +286,7 @@ init()
               @click="api.isLastBlockStep() ? submitQuiz() : api.goNextStep()"
             >
               {{ api.isLastBlockStep() ? 'Submit' : 'Next page' }}
-              <i-fa6-solid-arrow-right v-if="!api.isLastBlockStep()" />
+              <ArrowRight v-if="!api.isLastBlockStep()" />
             </Button>
           </div>
         </div>
@@ -308,7 +305,7 @@ init()
     <div class="text-center items-center justify-center">
       <h3 class="text-3xl font-bold mb-4">
         <div class="flex justify-center mb-2">
-          <i-fa6-solid-square-check class="text-[4rem]" />
+          <SquareCheckBig class="text-[4rem]" />
         </div>
         Congrats! You passed.
       </h3>
@@ -335,7 +332,7 @@ init()
     <div class="text-center items-center justify-center">
       <h3 class="text-3xl font-bold mb-4">
         <div class="flex justify-center mb-2">
-          <i-bx-error class="text-[4rem]" />
+          <CircleAlert class="text-[4rem]" />
         </div>
         Sorry! You did not get all the answers correct.
       </h3>

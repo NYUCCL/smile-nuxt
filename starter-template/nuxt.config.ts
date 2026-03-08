@@ -1,3 +1,4 @@
+import Icons from 'unplugin-icons/vite'
 import Components from 'unplugin-vue-components/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 
@@ -11,12 +12,10 @@ export default defineNuxtConfig({
   vite: {
     envDir: '.',
     plugins: [
-      // Auto-resolve <i-*> icon components (e.g. <i-lucide-heart />)
-      // Icon data comes from @iconify/json; the Icons() vite plugin
-      // is already registered by the SMILE module.
-      Components({
-        resolvers: [IconsResolver()],
-      }),
+      // Enable <i-*> icon components (e.g. <i-lucide-heart />)
+      // Icon data comes from @iconify/json devDependency
+      Icons({ compiler: 'vue3' }),
+      Components({ resolvers: [IconsResolver()] }),
     ],
   },
 

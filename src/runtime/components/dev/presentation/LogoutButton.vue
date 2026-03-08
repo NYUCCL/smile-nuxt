@@ -1,5 +1,5 @@
 <script setup>
-import ILucideLogOut from '~icons/lucide/log-out'
+import { LogOut } from 'lucide-vue-next'
 import { ref, onMounted } from 'vue'
 
 const isLoggedIn = ref(false)
@@ -32,7 +32,7 @@ async function logout() {
           variant="outline"
           @click="logout"
         >
-          <i-lucide-log-out />
+          <LogOut />
         </Button>
       </TooltipTrigger>
       <TooltipContent>

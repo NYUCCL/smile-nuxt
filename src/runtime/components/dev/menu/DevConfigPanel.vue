@@ -1,5 +1,5 @@
 <script setup>
-import ICarbonRotateCounterclockwiseFilled from '~icons/carbon/rotate-counterclockwise-filled'
+import { RotateCcw } from 'lucide-vue-next'
 /**
  * @fileoverview Developer configuration panel component for adjusting developer mode settings
  */
@@ -224,7 +224,7 @@ function resetDevState() {
                   size="xs"
                   @click="toggleRotation"
                 >
-                  <i-carbon-rotate-counterclockwise-filled :class="{ 'text-blue-400': api.store.dev.isRotated }" />
+                  <RotateCcw :class="{ 'text-blue-400': api.store.dev.isRotated }" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">

@@ -1,6 +1,5 @@
 <script setup>
-import IFa6SolidAngleRight from '~icons/fa6-solid/angle-right'
-import IFa6SolidHouse from '~icons/fa6-solid/house'
+import { ChevronRight, House } from 'lucide-vue-next'
 /**
  * @fileoverview Database list component
  * Displays hierarchical data structures with navigation capabilities
@@ -95,7 +94,7 @@ function option_selected(option) {
       class="bg-muted text-dev-text px-3 py-2 text-xs font-medium border-b border-dev-lines"
     >
       <template v-if="header == '/'">
-        <i-fa6-solid-house class="mr-1" />
+        <House class="mr-1" />
       </template>
       <template v-else>
         <span class="font-mono">{{ header }}</span>
@@ -143,7 +142,7 @@ function option_selected(option) {
           >
             <div class="flex items-center justify-between">
               <span class="font-semibold text-foreground item-key">{{ truncateText(key) }}</span>
-              <i-fa6-solid-angle-right class="text-gray-400 text-xs" />
+              <ChevronRight class="text-gray-400 text-xs" />
             </div>
           </button>
         </li>

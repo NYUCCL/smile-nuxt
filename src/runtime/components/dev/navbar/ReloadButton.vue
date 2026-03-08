@@ -1,5 +1,5 @@
 <script setup>
-import ILucideRotateCcw from '~icons/lucide/rotate-ccw'
+import { RotateCcw } from 'lucide-vue-next'
 // UI components
 import useAPI from '../../../composables/useAPI'
 
@@ -21,7 +21,7 @@ const api = useAPI()
           variant="outline"
           @click="api.reloadBrowser()"
         >
-          <i-lucide-rotate-ccw :stroke-width="2.5" />
+          <RotateCcw :stroke-width="2.5" />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="bottom">

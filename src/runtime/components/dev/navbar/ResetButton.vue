@@ -1,5 +1,5 @@
 <script setup>
-import IF7BoltFill from '~icons/f7/bolt-fill'
+import { Zap } from 'lucide-vue-next'
 // UI components
 import useAPI from '../../../composables/useAPI'
 
@@ -21,7 +21,7 @@ const api = useAPI()
           variant="outline"
           @click="api.resetLocalState()"
         >
-          <i-f7-bolt-fill />
+          <Zap />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="bottom">

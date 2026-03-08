@@ -1,6 +1,5 @@
 <script setup>
-import IFa6SolidArrowRight from '~icons/fa6-solid/arrow-right'
-import IFa6SolidArrowsUpDownLeftRight from '~icons/fa6-solid/arrows-up-down-left-right'
+import { ArrowRight, Move } from 'lucide-vue-next'
 /**
  * Window Sizer View Component
  *
@@ -44,7 +43,7 @@ function finish() {
       >
         <!-- Resize icon -->
         <div class="text-4xl text-window-sizer-text mb-4 flex justify-center">
-          <i-fa6-solid-arrows-up-down-left-right />
+          <Move />
         </div>
 
         <!-- Main instruction text -->
@@ -72,7 +71,7 @@ function finish() {
             @click="finish()"
           >
             It is visible now, I'm ready
-            <i-fa6-solid-arrow-right />
+            <ArrowRight />
           </Button>
         </div>
       </div>
@@ -84,7 +83,7 @@ function finish() {
       >
         <!-- Resize icon -->
         <span class="text-4xl text-window-sizer-text mb-4 flex justify-center">
-          <i-fa6-solid-arrows-up-down-left-right />
+          <Move />
         </span>
 
         <!-- Re-adjustment instruction text -->

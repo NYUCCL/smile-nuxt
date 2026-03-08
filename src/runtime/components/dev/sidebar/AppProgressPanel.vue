@@ -1,7 +1,5 @@
 <script setup>
-import IFluentCloudSync24Filled from '~icons/fluent/cloud-sync-24-filled'
-import IHeroiconsUserMinus16Solid from '~icons/heroicons/user-minus-16-solid'
-import ILucideDatabase from '~icons/lucide/database'
+import { CloudUpload, Database, UserMinus } from 'lucide-vue-next'
 /**
  * API instance for accessing Smile app state and actions
  * @type {import('@/core/composables/useAPI')}
@@ -27,7 +25,7 @@ const api = useAPI()
           class="z-10 rounded-full shrink-0 p-3"
           :class="[api.store.cookieState.knownUser ? 'bg-green-200' : 'bg-muted']"
         >
-          <i-heroicons-user-minus-16-solid
+          <UserMinus
             :class="[api.store.cookieState.knownUser ? 'text-green-500' : 'text-gray-500']"
           />
         </div>
@@ -65,7 +63,7 @@ const api = useAPI()
           :class="[api.store.browserEphemeral.dataLoaded ? 'bg-green-200' : 'bg-muted']"
           @click="api.connectDB()"
         >
-          <i-lucide-database :class="[api.store.browserEphemeral.dataLoaded ? 'text-green-500' : 'text-gray-500']" />
+          <Database :class="[api.store.browserEphemeral.dataLoaded ? 'text-green-500' : 'text-gray-500']" />
         </div>
       </StepperTrigger>
 
@@ -95,7 +93,7 @@ const api = useAPI()
                 : 'bg-muted',
           ]"
         >
-          <i-fluent-cloud-sync-24-filled
+          <CloudUpload
             :class="[
               api.store.browserEphemeral.dataLoaded && !api.store.browserEphemeral.unsavedChanges
                 ? 'text-green-500'

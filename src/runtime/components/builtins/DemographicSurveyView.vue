@@ -1,10 +1,7 @@
 <script setup>
-import IFa6SolidArrowLeft from '~icons/fa6-solid/arrow-left'
-import IFa6SolidArrowRight from '~icons/fa6-solid/arrow-right'
-import IFa6SolidPerson from '~icons/fa6-solid/person'
+import { ArrowLeft, ArrowRight, CalendarIcon, User } from 'lucide-vue-next'
 import { reactive, computed, ref } from 'vue'
 import { cn } from '../../lib/utils'
-import { CalendarIcon } from 'lucide-vue-next'
 import useViewAPI from '../../composables/useViewAPI'
 
 // Import and initialize Smile API
@@ -144,7 +141,7 @@ function finish() {
       <!-- Page title and description section -->
       <template #title>
         <h3 class="text-3xl font-bold mb-4">
-          <i-fa6-solid-person class="inline mr-2" />Demographic Information
+          <User class="inline mr-2" />Demographic Information
         </h3>
         <p class="text-lg mb-8">
           We request some information about you which we can use to understand aggregate differences between
@@ -359,7 +356,7 @@ function finish() {
               @click="api.goNextStep()"
             >
               Continue
-              <i-fa6-solid-arrow-right />
+              <ArrowRight />
             </Button>
           </div>
         </div>
@@ -519,7 +516,7 @@ function finish() {
               variant="outline"
               @click="api.goPrevStep()"
             >
-              <i-fa6-solid-arrow-left />
+              <ArrowLeft />
               Previous
             </Button>
             <Button
@@ -528,7 +525,7 @@ function finish() {
               @click="api.goNextStep()"
             >
               Continue
-              <i-fa6-solid-arrow-right />
+              <ArrowRight />
             </Button>
           </div>
         </div>
@@ -1257,7 +1254,7 @@ function finish() {
               variant="outline"
               @click="api.goPrevStep()"
             >
-              <i-fa6-solid-arrow-left />
+              <ArrowLeft />
               Previous
             </Button>
             <Button

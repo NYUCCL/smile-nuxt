@@ -1,5 +1,5 @@
 <script setup>
-import IFa6SolidHouse from '~icons/fa6-solid/house'
+import { House } from 'lucide-vue-next'
 /**
  * @fileoverview Configuration panel component
  * Provides a hierarchical navigation interface for exploring configuration settings
@@ -143,7 +143,7 @@ function _resetDevState() {
                 @click="panel_jump(index)"
               >
                 <template v-if="option == '/'">
-                  <i-fa6-solid-house />
+                  <House />
                 </template>
                 <template v-else>
                   {{ option }}

@@ -1,6 +1,5 @@
 <script setup>
-import IIconParkOutlineAttention from '~icons/icon-park-outline/attention'
-import IIconParkOutlineBye from '~icons/icon-park-outline/bye'
+import { AlertTriangle, HandMetal } from 'lucide-vue-next'
 // import and initalize smile API
 import { computed } from 'vue'
 import useAPI from '../../composables/useAPI'
@@ -98,7 +97,7 @@ const content = computed(() => {
       >
         <CardHeader>
           <p class="text-xl font-semibold text-center">
-            <i-icon-park-outline-bye class="text-withdraw-text inline-block text-5xl mb-2" />
+            <HandMetal class="text-withdraw-text inline-block text-5xl mb-2" />
             <br>{{ content.title }}
           </p>
         </CardHeader>
@@ -114,7 +113,7 @@ const content = computed(() => {
       >
         <CardHeader>
           <p class="text-xl font-semibold text-center">
-            <i-icon-park-outline-attention class="text-warning-text inline-block text-5xl mb-2" />
+            <AlertTriangle class="text-warning-text inline-block text-5xl mb-2" />
             <br>Access Error
           </p>
         </CardHeader>
