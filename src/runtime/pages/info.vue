@@ -107,6 +107,62 @@ const services = {
     ],
     studyUrl: computed(() => `${baseUrl.value}/welcome/citizensci`),
   },
+  sona: {
+    name: 'SONA (Credit)',
+    color: 'bg-orange-100 text-orange-800 border-orange-300',
+    description: 'SONA is a platform for running experiments from the university "for credit" pool of students.',
+    urlNote: 'SONA appends a <code>survey_code</code> query parameter that is used to grant credit upon completion.',
+    setupSteps: [
+      'Log in to your university\'s SONA system and create a new <strong>Online External Study</strong>.',
+      'Set the <strong>Study URL</strong> to the SONA URL shown below. SONA will automatically replace <code>%SURVEY_CODE%</code> with the participant\'s unique code.',
+      'Under <strong>Study Information</strong>, set the estimated duration and number of credits.',
+      'Set your <strong>Participant Restrictions</strong> (prerequisites, disqualifiers, etc.).',
+      'Configure the following environment variables in your deployment: <code>VITE_SONA_URL</code> (your SONA domain), <code>VITE_SONA_EXPERIMENT_ID</code>, and <code>VITE_SONA_CREDIT_TOKEN</code>.',
+      'SMILE automatically redirects participants back to SONA to grant credit upon completion.',
+    ],
+    studyUrl: computed(() => `${baseUrl.value}/welcome/sona/?survey_code=%SURVEY_CODE%`),
+  },
+  sona_paid: {
+    name: 'SONA (Paid)',
+    color: 'bg-teal-100 text-teal-800 border-teal-300',
+    description: 'SONA Paid is a platform for running paid experiments from the university participant pool.',
+    urlNote: 'Same as SONA credit but uses separate config for paid study completion.',
+    setupSteps: [
+      'Log in to your university\'s SONA system and create a new <strong>Online External Study</strong> (paid type).',
+      'Set the <strong>Study URL</strong> to the SONA Paid URL shown below.',
+      'Configure payment amount and study duration.',
+      'Configure the following environment variables: <code>VITE_SONA_PAID_URL</code>, <code>VITE_SONA_PAID_EXPERIMENT_ID</code>, and <code>VITE_SONA_PAID_CREDIT_TOKEN</code>.',
+      'SMILE automatically redirects participants back to SONA for payment upon completion.',
+    ],
+    studyUrl: computed(() => `${baseUrl.value}/welcome/sona_paid/?survey_code=%SURVEY_CODE%`),
+  },
+  spark: {
+    name: 'SPARK',
+    color: 'bg-red-100 text-red-800 border-red-300',
+    description: 'SPARK is a recruitment service from the Hartley Lab for adolescent participants of various ages.',
+    urlNote: 'SPARK appends <code>subject_ID</code>, <code>participant_ID</code>, <code>age</code>, and <code>gender</code> as query parameters.',
+    setupSteps: [
+      'Coordinate with the SPARK platform team to register your study.',
+      'Provide the SPARK URL shown below as the study link.',
+      'SPARK will append participant demographic information (subject ID, participant ID, age, gender) as query parameters.',
+      'Upon completion, SMILE redirects participants back to the SPARK completion endpoint.',
+    ],
+    studyUrl: computed(() => `${baseUrl.value}/welcome/spark`),
+  },
+  panda: {
+    name: 'PANDA',
+    color: 'bg-rose-100 text-rose-800 border-rose-300',
+    description: 'PANDA (Princeton and NYU Discoveries in Action) is a recruitment platform for younger participants.',
+    urlNote: 'PANDA appends an <code>ID</code> query parameter to identify the participant.',
+    setupSteps: [
+      'Register your study with the <a href="https://www.discoveriesinaction.org" target="_blank" class="underline font-medium">PANDA platform</a>.',
+      'Provide the PANDA URL shown below as the study link.',
+      'PANDA loads studies in dual iframes (mobile/desktop). SMILE automatically detects and handles the hidden iframe.',
+      'Note: PANDA clears localStorage on each session start to support families running the study multiple times.',
+      'Upon completion, participants see a generic thanks message. No redirect is performed.',
+    ],
+    studyUrl: computed(() => `${baseUrl.value}/welcome/panda`),
+  },
   web: {
     name: 'Anonymous Web',
     color: 'bg-purple-100 text-purple-800 border-purple-300',
@@ -271,6 +327,10 @@ const currentService = computed(() => services[selectedService.value])
             <option value="prolific">Prolific</option>
             <option value="cloudresearch">CloudResearch</option>
             <option value="mturk">Mechanical Turk</option>
+            <option value="sona">SONA (Credit)</option>
+            <option value="sona_paid">SONA (Paid)</option>
+            <option value="spark">SPARK</option>
+            <option value="panda">PANDA</option>
             <option value="citizensci">Citizen Science</option>
             <option value="web">Anonymous Web</option>
           </select>

@@ -157,7 +157,7 @@ const colorModeDisplayText = computed(() => {
                 Service<br />
                 <Select v-model="api.store.data.recruitmentService" class="mt-1 h-8">
                   <SelectTrigger size="sm" class="h-8 text-[1.2em] font-mono">
-                    <SelectValue />
+                    <SelectValue :placeholder="api.store.data.recruitmentService" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem v-for="(cond, key) in api.store.browserEphemeral.urls" :key="cond" :value="key">

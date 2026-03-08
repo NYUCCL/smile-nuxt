@@ -29,6 +29,24 @@ const cardContent = {
     message:
       'You have indicated that you withdrew from the study. Please return the task and we will contact you for partial payment if you are eligible.',
   },
+  sona: {
+    title: 'Notice about withdraw from our SONA study',
+    message:
+      'You have indicated that you withdrew from the study. Please return to SONA to update your participation status.',
+  },
+  sona_paid: {
+    title: 'Notice about withdraw from our SONA study',
+    message:
+      'You have indicated that you withdrew from the study. Please return to SONA to update your participation status.',
+  },
+  spark: {
+    title: 'Notice about withdraw from our SPARK study',
+    message: 'You have indicated that you withdrew from the study. Feel free to close this window.',
+  },
+  panda: {
+    title: 'Notice about withdraw from our PANDA study',
+    message: 'You have indicated that you withdrew from the study. Feel free to close this window.',
+  },
   citizensci: {
     title: 'Notice about withdraw from our study',
     message: 'You have indicated that you withdrew from the study. Feel free to close this window.',

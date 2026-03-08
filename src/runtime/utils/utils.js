@@ -12,6 +12,35 @@ import useSmileStore from '../stores/smilestore.js'
 import useLog from '../stores/log.js'
 
 /**
+ * Performs service-specific initialization before the experiment begins.
+ * Currently handles PANDA's dual-iframe quirk and localStorage clearing.
+ * @param {string} service - Recruitment service name
+ * @returns {boolean} Whether initialization succeeded (false = abort navigation)
+ */
+export function initService(service) {
+  const log = useLog()
+
+  if (service === 'panda') {
+    // PANDA loads the study in two iframes simultaneously (one hidden for
+    // mobile/desktop switching). A hidden iframe reports window.innerWidth === 0,
+    // so block it from initializing.
+    if (window.innerWidth === 0) {
+      log.log('PANDA: hidden iframe detected, cancelling navigation')
+      return false
+    }
+    // Clear existing smilestore localStorage to handle the sibling/retry case
+    // where families need to run the study multiple times
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('smilestore')) {
+        localStorage.removeItem(key)
+      }
+    })
+  }
+
+  return true
+}
+
+/**
  * Gets URL query parameters from the current window location
  * @returns {Object} Dictionary of query parameter key-value pairs
  */
@@ -76,6 +105,30 @@ export function processQuery(query, service) {
       citizen_id: urlParams.CITIZEN_ID,
       study_id: urlParams.CITIZEN_STUDY_ID,
       session_id: urlParams.CITIZEN_SESSION_ID,
+    })
+  } else if (service === 'sona' && urlParams.survey_code) {
+    log.log('SONA (credit) mode')
+    smilestore.setRecruitmentService(service, {
+      survey_code: urlParams.survey_code,
+    })
+  } else if (service === 'sona_paid' && urlParams.survey_code) {
+    log.log('SONA (paid) mode')
+    smilestore.setRecruitmentService(service, {
+      survey_code: urlParams.survey_code,
+    })
+  } else if (service === 'spark' && urlParams.subject_ID) {
+    log.log('SPARK mode')
+    smilestore.setRecruitmentService(service, {
+      subject_ID: urlParams.subject_ID,
+      participant_ID: urlParams.participant_ID,
+      age: urlParams.age,
+      gender: urlParams.gender,
+    })
+  } else if (service === 'panda' && urlParams.ID) {
+    log.log('PANDA mode')
+    smilestore.data.panda_id = urlParams.ID
+    smilestore.setRecruitmentService(service, {
+      panda_id: urlParams.ID,
     })
   } else {
     // log.log('const { next, prev } = useTimeline() mode')

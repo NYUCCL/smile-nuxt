@@ -122,6 +122,79 @@ const devUrls = computed(() => {
         </CardContent>
       </Card>
 
+      <!-- SONA Platform Card -->
+      <Card class="flex flex-col">
+        <CardHeader>
+          <CardTitle>SONA</CardTitle>
+          <CardDescription
+            >SONA is a platform for running experiments from the university "for credit" pool of students.</CardDescription
+          >
+        </CardHeader>
+        <CardContent class="flex justify-end flex-1 items-end">
+          <Button asChild variant="default" size="xs" class="is-orange" id="sona_tester">
+            <a :href="devUrls['sona']"
+              ><i-lucide-dices /> SONA User
+              <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
+
+      <!-- SONA Paid Platform Card -->
+      <Card class="flex flex-col">
+        <CardHeader>
+          <CardTitle>SONA Paid</CardTitle>
+          <CardDescription
+            >SONA Paid is a platform for running paid experiments from the university pool.</CardDescription
+          >
+        </CardHeader>
+        <CardContent class="flex justify-end flex-1 items-end">
+          <Button asChild variant="default" size="xs" class="is-teal" id="sona_paid_tester">
+            <a :href="devUrls['sona_paid']"
+              ><i-lucide-dices /> SONA Paid User
+              <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
+
+      <!-- SPARK Platform Card -->
+      <Card class="flex flex-col">
+        <CardHeader>
+          <CardTitle>SPARK</CardTitle>
+          <CardDescription
+            >SPARK is a recruitment service from the Hartley Lab for adolescent participants of various ages.</CardDescription
+          >
+        </CardHeader>
+        <CardContent class="flex justify-end flex-1 items-end">
+          <Button asChild variant="default" size="xs" class="is-red" id="spark_tester">
+            <a :href="devUrls['spark']"
+              ><i-lucide-dices /> SPARK User
+              <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
+
+      <!-- PANDA Platform Card -->
+      <Card class="flex flex-col">
+        <CardHeader>
+          <CardTitle>PANDA</CardTitle>
+          <CardDescription
+            ><a href="https://www.discoveriesinaction.org">PANDA</a> (Princeton and NYU Discoveries in Action) is a
+            recruitment platform for younger participants.</CardDescription
+          >
+        </CardHeader>
+        <CardContent class="flex justify-end flex-1 items-end">
+          <Button asChild variant="default" size="xs" class="is-coral" id="panda_tester">
+            <a :href="devUrls['panda']"
+              ><i-lucide-dices /> PANDA User
+              <i-lucide-arrow-right class="inline-block ml-1 w-4 h-4" />
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
+
       <!-- Anonymous Web User Card -->
       <Card class="flex flex-col">
         <CardHeader>
@@ -170,6 +243,21 @@ const devUrls = computed(() => {
 
 .is-green {
   background-color: rgb(91, 228, 166);
+  color: #393939;
+}
+
+.is-orange {
+  background-color: rgb(255, 179, 102);
+  color: #393939;
+}
+
+.is-teal {
+  background-color: rgb(102, 217, 204);
+  color: #393939;
+}
+
+.is-coral {
+  background-color: rgb(255, 140, 130);
   color: #393939;
 }
 

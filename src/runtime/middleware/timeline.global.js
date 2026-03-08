@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { defineNuxtRouteMiddleware, useNuxtApp, navigateTo, abortNavigation } from '#imports'
 import useSmileStore from '../stores/smilestore'
 import useLog from '../stores/log'
-import { getQueryParams } from '../utils/utils'
+import { getQueryParams, processQuery, initService } from '../utils/utils'
 
 /**
  * Core guard logic extracted for testability.
@@ -33,7 +33,7 @@ export async function executeGuards(to, from, { timeline, store, log, api, skipB
   if (result === undefined) {
     const toConfig = timeline.getViewForPath(to.path)
     const toName = toConfig?.name || to.name
-    _postGuard({ timeline, store, log, api, toName })
+    _postGuard({ timeline, store, log, api, toName, toPath: to.path })
   }
 
   return result
@@ -283,9 +283,21 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
  * Handles seed setup and view state reset.
  * Runs only when navigation is allowed (guard returned undefined).
  */
-function _postGuard({ timeline, store, log, api, toName }) {
+function _postGuard({ timeline, store, log, api, toName, toPath }) {
   store.setLastRoute(toName)
   store.recordRoute(toName)
+
+  // --- Recruitment service detection ---
+  // Extract service name from /welcome/:service paths and call processQuery
+  // to set the recruitment service and store participant info from URL params.
+  const serviceMatch = toPath?.match(/\/welcome\/(\w+)/)
+  if (serviceMatch) {
+    const service = serviceMatch[1]
+    if (initService(service)) {
+      const query = getQueryParams()
+      processQuery(query, service)
+    }
+  }
   api.removeAutofill()
 
   if (store.localState.useSeed) {
