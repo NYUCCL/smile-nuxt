@@ -1,0 +1,90 @@
+# Deploy to Vercel with codename-based URL
+#
+# This workflow deploys your SMILE experiment to Vercel on every push,
+# using the deterministic SMILE codename as the project name.
+# This gives your experiment two stable URLs:
+#   <codename>.vercel.app
+#   <owner>-<repo>-<branch>.vercel.app
+#
+# Required secrets (set in GitHub repo Settings > Secrets):
+#   VERCEL_TOKEN      - Vercel personal access token (vercel.com/account/tokens)
+#   VERCEL_ORG_ID     - Your Vercel team/org ID (from .vercel/project.json or dashboard)
+#   VERCEL_PROJECT_ID - Your Vercel project ID (created on first deploy)
+#
+# Optional secrets:
+#   TURSO_DATABASE_URL  - Production database URL
+#   TURSO_AUTH_TOKEN    - Production database auth token
+#   SMILE_DEV_PASSWORD  - Password for /dev and /presentation modes
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Generate git env
+        run: bash scripts/generate_git_env.sh
+
+      - name: Compute aliases
+        id: aliases
+        run: |
+          OWNER=$(git remote get-url origin | sed -E 's#.*/([^/]+)/[^/]+\.git$#\1#' | tr '[:upper:]' '[:lower:]')
+          REPO=$(basename $(git remote get-url origin) .git | tr '[:upper:]' '[:lower:]')
+          BRANCH=$(git rev-parse --abbrev-ref HEAD | tr '[:upper:]' '[:lower:]')
+          CODENAME=$(node scripts/codenamize.cjs "/${OWNER}/${REPO}/${BRANCH}")
+          PROJECT_REF="${OWNER}-${REPO}-${BRANCH}"
+          echo "codename=$CODENAME" >> "$GITHUB_OUTPUT"
+          echo "project_ref=$PROJECT_REF" >> "$GITHUB_OUTPUT"
+          echo "Codename: $CODENAME"
+          echo "Project ref: $PROJECT_REF"
+
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel
+
+      # Production deploy (push to main)
+      - name: Deploy to Vercel (production)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          DEPLOY_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          echo "Deploy URL: $DEPLOY_URL"
+          # Alias to codename (e.g. tiger-brave-castle.vercel.app)
+          vercel alias set "$DEPLOY_URL" "${{ steps.aliases.outputs.codename }}.vercel.app" --token=${{ secrets.VERCEL_TOKEN }}
+          echo "Aliased: ${{ steps.aliases.outputs.codename }}.vercel.app"
+          # Alias to owner-repo-branch (e.g. nyuccl-myexp-main.vercel.app)
+          vercel alias set "$DEPLOY_URL" "${{ steps.aliases.outputs.project_ref }}.vercel.app" --token=${{ secrets.VERCEL_TOKEN }}
+          echo "Aliased: ${{ steps.aliases.outputs.project_ref }}.vercel.app"
+
+      # Preview deploy (pull requests)
+      - name: Deploy to Vercel (preview)
+        if: github.event_name == 'pull_request'
+        run: |
+          vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --token=${{ secrets.VERCEL_TOKEN }}
+          URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          echo "Preview URL: $URL"

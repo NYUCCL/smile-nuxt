@@ -3853,14 +3853,29 @@ All test files were already copied during earlier phases. Now update their impor
 
 #### Step 48: Vercel + GitHub integration
 
-**Goal**: Push-to-deploy workflow where merging to main auto-deploys the experiment.
+**Goal**: Push-to-deploy workflow where merging to main auto-deploys the experiment, with the deploy URL matching the SMILE codename.
 
-1. Connect the researcher's GitHub repo to Vercel
-2. Configure:
-   - Production branch: `main`
-   - Preview deployments for PRs (useful for testing experiment changes)
-   - Environment variables set in Vercel dashboard (not committed)
-3. Test the full cycle: push a change → Vercel builds → preview URL works → merge → production updates
+**Option A: Vercel GitHub App** (simpler, less control)
+1. Connect the researcher's GitHub repo to Vercel via the Vercel GitHub integration
+2. Configure production branch (`main`), preview deployments for PRs
+3. Set environment variables in the Vercel dashboard
+4. URL is `<vercel-project-name>.vercel.app` — you can manually name the Vercel project after the codename, but branch preview URLs are auto-generated
+
+**Option B: GitHub Action + Vercel CLI** (recommended — codename URLs)
+1. Do NOT link the repo via Vercel's GitHub app
+2. Use a GitHub Action (included in starter-template at `.github/workflows/deploy.yml`) that:
+   - Runs `generate_git_env.sh` to compute the codename
+   - Deploys via `vercel deploy --prebuilt --prod`
+   - Sets two aliases via `vercel alias set`:
+     - `<codename>.vercel.app` — anonymous/shareable URL for participants and recruitment services
+     - `<owner>-<repo>-<branch>.vercel.app` — descriptive URL for internal identification
+3. Each branch gets its own deterministic codename → its own stable URL
+4. Environment variables are set in the Vercel dashboard or via `vercel env`
+5. Test the full cycle: push a change → GitHub Action runs → `codename.vercel.app` updates
+
+**Important**: This workflow lives in the **starter template / user's experiment repo**, not in the module itself. The module is published to npm; only the userland code is deployed to Vercel.
+
+> **TODO (verify during Phase O testing):** Confirm whether Vercel's free Hobby tier supports `vercel alias` for `.vercel.app` subdomains. If aliases require a Pro account, the fallback is to name the Vercel project itself after the codename (giving `codename.vercel.app` as the primary URL) and drop the second `owner-repo-branch` alias.
 
 #### Step 49: Slack/notification integration (optional)
 
@@ -4145,6 +4160,44 @@ This makes SMILE a proper framework (like Nuxt itself) rather than a template to
 | N: TypeScript | 46 | Optional, gradual, after everything works | NOT STARTED |
 | O: Deployment | 47–49 | Vercel deploy, push-to-deploy, Slack notifications | NOT STARTED |
 | P: Documentation | 50–54 | Full docs rewrite for new architecture | NOT STARTED |
+
+---
+
+## Repo Transition Plan
+
+The Nuxt migration is being developed in `nyuccl/smile-ui` (local clone) on the `nuxt` branch. Before starting Phase M (Build & Publish) and Phase O (Deployment), the code should move to a dedicated repo so the existing SPA version remains available to current users.
+
+### Step 1: Fork to `nyuccl/smile-nuxt`
+
+- Create `nyuccl/smile-nuxt` from the current `nuxt` branch
+- This becomes the active development repo for all remaining phases (M, N, O, P)
+- The existing `nyuccl/smile` repo stays untouched — current users can continue using it
+
+### Step 2: Develop and publish from `smile-nuxt`
+
+- Publish to npm as `@gureckislab/smile` with a major version bump (e.g. `3.0.0-beta.1`)
+  - Using a `-beta` prerelease tag means `pnpm add @gureckislab/smile` still installs the stable SPA version
+  - Nuxt users install explicitly: `pnpm add @gureckislab/smile@next`
+- Starter template references `gh:nyuccl/smile-nuxt/starter-template` during this phase
+- Deploy workflows, Vercel testing, docs rewrite — all happen in `smile-nuxt`
+
+### Step 3: Rename when stable
+
+Once the Nuxt version is stable and documented:
+
+1. Rename `nyuccl/smile` → `nyuccl/smile-vue` (GitHub auto-redirects old URLs)
+2. Rename `nyuccl/smile-nuxt` → `nyuccl/smile`
+3. Update starter template to reference `gh:nyuccl/smile/starter-template`
+4. Publish `@gureckislab/smile@3.0.0` (stable, no beta tag)
+5. Archive `nyuccl/smile-vue` (read-only, for reference)
+
+### References to update at rename time
+
+- `starter-template/package.json` — dependency version
+- `starter-template/.github/workflows/deploy.yml` — if it references the repo
+- `docs/` — any URLs pointing to the repo
+- npm package metadata — repository URL
+- `nuxi init -t` command in docs/README
 
 ---
 

@@ -7,11 +7,17 @@
     "build": "nuxt build",
     "preview": "nuxt preview",
     "dev:prepare": "nuxt prepare",
-    "postinstall": "bash scripts/generate_git_env.sh || true"
+    "postinstall": "bash scripts/generate_git_env.sh || true",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@gureckislab/smile": "^1.0.0",
     "@pinia/nuxt": "^0.10.0",
     "nuxt": "^4.3.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0",
+    "@libsql/client": "^0.14.0"
   }
 }

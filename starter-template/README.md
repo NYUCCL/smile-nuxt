@@ -51,16 +51,54 @@ Three modes are available in a single build:
 
 ## Deployment
 
+This template includes a GitHub Action (`.github/workflows/deploy.yml`) that auto-deploys to Vercel on every push to `main`. The deploy URL uses your experiment's SMILE codename (e.g. `tiger-brave-castle.vercel.app`).
+
+### Setup
+
+1. Create a [Vercel account](https://vercel.com) and a new project
+2. Get your [Vercel token](https://vercel.com/account/tokens), org ID, and project ID
+3. Add these as GitHub repo secrets (`Settings > Secrets and variables > Actions`):
+   - `VERCEL_TOKEN`
+   - `VERCEL_ORG_ID`
+   - `VERCEL_PROJECT_ID`
+4. Add your database secrets in the Vercel dashboard (`Settings > Environment Variables`):
+   - `TURSO_DATABASE_URL` — your Turso database URL
+   - `TURSO_AUTH_TOKEN` — your Turso auth token
+   - `SMILE_DEV_PASSWORD` — password for `/dev` and `/presentation` modes
+
+Push to `main` and your experiment will be live.
+
+### Local preview
+
 ```bash
 pnpm build                  # Build for production
 pnpm preview                # Preview production build locally
 ```
 
-Configure your database in `.env.local`:
+## Testing
+
+This template includes example E2E tests using [Playwright](https://playwright.dev) that verify your experiment flow works end-to-end, including database persistence.
+
+```bash
+# Install Playwright browsers (first time only)
+npx playwright install chromium
+
+# Run E2E tests (starts dev server automatically)
+pnpm test:e2e
+
+# Run with interactive UI
+pnpm test:e2e:ui
 ```
-TURSO_DATABASE_URL=libsql://your-db.turso.io
-TURSO_AUTH_TOKEN=your-token
-```
+
+Tests are in `test/e2e/`. The included `experiment.spec.ts` covers:
+- Welcome page renders
+- Navigation through consent and demographics
+- Guards block skipping ahead
+- Participant record is created in the database on consent
+- Route history is recorded
+- State persists across page refresh
+
+Add your own tests as you build your experiment — test your custom task interactions, verify data recording, and catch regressions before deploying.
 
 ## Documentation
 
