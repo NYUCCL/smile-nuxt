@@ -17,6 +17,8 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useNuxtApp, navigateTo } from '#imports'
 import RecruitmentChooserView from '#smile-dev/RecruitmentChooserView.vue'
 
 const route = useRoute()

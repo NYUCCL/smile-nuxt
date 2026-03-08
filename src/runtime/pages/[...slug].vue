@@ -13,6 +13,9 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useNuxtApp, navigateTo } from '#imports'
+
 const route = useRoute()
 const nuxtApp = useNuxtApp()
 

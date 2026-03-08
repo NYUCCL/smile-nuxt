@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import useAPI from '../../../composables/useAPI'
 
 /**
  * API instance for accessing Smile app state and actions

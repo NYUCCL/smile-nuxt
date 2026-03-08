@@ -20,6 +20,8 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useNuxtApp, navigateTo } from '#imports'
 import PresentationModeView from '../../components/builtins/PresentationModeView.vue'
 import useSmileStore from '../../stores/smilestore'
 

@@ -1,4 +1,8 @@
 <script setup>
+import { computed } from 'vue'
+import { useRoute } from '#imports'
+import useAPI from '../../composables/useAPI'
+
 const api = useAPI()
 const route = useRoute()
 
