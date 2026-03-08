@@ -58,6 +58,19 @@ export default defineNuxtModule<ModuleOptions>({
       compiler: 'vue3',
     }))
 
+    // Pre-bundle CJS dependencies so Vite converts them to ESM for the browser
+    _nuxt.options.vite.optimizeDeps = _nuxt.options.vite.optimizeDeps || {}
+    _nuxt.options.vite.optimizeDeps.include = _nuxt.options.vite.optimizeDeps.include || []
+    _nuxt.options.vite.optimizeDeps.include.push(
+      'seedrandom',
+      'lodash',
+      'clipboard',
+      'crypto-js/sha256',
+      'crypto-js/enc-base64',
+      'json-stable-stringify',
+      'qrcode-svg',
+    )
+
     // Add global CSS (Tailwind theme + SMILE styles)
     _nuxt.options.css.push(resolver.resolve('./runtime/css/main.css'))
 

@@ -3,9 +3,7 @@ import config from '../config.js'
 import { StepperSerializer } from './StepperSerializer.js'
 import StepperProxy from './StepperProxy.js'
 import useLog from '../../stores/log.js'
-import * as _seedrandom from 'seedrandom'
-
-const seedrandom = _seedrandom.default || _seedrandom
+import seedrandom from 'seedrandom'
 
 // to be implemented functions
 

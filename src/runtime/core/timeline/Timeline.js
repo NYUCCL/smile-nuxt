@@ -3,9 +3,8 @@
  * @module timeline
  */
 
-import * as _lodash from 'lodash'
+import _ from 'lodash'
 
-const _ = _lodash.default || _lodash
 // NOTE: RecruitmentChooser and PresentationMode views are handled via
 // route-based modes (/dev/, /presentation/) in Nuxt, not registered here.
 // See runtime/pages/dev/ and runtime/pages/presentation/

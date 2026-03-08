@@ -20,11 +20,11 @@ import { useRoute, useRouter, useRuntimeConfig, useNuxtApp } from '#imports'
 import useSmileStore from '../stores/smilestore'
 import useLog from '../stores/log'
 import useTimeline from './useTimeline'
-import * as _seedrandom from 'seedrandom'
+import seedrandom from 'seedrandom'
 import { v4 as uuidv4 } from 'uuid'
-import * as _sha256 from 'crypto-js/sha256'
-import * as _Base64url from 'crypto-js/enc-base64'
-import * as _stringify from 'json-stable-stringify'
+import sha256 from 'crypto-js/sha256'
+import Base64url from 'crypto-js/enc-base64'
+import stringify from 'json-stable-stringify'
 import {
   randomInt,
   shuffle,
@@ -32,11 +32,6 @@ import {
   sampleWithoutReplacement,
   fakerDistributions,
 } from '../utils/randomization'
-
-const seedrandom = _seedrandom.default || _seedrandom
-const sha256 = _sha256.default || _sha256
-const Base64url = _Base64url.default || _Base64url
-const stringify = _stringify.default || _stringify
 
 /**
  * SmileAPI class provides core functionality for SMILE experiments
