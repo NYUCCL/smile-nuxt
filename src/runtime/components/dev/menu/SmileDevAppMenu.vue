@@ -1,5 +1,6 @@
 <script setup>
 import { BookMarked, BugPlay, Info, Moon, Settings, Smile, Sun } from 'lucide-vue-next'
+import { useSmileColorMode } from '../../../composables/useColorMode'
 /**
  * @fileoverview Sidebar component for the Smile application with navigation and configuration options
  */

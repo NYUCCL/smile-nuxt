@@ -1,8 +1,6 @@
 <script setup>
 import { Moon, Sun, SunMoon } from 'lucide-vue-next'
-// UI components
-
-// Color mode composable
+import { useSmileColorMode } from '../../../composables/useColorMode'
 
 /**
  * Provides color mode state and toggle function for the experiment

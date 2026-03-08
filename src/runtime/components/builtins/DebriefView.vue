@@ -1,12 +1,6 @@
 <script setup>
 import { ArrowRight } from 'lucide-vue-next'
-/**
- * @fileoverview DebriefView component for displaying study completion information
- * @description This component shows debrief text to participants and provides navigation
- * to the next view in the experiment flow.
- */
-
-// Import and initialize Smile API for navigation and configuration
+import useViewAPI from '../../composables/useViewAPI'
 
 /**
  * Initialize the Smile API for navigation and configuration access

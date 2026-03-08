@@ -1,12 +1,8 @@
 <script setup>
 import { ref, watch } from 'vue'
 import useSmileStore from '../../../stores/smilestore'
-// uuid removed - not currently used
+import useAPI from '../../../composables/useAPI'
 
-/**
- * API instance for logging and navigation
- * @type {import('@/core/composables/useAPI')}
- */
 const api = useAPI()
 
 /**

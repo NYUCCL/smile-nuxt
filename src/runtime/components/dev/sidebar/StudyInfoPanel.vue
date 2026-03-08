@@ -1,10 +1,7 @@
 <script setup>
 import { computed } from 'vue'
+import useAPI from '../../../composables/useAPI'
 
-/**
- * API instance for accessing Smile app state and actions
- * @type {import('@/core/composables/useAPI')}
- */
 const api = useAPI()
 
 /**

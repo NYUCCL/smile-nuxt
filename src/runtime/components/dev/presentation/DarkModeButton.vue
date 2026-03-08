@@ -1,13 +1,6 @@
 <script setup>
 import { Moon, Sun, SunMoon } from 'lucide-vue-next'
-/**
- * @fileoverview Dark mode toggle button component for presentation mode
- * Provides a tooltip-enabled button to switch between light, dark, and system color modes
- */
-
-// UI component imports
-
-// Composables
+import { useSmileColorMode } from '../../../composables/useColorMode'
 
 /**
  * Initialize color mode composable for global scope (applies to html element, like production mode)

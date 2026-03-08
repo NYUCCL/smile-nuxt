@@ -1,9 +1,7 @@
 <script setup>
 import { CloudUpload, Database, UserMinus } from 'lucide-vue-next'
-/**
- * API instance for accessing Smile app state and actions
- * @type {import('@/core/composables/useAPI')}
- */
+import useAPI from '../../../composables/useAPI'
+
 const api = useAPI()
 </script>
 
