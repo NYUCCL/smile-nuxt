@@ -1,6 +1,6 @@
 {
   "name": "@nyuccl/smile",
-  "version": "0.2.0-beta.1",
+  "version": "0.2.0-beta.2",
   "description": "SMILE experiment framework as a Nuxt module",
   "author": "Todd Gureckis <gureckis@gmail.com>",
   "license": "MIT",
@@ -35,7 +35,7 @@
     "dev": "pnpm run dev:prepare && nuxt dev playground",
     "dev:build": "nuxt build playground",
     "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxt prepare playground",
-    "release": "bumpp && node scripts/sync-starter-version.js && pnpm run lint && pnpm run test && pnpm run prepack && changelogen --no-bump && pnpm publish --access public --tag beta && git push --follow-tags",
+    "release": "bumpp && node scripts/sync-starter-version.js && git add starter-template/package.json && git commit --amend --no-edit && pnpm run lint && pnpm run test && pnpm run prepack && changelogen --no-bump && pnpm publish --access public --tag beta && git push --follow-tags",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest watch",
