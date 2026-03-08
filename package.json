@@ -55,6 +55,7 @@
     "@libsql/client": "^0.14.0",
     "@nuxt/kit": "^4.3.0",
     "@pinia/nuxt": "^0.11.3",
+    "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.10",
     "@vueuse/core": "^12.8.2",
     "axios": "^1.7.9",
