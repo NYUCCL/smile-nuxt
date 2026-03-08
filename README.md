@@ -8,9 +8,9 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/nyuccl/smile/releases" alt="GitHub release"><img src="https://img.shields.io/github/v/release/nyuccl/smile"></a>
-<a href="https://github.com/nyuccl/smile/actions" alt="Build Status"><img src="https://github.com/nyuccl/smile/actions/workflows/deploy.yml/badge.svg"></a>
-<a href="https://github.com/nyuccl/smile/actions" alt="Doc Build Status"><img src="https://github.com/nyuccl/smile/actions/workflows/docs-deploy.yml/badge.svg"></a>
+<a href="https://github.com/nyuccl/smile-nuxt/releases" alt="GitHub release"><img src="https://img.shields.io/github/v/release/nyuccl/smile-nuxt"></a>
+<a href="https://github.com/nyuccl/smile-nuxt/actions" alt="Build Status"><img src="https://github.com/nyuccl/smile-nuxt/actions/workflows/deploy.yml/badge.svg"></a>
+<a href="https://github.com/nyuccl/smile-nuxt/actions" alt="Doc Build Status"><img src="https://github.com/nyuccl/smile-nuxt/actions/workflows/docs-deploy.yml/badge.svg"></a>
 </p>
 
 <br />

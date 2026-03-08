@@ -1,12 +1,12 @@
 {
-  "name": "@gureckislab/smile",
-  "version": "0.2.0-beta",
+  "name": "@nyuccl/smile",
+  "version": "0.2.0-beta.0",
   "description": "SMILE experiment framework as a Nuxt module",
   "author": "Todd Gureckis <gureckis@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nyuccl/smile.git"
+    "url": "https://github.com/nyuccl/smile-nuxt.git"
   },
   "type": "module",
   "packageManager": "pnpm@10.15.1",
@@ -35,7 +35,7 @@
     "dev": "pnpm run dev:prepare && nuxt dev playground",
     "dev:build": "nuxt build playground",
     "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxt prepare playground",
-    "release": "pnpm run lint && pnpm run test && pnpm run prepack && changelogen --release && pnpm publish && git push --follow-tags",
+    "release": "bumpp && pnpm run lint && pnpm run test && pnpm run prepack && changelogen --release && pnpm publish --access public --tag beta && git push --follow-tags",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest watch",
@@ -51,12 +51,12 @@
   },
   "dependencies": {
     "@codenamize/codenamize": "1.1.1",
+    "@internationalized/date": "^3.7.0",
     "@libsql/client": "^0.14.0",
     "@nuxt/kit": "^4.3.0",
     "@pinia/nuxt": "^0.9.0",
     "@tailwindcss/vite": "^4.1.10",
     "@vueuse/core": "^12.8.2",
-    "@internationalized/date": "^3.7.0",
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
     "clipboard": "^2.0.11",
@@ -91,6 +91,7 @@
     "@playwright/test": "^1.58.2",
     "@types/node": "latest",
     "@vue/test-utils": "^2.4.6",
+    "bumpp": "^10.4.1",
     "changelogen": "^0.6.2",
     "drizzle-kit": "^0.30.0",
     "eslint": "^9.39.2",

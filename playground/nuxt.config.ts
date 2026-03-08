@@ -5,14 +5,15 @@ import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
 // Auto-generate git env vars before loading config
+const __dirname = dirname(fileURLToPath(import.meta.url))
 try {
-  execSync('bash scripts/generate_git_env.sh', { cwd: '..', stdio: 'inherit' })
+  execSync('bash scripts/generate_git_env.sh', { cwd: resolve(__dirname, '..'), stdio: 'inherit' })
 } catch {
   console.warn('[SMILE] Could not generate git env — scripts/generate_git_env.sh failed')
 }
 
 // Load all env layers from repo root, matching the old Vite setup
-const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const rootDir = resolve(__dirname, '..')
 const env = {
   ...loadEnv('production', rootDir, ''),
   ...loadEnv('deploy', rootDir, ''),
