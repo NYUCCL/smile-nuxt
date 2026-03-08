@@ -56,7 +56,6 @@ export default defineNuxtModule<ModuleOptions>({
     }))
     addVitePlugin(Icons({
       compiler: 'vue3',
-      autoInstall: true,
     }))
 
     // Pre-bundle CJS dependencies so Vite converts them to ESM for the browser
