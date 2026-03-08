@@ -3,6 +3,7 @@
  * Study preview component that displays study information and lab details
  * Provides participants with information about the study, compensation, and researchers
  */
+import useAPI from '../../composables/useAPI'
 
 const api = useAPI()
 

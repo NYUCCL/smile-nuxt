@@ -6,6 +6,7 @@
 
 import { reactive, computed, onMounted } from 'vue'
 import DatabaseList from './DatabaseList.vue'
+import useAPI from '../../../composables/useAPI'
 
 /**
  * Initialize the API instance for accessing store and data

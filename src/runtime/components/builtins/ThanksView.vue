@@ -11,6 +11,7 @@
 import Clipboard from 'clipboard'
 // Vue imports
 import { onMounted, ref } from 'vue'
+import useAPI from '../../composables/useAPI'
 
 /**
  * Initialize API

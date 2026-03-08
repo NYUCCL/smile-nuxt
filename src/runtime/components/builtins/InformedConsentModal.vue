@@ -1,5 +1,6 @@
 <script setup>
 import { watch, onUnmounted } from 'vue'
+import useAPI from '../../composables/useAPI'
 
 /**
  * Props for the InformedConsentModal component

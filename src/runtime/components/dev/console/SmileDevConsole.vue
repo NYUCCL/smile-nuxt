@@ -7,6 +7,7 @@
 import ConsoleDatabaseBrowsePanel from './ConsoleDatabaseBrowsePanel.vue'
 import ConsoleLogPanel from './ConsoleLogPanel.vue'
 import ConsoleConfigPanel from './ConsoleConfigPanel.vue'
+import useAPI from '../../../composables/useAPI'
 
 /**
  * Initialize the API instance for accessing store and navigation

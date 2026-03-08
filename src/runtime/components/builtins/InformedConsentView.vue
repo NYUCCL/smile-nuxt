@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch, onBeforeUnmount } from 'vue'
 import { animate } from 'motion'
+import useViewAPI from '../../composables/useViewAPI'
 
 const _props = defineProps({
   informedConsentText: {

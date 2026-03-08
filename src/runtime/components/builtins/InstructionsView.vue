@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import useViewAPI from '../../composables/useViewAPI'
 
 /**
  * Instructions view component for displaying experiment instructions

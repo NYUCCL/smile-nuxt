@@ -5,6 +5,8 @@
  */
 
 import { computed } from 'vue'
+import useLog from '../../../stores/log'
+import useAPI from '../../../composables/useAPI'
 
 // Import shadcn/ui components
 

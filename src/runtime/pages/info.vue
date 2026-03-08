@@ -4,6 +4,7 @@
  * and experiment configuration at a glance. Protected by dev-auth.
  */
 import { ref, computed } from 'vue'
+import useSmileStore from '../stores/smilestore'
 
 const store = useSmileStore()
 const config = store.config

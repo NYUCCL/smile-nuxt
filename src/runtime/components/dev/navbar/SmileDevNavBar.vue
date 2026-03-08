@@ -16,6 +16,7 @@ import LogoutButton from '../presentation/LogoutButton.vue'
 // Vue composables
 import { ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
+import useAPI from '../../../composables/useAPI'
 
 // API composable
 

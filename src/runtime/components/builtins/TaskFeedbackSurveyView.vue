@@ -1,5 +1,6 @@
 <script setup>
 import { reactive, computed } from 'vue'
+import useViewAPI from '../../composables/useViewAPI'
 
 // Import and initialize Smile API for navigation and data management
 // Import UI components for form elements

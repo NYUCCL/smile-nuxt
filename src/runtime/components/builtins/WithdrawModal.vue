@@ -1,5 +1,6 @@
 <script setup>
 import { reactive, watch, onUnmounted } from 'vue'
+import useAPI from '../../composables/useAPI'
 // import and initalize smile API
 
 /**

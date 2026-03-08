@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue'
+import useSmileStore from '../../../stores/smilestore'
 // uuid removed - not currently used
 
 /**

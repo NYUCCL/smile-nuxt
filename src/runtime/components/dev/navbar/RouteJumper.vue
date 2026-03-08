@@ -1,6 +1,8 @@
 <script setup>
 // Vue composables
 import { watch, ref, computed } from 'vue'
+import useLog from '../../../stores/log'
+import useAPI from '../../../composables/useAPI'
 
 /**
  * API instance for accessing application state and methods

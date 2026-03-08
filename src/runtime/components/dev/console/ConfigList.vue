@@ -5,6 +5,7 @@
  */
 
 import { computed } from 'vue'
+import useAPI from '../../../composables/useAPI'
 
 /**
  * Component props for configuration data and selection state

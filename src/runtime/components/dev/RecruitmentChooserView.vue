@@ -11,6 +11,7 @@
  */
 
 import { computed } from 'vue'
+import useViewAPI from '../../composables/useViewAPI'
 
 const api = useViewAPI()
 

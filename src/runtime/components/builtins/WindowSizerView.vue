@@ -7,6 +7,8 @@
  * It includes both initial and triggered states for different user scenarios.
  */
 
+import useViewAPI from '../../composables/useViewAPI'
+
 const api = useViewAPI()
 const props = defineProps(['triggered'])
 

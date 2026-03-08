@@ -5,6 +5,7 @@
  */
 
 import { ref } from 'vue'
+import useViewAPI from '../../composables/useViewAPI'
 
 /**
  * @description Initialize the Smile API for navigation and data management

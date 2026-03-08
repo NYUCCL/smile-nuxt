@@ -1,5 +1,7 @@
 <script setup>
 import { ref } from 'vue'
+import useSmileStore from '../../stores/smilestore'
+import useAPI from '../../composables/useAPI'
 
 const smilestore = useSmileStore() // get the global store
 const api = useAPI() // get the api

@@ -23,6 +23,7 @@
  * @requires devicePresets Shared device presets for responsive testing
  */
 import { devicePresets } from '../devicePresets.js'
+import useAPI from '../../../composables/useAPI'
 
 /**
  * Initialize SMILE API instance

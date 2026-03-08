@@ -4,6 +4,7 @@ import { computed } from 'vue'
 
 // Local components
 import RouteJumper from './RouteJumper.vue'
+import useAPI from '../../../composables/useAPI'
 
 /**
  * API instance for accessing application state and methods

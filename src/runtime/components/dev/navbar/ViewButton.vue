@@ -3,6 +3,7 @@
 
 // API composable
 import { computed } from 'vue'
+import useAPI from '../../../composables/useAPI'
 
 /**
  * API instance for accessing application state and methods

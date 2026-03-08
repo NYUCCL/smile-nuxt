@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import useAPI from '../../composables/useAPI'
 
 // Import and initialize Smile API
 

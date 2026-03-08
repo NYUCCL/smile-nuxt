@@ -5,6 +5,7 @@
  * QR code is generated on-demand via /api/qr server route.
  */
 import { computed } from 'vue'
+import useAPI from '../../../composables/useAPI'
 
 const api = useAPI()
 

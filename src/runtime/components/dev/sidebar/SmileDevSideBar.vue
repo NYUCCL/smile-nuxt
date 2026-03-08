@@ -5,6 +5,7 @@ import DatabaseStatusInfoPanel from './DatabaseStatusInfoPanel.vue'
 import RandomizationSidebarPanel from './RandomizationSidebarPanel.vue'
 import StudyInfoPanel from './StudyInfoPanel.vue'
 import AppProgressPanel from './AppProgressPanel.vue'
+import useAPI from '../../../composables/useAPI'
 
 /**
  * API instance for accessing store and navigation

@@ -4,6 +4,7 @@ import ResponsiveDeviceSelect from './menu/ResponsiveDeviceSelect.vue'
 import { useElementSize } from '@vueuse/core'
 
 import { devicePresets } from './devicePresets.js'
+import useAPI from '../../composables/useAPI'
 
 const api = useAPI()
 

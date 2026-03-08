@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { ArrowRight } from 'lucide-vue-next'
+import useAPI from '../../composables/useAPI'
 
 const api = useAPI()
 

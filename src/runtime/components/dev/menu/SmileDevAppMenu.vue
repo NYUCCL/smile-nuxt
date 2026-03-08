@@ -34,6 +34,7 @@ import { computed } from 'vue'
  * @requires DevConfigPanel Developer configuration panel component
  */
 import DevConfigPanel from './DevConfigPanel.vue'
+import useAPI from '../../../composables/useAPI'
 
 /**
  * Import color mode composable

@@ -1,5 +1,6 @@
 <script setup>
 // API composable for stepper navigation
+import useViewAPI from '../../../composables/useViewAPI'
 
 // UI components
 

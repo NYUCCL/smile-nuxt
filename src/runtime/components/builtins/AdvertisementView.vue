@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref, onBeforeUnmount } from 'vue'
 import { animate } from 'motion'
+import useViewAPI from '../../composables/useViewAPI'
 
 const api = useViewAPI()
 

@@ -1,6 +1,7 @@
 <script setup>
 // import and initalize smile API
 import { computed } from 'vue'
+import useAPI from '../../composables/useAPI'
 
 // Initialize the API
 const api = useAPI()

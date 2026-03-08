@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import StepNode from './StepNode.vue'
 import StepDataViewer from './StepDataViewer.vue'
+import useViewAPI from '../../../composables/useViewAPI'
 
 /**
  * API instance for step navigation and data access
