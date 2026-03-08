@@ -35,7 +35,7 @@ export default function createTimeline(api) {
 
   // Welcome / advertisement page
   timeline.pushSeqView({
-    path: '/welcome',
+    path: '/welcome/:service?',
     name: 'welcome_anonymous',
     component: 'AdvertisementView',
     meta: {
