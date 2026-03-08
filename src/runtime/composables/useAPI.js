@@ -20,11 +20,11 @@ import { useRoute, useRouter, useRuntimeConfig, useNuxtApp } from '#imports'
 import useSmileStore from '../stores/smilestore'
 import useLog from '../stores/log'
 import useTimeline from './useTimeline'
-import _seedrandom from 'seedrandom'
+import * as _seedrandom from 'seedrandom'
 import { v4 as uuidv4 } from 'uuid'
-import _sha256 from 'crypto-js/sha256'
-import _Base64url from 'crypto-js/enc-base64'
-import _stringify from 'json-stable-stringify'
+import * as _sha256 from 'crypto-js/sha256'
+import * as _Base64url from 'crypto-js/enc-base64'
+import * as _stringify from 'json-stable-stringify'
 import {
   randomInt,
   shuffle,

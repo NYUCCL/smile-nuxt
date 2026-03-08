@@ -3,7 +3,7 @@
  * @module timeline
  */
 
-import _lodash from 'lodash'
+import * as _lodash from 'lodash'
 
 const _ = _lodash.default || _lodash
 // NOTE: RecruitmentChooser and PresentationMode views are handled via

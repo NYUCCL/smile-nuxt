@@ -8,7 +8,7 @@
  */
 
 // External library imports
-import _Clipboard from 'clipboard'
+import * as _Clipboard from 'clipboard'
 // Vue imports
 import { onMounted, ref } from 'vue'
 
