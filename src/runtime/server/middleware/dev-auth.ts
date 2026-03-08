@@ -5,8 +5,11 @@ import { devSessions } from '../database/schema'
 export default defineEventHandler(async (event) => {
   const path = getRequestURL(event).pathname
 
-  // Only gate /dev and /presentation paths
-  if (!(path.startsWith('/dev/') || path === '/dev') && !(path.startsWith('/presentation/') || path === '/presentation')) {
+  // Only gate /dev, /presentation, and /info paths
+  const gated = path.startsWith('/dev/') || path === '/dev'
+    || path.startsWith('/presentation/') || path === '/presentation'
+    || path === '/info'
+  if (!gated) {
     return
   }
 

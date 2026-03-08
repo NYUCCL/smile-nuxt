@@ -104,6 +104,11 @@ export default defineNuxtModule<ModuleOptions>({
         path: '/dev-login',
         file: resolver.resolve('./runtime/pages/dev-login.vue'),
       })
+      pages.push({
+        name: 'info',
+        path: '/info',
+        file: resolver.resolve('./runtime/pages/info.vue'),
+      })
     })
 
     // Register UI component directories for auto-import

@@ -313,6 +313,11 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     console.warn('[SMILE middleware] $timeline not available yet, skipping guards')
     return
   }
+  // Skip guards for standalone pages that aren't part of the experiment timeline
+  if (to.path === '/info' || to.path === '/dev-login') {
+    return
+  }
+
   // Debug logging only in development mode
   if (import.meta.dev) {
     console.log(`[SMILE middleware] ${from.path} → ${to.path}`)

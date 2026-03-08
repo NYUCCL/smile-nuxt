@@ -186,6 +186,19 @@ const isDarkMode = computed({
                 <i-lucide-book-marked class="!size-5" />
               </SidebarMenuButton>
             </SidebarMenuItem>
+
+            <!-- Info / Recruitment Setup -->
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                as-child
+                class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1 hover:!bg-sidebar-border"
+                tooltip="Experiment Info & Recruitment"
+              >
+                <a href="/info" target="_blank">
+                  <i-lucide-info class="!size-5" />
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
