@@ -62,13 +62,13 @@ export default defineNuxtModule<ModuleOptions>({
     _nuxt.options.vite.optimizeDeps = _nuxt.options.vite.optimizeDeps || {}
     _nuxt.options.vite.optimizeDeps.include = _nuxt.options.vite.optimizeDeps.include || []
     _nuxt.options.vite.optimizeDeps.include.push(
-      'seedrandom',
-      'lodash',
-      'clipboard',
-      'crypto-js/sha256',
-      'crypto-js/enc-base64',
-      'json-stable-stringify',
-      'qrcode-svg',
+      '@nyuccl/smile > seedrandom',
+      '@nyuccl/smile > lodash',
+      '@nyuccl/smile > clipboard',
+      '@nyuccl/smile > crypto-js/sha256',
+      '@nyuccl/smile > crypto-js/enc-base64',
+      '@nyuccl/smile > json-stable-stringify',
+      '@nyuccl/smile > qrcode-svg',
     )
 
     // Add global CSS (Tailwind theme + SMILE styles)
