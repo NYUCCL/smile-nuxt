@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import useAPI from '../composables/useAPI'
+import useAPI from '#smile-composables/useAPI'
 import { Toaster } from 'vue-sonner'
 import 'vue-sonner/style.css'
 

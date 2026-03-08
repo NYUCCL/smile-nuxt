@@ -41,9 +41,10 @@ export default defineNuxtModule<ModuleOptions>({
       projectRef: process.env.VITE_PROJECT_REF || '',
     }
 
-    // Alias for dev components — layouts are copied into .nuxt/ so relative imports break;
-    // this alias lets layouts import dev components via '#smile-dev/...'
+    // Aliases for layouts — layouts are copied into .nuxt/ so relative imports break;
+    // these aliases let layouts import dev components and composables reliably
     _nuxt.options.alias['#smile-dev'] = resolver.resolve('./runtime/components/dev')
+    _nuxt.options.alias['#smile-composables'] = resolver.resolve('./runtime/composables')
 
     // Register Tailwind CSS via Vite plugin
     _nuxt.options.vite.plugins = _nuxt.options.vite.plugins || []
