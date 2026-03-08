@@ -1,5 +1,7 @@
 import { defineNuxtModule, addPlugin, addImports, addLayout, addRouteMiddleware, createResolver, extendPages, addComponentsDir, addServerScanDir, addServerImportsDir } from '@nuxt/kit'
 import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module'
+import { dirname } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 
 // Module options TypeScript interface definition
@@ -16,6 +18,7 @@ export default defineNuxtModule<ModuleOptions>({
   setup(_options, _nuxt) {
     const resolver = createResolver(import.meta.url)
     const runtimeDir = fileURLToPath(new URL('./runtime', import.meta.url))
+    const _require = createRequire(import.meta.url)
 
     // Experiments are pure client-side apps (no SEO needed, dynamic state).
     // Disable SSR for fast SPA-style navigation without server round-trips.
@@ -45,6 +48,13 @@ export default defineNuxtModule<ModuleOptions>({
     // these aliases let layouts import dev components and composables reliably
     _nuxt.options.alias['#smile-dev'] = resolver.resolve('./runtime/components/dev')
     _nuxt.options.alias['#smile-composables'] = resolver.resolve('./runtime/composables')
+
+    // Resolve module dependencies so that .vue component files inside
+    // node_modules/@nyuccl/smile/dist/runtime/ can import them correctly
+    // (pnpm strict isolation prevents Vite from resolving across package boundaries)
+    for (const dep of ['lucide-vue-next', '@vueuse/core', 'motion', 'clipboard']) {
+      _nuxt.options.alias[dep] = dirname(_require.resolve(`${dep}/package.json`))
+    }
 
     // Register Tailwind CSS via Vite plugin
     _nuxt.options.vite.plugins = _nuxt.options.vite.plugins || []
