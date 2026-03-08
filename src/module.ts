@@ -60,6 +60,17 @@ export default defineNuxtModule<ModuleOptions>({
       '@nyuccl/smile > crypto-js/enc-base64',
       '@nyuccl/smile > json-stable-stringify',
       '@nyuccl/smile > qrcode-svg',
+      '@nyuccl/smile > lucide-vue-next',
+      '@nyuccl/smile > reka-ui',
+      '@nyuccl/smile > reka-ui/date',
+      '@nyuccl/smile > @internationalized/date',
+      '@nyuccl/smile > vue-sonner',
+      '@nyuccl/smile > class-variance-authority',
+      '@nyuccl/smile > clsx',
+      '@nyuccl/smile > tailwind-merge',
+      '@nyuccl/smile > @vueuse/core',
+      '@nyuccl/smile > uuid',
+      '@nyuccl/smile > axios',
     )
 
     // Add global CSS (Tailwind theme + SMILE styles)
