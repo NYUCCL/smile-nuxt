@@ -13,6 +13,7 @@ import { onKeyDown, onKeyPressed, onKeyUp, useMouse, useMousePressed } from '@vu
 import useTimeline from './useTimeline'
 import { useRoute, useRouter } from '#imports'
 import useLog from '../stores/log'
+import config from '../core/config'
 
 // Singleton instance
 let viewAPIInstance = null
@@ -927,7 +928,7 @@ export default function useViewAPI() {
     viewAPIInstance = new ViewAPI(store, logStore, route, router, timeline, runtimeConfig)
 
     // Add shortcuts for arrow keys
-    if (route.path.startsWith('/dev') || route.path.startsWith('/presentation')) {
+    if (config.mode == 'development') {
       /**
        * Handle right arrow key press to advance to next step
        * @listens keydown.ArrowRight
