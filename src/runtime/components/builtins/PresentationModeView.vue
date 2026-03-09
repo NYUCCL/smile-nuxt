@@ -93,7 +93,7 @@ function goToSection(section) {
         <h1 class="text-5xl font-bold text-foreground mb-4 leading-tight">
           {{ title }}
         </h1>
-        <p class="text-2xl text-muted-foreground leading-relaxed">
+        <p class="text-lg text-muted-foreground leading-relaxed">
           {{ subtitle }}
         </p>
       </div>
@@ -104,7 +104,7 @@ function goToSection(section) {
       <div class="w-2/3 mx-auto px-6 py-8">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
           <!-- Authors -->
-          <div class="md:col-span-2">
+          <div class="md:col-span-3">
             <h3 class="text-[0.65rem] font-extralight uppercase tracking-widest text-muted-foreground mb-4">
               Authors
             </h3>
@@ -141,7 +141,7 @@ function goToSection(section) {
           </div>
 
           <!-- Affiliations -->
-          <div class="md:col-span-3">
+          <div class="md:col-span-4">
             <h3 class="text-[0.65rem] font-extralight uppercase tracking-widest text-muted-foreground mb-4">
               Affiliations
             </h3>
@@ -198,7 +198,7 @@ function goToSection(section) {
         <p
           v-for="(paragraph, index) in descriptionParagraphs"
           :key="index"
-          class="text-lg text-muted-foreground leading-relaxed mb-4"
+          class="text-md text-muted-foreground leading-relaxed mb-4"
         >
           {{ paragraph }}
         </p>
@@ -213,12 +213,12 @@ function goToSection(section) {
           :key="index"
         >
           <div>
-            <h3 class="text-xl font-semibold text-foreground mb-3">
+            <h3 class="text-base font-semibold text-foreground mb-2">
               {{ section.title }}
             </h3>
             <p
               v-if="section.description"
-              class="text-lg text-muted-foreground mb-4"
+              class="text-md text-muted-foreground mb-3"
             >
               {{ section.description }}
             </p>
