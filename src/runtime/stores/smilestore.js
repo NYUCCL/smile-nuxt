@@ -16,7 +16,7 @@
  *   via localStorage. Client-side sync plugin patches on load and watches for writes.
  */
 import { defineStore } from 'pinia'
-import { useCookie } from '#imports'
+import { useCookie, navigateTo } from '#imports'
 import axios from 'axios'
 import appconfig from '../core/config.js'
 import useLog from './log.js'
@@ -463,12 +463,47 @@ export default defineStore('smilestore', {
             this.localState.approxDataSize = JSON.stringify(result.data).length
             this.setDataLoaded()
           }
+          else {
+            // Record exists but has no data — treat as orphaned
+            this.resetOrphanedUser()
+          }
         }
         catch (err) {
-          const log = useLog()
-          log.error('SMILESTORE: could not load participant data: ' + err)
+          if (err?.statusCode === 404) {
+            // User in cookie but not in DB — reset everything
+            const log = useLog()
+            log.warn('SMILESTORE: Participant not found in DB, resetting to new user')
+            this.resetOrphanedUser()
+          }
+          else {
+            const log = useLog()
+            log.error('SMILESTORE: could not load participant data: ' + err)
+          }
         }
       }
+    },
+
+    /**
+     * Resets an orphaned user (cookie exists but DB record is missing).
+     * Clears cookies and localStorage, then redirects to the welcome page.
+     */
+    resetOrphanedUser() {
+      const log = useLog()
+      log.warn('SMILESTORE: Orphaned user detected — clearing state and redirecting to welcome')
+
+      // Reset cookie state to defaults
+      this.clearSmileCookies()
+
+      // Clear localStorage
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(appconfig.localStorageKey)
+      }
+
+      // Reset local state to defaults
+      Object.assign(this.localState, { ...initLocalState })
+
+      // Redirect to welcome
+      navigateTo('/welcome')
     },
 
     setLastRoute(route) {
