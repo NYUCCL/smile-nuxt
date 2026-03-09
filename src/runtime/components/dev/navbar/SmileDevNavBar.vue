@@ -8,7 +8,7 @@ import ReloadButton from './ReloadButton.vue'
 import ColorModeButton from './ColorModeButton.vue'
 import DatabaseButtonGroup from './DatabaseButtonGroup.vue'
 import FullScreenButton from './FullScreenButton.vue'
-import ViewButton from './ViewButton.vue'
+import PanelButtonGroup from './PanelButtonGroup.vue'
 import KeyCommandNotification from './KeyCommandNotification.vue'
 import LogoutButton from '../presentation/LogoutButton.vue'
 
@@ -60,7 +60,8 @@ const showTemporaryNotification = (command, action, type = 'default') => {
  * - ArrowDown: Go to next view
  *
  * Panel Controls:
- * - Ctrl+1: Toggle sidebar/console panels
+ * - Ctrl+1: Toggle sidebar
+ * - Ctrl+`: Toggle console
  * - Ctrl+2: Cycle through sidebar tabs (Steps -> Random -> DB Info)
  * - Ctrl+3: Cycle through console tabs (Browse -> Log -> Config)
  * - Ctrl+R: Reset local state
@@ -90,35 +91,26 @@ onKeyDown((e) => {
 })
 
 /**
- * Toggle sidebar/console panels on Ctrl+1 key press
+ * Toggle sidebar on Ctrl+1 key press
  */
 onKeyDown((e) => {
   if (e.ctrlKey && e.key === '1') {
     e.preventDefault()
 
-    const sideBar = api.store.dev.showSideBar
-    const consoleBar = api.store.dev.showConsoleBar
+    api.store.dev.showSideBar = !api.store.dev.showSideBar
+    showTemporaryNotification('Ctrl + 1', api.store.dev.showSideBar ? 'Showing Sidebar' : 'Hiding Sidebar')
+  }
+})
 
-    if (!sideBar && !consoleBar) {
-      api.store.dev.showSideBar = true
-      api.store.dev.showConsoleBar = false
-      showTemporaryNotification('Ctrl + 1', 'Showing Sidebar')
-    }
-    else if (sideBar && !consoleBar) {
-      api.store.dev.showSideBar = false
-      api.store.dev.showConsoleBar = true
-      showTemporaryNotification('Ctrl + 1', 'Showing Console')
-    }
-    else if (!sideBar && consoleBar) {
-      api.store.dev.showSideBar = true
-      api.store.dev.showConsoleBar = true
-      showTemporaryNotification('Ctrl + 1', 'Showing Both Panels')
-    }
-    else {
-      api.store.dev.showSideBar = false
-      api.store.dev.showConsoleBar = false
-      showTemporaryNotification('Ctrl + 1', 'Hiding All Panels')
-    }
+/**
+ * Toggle console on Ctrl+` key press
+ */
+onKeyDown((e) => {
+  if (e.ctrlKey && e.key === '`') {
+    e.preventDefault()
+
+    api.store.dev.showConsoleBar = !api.store.dev.showConsoleBar
+    showTemporaryNotification('Ctrl + `', api.store.dev.showConsoleBar ? 'Showing Console' : 'Hiding Console')
   }
 })
 
@@ -246,7 +238,7 @@ onKeyDown((e) => {
 
 <template>
   <!-- Main navigation bar container -->
-  <nav class="flex items-center justify-between w-full border-b min-h-[36px] max-h-[36px] text-sm px-2">
+  <nav class="flex items-center justify-between w-full border-b border-dev-lines min-h-[36px] max-h-[36px] text-sm px-2">
     <!-- Left section - Developer mode indicator -->
     <div class="flex items-center flex-shrink-0 px-2 py-1 rounded">
       <div class="flex items-center">
@@ -323,9 +315,9 @@ onKeyDown((e) => {
           <ViewInfoButtonGroup />
         </div>
 
-        <!-- View button -->
+        <!-- Panel toggles (console + sidebar) -->
         <div class="flex items-center">
-          <ViewButton />
+          <PanelButtonGroup />
         </div>
       </div>
     </div>

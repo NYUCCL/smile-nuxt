@@ -387,17 +387,18 @@ const fullUrls = computed(() => {
                 </dd>
 
                 <dt class="text-muted-foreground/60">Commit</dt>
-                <dd class="font-mono flex items-center gap-1">
+                <dd class="font-mono flex items-start gap-1">
                   <a
                     v-if="config.github.lastCommitHash"
                     :href="config.github.commitURL"
                     target="_blank"
                     class="text-[var(--link-button-foreground)] underline text-xs"
                   >{{ config.github.lastCommitHash }}</a>
-                  <span v-if="config.github.lastCommitMsg" class="text-muted-foreground">{{ config.github.lastCommitMsg }}</span>
-                  <button v-if="config.github.lastCommitHash" class="text-muted-foreground hover:text-foreground transition-colors" @click="copyToClipboard(config.github.lastCommitHash, 'commit')">
-                    <Check v-if="copied === 'commit'" class="size-3" /><Copy v-else class="size-3" />
-                  </button>
+                  <span v-if="config.github.lastCommitMsg" class="text-muted-foreground text-xs">{{ config.github.lastCommitMsg }}
+                    <button v-if="config.github.lastCommitHash" class="inline-flex align-middle text-muted-foreground hover:text-foreground transition-colors ml-1" @click="copyToClipboard(config.github.lastCommitHash, 'commit')">
+                      <Check v-if="copied === 'commit'" class="size-3" /><Copy v-else class="size-3" />
+                    </button>
+                  </span>
                 </dd>
               </template>
             </dl>
@@ -458,32 +459,32 @@ const fullUrls = computed(() => {
             <CardDescription>{{ svc.description }}</CardDescription>
           </CardHeader>
           <CardContent class="flex justify-end flex-1 items-end gap-2">
-            <div class="flex flex-col items-end gap-2">
-            <template v-if="key === 'mturk'">
+            <div class="flex items-end gap-2">
+              <template v-if="key === 'mturk'">
+                <Button
+                  as-child
+                  variant="secondary"
+                  size="xs"
+                  class="is-light-yellow"
+                >
+                  <a href="/dev/mturk?assignmentId=ASSIGNMENT_ID_NOT_AVAILABLE&hitId=123RVWYBAZW00EXAMPLE&turkSubmitTo=https://www.mturk.com/&workerId=AZ3456EXAMPLE">
+                    Preview
+                    <ArrowRight class="inline-block ml-1 w-4 h-4" />
+                  </a>
+                </Button>
+              </template>
               <Button
                 as-child
-                variant="secondary"
+                variant="default"
                 size="xs"
-                class="is-light-yellow"
+                :class="svc.buttonClass"
               >
-                <a href="/dev/mturk?assignmentId=ASSIGNMENT_ID_NOT_AVAILABLE&hitId=123RVWYBAZW00EXAMPLE&turkSubmitTo=https://www.mturk.com/&workerId=AZ3456EXAMPLE">
-                  Preview
+                <a :href="devUrls[key]">
+                  <Dices />
+                  {{ svc.buttonLabel }}
                   <ArrowRight class="inline-block ml-1 w-4 h-4" />
                 </a>
               </Button>
-            </template>
-            <Button
-              as-child
-              variant="default"
-              size="xs"
-              :class="svc.buttonClass"
-            >
-              <a :href="devUrls[key]">
-                <Dices />
-                {{ svc.buttonLabel }}
-                <ArrowRight class="inline-block ml-1 w-4 h-4" />
-              </a>
-            </Button>
             </div>
           </CardContent>
         </Card>
