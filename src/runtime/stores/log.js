@@ -8,7 +8,6 @@
  * - Integrating with the application's global state management
  */
 import { defineStore } from 'pinia'
-import appconfig from '../core/config.js'
 import { toast } from 'vue-sonner'
 import useSmileStore from './smilestore.js'
 
@@ -128,9 +127,7 @@ export default defineStore('log', {
         message: message,
         trace: getLogTrace(),
       }
-      if (appconfig.mode === 'development') {
-        console.log(message)
-      }
+      console.log(message)
       this.addToHistory(msg)
     },
 
@@ -151,7 +148,7 @@ export default defineStore('log', {
         smilestore.dev.notificationFilter !== 'None'
         && (smilestore.dev.notificationFilter == 'Warnings and Errors'
           || smilestore.dev.notificationFilter == 'Warnings only')
-        && appconfig.mode === 'development'
+
       ) {
         toast.warning(message)
       }
@@ -176,7 +173,7 @@ export default defineStore('log', {
         smilestore.dev.notificationFilter !== 'None'
         && (smilestore.dev.notificationFilter == 'Warnings and Errors'
           || smilestore.dev.notificationFilter == 'Errors only')
-        && appconfig.mode === 'development'
+
       ) {
         toast.error(message)
       }
@@ -200,7 +197,7 @@ export default defineStore('log', {
       if (
         smilestore.dev.notificationFilter !== 'None'
         && (smilestore.dev.notificationFilter == 'All' || smilestore.dev.notificationFilter == 'Success only')
-        && appconfig.mode === 'development'
+
       ) {
         toast.success(message)
       }

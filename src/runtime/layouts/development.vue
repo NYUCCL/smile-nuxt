@@ -63,6 +63,7 @@ const isLoading = computed(() => {
 
           <!-- Developer Mode - Full interface with toolbar, sidebar, console -->
           <template v-else>
+            <LocalDevBanner />
             <!-- Top toolbar with navigation controls -->
             <div class="toolbar">
               <DevNavBar />
@@ -93,7 +94,7 @@ const isLoading = computed(() => {
                 <!-- Bottom console - can be toggled -->
                 <Transition name="console-slide">
                   <div
-                    v-if="api.config.mode == 'development' && api.store.dev.showConsoleBar"
+                    v-if="api.store.dev.showConsoleBar"
                     class="console"
                   >
                     <DevConsole />
@@ -105,7 +106,7 @@ const isLoading = computed(() => {
               <!-- Sidebar - can be toggled, transitions in/out -->
               <Transition name="sidebar-slide">
                 <div
-                  v-if="api.config.mode == 'development' && api.store.dev.showSideBar"
+                  v-if="api.store.dev.showSideBar"
                   class="sidebar"
                 >
                   <DevSideBar />

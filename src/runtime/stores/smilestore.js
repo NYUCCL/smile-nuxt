@@ -175,10 +175,7 @@ export default defineStore('smilestore', {
       cookieState,
       localState,
       browserEphemeral: { ...initBrowserEphemeral },
-      dev:
-        appconfig.mode === 'development'
-          ? useCookie(`smile_${appconfig.codeName}_dev`, { default: () => ({ ...initDev }), maxAge: 86400 * 365 }).value ?? { ...initDev }
-          : { ...initDev },
+      dev: useCookie(`smile_${appconfig.codeName}_dev`, { default: () => ({ ...initDev }), maxAge: 86400 * 365 }).value ?? { ...initDev },
       private: {
         recruitmentInfo: {},
         withdrawData: {},

@@ -44,6 +44,7 @@ export default defineNuxtModule<ModuleOptions>({
     _nuxt.options.runtimeConfig = _nuxt.options.runtimeConfig || {}
     _nuxt.options.runtimeConfig.smile = {
       devPassword: process.env.SMILE_DEV_PASSWORD || '',
+      publicPresentation: process.env.SMILE_PUBLIC_PRESENTATION === 'true',
       tursoUrl: process.env.TURSO_DATABASE_URL || '',
       tursoAuthToken: process.env.TURSO_AUTH_TOKEN || '',
     }

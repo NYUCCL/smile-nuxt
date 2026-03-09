@@ -30,11 +30,15 @@
 
 <script setup>
 import { ref } from 'vue'
-import { navigateTo } from '#imports'
+import { navigateTo, useRoute } from '#imports'
 
+const route = useRoute()
 const password = ref('')
 const error = ref('')
 const loading = ref(false)
+
+// Remember where the user was trying to go (passed as ?redirect= query param)
+const redirectTo = route.query.redirect || '/dev/'
 
 async function login() {
   error.value = ''
@@ -44,7 +48,7 @@ async function login() {
       method: 'POST',
       body: { password: password.value },
     })
-    await navigateTo('/dev/', { replace: true })
+    await navigateTo(redirectTo, { replace: true, external: true })
   }
   catch (err) {
     error.value = err.statusCode === 401 ? 'Invalid password' : 'Login failed'

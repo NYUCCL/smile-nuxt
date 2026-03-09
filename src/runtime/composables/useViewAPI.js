@@ -928,7 +928,7 @@ export default function useViewAPI() {
     viewAPIInstance = new ViewAPI(store, logStore, route, router, timeline, runtimeConfig)
 
     // Add shortcuts for arrow keys
-    if (config.mode == 'development') {
+    if (route.path.startsWith('/dev') || route.path.startsWith('/presentation')) {
       /**
        * Handle right arrow key press to advance to next step
        * @listens keydown.ArrowRight

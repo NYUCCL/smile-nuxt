@@ -9,8 +9,6 @@ import useSmileStore from '../stores/smilestore'
 import appconfig from '../core/config.js'
 
 export default defineNuxtPlugin(() => {
-  if (appconfig.mode !== 'development') return
-
   const store = useSmileStore()
   const cookieName = `smile_${appconfig.codeName}_dev`
 

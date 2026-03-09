@@ -124,7 +124,7 @@ const isDarkMode = computed({
             as-child
             class="md:h-8 md:p-0"
           >
-            <a href="#">
+            <a href="/">
               <div class="mainbutton text-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                 <Smile />
               </div>

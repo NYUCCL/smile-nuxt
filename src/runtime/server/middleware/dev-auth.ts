@@ -7,10 +7,17 @@ import { devSessions } from '../database/schema'
 export default defineEventHandler(async (event) => {
   const path = getRequestURL(event).pathname
 
-  // Only gate /dev and /presentation paths (info is now inside dev layout)
-  const gated = path.startsWith('/dev/') || path === '/dev'
-    || path.startsWith('/presentation/') || path === '/presentation'
-  if (!gated) {
+  // Only gate /dev and /presentation paths
+  const isDevPath = path.startsWith('/dev/') || path === '/dev'
+  const isPresentationPath = path.startsWith('/presentation/') || path === '/presentation'
+
+  if (!isDevPath && !isPresentationPath) {
+    return
+  }
+
+  // Allow presentation mode through if public presentation is enabled
+  const config = useRuntimeConfig()
+  if (isPresentationPath && config.smile?.publicPresentation) {
     return
   }
 
@@ -25,7 +32,6 @@ export default defineEventHandler(async (event) => {
   }
 
   // Check if dev password is configured — if not, allow through (local dev without auth)
-  const config = useRuntimeConfig()
   if (!config.smile?.devPassword) {
     return
   }
@@ -37,14 +43,15 @@ export default defineEventHandler(async (event) => {
 
   // Check session cookie
   const token = getCookie(event, 'smile_dev_session')
+  const loginUrl = `/dev-login?redirect=${encodeURIComponent(path)}`
   if (!token) {
-    return sendRedirect(event, '/dev-login')
+    return sendRedirect(event, loginUrl)
   }
 
   const db = useDB()
   const session = await db.select().from(devSessions).where(eq(devSessions.id, token)).get()
 
   if (!session || session.expiresAt < new Date()) {
-    return sendRedirect(event, '/dev-login')
+    return sendRedirect(event, loginUrl)
   }
 })

@@ -52,16 +52,14 @@ export default defineNuxtPlugin((nuxtApp) => {
   )
 
   // --- 3. Watch store.dev — reset to defaults if externally cleared to null ---
-  if (appconfig.mode === 'development') {
-    watch(
-      () => store.dev,
-      (val) => {
-        if (val === null || val === undefined) {
-          store.dev = { ...initDev }
-        }
-      },
-    )
-  }
+  watch(
+    () => store.dev,
+    (val) => {
+      if (val === null || val === undefined) {
+        store.dev = { ...initDev }
+      }
+    },
+  )
 
   // --- 4. Watch localState → localStorage ---
   watch(

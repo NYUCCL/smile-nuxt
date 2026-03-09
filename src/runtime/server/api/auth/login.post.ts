@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
 
   setCookie(event, 'smile_dev_session', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: false, // allow HTTP for local preview; deployed behind HTTPS proxy
     sameSite: 'lax',
     path: '/',
     maxAge: 7 * 24 * 60 * 60,

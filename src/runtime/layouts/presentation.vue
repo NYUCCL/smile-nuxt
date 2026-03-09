@@ -14,6 +14,8 @@ const isLoading = computed(() => {
   <ClientOnly>
     <!-- Main app container for presentation mode -->
     <div class="app-container">
+      <LocalDevBanner />
+
       <!-- Top toolbar with navigation -->
       <div class="toolbar">
         <PresentationNavBar />
