@@ -108,61 +108,44 @@ export class Stepper extends StepState {
   }
 
   /**
-   * Checks if any of the given items would create duplicate paths in the tree
+   * Creates a reusable duplicate checker that builds the existing path/data
+   * sets once and updates them incrementally as items are accepted.
    * @private
-   * @param {object | Array<object>} items - Single object or array of objects to check for duplicates
-   * @param {string} [items[].id] - Optional path property on each item
-   * @returns {boolean} True if any items would create duplicate paths, false otherwise
-   * @description
-   * This method checks for duplicates in two ways:
-   * 1. Checks for duplicate paths among the input items themselves
-   * 2. Checks if any new items would create paths that already exist in the tree
-   * 3. Checks if any new items have the same data content as existing items
+   * @returns {{ isDuplicate: (item: object) => boolean }} Object with an isDuplicate method
    */
-  _hasDuplicatePaths(items) {
-    // Convert single item to array if needed
-    const itemsToCheck = Array.isArray(items) ? items : [items]
-
-    // First check for duplicates among the input items
-    const seenPaths = new Set()
-    const seenData = new Set()
-    for (const item of itemsToCheck) {
-      // Check for explicit path duplicates
-      if (item.id !== undefined) {
-        if (seenPaths.has(item.id)) {
-          return true
-        }
-        seenPaths.add(item.id)
-      }
-
-      // Check for data content duplicates
-      const dataStr = JSON.stringify(item)
-      if (seenData.has(dataStr)) {
-        return true
-      }
-      seenData.add(dataStr)
-    }
-
-    // Get all existing paths in the tree
-    const existingPaths = this.existingPaths
+  _buildDuplicateChecker() {
+    // Build existing id set from current children (O(n) once)
+    const existingIds = new Set(this._states.map(state => state.id))
+    // Build existing data set from current children (O(n) once)
     const existingData = new Set(this._states.map(state => JSON.stringify(state.data)))
 
-    // Check if any new items would create duplicate paths with existing ones
-    return itemsToCheck.some((item) => {
-      // Create a temporary state to get its path
-      let state
-      if (item.id !== undefined) {
-        state = new Stepper({ id: item.id, parent: this })
-      }
-      else {
-        state = new Stepper({ parent: this })
-      }
-      state.data = item
-      const newPath = state.pathString
+    return {
+      /**
+       * Checks if a single item is a duplicate, and if not, records it so
+       * subsequent calls will detect it as existing.
+       * @param {object} item - The item to check
+       * @returns {boolean} True if the item is a duplicate
+       */
+      isDuplicate: (item) => {
+        // Check explicit id duplicates
+        if (item.id !== undefined && existingIds.has(item.id)) {
+          return true
+        }
 
-      // Check both path and data content
-      return existingPaths.has(newPath) || existingData.has(JSON.stringify(item))
-    })
+        // Check data content duplicates
+        const dataStr = JSON.stringify(item)
+        if (existingData.has(dataStr)) {
+          return true
+        }
+
+        // Not a duplicate — record it for future checks
+        if (item.id !== undefined) {
+          existingIds.add(item.id)
+        }
+        existingData.add(dataStr)
+        return false
+      },
+    }
   }
 
   /**
@@ -207,6 +190,9 @@ export class Stepper extends StepState {
       throw new Error(`Cannot append ${itemsToAdd.length} rows as it exceeds the safety limit of ${config.maxSteps}`)
     }
 
+    // Build duplicate checker once for the entire batch
+    const { isDuplicate } = this._buildDuplicateChecker()
+
     // Try to add each item individually
     itemsToAdd.forEach((item) => {
       // Register any Vue component references from the item data so they
@@ -215,7 +201,7 @@ export class Stepper extends StepState {
       this._registerComponentsFromData(item)
 
       // Check if this specific item would create a duplicate path
-      if (this._hasDuplicatePaths(item)) {
+      if (isDuplicate(item)) {
         this._log.warn(`Warning: Skipping item that would create duplicate path`)
       }
       else {
@@ -280,6 +266,9 @@ export class Stepper extends StepState {
 
     const outerRows = generateCombinations(processedColumns)
 
+    // Build duplicate checker once for the entire batch
+    const { isDuplicate } = this._buildDuplicateChecker()
+
     // Try to add each combination individually
     outerRows.forEach((row) => {
       // If an idGenerator function is provided, use it to generate the ID
@@ -288,7 +277,7 @@ export class Stepper extends StepState {
       }
 
       // Check if this specific combination would create a duplicate path
-      if (this._hasDuplicatePaths(row)) {
+      if (isDuplicate(row)) {
         this._log.warn(`Warning: Skipping combination that would create duplicate path`)
       }
       else {
@@ -405,6 +394,9 @@ export class Stepper extends StepState {
         return row
       })
 
+    // Build duplicate checker once for the entire batch
+    const { isDuplicate } = this._buildDuplicateChecker()
+
     // Try to add each combination individually
     zippedRows.forEach((row) => {
       // If an idGenerator function is provided, use it to generate the ID
@@ -413,7 +405,7 @@ export class Stepper extends StepState {
       }
 
       // Check if this specific combination would create a duplicate path
-      if (this._hasDuplicatePaths(row)) {
+      if (isDuplicate(row)) {
         this._log.warn(`Warning: Skipping combination that would create duplicate path`)
       }
       else {
@@ -487,6 +479,9 @@ export class Stepper extends StepState {
    * @returns {Stepper} The current instance for chaining
    */
   forEach(callback) {
+    // Build duplicate checker once for the entire forEach pass
+    const { isDuplicate } = this._buildDuplicateChecker()
+
     this._states.forEach((item, index) => {
       // Call the callback and check if it returns a new value
       const result = callback(item, index)
@@ -513,7 +508,7 @@ export class Stepper extends StepState {
           })
 
           // Check for duplicate paths before updating
-          if (this._hasDuplicatePaths(newData)) {
+          if (isDuplicate(newData)) {
             throw new Error('Cannot update item: would create duplicate paths')
           }
 
