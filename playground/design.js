@@ -15,6 +15,7 @@ import { markRaw } from 'vue'
 import InformedConsentText from './components/InformedConsentText.vue'
 import DebriefText from './components/DebriefText.vue'
 import StroopExpView from './components/StroopExpView.vue'
+import ComponentStepsView from './components/ComponentStepsView.vue'
 import { QUIZ_QUESTIONS } from './components/quizQuestions'
 
 export default function createTimeline(api) {
@@ -189,6 +190,12 @@ export default function createTimeline(api) {
   timeline.pushRandomizedNode({
     name: 'RandomSplit',
     options: [['number'], ['color']],
+  })
+
+  // Component steps test (components in step data)
+  timeline.pushSeqView({
+    name: 'compsteps',
+    component: markRaw(ComponentStepsView),
   })
 
   // Stroop experiment (custom component)

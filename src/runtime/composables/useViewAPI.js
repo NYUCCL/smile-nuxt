@@ -5,7 +5,7 @@
  * - All methods and properties from the core API
  * - All methods and properties from the stepper
  */
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, getCurrentInstance } from 'vue'
 import { SmileAPI } from './useAPI'
 import useSmileStore from '../stores/smilestore'
 import { useStepper } from './useStepper'
@@ -57,8 +57,12 @@ class ViewAPI extends SmileAPI {
     this._stateMachine = ref(null)
     this._gvars = ref({})
 
-    // Component registry
+    // Component registry (deprecated - now stored on the Stepper's _componentRegistry)
+    // Kept for backwards compatibility but no longer populated
     this.componentRegistry = new Map()
+
+    // Capture the Vue app context for resolving globally registered components
+    this._appContext = getCurrentInstance()?.appContext
 
     // Watch for stepper changes and update internal state
     watch(
@@ -672,10 +676,22 @@ class ViewAPI extends SmileAPI {
 
     return this._dataAlongPath.value.map((item) => {
       if (item?.type?.__vueComponent) {
+        const name = item.type.componentName
+        // Try stepper's component registry first (captures user-imported components)
+        const stepperRegistry = this._stepper.value?._componentRegistry
+        let resolved = stepperRegistry?.get(name)
+        // Fallback to globally registered components (Nuxt auto-imports)
+        if (!resolved && this._appContext) {
+          const globalResolved = this._appContext.components?.[name]
+            || this._appContext.app?.component?.(name)
+          if (globalResolved) {
+            resolved = globalResolved
+          }
+        }
         return {
           ...item,
-          type: this.componentRegistry.get(item.type.componentName) || {
-            template: `<div>Component ${item.type.componentName} not found</div>`,
+          type: resolved || {
+            template: `<div>Component ${name} not found</div>`,
           },
         }
       }

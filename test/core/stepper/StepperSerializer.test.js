@@ -46,7 +46,7 @@ describe('StepperSerializer', () => {
       expect(serialized.data).toEqual(data)
     })
 
-    it.skip('should handle faker functions', () => {
+    it('should handle faker functions', () => {
       const data = {
         randomNum: () => api.faker.runif(1, 10),
         randomChoice: () => api.faker.rchoice(['John', 'Jane', 'Bob']),
@@ -57,12 +57,12 @@ describe('StepperSerializer', () => {
       expect(serialized.data.randomNum).toEqual({
         __fakerFunction: true,
         name: 'runif',
-        params: ['1', '10'],
+        params: [1, 10],
       })
       expect(serialized.data.randomChoice).toEqual({
         __fakerFunction: true,
         name: 'rchoice',
-        params: ['John', 'Jane', 'Bob'],
+        params: [['John', 'Jane', 'Bob']],
       })
     })
 
@@ -144,7 +144,7 @@ describe('StepperSerializer', () => {
       expect(newStepper._data).toEqual(data)
     })
 
-    it.skip('should reconstruct faker functions', () => {
+    it('should reconstruct faker functions', () => {
       const serialized = {
         id: 'test',
         currentIndex: 0,
@@ -155,7 +155,7 @@ describe('StepperSerializer', () => {
           randomNum: {
             __fakerFunction: true,
             name: 'runif',
-            params: ['1', '10'],
+            params: [1, 10],
           },
           randomChoice: {
             __fakerFunction: true,
@@ -200,8 +200,8 @@ describe('StepperSerializer', () => {
       StepperSerializer.deserialize(serialized, newStepper, root)
 
       expect(newStepper._data.component).toEqual({
-        name: 'TestComponent',
         __vueComponent: true,
+        componentName: 'TestComponent',
       })
     })
 

@@ -38,11 +38,21 @@ export class StepperSerializer {
             // Extract the faker function name and parameters
             const match = funcStr.match(/api\.faker\.(\w+)\((.*)\)/)
             if (match) {
-              const [, fakerName, params] = match
+              const [, fakerName, paramsStr] = match
+              let params
+              try {
+                // Parse params preserving types (numbers, arrays, strings)
+                const jsonStr = '[' + paramsStr.replace(/'/g, '"') + ']'
+                params = JSON.parse(jsonStr)
+              }
+              catch {
+                // Fallback to string splitting for unparseable params
+                params = paramsStr.split(',').map(p => p.trim())
+              }
               cleaned[key] = {
                 __fakerFunction: true,
                 name: fakerName,
-                params: params.split(',').map(p => p.trim()),
+                params,
               }
             }
           }
@@ -50,8 +60,21 @@ export class StepperSerializer {
           continue
         }
 
-        // Check if it's a Vue component
+        // Preserve existing __vueComponent markers (from previous serialization round-trips)
+        if (value && typeof value === 'object' && value.__vueComponent && value.componentName) {
+          cleaned[key] = {
+            __vueComponent: true,
+            componentName: value.componentName,
+          }
+          continue
+        }
+
+        // Check if it's a Vue component (has name + template or render function)
         if (value && typeof value === 'object' && value.name && (value.template || value.render)) {
+          // Register the component so it can be resolved during deserialization
+          if (Stepper._componentRegistry) {
+            Stepper._componentRegistry.set(value.name, value)
+          }
           cleaned[key] = {
             __vueComponent: true,
             componentName: value.name,
@@ -61,6 +84,9 @@ export class StepperSerializer {
 
         // Handle data objects that might contain component references
         if (key === 'type' && value?.name && (value.template || value.render)) {
+          if (Stepper._componentRegistry) {
+            Stepper._componentRegistry.set(value.name, value)
+          }
           cleaned[key] = {
             __vueComponent: true,
             componentName: value.name,
@@ -194,24 +220,16 @@ export class StepperSerializer {
                 console.warn(`Faker function ${value.name} not found during reconstruction`)
                 return null
               }
-              // Convert string parameters to appropriate types
-              const convertedParams = value.params.map((param) => {
-                // Convert empty string to undefined
-                if (param === '') return undefined
-                // Try to convert to number if it looks like a number
-                const num = Number(param)
-                return Number.isNaN(num) ? param : num
-              })
-              return fakerFunc(...convertedParams)
+              return fakerFunc(...value.params).val
             }
             continue
           }
 
-          // Handle Vue components
+          // Handle Vue components — preserve the serialized format
           if (value.__vueComponent) {
             reconstructed[key] = {
-              name: value.componentName,
               __vueComponent: true,
+              componentName: value.componentName,
             }
             continue
           }

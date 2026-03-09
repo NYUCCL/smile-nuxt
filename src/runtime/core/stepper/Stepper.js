@@ -50,6 +50,7 @@ export class Stepper extends StepState {
     this._shuffled = false // Add shuffled property
     this._onModify = null // Add callback property
     this._needsWrite = false // Track if we need to write
+    this._componentRegistry = new Map() // Registry for Vue components encountered in step data
 
     // If serialized state is provided, load it
     if (serializedState !== null) {
@@ -76,6 +77,22 @@ export class Stepper extends StepState {
     this._needsWrite = true
     if (this._onModify) {
       this._onModify()
+    }
+  }
+
+  /**
+   * Scans an item's data for Vue component references and registers them
+   * in the component registry. This ensures components can be resolved
+   * after deserialization even when the item itself is skipped as a duplicate.
+   * @private
+   * @param {object} item - The item data to scan
+   */
+  _registerComponentsFromData(item) {
+    if (!this._componentRegistry || !item || typeof item !== 'object') return
+    for (const value of Object.values(item)) {
+      if (value && typeof value === 'object' && value.name && (value.template || value.render)) {
+        this._componentRegistry.set(value.name, value)
+      }
     }
   }
 
@@ -192,6 +209,11 @@ export class Stepper extends StepState {
 
     // Try to add each item individually
     itemsToAdd.forEach((item) => {
+      // Register any Vue component references from the item data so they
+      // can be resolved after deserialization (even if the item is skipped
+      // as a duplicate — the component objects are still needed for rendering)
+      this._registerComponentsFromData(item)
+
       // Check if this specific item would create a duplicate path
       if (this._hasDuplicatePaths(item)) {
         this._log.warn(`Warning: Skipping item that would create duplicate path`)
