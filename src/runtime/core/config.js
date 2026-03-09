@@ -58,24 +58,29 @@ function parseWidthHeight(value) {
  * @property {string} firebaseConfig.messagingSenderId - Firebase messaging sender ID
  * @property {string} firebaseConfig.appId - Firebase app ID
  */
+const codeName = import.meta.env.VITE_CODE_NAME || 'unnamed-experiment'
+const projectRef = (import.meta.env.VITE_DEPLOY_BASE_PATH || '/local/experiment/main/').slice(1, -1).replace(/\//g, '-')
+const owner = import.meta.env.VITE_GIT_OWNER || 'local'
+const repoName = import.meta.env.VITE_GIT_REPO_NAME || 'experiment'
+const branch = import.meta.env.VITE_GIT_BRANCH_NAME || 'main'
+const hash = import.meta.env.VITE_GIT_HASH || '0000000'
+
 export default {
   mode: import.meta.env.MODE,
   smileVersion: import.meta.env.VITE_SMILE_VERSION,
-  projectName: import.meta.env.VITE_PROJECT_NAME, // autocompute this on intitialization
-  projectRef: (import.meta.env.VITE_DEPLOY_BASE_PATH || '/').slice(1, -1).replace(/\//g, '-'),
-  codeName: import.meta.env.VITE_CODE_NAME,
+  projectName: import.meta.env.VITE_PROJECT_NAME || 'experiment',
+  projectRef,
+  codeName,
   codeNameURL: import.meta.env.VITE_CODE_NAME_DEPLOY_URL,
-  localStorageKey: `smilestore-${import.meta.env.VITE_CODE_NAME}`,
-  devLocalStorageKey: `smilestore-${import.meta.env.VITE_CODE_NAME}_dev`,
+  localStorageKey: `smilestore-${codeName}`,
+  devLocalStorageKey: `smilestore-${codeName}_dev`,
   github: {
-    repoName: import.meta.env.VITE_GIT_REPO_NAME,
-    owner: import.meta.env.VITE_GIT_OWNER,
-    branch: import.meta.env.VITE_GIT_BRANCH_NAME,
-    lastCommitMsg: import.meta.env.VITE_GIT_LAST_MSG,
-    lastCommitHash: import.meta.env.VITE_GIT_HASH, // autocompute this all the time
-    commitURL: `https://github.com/${import.meta.env.VITE_GIT_OWNER}/${import.meta.env.VITE_GIT_REPO_NAME}/commit/${
-      import.meta.env.VITE_GIT_HASH
-    }`,
+    repoName,
+    owner,
+    branch,
+    lastCommitMsg: import.meta.env.VITE_GIT_LAST_MSG || '(no commits yet)',
+    lastCommitHash: hash,
+    commitURL: `https://github.com/${owner}/${repoName}/commit/${hash}`,
   },
   // browser_exclude: import.meta.env.VITE_BROWSER_EXCLUDE,
   allowRepeats: import.meta.env.VITE_ALLOW_REPEATS === 'true',

@@ -50,8 +50,8 @@ export default defineNuxtModule<ModuleOptions>({
     }
     _nuxt.options.runtimeConfig.public = _nuxt.options.runtimeConfig.public || {}
     _nuxt.options.runtimeConfig.public.smile = {
-      codeName: process.env.VITE_CODE_NAME || '',
-      projectRef: process.env.VITE_PROJECT_REF || '',
+      codeName: process.env.VITE_CODE_NAME || 'unnamed-experiment',
+      projectRef: process.env.VITE_PROJECT_REF || 'local-experiment-main',
     }
 
     // Aliases for layouts — layouts are copied into .nuxt/ so relative imports break;
