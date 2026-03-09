@@ -61,9 +61,9 @@ const _props = defineProps({
     <template #right>
       <!-- Lab logo (hidden on smaller screens) -->
       <img
-        :src="'/brain.svg'"
+        :src="api.config.advertisementImageFn"
         width="220"
-        class="mb-4 hidden @xl:block"
+        :class="['mb-4 hidden @xl:block', { 'dark-aware-img': api.config.advertisementImageInvertDark }]"
       >
 
       <!-- Lab information card -->

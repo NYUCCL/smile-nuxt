@@ -87,6 +87,8 @@ export default {
   deployURL: import.meta.env.VITE_DEPLOY_URL, // auto compute this
   labURL: import.meta.env.VITE_LAB_URL,
   brandLogoFn: import.meta.env.VITE_BRAND_LOGO_FN,
+  advertisementImageFn: '/_smile/images/helpus.png',
+  advertisementImageInvertDark: false,
   colorMode: import.meta.env.VITE_COLOR_MODE, // 'light' or 'dark' or 'system'
   responsiveUI: import.meta.env.VITE_RESPONSIVE_UI === 'true',
   googleAnalyticsID: import.meta.env.VITE_GOOGLE_ANALYTICS,

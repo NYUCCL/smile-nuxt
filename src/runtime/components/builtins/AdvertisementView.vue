@@ -3,6 +3,10 @@ import { onMounted, ref, onBeforeUnmount } from 'vue'
 import { animate } from 'motion'
 import useViewAPI from '../../composables/useViewAPI'
 
+const props = defineProps({
+  imageWidth: { type: [String, Number], default: 320 },
+})
+
 const api = useViewAPI()
 
 let timer
@@ -42,9 +46,9 @@ onBeforeUnmount(() => {
   >
     <img
       ref="logo"
-      :src="'/brain.svg'"
-      width="220"
-      class="dark-aware-img"
+      :src="api.config.advertisementImageFn"
+      :width="props.imageWidth"
+      :class="{ 'dark-aware-img': api.config.advertisementImageInvertDark }"
     >
 
     <h1

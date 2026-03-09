@@ -75,7 +75,7 @@ function submitWithdraw() {
       >
         <img
           :src="api.getPublicUrl(api.config.brandLogoFn)"
-          width="90"
+          width="120"
           class="dark-aware-img"
         >
       </a>
