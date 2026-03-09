@@ -50,8 +50,8 @@ import {
  * @property {object} private - Private data from store
  * @property {object} all_data - Combined private and public data
  * @property {object} all_config - Combined bro, dev, github and main configs
- * @property {Object} urls - Global URL configurations
- * @property {Object} log - Logging methods interface
+ * @property {object} urls - Global URL configurations
+ * @property {object} log - Logging methods interface
  */
 export class SmileAPI {
   /**

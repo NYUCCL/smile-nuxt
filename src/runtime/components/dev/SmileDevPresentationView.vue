@@ -8,7 +8,7 @@ import { useSmileColorMode } from '../../composables/useColorMode'
 
 const nuxtApp = useNuxtApp()
 const store = useSmileStore()
-const api = useAPI()
+const _api = useAPI()
 
 // Ensure global color mode watcher is active so dark/light syncs with the dev sidebar
 useSmileColorMode('global')

@@ -134,7 +134,10 @@ function _resetDevState() {
     <!-- Breadcrumb navigation bar -->
     <Breadcrumb class="bg-muted border-b border-dev-lines px-3 py-2 font-mono">
       <BreadcrumbList>
-        <template v-for="(option, index) in browse_panels.path" :key="index">
+        <template
+          v-for="(option, index) in browse_panels.path"
+          :key="index"
+        >
           <template v-if="option !== null">
             <BreadcrumbItem>
               <BreadcrumbLink

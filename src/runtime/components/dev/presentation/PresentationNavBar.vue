@@ -57,7 +57,10 @@ defineProps({
         </div>
 
         <!-- Dark mode toggle button (hidden when embedded in dev layout, sidebar provides one) -->
-        <div v-if="!hideDarkMode" class="flex items-center">
+        <div
+          v-if="!hideDarkMode"
+          class="flex items-center"
+        >
           <DarkModeButton />
         </div>
 

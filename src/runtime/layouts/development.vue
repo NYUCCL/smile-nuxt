@@ -100,7 +100,6 @@ const isLoading = computed(() => {
                     <DevConsole />
                   </div>
                 </Transition>
-
               </div>
 
               <!-- Sidebar - can be toggled, transitions in/out -->

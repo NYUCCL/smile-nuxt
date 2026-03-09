@@ -1,4 +1,5 @@
 <script setup>
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { BookMarked, BugPlay, Moon, Presentation, Settings, Smile, Sun } from 'lucide-vue-next'
 import { useSmileColorMode } from '../../../composables/useColorMode'
 /**
@@ -213,7 +214,6 @@ const isDarkMode = computed({
               </SidebarMenuButton>
             </SidebarMenuItem>
             -->
-
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>

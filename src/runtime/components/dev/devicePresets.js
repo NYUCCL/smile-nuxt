@@ -18,10 +18,10 @@
  * @property {object} 'ipad-13' iPad 13-inch dimensions
  * @property {object} desktop1 800x600 desktop resolution
  * @property {object} desktop2 1024x768 desktop resolution
- * @property {Object} desktop3 1280x1024 desktop resolution
- * @property {Object} desktop4 1440x900 desktop resolution
- * @property {Object} desktop5 1600x1200 desktop resolution
- * @property {Object} desktop16 1920x1080 desktop resolution
+ * @property {object} desktop3 1280x1024 desktop resolution
+ * @property {object} desktop4 1440x900 desktop resolution
+ * @property {object} desktop5 1600x1200 desktop resolution
+ * @property {object} desktop16 1920x1080 desktop resolution
  */
 export const devicePresets = {
   'iphone': { width: 393, height: 852, name: 'iPhone' },

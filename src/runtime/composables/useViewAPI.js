@@ -13,7 +13,6 @@ import { onKeyDown, onKeyPressed, onKeyUp, useMouse, useMousePressed } from '@vu
 import useTimeline from './useTimeline'
 import { useRoute, useRouter } from '#imports'
 import useLog from '../stores/log'
-import config from '../core/config'
 
 // Singleton instance
 let viewAPIInstance = null

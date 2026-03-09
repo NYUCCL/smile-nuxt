@@ -33,7 +33,10 @@ async function copyToClipboard(text, label) {
   try {
     await navigator.clipboard.writeText(text)
     copied.value = label
-    setTimeout(() => { copied.value = '' }, 2000)
+    copied.value = label
+    setTimeout(() => {
+      copied.value = ''
+    }, 2000)
   }
   catch {
     const el = document.createElement('textarea')
@@ -43,7 +46,9 @@ async function copyToClipboard(text, label) {
     document.execCommand('copy')
     document.body.removeChild(el)
     copied.value = label
-    setTimeout(() => { copied.value = '' }, 2000)
+    setTimeout(() => {
+      copied.value = ''
+    }, 2000)
   }
 }
 
@@ -247,9 +252,11 @@ const fullUrls = computed(() => {
       <!-- Study URL -->
       <Card class="mb-4">
         <CardHeader class="pb-2">
-          <CardTitle class="text-sm">Study URL</CardTitle>
-          <CardDescription
-            class="text-xs"
+          <CardTitle class="text-sm">
+            Study URL
+          </CardTitle>
+          <div
+            class="text-xs text-muted-foreground"
             v-html="currentService.urlNote"
           />
         </CardHeader>
@@ -263,8 +270,14 @@ const fullUrls = computed(() => {
               size="xs"
               @click="copyToClipboard(currentService.studyUrl.value, `study-${selectedService}`)"
             >
-              <Check v-if="copied === `study-${selectedService}`" class="size-3" />
-              <Copy v-else class="size-3" />
+              <Check
+                v-if="copied === `study-${selectedService}`"
+                class="size-3"
+              />
+              <Copy
+                v-else
+                class="size-3"
+              />
               {{ copied === `study-${selectedService}` ? 'Copied!' : 'Copy' }}
             </Button>
           </div>
@@ -274,7 +287,9 @@ const fullUrls = computed(() => {
       <!-- Test URL with example params -->
       <Card class="mb-6">
         <CardHeader class="pb-2">
-          <CardTitle class="text-sm">Test URL (with example params)</CardTitle>
+          <CardTitle class="text-sm">
+            Test URL (with example params)
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div class="flex items-center gap-2">
@@ -286,8 +301,14 @@ const fullUrls = computed(() => {
               size="xs"
               @click="copyToClipboard(fullUrls[selectedService], `test-${selectedService}`)"
             >
-              <Check v-if="copied === `test-${selectedService}`" class="size-3" />
-              <Copy v-else class="size-3" />
+              <Check
+                v-if="copied === `test-${selectedService}`"
+                class="size-3"
+              />
+              <Copy
+                v-else
+                class="size-3"
+              />
               {{ copied === `test-${selectedService}` ? 'Copied!' : 'Copy' }}
             </Button>
           </div>
@@ -297,7 +318,9 @@ const fullUrls = computed(() => {
       <!-- Setup Instructions -->
       <Card>
         <CardHeader class="pb-2">
-          <CardTitle class="text-sm">Setup Instructions</CardTitle>
+          <CardTitle class="text-sm">
+            Setup Instructions
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ol class="list-decimal list-outside ml-5 space-y-2 text-sm text-muted-foreground">
@@ -348,32 +371,67 @@ const fullUrls = computed(() => {
           <!-- Experiment Details -->
           <div class="min-w-0">
             <dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-sm">
-              <dt class="text-muted-foreground/60">Project</dt>
+              <dt class="text-muted-foreground/60">
+                Project
+              </dt>
               <dd class="font-mono flex items-center gap-1">
                 {{ config.projectName || config.projectRef || '(not set)' }}
-                <button class="text-muted-foreground hover:text-foreground transition-colors" @click="copyToClipboard(config.projectName || config.projectRef || '', 'project')">
-                  <Check v-if="copied === 'project'" class="size-3" /><Copy v-else class="size-3" />
+                <button
+                  class="text-muted-foreground hover:text-foreground transition-colors"
+                  @click="copyToClipboard(config.projectName || config.projectRef || '', 'project')"
+                >
+                  <Check
+                    v-if="copied === 'project'"
+                    class="size-3"
+                  /><Copy
+                    v-else
+                    class="size-3"
+                  />
                 </button>
               </dd>
 
-              <dt class="text-muted-foreground/60">Code Name</dt>
+              <dt class="text-muted-foreground/60">
+                Code Name
+              </dt>
               <dd class="font-mono flex items-center gap-1">
                 {{ config.codeName || '(not set)' }}
-                <button class="text-muted-foreground hover:text-foreground transition-colors" @click="copyToClipboard(config.codeName || '', 'codename')">
-                  <Check v-if="copied === 'codename'" class="size-3" /><Copy v-else class="size-3" />
+                <button
+                  class="text-muted-foreground hover:text-foreground transition-colors"
+                  @click="copyToClipboard(config.codeName || '', 'codename')"
+                >
+                  <Check
+                    v-if="copied === 'codename'"
+                    class="size-3"
+                  /><Copy
+                    v-else
+                    class="size-3"
+                  />
                 </button>
               </dd>
 
-              <dt class="text-muted-foreground/60">Version</dt>
+              <dt class="text-muted-foreground/60">
+                Version
+              </dt>
               <dd class="font-mono flex items-center gap-1">
                 {{ config.smileVersion || '(not set)' }}
-                <button class="text-muted-foreground hover:text-foreground transition-colors" @click="copyToClipboard(config.smileVersion || '', 'version')">
-                  <Check v-if="copied === 'version'" class="size-3" /><Copy v-else class="size-3" />
+                <button
+                  class="text-muted-foreground hover:text-foreground transition-colors"
+                  @click="copyToClipboard(config.smileVersion || '', 'version')"
+                >
+                  <Check
+                    v-if="copied === 'version'"
+                    class="size-3"
+                  /><Copy
+                    v-else
+                    class="size-3"
+                  />
                 </button>
               </dd>
 
               <template v-if="config.github?.repoName">
-                <dt class="text-muted-foreground/60">Repo</dt>
+                <dt class="text-muted-foreground/60">
+                  Repo
+                </dt>
                 <dd class="font-mono flex items-center gap-1">
                   <a
                     :href="`https://github.com/${config.github.owner}/${config.github.repoName}`"
@@ -381,12 +439,23 @@ const fullUrls = computed(() => {
                     class="text-[var(--link-button-foreground)] underline"
                   >{{ config.github.owner }}/{{ config.github.repoName }}</a>
                   <span class="text-muted-foreground">({{ config.github.branch || '?' }})</span>
-                  <button class="text-muted-foreground hover:text-foreground transition-colors" @click="copyToClipboard(`https://github.com/${config.github.owner}/${config.github.repoName}`, 'repo')">
-                    <Check v-if="copied === 'repo'" class="size-3" /><Copy v-else class="size-3" />
+                  <button
+                    class="text-muted-foreground hover:text-foreground transition-colors"
+                    @click="copyToClipboard(`https://github.com/${config.github.owner}/${config.github.repoName}`, 'repo')"
+                  >
+                    <Check
+                      v-if="copied === 'repo'"
+                      class="size-3"
+                    /><Copy
+                      v-else
+                      class="size-3"
+                    />
                   </button>
                 </dd>
 
-                <dt class="text-muted-foreground/60">Commit</dt>
+                <dt class="text-muted-foreground/60">
+                  Commit
+                </dt>
                 <dd class="font-mono flex items-start gap-1">
                   <a
                     v-if="config.github.lastCommitHash"
@@ -394,9 +463,22 @@ const fullUrls = computed(() => {
                     target="_blank"
                     class="text-[var(--link-button-foreground)] underline text-xs"
                   >{{ config.github.lastCommitHash }}</a>
-                  <span v-if="config.github.lastCommitMsg" class="text-muted-foreground text-xs">{{ config.github.lastCommitMsg }}
-                    <button v-if="config.github.lastCommitHash" class="inline-flex align-middle text-muted-foreground hover:text-foreground transition-colors ml-1" @click="copyToClipboard(config.github.lastCommitHash, 'commit')">
-                      <Check v-if="copied === 'commit'" class="size-3" /><Copy v-else class="size-3" />
+                  <span
+                    v-if="config.github.lastCommitMsg"
+                    class="text-muted-foreground text-xs"
+                  >{{ config.github.lastCommitMsg }}
+                    <button
+                      v-if="config.github.lastCommitHash"
+                      class="inline-flex align-middle text-muted-foreground hover:text-foreground transition-colors ml-1"
+                      @click="copyToClipboard(config.github.lastCommitHash, 'commit')"
+                    >
+                      <Check
+                        v-if="copied === 'commit'"
+                        class="size-3"
+                      /><Copy
+                        v-else
+                        class="size-3"
+                      />
                     </button>
                   </span>
                 </dd>
@@ -420,8 +502,14 @@ const fullUrls = computed(() => {
                   class="text-muted-foreground hover:text-foreground transition-colors"
                   @click="copyToClipboard(`${baseUrl}${suffix}`, key)"
                 >
-                  <Check v-if="copied === key" class="size-3" />
-                  <Copy v-else class="size-3" />
+                  <Check
+                    v-if="copied === key"
+                    class="size-3"
+                  />
+                  <Copy
+                    v-else
+                    class="size-3"
+                  />
                 </button>
               </div>
             </div>

@@ -11,7 +11,8 @@ function goHome() {
   if (route.path.startsWith('/dev')) {
     const api = useAPI()
     api.store.dev.mainView = 'devmode'
-  } else {
+  }
+  else {
     navigateTo('/presentation/')
   }
 }
