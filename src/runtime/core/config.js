@@ -67,7 +67,7 @@ const hash = import.meta.env.VITE_GIT_HASH || '0000000'
 
 export default {
   mode: import.meta.env.MODE,
-  smileVersion: import.meta.env.VITE_SMILE_VERSION,
+  smileVersion: import.meta.env.VITE_SMILE_VERSION || '(unknown)',
   projectName: import.meta.env.VITE_PROJECT_NAME || 'experiment',
   projectRef,
   codeName,

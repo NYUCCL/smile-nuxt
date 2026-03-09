@@ -2,7 +2,8 @@ import { defineNuxtModule, addPlugin, addImports, addLayout, addRouteMiddleware,
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { basename, extname } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 
 // Module options TypeScript interface definition
@@ -167,10 +168,51 @@ export default defineNuxtModule<ModuleOptions>({
     })
 
     // Register UI component directories for auto-import
-    addComponentsDir({ path: resolver.resolve('./runtime/components/ui'), pathPrefix: false, global: true, extensions: ['vue'] })
-    addComponentsDir({ path: resolver.resolve('./runtime/components/forms'), pathPrefix: false, global: true, extensions: ['vue'] })
-    addComponentsDir({ path: resolver.resolve('./runtime/components/layouts'), pathPrefix: false, global: true, extensions: ['vue'] })
-    addComponentsDir({ path: resolver.resolve('./runtime/components/builtins'), pathPrefix: false, global: true, extensions: ['vue'] })
+    // priority: -1 ensures user's local components/ override these module-provided ones (issue #10)
+    addComponentsDir({ path: resolver.resolve('./runtime/components/ui'), pathPrefix: false, global: true, extensions: ['vue'], priority: -1 })
+    addComponentsDir({ path: resolver.resolve('./runtime/components/forms'), pathPrefix: false, global: true, extensions: ['vue'], priority: -1 })
+    addComponentsDir({ path: resolver.resolve('./runtime/components/layouts'), pathPrefix: false, global: true, extensions: ['vue'], priority: -1 })
+    addComponentsDir({ path: resolver.resolve('./runtime/components/builtins'), pathPrefix: false, global: true, extensions: ['vue'], priority: -1 })
+
+    // Ensure local components that override module globals inherit the global flag (issue #10).
+    // Without this, a user's local InformedConsentView.vue would win by priority but lose
+    // the global: true registration, breaking <component :is="'InformedConsentView'"> resolution.
+    //
+    // Scan module component dirs at setup time to build a known set of global component names,
+    // then in components:extend, promote any user override that shadows a module global.
+    const moduleGlobalNames = new Set<string>()
+    const moduleComponentDirs = [
+      resolver.resolve('./runtime/components/ui'),
+      resolver.resolve('./runtime/components/forms'),
+      resolver.resolve('./runtime/components/layouts'),
+      resolver.resolve('./runtime/components/builtins'),
+    ]
+    function scanDir(dir: string) {
+      try {
+        for (const entry of readdirSync(dir)) {
+          const full = join(dir, entry)
+          if (statSync(full).isDirectory()) {
+            scanDir(full)
+          }
+          else if (extname(entry) === '.vue') {
+            // Convert filename to PascalCase component name
+            moduleGlobalNames.add(basename(entry, '.vue'))
+          }
+        }
+      }
+      catch {}
+    }
+    for (const dir of moduleComponentDirs) {
+      scanDir(dir)
+    }
+
+    _nuxt.hook('components:extend', (components) => {
+      for (const c of components) {
+        if (!c.global && moduleGlobalNames.has(c.pascalName)) {
+          c.global = true
+        }
+      }
+    })
 
     // Auto-import composables and core classes so they're available in consuming apps without explicit imports
     addImports([
