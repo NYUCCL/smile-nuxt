@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { defineEventHandler, readBody, createError, setCookie } from 'h3'
 import { useRuntimeConfig } from 'nitropack/runtime'
+import bcrypt from 'bcryptjs'
 import { useDB } from '../../utils/db'
 import { devSessions } from '../../database/schema'
 
@@ -13,7 +14,18 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, statusMessage: 'Dev password not configured' })
   }
 
-  if (body.password !== devPassword) {
+  let isValid: boolean
+  if (devPassword.startsWith('$2')) {
+    // Hashed password (bcrypt)
+    isValid = await bcrypt.compare(body.password, devPassword)
+  }
+  else {
+    // Legacy plaintext — still works but log a warning
+    console.warn('[smile] Dev password is stored in plaintext. Run `pnpm smile:hash-password` to generate a hashed version.')
+    isValid = body.password === devPassword
+  }
+
+  if (!isValid) {
     throw createError({ statusCode: 401, statusMessage: 'Invalid password' })
   }
 

@@ -47,7 +47,8 @@
     "db:migrate": "drizzle-kit migrate",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:serve": "vitepress serve docs"
+    "docs:serve": "vitepress serve docs",
+    "smile:hash-password": "node scripts/hash-password.js"
   },
   "dependencies": {
     "@codenamize/codenamize": "1.1.1",
@@ -58,6 +59,7 @@
     "@tailwindcss/vite": "^4.1.10",
     "@vueuse/core": "^12.8.2",
     "axios": "^1.7.9",
+    "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clipboard": "^2.0.11",
     "clsx": "^2.1.1",
