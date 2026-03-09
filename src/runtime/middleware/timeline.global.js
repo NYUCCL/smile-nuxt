@@ -330,7 +330,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     return
   }
   // Skip guards for standalone pages that aren't part of the experiment timeline
-  if (to.path === '/info' || to.path === '/dev-login') {
+  if (to.path === '/dev-login') {
     return
   }
 

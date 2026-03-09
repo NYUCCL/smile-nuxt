@@ -1,7 +1,8 @@
-import { defineNuxtModule, addPlugin, addImports, addLayout, addRouteMiddleware, createResolver, extendPages, addComponentsDir, addServerScanDir, addServerImportsDir } from '@nuxt/kit'
+import { defineNuxtModule, addPlugin, addImports, addLayout, addRouteMiddleware, createResolver, extendPages, addComponentsDir, addServerScanDir, addServerImportsDir, useLogger } from '@nuxt/kit'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
-import { dirname } from 'node:path'
+import { dirname, join } from 'node:path'
+import { readFileSync } from 'node:fs'
 import tailwindcss from '@tailwindcss/vite'
 
 // Module options TypeScript interface definition
@@ -26,6 +27,14 @@ export default defineNuxtModule<ModuleOptions>({
 
     // Transpile runtime directory so .js files are processed
     _nuxt.options.build.transpile.push(runtimeDir)
+
+    // Serve module static assets (e.g. smile.svg) at /_smile/
+    _nuxt.options.nitro = _nuxt.options.nitro || {}
+    _nuxt.options.nitro.publicAssets = _nuxt.options.nitro.publicAssets || []
+    _nuxt.options.nitro.publicAssets.push({
+      dir: resolver.resolve('./runtime/public'),
+      baseURL: '/_smile',
+    })
 
     // Register server routes, middleware, and utilities from runtime/server/
     addServerScanDir(resolver.resolve('./runtime/server'))
@@ -132,11 +141,7 @@ export default defineNuxtModule<ModuleOptions>({
         path: '/dev-login',
         file: resolver.resolve('./runtime/pages/dev-login.vue'),
       })
-      pages.push({
-        name: 'info',
-        path: '/info',
-        file: resolver.resolve('./runtime/pages/info.vue'),
-      })
+      // Info page is now rendered inside the dev layout (mainView = 'info')
     })
 
     // Register UI component directories for auto-import
@@ -159,5 +164,25 @@ export default defineNuxtModule<ModuleOptions>({
       { name: 'default', as: 'useSmileStore', from: resolver.resolve('./runtime/stores/smilestore') },
       { name: 'default', as: 'useLog', from: resolver.resolve('./runtime/stores/log') },
     ])
+
+    // Dev server banner: show SMILE-specific URLs after Nuxt's default output
+    if (_nuxt.options.dev) {
+      const logger = useLogger('smile')
+      _nuxt.hook('listen', async (_server, listener) => {
+        const { colors } = await import('consola/utils')
+        const pkg = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../package.json'), 'utf-8'))
+        const fmt = (url: string) => colors.cyan(colors.underline(url))
+        const urls = await listener.getURLs()
+        const local = urls.find((u: { type: string }) => u.type === 'local')
+        if (local) {
+          const base = local.url.replace(/\/$/, '')
+          logger.info(``)
+          logger.info(`  ${colors.bold(`SMILE ${pkg.version}`)}`)
+          logger.info(`  Experiment:    ${fmt(base)}`)
+          logger.info(`  Dev:           ${fmt(`${base}/dev/`)}`)
+          logger.info(`  Presentation:  ${fmt(`${base}/presentation/`)}`)
+        }
+      })
+    }
   },
 })

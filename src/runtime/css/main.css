@@ -149,8 +149,8 @@
   --primary-button-foreground: oklch(0.985 0 0);
   --primary-button-light: oklch(0.85 0.05 264.376);
   --primary-button-light-foreground: oklch(0.396 0.141 264.376);
-  --link-button: oklch(0.396 0.141 264.376);
-  --link-button-foreground: oklch(0.396 0.141 264.376);
+  --link-button: oklch(0.58 0.12 195);
+  --link-button-foreground: oklch(0.58 0.12 195);
   --link-button-light: oklch(0.85 0.05 264.376);
   --link-button-light-foreground: oklch(0.396 0.141 264.376);
   --info-button: oklch(0.5 0.2 220);
@@ -244,8 +244,8 @@
   --primary-button-foreground: oklch(0.985 0 0);
   --primary-button-light: oklch(0.3 0.1 264.376);
   --primary-button-light-foreground: oklch(0.8 0.15 264.376);
-  --link-button: oklch(0.488 0.243 264.376);
-  --link-button-foreground: oklch(0.488 0.243 264.376);
+  --link-button: oklch(0.7 0.15 195);
+  --link-button-foreground: oklch(0.7 0.15 195);
   --link-button-light: oklch(0.3 0.1 264.376);
   --link-button-light-foreground: oklch(0.8 0.15 264.376);
   --info-button: oklch(0.6 0.25 220);

@@ -122,6 +122,19 @@ onMounted(() => {
             />
           </div>
 
+          <!-- Presentation Mode - full-screen iframe -->
+          <div
+            v-else-if="api.store.dev.mainView === 'presentation'"
+            class="fullview-container"
+          >
+            <iframe
+              src="/presentation/"
+              class="fullview-iframe"
+              frameborder="0"
+              title="Presentation Mode"
+            />
+          </div>
+
           <!-- Docs Mode - Clean full-screen documentation -->
           <div
             v-else-if="api.store.dev.mainView === 'docs'"
@@ -233,6 +246,7 @@ onMounted(() => {
   overflow: hidden;
 }
 
+
 /* Iframe styling */
 .dashboard-iframe {
   width: 100%;
@@ -249,6 +263,19 @@ onMounted(() => {
 }
 
 .docs-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  overflow: hidden;
+}
+
+.fullview-container {
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.fullview-iframe {
   width: 100%;
   height: 100%;
   border: none;
