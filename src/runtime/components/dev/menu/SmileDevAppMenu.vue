@@ -198,7 +198,7 @@ const isDarkMode = computed({
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <!-- Docs -->
+            <!-- Docs (coming soon)
             <SidebarMenuItem>
               <SidebarMenuButton
                 class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
@@ -212,6 +212,7 @@ const isDarkMode = computed({
                 <BookMarked class="!size-5" />
               </SidebarMenuButton>
             </SidebarMenuItem>
+            -->
 
           </SidebarMenu>
         </SidebarGroupContent>

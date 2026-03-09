@@ -28,7 +28,7 @@ export default function createTimeline(api) {
   api.setRuntimeConfig('windowsizerRequest', { width: 800, height: 600 })
   api.setRuntimeConfig('windowsizerAggressive', true)
   api.setRuntimeConfig('anonymousMode', false)
-  api.setRuntimeConfig('labURL', 'https://gureckislab.org')
+  api.setRuntimeConfig('labURL', 'https://mylab.edu')
   api.setRuntimeConfig('brandLogoFn', 'universitylogo.png')
   api.setRuntimeConfig('maxWrites', 1000)
   api.setRuntimeConfig('minWriteInterval', 2000)
@@ -44,14 +44,14 @@ export default function createTimeline(api) {
     title: 'SMILE Playground Experiment',
     subtitle: 'A demonstration of the SMILE experiment framework featuring Stroop task, surveys, and randomized branching.',
     siteAuthor: {
-      name: 'Todd Gureckis',
-      link: 'https://gureckislab.org',
+      name: 'Your Name',
+      link: 'https://mylab.edu',
     },
     projectAuthors: [
       {
-        name: 'Todd Gureckis',
-        link: 'https://todd.gureckislab.org',
-        affiliation: 'New York University',
+        name: 'Your Name',
+        link: 'https://mylab.edu',
+        affiliation: 'Your University',
       },
     ],
     description: [

@@ -47,6 +47,7 @@ onMounted(() => {
 
 <template>
   <div class="presentation-container bg-background">
+    <LocalDevBanner />
     <!-- Top toolbar with presentation navigation -->
     <div class="toolbar">
       <PresentationNavBar hide-dark-mode />

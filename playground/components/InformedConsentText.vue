@@ -38,10 +38,9 @@
     <p>
       If there is anything about the study or your participation that is unclear or that you do not understand, if you
       have questions or wish to report a research-related problem, you may contact the principal investigator,
-      <a href="http://todd.gureckislab.org">Todd M. Gureckis</a> at 6 Washington Place (409), New York, NY, 10003, (212)
-      998-3794, <a href="mailto:todd.gureckis@nyu.edu">todd.gureckis@nyu.edu</a>. For questions about your rights as a
-      research participant, you may contact the University Committee on Activities Involving Human Subjects, New York
-      University, 665 Broadway, Suite 804, New York, NY 10012, at ask.humansubjects@nyu.edu or (212) 998-4808.
+      <a href="https://mylab.edu">Your Name</a> at Your Address, Your City, State, Zip,
+      <a href="mailto:you@university.edu">you@university.edu</a>. For questions about your rights as a
+      research participant, you may contact your university's IRB office.
     </p>
   </div>
 </template>
