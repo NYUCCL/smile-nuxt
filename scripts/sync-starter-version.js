@@ -17,11 +17,11 @@ const rootDir = resolve(__dirname, '..')
 const rootPkg = JSON.parse(readFileSync(resolve(rootDir, 'package.json'), 'utf8'))
 const version = rootPkg.version
 
-const starterPkgPath = resolve(rootDir, 'starter-template/package.json')
+const starterPkgPath = resolve(rootDir, 'start/package.json')
 const starterPkg = JSON.parse(readFileSync(starterPkgPath, 'utf8'))
 
 starterPkg.dependencies['@nyuccl/smile'] = `^${version}`
 
 writeFileSync(starterPkgPath, JSON.stringify(starterPkg, null, 2) + '\n')
 
-console.log(`  ✔  Synced starter-template @nyuccl/smile to ^${version}`)
+console.log(`  ✔  Synced start @nyuccl/smile to ^${version}`)

@@ -19,7 +19,7 @@ export default createConfigForNuxt({
     ignores: [
       'docs/**',
       'plans/**',
-      'starter-template/**',
+      'start/**',
     ],
   })
   .append(
