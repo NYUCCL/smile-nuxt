@@ -136,7 +136,7 @@ function panel_jump(index) {
                 @click="panel_jump(index)"
               >
                 <template v-if="option == '/'">
-                  <House />
+                  <House class="size-3.5" />
                 </template>
                 <template v-else>
                   {{ option }}

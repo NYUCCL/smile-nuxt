@@ -90,7 +90,7 @@ function option_selected(option) {
       class="bg-muted text-dev-text px-3 py-2 text-xs font-medium border-b border-dev-lines"
     >
       <template v-if="header == '/'">
-        <House class="mr-1" />
+        <House class="mr-1 size-3.5" />
       </template>
       <template v-else>
         <span class="font-mono">{{ header }}</span>
@@ -138,7 +138,7 @@ function option_selected(option) {
           >
             <div class="flex items-center justify-between">
               <span class="font-semibold text-foreground item-key">{{ truncateText(key) }}</span>
-              <ChevronRight class="text-gray-400 text-xs" />
+              <ChevronRight class="text-gray-400 size-3.5" />
             </div>
           </button>
         </li>

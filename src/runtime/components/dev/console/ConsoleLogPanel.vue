@@ -189,17 +189,17 @@ function getBgClass(msg) {
               <div class="flex items-start gap-1 min-w-0">
                 <!-- Icon indicator based on message content -->
                 <div class="flex-shrink-0 mt-0.5">
-                  <GitBranch v-if="msg.message.includes('ROUTER GUARD')" />
-                  <Database v-else-if="msg.message.includes('SMILESTORE')" />
-                  <Settings v-else-if="msg.message.includes('DEV MODE')" />
-                  <Clock v-else-if="msg.message.includes('TIMELINE STEPPER')" />
-                  <Timer v-else-if="msg.message.includes('TRIAL STEPPER')" />
+                  <GitBranch v-if="msg.message.includes('ROUTER GUARD')" class="size-3.5" />
+                  <Database v-else-if="msg.message.includes('SMILESTORE')" class="size-3.5" />
+                  <Settings v-else-if="msg.message.includes('DEV MODE')" class="size-3.5" />
+                  <Clock v-else-if="msg.message.includes('TIMELINE STEPPER')" class="size-3.5" />
+                  <Timer v-else-if="msg.message.includes('TRIAL STEPPER')" class="size-3.5" />
                   <img
                     v-else-if="msg.message.includes('FIRESTORE')"
                     :src="'/firebase-bw.svg'"
                     width="15"
                   >
-                  <ChevronRight v-else />
+                  <ChevronRight v-else class="size-3.5" />
                 </div>
                 <!-- Message content -->
                 <div class="min-w-0 flex-1">
@@ -230,17 +230,17 @@ function getBgClass(msg) {
               <div class="flex items-start gap-1 min-w-0">
                 <!-- Icon indicator based on message content -->
                 <div class="flex-shrink-0 mt-0.5">
-                  <GitBranch v-if="msg.message.includes('ROUTER GUARD')" />
-                  <Database v-else-if="msg.message.includes('SMILESTORE')" />
-                  <Settings v-else-if="msg.message.includes('DEV MODE')" />
-                  <Clock v-else-if="msg.message.includes('TIMELINE STEPPER')" />
-                  <Timer v-else-if="msg.message.includes('TRIAL STEPPER')" />
+                  <GitBranch v-if="msg.message.includes('ROUTER GUARD')" class="size-3.5" />
+                  <Database v-else-if="msg.message.includes('SMILESTORE')" class="size-3.5" />
+                  <Settings v-else-if="msg.message.includes('DEV MODE')" class="size-3.5" />
+                  <Clock v-else-if="msg.message.includes('TIMELINE STEPPER')" class="size-3.5" />
+                  <Timer v-else-if="msg.message.includes('TRIAL STEPPER')" class="size-3.5" />
                   <img
                     v-else-if="msg.message.includes('FIRESTORE')"
                     :src="'/firebase-bw.svg'"
                     width="15"
                   >
-                  <ChevronRight v-else />
+                  <ChevronRight v-else class="size-3.5" />
                 </div>
                 <!-- Message content -->
                 <div class="min-w-0 flex-1">

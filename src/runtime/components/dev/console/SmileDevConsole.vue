@@ -39,7 +39,7 @@ const api = useAPI()
                 }"
                 @click="api.store.dev.consoleBarTab = 'browse'"
               >
-                <Database />
+                <Database class="w-4 h-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">

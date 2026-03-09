@@ -4,10 +4,14 @@ import { useNuxtApp } from '#imports'
 import PresentationNavBar from '#smile-dev/presentation/PresentationNavBar.vue'
 import PresentationModeView from '../builtins/PresentationModeView.vue'
 import useSmileStore from '../../stores/smilestore'
+import { useSmileColorMode } from '../../composables/useColorMode'
 
 const nuxtApp = useNuxtApp()
 const store = useSmileStore()
 const api = useAPI()
+
+// Ensure global color mode watcher is active so dark/light syncs with the dev sidebar
+useSmileColorMode('global')
 
 const timelineReady = ref(false)
 
@@ -45,7 +49,7 @@ onMounted(() => {
   <div class="presentation-container">
     <!-- Top toolbar with presentation navigation -->
     <div class="toolbar">
-      <PresentationNavBar />
+      <PresentationNavBar hide-dark-mode />
     </div>
 
     <!-- Content area -->

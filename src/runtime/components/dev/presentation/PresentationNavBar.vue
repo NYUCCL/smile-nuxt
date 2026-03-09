@@ -11,6 +11,10 @@ import ResetButton from './PresentationModeResetButton.vue'
 import QRCodeButton from './QRCodeButton.vue'
 import DarkModeButton from './DarkModeButton.vue'
 import LogoutButton from './LogoutButton.vue'
+
+defineProps({
+  hideDarkMode: { type: Boolean, default: false },
+})
 </script>
 
 <template>
@@ -52,8 +56,8 @@ import LogoutButton from './LogoutButton.vue'
           <LogoutButton />
         </div>
 
-        <!-- Dark mode toggle button -->
-        <div class="flex items-center">
+        <!-- Dark mode toggle button (hidden when embedded in dev layout, sidebar provides one) -->
+        <div v-if="!hideDarkMode" class="flex items-center">
           <DarkModeButton />
         </div>
 
