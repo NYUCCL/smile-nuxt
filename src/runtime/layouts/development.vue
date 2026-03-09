@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { Toaster } from 'vue-sonner'
 import 'vue-sonner/style.css'
 
@@ -8,65 +8,14 @@ import DevNavBar from '#smile-dev/navbar/SmileDevNavBar.vue'
 import DevConsole from '#smile-dev/console/SmileDevConsole.vue'
 import DevSideBar from '#smile-dev/sidebar/SmileDevSideBar.vue'
 import ResponsiveDeviceContainer from '#smile-dev/ResponsiveDeviceContainer.vue'
+import SmileDevPresentationView from '#smile-dev/SmileDevPresentationView.vue'
 
 const api = useAPI()
-
-const dashboardUrl = ref('')
-const dashboardIframe = ref(null)
 
 const height_pct = computed(() => `${api.store.dev.consoleBarHeight}px`)
 
 const isLoading = computed(() => {
   return api.currentRouteName() === undefined
-})
-
-function initializeDashboardUrl() {
-  const savedUrl = localStorage.getItem('smile-dashboard-url')
-  if (savedUrl) {
-    dashboardUrl.value = savedUrl
-  }
-  else {
-    dashboardUrl.value = api.getPublicUrl('dashboard.html')
-  }
-}
-
-function saveDashboardUrl(url) {
-  localStorage.setItem('smile-dashboard-url', url)
-  dashboardUrl.value = url
-}
-
-function monitorIframeUrl() {
-  if (!dashboardIframe.value) return
-  try {
-    const iframeDoc = dashboardIframe.value.contentDocument || dashboardIframe.value.contentWindow?.document
-    if (iframeDoc) {
-      const currentUrl = dashboardIframe.value.contentWindow.location.href
-      if (currentUrl !== dashboardUrl.value) {
-        saveDashboardUrl(currentUrl)
-      }
-    }
-  }
-  catch {
-    console.log('Cannot access iframe content (cross-origin)')
-  }
-}
-
-function onIframeLoad() {
-  if (!dashboardIframe.value) return
-  const interval = setInterval(() => {
-    if (api.store.dev.mainView !== 'dashboard') {
-      clearInterval(interval)
-      return
-    }
-    monitorIframeUrl()
-  }, 1000)
-  if (dashboardIframe.value.contentWindow) {
-    dashboardIframe.value.contentWindow.addEventListener('focus', monitorIframeUrl)
-  }
-}
-
-onMounted(() => {
-  initializeDashboardUrl()
 })
 </script>
 
@@ -94,46 +43,10 @@ onMounted(() => {
       <SidebarInset>
         <!-- Main app container for developer mode -->
         <div class="app-container">
-          <!-- Analyze Mode - Clean full-screen dashboard -->
-          <div
-            v-if="api.store.dev.mainView === 'dashboard'"
-            class="analyze-container"
-          >
-            <iframe
-              ref="dashboardIframe"
-              :src="dashboardUrl"
-              class="dashboard-iframe"
-              frameborder="0"
-              title="Dashboard"
-              @load="onIframeLoad"
-            />
-          </div>
-
-          <!-- Recruit Mode - Clean full-screen recruit page -->
-          <div
-            v-else-if="api.store.dev.mainView === 'recruit'"
-            class="recruit-container"
-          >
-            <iframe
-              :src="api.getPublicUrl('recruit.html')"
-              class="recruit-iframe"
-              frameborder="0"
-              title="Recruit"
-            />
-          </div>
-
-          <!-- Presentation Mode - full-screen iframe -->
-          <div
-            v-else-if="api.store.dev.mainView === 'presentation'"
-            class="fullview-container"
-          >
-            <iframe
-              src="/presentation/"
-              class="fullview-iframe"
-              frameborder="0"
-              title="Presentation Mode"
-            />
-          </div>
+          <!-- Presentation Mode - inline (shares DOM and store for dark mode sync) -->
+          <SmileDevPresentationView
+            v-if="api.store.dev.mainView === 'presentation'"
+          />
 
           <!-- Docs Mode - Clean full-screen documentation -->
           <div
@@ -227,55 +140,14 @@ onMounted(() => {
   width: 100%;
 }
 
-/* Analyze mode containers */
-.analyze-container {
-  height: 100vh;
-  width: 100%;
-  overflow: hidden;
-}
-
-.recruit-container {
-  height: 100vh;
-  width: 100%;
-  overflow: hidden;
-}
-
+/* Docs mode container */
 .docs-container {
   height: 100vh;
   width: 100%;
   overflow: hidden;
 }
 
-
-/* Iframe styling */
-.dashboard-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  overflow: hidden;
-}
-
-.recruit-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  overflow: hidden;
-}
-
 .docs-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  overflow: hidden;
-}
-
-.fullview-container {
-  height: 100vh;
-  width: 100%;
-  overflow: hidden;
-}
-
-.fullview-iframe {
   width: 100%;
   height: 100%;
   border: none;

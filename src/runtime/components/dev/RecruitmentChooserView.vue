@@ -430,7 +430,7 @@ const fullUrls = computed(() => {
 
       <hr class="my-4">
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div class="grid grid-cols-2 @3xl:grid-cols-3 gap-4">
         <Card
           v-for="(svc, key) in services"
           :key="key"
