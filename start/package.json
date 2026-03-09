@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@codenamize/codenamize": "1.1.1",
-    "@nyuccl/smile": "^0.2.0-beta.26",
+    "@nyuccl/smile": "^0.2.0-beta.27",
     "@pinia/nuxt": "^0.11.3",
     "nuxt": "^4.3.0"
   },
