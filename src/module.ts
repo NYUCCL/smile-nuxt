@@ -77,6 +77,16 @@ export default defineNuxtModule<ModuleOptions>({
       _nuxt.options.alias[dep] = dirname(_require.resolve(`${dep}/package.json`))
     }
 
+    // Inject SMILE version so config.js can read it via import.meta.env
+    let smileVersion = '0.0.0'
+    try {
+      const pkg = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../package.json'), 'utf-8'))
+      smileVersion = pkg.version
+    }
+    catch { /* ignored */ }
+    _nuxt.options.vite.define = _nuxt.options.vite.define || {}
+    _nuxt.options.vite.define['import.meta.env.VITE_SMILE_VERSION'] = JSON.stringify(smileVersion)
+
     // Register Tailwind CSS via Vite plugin
     _nuxt.options.vite.plugins = _nuxt.options.vite.plugins || []
     _nuxt.options.vite.plugins.push(tailwindcss())
