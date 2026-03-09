@@ -28,8 +28,19 @@ export default defineNuxtModule<ModuleOptions>({
     // Transpile runtime directory so .js files are processed
     _nuxt.options.build.transpile.push(runtimeDir)
 
-    // Serve module static assets (e.g. smile.svg) at /_smile/
+    // Exclude local SQLite database from file watchers to prevent rebuild
+    // loops (the migrate plugin writes to .data/experiment.db on startup)
     _nuxt.options.nitro = _nuxt.options.nitro || {}
+    _nuxt.options.nitro.watchOptions = _nuxt.options.nitro.watchOptions || {}
+    _nuxt.options.nitro.watchOptions.ignored = _nuxt.options.nitro.watchOptions.ignored || []
+    if (Array.isArray(_nuxt.options.nitro.watchOptions.ignored)) {
+      _nuxt.options.nitro.watchOptions.ignored.push('**/.data/**')
+    }
+    _nuxt.options.watch = _nuxt.options.watch || {}
+    _nuxt.options.watch.exclude = _nuxt.options.watch.exclude || []
+    _nuxt.options.watch.exclude.push('.data/**')
+
+    // Serve module static assets (e.g. smile.svg) at /_smile/
     _nuxt.options.nitro.publicAssets = _nuxt.options.nitro.publicAssets || []
     _nuxt.options.nitro.publicAssets.push({
       dir: resolver.resolve('./runtime/public'),
