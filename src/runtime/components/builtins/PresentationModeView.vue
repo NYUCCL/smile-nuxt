@@ -86,7 +86,7 @@ function goToSection(section) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-background">
+  <div class="min-h-full flex flex-col bg-background">
     <!-- Header Section -->
     <header class="bg-muted/50 border-b py-6">
       <div class="w-2/3 mx-auto px-6 py-8">
@@ -192,7 +192,7 @@ function goToSection(section) {
     </section>
 
     <!-- Main Content -->
-    <main class="w-2/3 mx-auto px-6 py-12">
+    <main class="w-2/3 mx-auto px-6 py-12 flex-1">
       <!-- Project Description -->
       <div class="prose prose-gray max-w-none mb-12">
         <p

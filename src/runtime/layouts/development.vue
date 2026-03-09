@@ -129,6 +129,13 @@ const isLoading = computed(() => {
   top: var(--toast-offset-y) !important;
   left: var(--toast-offset-x) !important;
 }
+
+/* Override SidebarProvider's min-h-svh to prevent overflow beyond viewport */
+[data-slot="sidebar-wrapper"] {
+  min-height: 0 !important;
+  height: 100vh;
+  overflow: hidden;
+}
 </style>
 
 <style scoped>
@@ -138,6 +145,7 @@ const isLoading = computed(() => {
   flex-direction: column;
   height: 100vh;
   width: 100%;
+  overflow: hidden;
 }
 
 /* Docs mode container */

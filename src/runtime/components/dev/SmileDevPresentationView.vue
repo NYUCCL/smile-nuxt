@@ -46,7 +46,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="presentation-container">
+  <div class="presentation-container bg-background">
     <!-- Top toolbar with presentation navigation -->
     <div class="toolbar">
       <PresentationNavBar hide-dark-mode />
@@ -92,7 +92,8 @@ onMounted(() => {
 .presentation-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
+  flex: 1;
   width: 100%;
 }
 
