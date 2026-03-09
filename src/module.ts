@@ -1,9 +1,8 @@
 import { defineNuxtModule, addPlugin, addImports, addLayout, addRouteMiddleware, createResolver, extendPages, addComponentsDir, addServerScanDir, addServerImportsDir, useLogger } from '@nuxt/kit'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
-import { dirname, join } from 'node:path'
+import { basename, dirname, extname, join } from 'node:path'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
-import { basename, extname } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 
 // Module options TypeScript interface definition
@@ -200,7 +199,7 @@ export default defineNuxtModule<ModuleOptions>({
           }
         }
       }
-      catch {}
+      catch { /* ignore unreadable directories */ }
     }
     for (const dir of moduleComponentDirs) {
       scanDir(dir)
