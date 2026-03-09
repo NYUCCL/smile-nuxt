@@ -4,11 +4,12 @@ import { useNuxtApp } from '#imports'
 import PresentationNavBar from '#smile-dev/presentation/PresentationNavBar.vue'
 import PresentationModeView from '../builtins/PresentationModeView.vue'
 import useSmileStore from '../../stores/smilestore'
+import useAPI from '../../composables/useAPI'
 import { useSmileColorMode } from '../../composables/useColorMode'
 
 const nuxtApp = useNuxtApp()
 const store = useSmileStore()
-const _api = useAPI()
+useAPI()
 
 // Ensure global color mode watcher is active so dark/light syncs with the dev sidebar
 useSmileColorMode('global')
