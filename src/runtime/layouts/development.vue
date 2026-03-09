@@ -201,14 +201,15 @@ const isLoading = computed(() => {
   flex: 0 0 300px;
   height: 100%;
   overflow-y: auto;
-  border-left: 1px solid var(--border);
+  border-left: 1px solid var(--dev-lines);
   background-color: var(--dev-bg);
 }
 
 .console {
   height: v-bind(height_pct);
   width: 100%;
-  background-color: #adadad;
+  background-color: var(--muted);
+  border-top: 1px solid var(--dev-lines);
   overflow: hidden;
   overflow-x: hidden;
   min-width: 0;

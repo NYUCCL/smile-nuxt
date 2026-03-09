@@ -439,13 +439,21 @@ const fullUrls = computed(() => {
           <CardHeader>
             <div class="flex items-center justify-between gap-2">
               <CardTitle>{{ svc.name }}</CardTitle>
-              <button
-                class="group/howto shrink-0 inline-flex items-center gap-1 text-muted-foreground hover:text-foreground hover:bg-accent transition-all p-1 rounded"
-                @click="selectedService = key"
-              >
-                <BookOpen class="size-3.5" />
-                <span class="text-xs overflow-hidden max-w-0 group-hover/howto:max-w-20 transition-all duration-200 whitespace-nowrap">How to</span>
-              </button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <button
+                      class="shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent transition-all p-1 rounded"
+                      @click="selectedService = key"
+                    >
+                      <BookOpen class="size-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>How to use {{ svc.name }}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <CardDescription>{{ svc.description }}</CardDescription>
           </CardHeader>

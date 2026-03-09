@@ -419,7 +419,6 @@ watch(
   min-height: 0; /* Important for nested flex containers */
   overflow: hidden;
   background-color: var(--background);
-  border-top: 1px solid var(--border);
 }
 
 .tree-viewer-container-empty {
@@ -444,6 +443,7 @@ watch(
   align-items: center;
   height: 32px;
   flex-shrink: 0; /* Prevent shrinking */
+  border-top: 1px solid var(--dev-lines);
 }
 
 .path-info {
@@ -527,7 +527,7 @@ watch(
   flex: 0 1 auto; /* don't grow, can shrink, auto basis */
   overflow: auto;
   font-family: monospace;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--dev-lines);
   position: relative;
   scroll-behavior: smooth;
   max-height: 300px;
@@ -542,7 +542,6 @@ watch(
   flex-direction: column;
   min-height: 120px;
   background-color: var(--background);
-  border-top: 1px solid var(--border);
   text-align: left;
 }
 
@@ -552,8 +551,6 @@ watch(
   display: flex;
   flex-direction: column;
   background-color: var(--background);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
   text-align: left;
 }
 
@@ -628,8 +625,8 @@ watch(
   background-color: var(--muted);
   padding: 0.375rem 0.5rem;
   margin: 0;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--dev-lines);
+  border-bottom: 1px solid var(--dev-lines);
   display: flex;
   justify-content: space-between;
   align-items: center;

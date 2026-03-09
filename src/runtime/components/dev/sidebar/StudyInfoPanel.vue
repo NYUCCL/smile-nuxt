@@ -17,9 +17,9 @@ const studyinfo = computed(() => {
 
 <template>
   <!-- Study info panel -->
-  <div class="w-full bg-muted border-b border-border">
+  <div class="w-full bg-muted">
     <p
-      class="text-xs font-mono py-2 px-3 border-t border-border"
+      class="text-xs font-mono py-2 px-3"
       v-html="studyinfo"
     />
   </div>

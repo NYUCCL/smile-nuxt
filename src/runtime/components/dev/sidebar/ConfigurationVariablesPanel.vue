@@ -48,7 +48,7 @@ const colorModeDisplayText = computed(() => {
     <table class="w-full">
       <tbody>
         <!-- Consent, Known, Done, Withdrew, Viz toggles -->
-        <tr class="table-row-base">
+        <tr class="table-row-base ">
           <td
             class="table-cell-base table-cell-left table-cell-small font-mono"
             colspan="4"
@@ -103,7 +103,7 @@ const colorModeDisplayText = computed(() => {
           </td>
         </tr>
         <!-- Window size and aggressive mode -->
-        <tr class="table-row-base table-row-base-bottom">
+        <tr class="table-row-base table-row-base-bottom ">
           <td
             class="table-cell-base table-cell-left table-cell-small font-mono"
             :class="{
@@ -143,7 +143,7 @@ const colorModeDisplayText = computed(() => {
           </td>
         </tr>
         <!-- Responsive UI and color mode -->
-        <tr class="table-row-base table-row-base-bottom">
+        <tr class="table-row-base table-row-base-bottom ">
           <td
             class="table-cell-base table-cell-left table-cell-small font-mono"
             colspan="4"
@@ -246,6 +246,11 @@ table {
 
 td {
   border: none;
+  border-bottom: 1px solid var(--dev-lines);
   padding: 0.5rem 0.85rem;
+}
+
+tr:last-child td {
+  border-bottom: none;
 }
 </style>

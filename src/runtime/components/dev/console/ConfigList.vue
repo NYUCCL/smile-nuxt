@@ -87,7 +87,7 @@ function option_selected(option) {
     <!-- Header section with navigation title -->
     <div
       v-if="header"
-      class="bg-muted text-dev-text px-3 py-2 text-xs font-medium border-b border-dev-lines"
+      class="bg-muted text-dev-text px-3 text-xs font-medium border-b border-dev-lines h-8 flex items-center"
     >
       <template v-if="header == '/'">
         <House class="mr-1 size-3.5" />
@@ -130,15 +130,15 @@ function option_selected(option) {
             v-else
             :class="[
               'w-full text-left px-2 py-1.5 text-xs font-mono rounded transition-colors duration-150 object-item',
-              'hover:bg-ring hover:text-blue-700',
-              'focus:outline-none focus:ring-1 focus:ring-blue-300 focus:bg-blue-50',
-              key === props.selected ? 'bg-blue-100 text-blue-800 border border-muted' : 'text-gray-700',
+              'hover:bg-accent hover:text-accent-foreground',
+              'focus:outline-none focus:ring-1 focus:ring-ring',
+              key === props.selected ? 'bg-accent text-accent-foreground border border-dev-lines' : 'text-foreground',
             ]"
             @click="option_selected(key)"
           >
             <div class="flex items-center justify-between">
               <span class="font-semibold text-foreground item-key">{{ truncateText(key) }}</span>
-              <ChevronRight class="text-gray-400 size-3.5" />
+              <ChevronRight class="text-muted-foreground size-3.5" />
             </div>
           </button>
         </li>

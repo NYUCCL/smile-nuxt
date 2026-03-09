@@ -18,7 +18,7 @@ const api = useAPI()
 
 <template>
   <!-- Main console container with left sidebar and right content area -->
-  <div class="w-full h-full flex border-t border-border overflow-hidden">
+  <div class="w-full h-full flex overflow-hidden border-t border-dev-lines">
     <!-- Left sidebar - 36px wide with tab navigation -->
     <div
       class="w-9 h-full bg-muted border-dev-lines border-r flex flex-col items-center justify-between pt-1 pb-1 flex-shrink-0"

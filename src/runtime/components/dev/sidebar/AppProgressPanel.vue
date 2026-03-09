@@ -7,7 +7,7 @@ const api = useAPI()
 
 <template>
   <!-- App progress stepper panel -->
-  <Stepper class="flex w-full items-start gap-2 my-0 pt-4 pb-2 border-t border-border">
+  <Stepper class="flex w-full items-start gap-2 my-0 pt-4 pb-2 border-t border-dev-lines">
     <!-- Step 1: User known/unknown -->
     <StepperItem
       class="relative flex w-full flex-col items-center justify-center"

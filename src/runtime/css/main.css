@@ -94,6 +94,10 @@
   --dev-bar-bg: var(--dev-bg);
   --dev-bar-text: var(--dev-text);
   --dev-bar-lines: var(--dev-lines);
+  --color-dev-lines: var(--dev-lines);
+  --color-dev-text: var(--dev-text);
+  --color-dev-bg: var(--dev-bg);
+  --color-dev-bg-contrast: var(--dev-bg-contrast);
 
   --page-bg-color: var(--background);
   --page-text-color: var(--foreground);
@@ -188,7 +192,7 @@
   --dev-bg: var(--sidebar);
   --dev-bg-contrast: var(--sidebar-2);
   --dev-text: #141414;
-  --dev-lines: 0.01em solid #b5b5b5;
+  --dev-lines: var(--border);
   --dev-contrast-text: #4d4d4d;
   --pinned-route: rgb(255, 208, 80);
   --hover-table-row: var(--muted);
@@ -283,7 +287,7 @@
   --dev-bg: var(--sidebar);
   --dev-bg-contrast: var(--sidebar-2);
   --dev-text: #cecece;
-  --dev-lines: 0.01em solid #b5b5b5;
+  --dev-lines: oklch(0.38 0.005 286);
   --dev-contrast-text: #4d4d4d;
   --pinned-route: rgb(255, 208, 80);
   --hover-table-row: var(--muted);

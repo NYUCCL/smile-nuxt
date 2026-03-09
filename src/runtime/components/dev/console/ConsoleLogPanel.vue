@@ -84,7 +84,7 @@ function getBgClass(msg) {
   <!-- Console log panel with controls and log display -->
   <div class="h-full p-0 m-0 overflow-hidden">
     <!-- Control bar with filters and search -->
-    <div class="bg-muted border-b border-t border-dev-lines px-3 py-2 font-mono">
+    <div class="bg-muted border-b border-dev-lines px-3 py-2 font-mono">
       <div class="flex items-center justify-end gap-4 text-xs">
         <!-- Since last view toggle -->
         <div class="flex items-center gap-2">

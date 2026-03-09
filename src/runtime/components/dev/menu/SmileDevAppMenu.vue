@@ -112,7 +112,7 @@ const isDarkMode = computed({
 <template>
   <!-- Main sidebar container with icon-only layout -->
   <Sidebar
-    class="w-[calc(var(--sidebar-width-icon)+1px)]! border-r"
+    class="w-[calc(var(--sidebar-width-icon)+1px)]! border-r border-dev-lines"
     v-bind="props"
   >
     <!-- Sidebar header with main logo button -->

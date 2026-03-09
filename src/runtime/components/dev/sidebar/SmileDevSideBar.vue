@@ -21,7 +21,7 @@ const api = useAPI()
     <div class="sidebar-content">
       <Tabs
         v-model="api.store.dev.sideBarTab"
-        class="w-full border-t border-border py-2"
+        class="w-full py-2"
       >
         <!-- Tab navigation -->
         <TabsList class="mx-auto text-xs">
@@ -64,9 +64,15 @@ const api = useAPI()
 
     <!-- Footer panels -->
     <div class="sidebar-footer">
-      <ConfigurationVariablesPanel />
-      <AppProgressPanel />
-      <StudyInfoPanel />
+      <div class="border-t border-dev-lines">
+        <ConfigurationVariablesPanel />
+      </div>
+      <div>
+        <AppProgressPanel />
+      </div>
+      <div class="border-t border-dev-lines">
+        <StudyInfoPanel />
+      </div>
     </div>
   </div>
 </template>
@@ -86,6 +92,5 @@ const api = useAPI()
 
 .sidebar-footer {
   margin-top: auto;
-  padding-top: 1rem;
 }
 </style>
