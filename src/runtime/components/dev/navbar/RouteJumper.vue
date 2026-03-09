@@ -83,7 +83,7 @@ function goHome() {
   <!-- Dropdown menu listing all routes for navigation -->
   <DropdownMenuContent align="end">
     <DropdownMenuItem
-      class="cursor-pointer border-b border-border mb-1"
+      class="cursor-pointer border-b border-dev-lines mb-1"
       @click="goHome"
     >
       <span class="text-[0.65rem] font-mono">

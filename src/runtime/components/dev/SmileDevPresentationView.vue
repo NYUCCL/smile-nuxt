@@ -37,7 +37,7 @@ const viewConfig = computed(() => {
 })
 
 const isLoading = computed(() => {
-  return api.currentRouteName() === undefined
+  return !timelineReady.value
 })
 
 onMounted(() => {

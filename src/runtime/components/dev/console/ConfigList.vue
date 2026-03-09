@@ -87,7 +87,7 @@ function option_selected(option) {
     <!-- Header section with navigation title -->
     <div
       v-if="header"
-      class="bg-muted text-dev-text px-3 text-xs font-medium border-b border-dev-lines h-8 flex items-center"
+      class="bg-background text-dev-text px-3 text-xs font-medium border-b border-dev-lines h-8 flex items-center"
     >
       <template v-if="header == '/'">
         <House class="mr-1 size-3.5" />

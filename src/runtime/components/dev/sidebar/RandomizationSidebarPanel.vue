@@ -84,13 +84,13 @@ const getBranchType = (index, total) => {
     <div class="h-fit p-0 m-0">
       <!-- Random seed section header -->
       <div
-        class="text-xs text-muted-foreground font-mono text-left bg-muted px-2 py-1.5 m-0 border-t border-b border-border"
+        class="text-xs text-muted-foreground font-mono text-left bg-muted px-2 py-1.5 m-0 border-t border-b border-dev-lines"
       >
         Random seed
       </div>
 
       <!-- Random seed configuration section -->
-      <div class="bg-background pb-5 border-b border-border">
+      <div class="bg-background pb-5 border-b border-dev-lines">
         <div class="text-xs m-2">
           Toggle to use a fixed seed (off means uses the current time as seed). A specific seed can be set in the input
           field. Press the arrow to reload the view with the new seed.
@@ -146,7 +146,7 @@ const getBranchType = (index, total) => {
       >
         <!-- Random variables header -->
         <div
-          class="text-xs text-left font-mono bg-muted text-muted-foreground px-2 py-1.5 m-0 border-t border-b border-border"
+          class="text-xs text-left font-mono bg-muted text-muted-foreground px-2 py-1.5 m-0 border-t border-b border-dev-lines"
         >
           Random Variables
         </div>

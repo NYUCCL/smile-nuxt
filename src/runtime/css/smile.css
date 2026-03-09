@@ -43,7 +43,7 @@
 }
 
 .table-row-base-bottom {
-  border-bottom: 1px solid var(--dev-bar-lines); /* border-gray-200 */
+  border-bottom: 1px solid var(--dev-lines); /* border-gray-200 */
 }
 
 .table-row-odd {

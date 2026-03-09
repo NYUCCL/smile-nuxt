@@ -1,11 +1,19 @@
 <script setup>
 import { Home } from 'lucide-vue-next'
-import { navigateTo } from '#imports'
+import { navigateTo, useRoute } from '#imports'
+import useAPI from '../../../composables/useAPI'
 
 const _props = defineProps(['icon'])
 
 function goHome() {
-  navigateTo('/presentation/')
+  const route = useRoute()
+  // If we're in the dev layout (inline presentation), switch back to devmode
+  if (route.path.startsWith('/dev')) {
+    const api = useAPI()
+    api.store.dev.mainView = 'devmode'
+  } else {
+    navigateTo('/presentation/')
+  }
 }
 </script>
 

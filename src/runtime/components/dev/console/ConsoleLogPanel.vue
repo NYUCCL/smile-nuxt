@@ -183,7 +183,7 @@ function getBgClass(msg) {
               v-if="filter_log(msg)"
               :class="[
                 getBgClass(msg),
-                'text-xs font-mono p-2 pr-0 border-b border-border whitespace-pre-wrap break-words break-all min-w-0 w-full',
+                'text-xs font-mono p-2 pr-0 border-b border-dev-lines whitespace-pre-wrap break-words break-all min-w-0 w-full',
               ]"
             >
               <div class="flex items-start gap-1 min-w-0">
@@ -224,7 +224,7 @@ function getBgClass(msg) {
               v-if="filter_log(msg)"
               :class="[
                 getBgClass(msg),
-                'text-xs font-mono p-2 pr-0 border-b border-border whitespace-pre-wrap break-words break-all min-w-0 w-full',
+                'text-xs font-mono p-2 pr-0 border-b border-dev-lines whitespace-pre-wrap break-words break-all min-w-0 w-full',
               ]"
             >
               <div class="flex items-start gap-1 min-w-0">
@@ -293,8 +293,8 @@ function getBgClass(msg) {
   color: var(--muted-foreground);
 }
 
-.border-border {
-  border-color: var(--border);
+.border-dev-lines {
+  border-color: var(--dev-lines);
 }
 
 /* Keep semantic colors for log types but make them theme-aware */

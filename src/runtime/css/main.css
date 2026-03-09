@@ -287,7 +287,7 @@
   --dev-bg: var(--sidebar);
   --dev-bg-contrast: var(--sidebar-2);
   --dev-text: #cecece;
-  --dev-lines: oklch(0.38 0.005 286);
+  --dev-lines: oklch(0.32 0.005 286);
   --dev-contrast-text: #4d4d4d;
   --pinned-route: rgb(255, 208, 80);
   --hover-table-row: var(--muted);
