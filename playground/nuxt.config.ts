@@ -26,7 +26,7 @@ const env = {
 
 // Inject non-VITE env vars into process.env for server-side use
 // (Nuxt only auto-loads .env from rootDir, which is playground/)
-const serverEnvKeys = ['SMILE_DEV_PASSWORD', 'TURSO_DATABASE_URL', 'TURSO_AUTH_TOKEN']
+const serverEnvKeys = ['SMILE_DEV_PASSWORD', 'SMILE_PUBLIC_PRESENTATION', 'TURSO_DATABASE_URL', 'TURSO_AUTH_TOKEN']
 for (const key of serverEnvKeys) {
   if (env[key] && !process.env[key]) {
     process.env[key] = env[key]
@@ -43,22 +43,18 @@ catch { /* ignored */ }
 
 export default defineNuxtConfig({
   modules: ['@pinia/nuxt', '../src/module'],
-  // Merge git/deploy env vars into Vite's env so import.meta.env picks them up
-  $development: {
-    vite: {
-      define: Object.fromEntries(
-        Object.entries(env)
-          .filter(([k]) => k.startsWith('VITE_'))
-          .map(([k, v]) => [`import.meta.env.${k}`, JSON.stringify(v)]),
-      ),
-    },
-  },
   devtools: { enabled: true },
   compatibilityDate: 'latest',
   vite: {
     envDir: '..',
     define: {
       'import.meta.env.VITE_SMILE_VERSION': JSON.stringify(smileVersion),
+      // Merge git/deploy env vars into Vite's define so import.meta.env picks them up in all modes
+      ...Object.fromEntries(
+        Object.entries(env)
+          .filter(([k]) => k.startsWith('VITE_'))
+          .map(([k, v]) => [`import.meta.env.${k}`, JSON.stringify(v)]),
+      ),
     },
     plugins: [
       Icons({ compiler: 'vue3' }),
