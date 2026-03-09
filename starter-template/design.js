@@ -17,7 +17,9 @@ import { markRaw } from 'vue'
 
 // Import your custom components (auto-import doesn't work in plain .js files)
 import InformedConsentText from './components/InformedConsentText.vue'
+import DebriefText from './components/DebriefText.vue'
 import MyTaskView from './components/MyTaskView.vue'
+import StroopExpView from './components/StroopExpView.vue'
 
 export default function createTimeline(api) {
   const timeline = new Timeline(api)
@@ -74,6 +76,28 @@ export default function createTimeline(api) {
   timeline.pushSeqView({
     name: 'task',
     component: markRaw(MyTaskView),
+  })
+
+  // Example Stroop task — a color-word interference experiment
+  // Remove or replace this with your own task
+  timeline.pushSeqView({
+    name: 'stroop',
+    component: markRaw(StroopExpView),
+  })
+
+  // Debriefing — explains the study to participants
+  timeline.pushSeqView({
+    name: 'debrief',
+    component: 'DebriefView',
+    props: {
+      debriefText: markRaw(DebriefText),
+    },
+  })
+
+  // Device survey (browser, OS, screen size metadata)
+  timeline.pushSeqView({
+    name: 'device',
+    component: 'DeviceSurveyView',
   })
 
   // Task feedback survey (this is the last form before completion)
