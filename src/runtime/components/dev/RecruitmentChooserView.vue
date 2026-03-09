@@ -1,5 +1,5 @@
 <script setup>
-import { ArrowLeft, ArrowRight, BookOpen, Copy, Check, Dices } from 'lucide-vue-next'
+import { ArrowLeft, ArrowRight, Info, Copy, Check, Dices } from 'lucide-vue-next'
 import { ref, computed } from 'vue'
 import useViewAPI from '../../composables/useViewAPI'
 import useSmileStore from '../../stores/smilestore'
@@ -17,6 +17,9 @@ const baseUrl = computed(() => {
   if (import.meta.client) return window.location.origin
   return 'https://your-app.vercel.app'
 })
+
+// True when running on a real deployment (not localhost/dev server)
+const isDeployed = computed(() => !!config.deployURL)
 
 // Prepend /dev to recruitment URLs so they stay in dev mode
 const devUrls = computed(() => {
@@ -199,15 +202,6 @@ const services = {
 }
 
 const currentService = computed(() => services[selectedService.value])
-
-// Build full test URLs with example params
-const fullUrls = computed(() => {
-  const result = {}
-  for (const [key, path] of Object.entries(api.urls)) {
-    result[key] = `${baseUrl.value}${path}`
-  }
-  return result
-})
 </script>
 
 <template>
@@ -250,89 +244,56 @@ const fullUrls = computed(() => {
       </div>
 
       <!-- Study URL -->
-      <Card class="mb-4">
-        <CardHeader class="pb-2">
-          <CardTitle class="text-sm">
+      <div :class="['mb-6 p-4 rounded-md border', isDeployed ? 'bg-muted/50' : 'bg-destructive/5 border-destructive/30']">
+        <div class="flex items-center gap-2 mb-1">
+          <h3 class="font-semibold">
             Study URL
-          </CardTitle>
-          <div
-            class="text-xs text-muted-foreground"
-            v-html="currentService.urlNote"
-          />
-        </CardHeader>
-        <CardContent>
-          <div class="flex items-center gap-2">
-            <code class="flex-1 text-xs bg-muted px-3 py-2 rounded break-all select-all">
-              {{ currentService.studyUrl.value }}
-            </code>
-            <Button
-              variant="outline"
-              size="xs"
-              @click="copyToClipboard(currentService.studyUrl.value, `study-${selectedService}`)"
-            >
-              <Check
-                v-if="copied === `study-${selectedService}`"
-                class="size-3"
-              />
-              <Copy
-                v-else
-                class="size-3"
-              />
-              {{ copied === `study-${selectedService}` ? 'Copied!' : 'Copy' }}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <!-- Test URL with example params -->
-      <Card class="mb-6">
-        <CardHeader class="pb-2">
-          <CardTitle class="text-sm">
-            Test URL (with example params)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div class="flex items-center gap-2">
-            <code class="flex-1 text-xs bg-muted px-3 py-2 rounded break-all select-all">
-              {{ fullUrls[selectedService] }}
-            </code>
-            <Button
-              variant="outline"
-              size="xs"
-              @click="copyToClipboard(fullUrls[selectedService], `test-${selectedService}`)"
-            >
-              <Check
-                v-if="copied === `test-${selectedService}`"
-                class="size-3"
-              />
-              <Copy
-                v-else
-                class="size-3"
-              />
-              {{ copied === `test-${selectedService}` ? 'Copied!' : 'Copy' }}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </h3>
+        </div>
+        <template v-if="!isDeployed">
+          <p class="text-sm font-medium text-destructive mb-2">
+            This is a local development URL and cannot be shared with participants. Deploy your study and navigate to /dev to get a shareable recruitment URL.
+          </p>
+        </template>
+        <p
+          class="text-sm text-muted-foreground mb-2"
+          v-html="currentService.urlNote"
+        />
+        <div class="flex items-center gap-2">
+          <code :class="['flex-1 text-sm px-3 py-2 rounded break-all', isDeployed ? 'bg-muted select-all' : 'bg-muted/50 select-none text-muted-foreground line-through']">
+            {{ currentService.studyUrl.value }}
+          </code>
+          <Button
+            v-if="isDeployed"
+            variant="outline"
+            size="sm"
+            @click="copyToClipboard(currentService.studyUrl.value, `study-${selectedService}`)"
+          >
+            <Check
+              v-if="copied === `study-${selectedService}`"
+              class="size-3.5"
+            />
+            <Copy
+              v-else
+              class="size-3.5"
+            />
+            {{ copied === `study-${selectedService}` ? 'Copied!' : 'Copy' }}
+          </Button>
+        </div>
+      </div>
 
       <!-- Setup Instructions -->
-      <Card>
-        <CardHeader class="pb-2">
-          <CardTitle class="text-sm">
-            Setup Instructions
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ol class="list-decimal list-outside ml-5 space-y-2 text-sm text-muted-foreground">
-            <li
-              v-for="(step, i) in currentService.setupSteps"
-              :key="i"
-              class="leading-relaxed"
-              v-html="step"
-            />
-          </ol>
-        </CardContent>
-      </Card>
+      <h3 class="font-semibold mb-3">
+        Setup Instructions
+      </h3>
+      <ol class="list-decimal list-outside ml-5 space-y-3 text-base text-muted-foreground">
+        <li
+          v-for="(step, i) in currentService.setupSteps"
+          :key="i"
+          class="leading-relaxed"
+          v-html="step"
+        />
+      </ol>
     </template>
 
     <!-- Card grid view -->
@@ -345,17 +306,22 @@ const fullUrls = computed(() => {
             alt="SMILE"
             class="w-52"
           >
-          <a
-            :href="`/api/qr?url=${encodeURIComponent(baseUrl)}`"
-            download="qr.svg"
-            title="Download QR code"
-          >
-            <img
-              :src="`/api/qr?url=${encodeURIComponent(baseUrl)}`"
-              alt="QR Code"
-              class="w-24 h-24"
+          <template v-if="isDeployed">
+            <a
+              :href="`/api/qr?url=${encodeURIComponent(baseUrl)}`"
+              download="qr.svg"
+              title="Download QR code"
             >
-          </a>
+              <img
+                :src="`/api/qr?url=${encodeURIComponent(baseUrl)}`"
+                alt="QR Code"
+                class="w-24 h-24"
+              >
+            </a>
+            <p class="text-xs text-muted-foreground text-right">
+              Share this QR code with participants. Click to download.
+            </p>
+          </template>
         </div>
 
         <!-- Right column: text + details -->
@@ -486,7 +452,7 @@ const fullUrls = computed(() => {
             </dl>
 
             <!-- Mode URLs -->
-            <div class="flex flex-col gap-1 mt-2 pt-2 border-t text-xs">
+            <div :class="['flex flex-col gap-1 mt-2 pt-2 border-t text-xs', { 'opacity-50': !isDeployed }]">
               <div
                 v-for="{ label, suffix, key } in [
                   { label: 'Dev', suffix: '/dev/', key: 'dev' },
@@ -499,8 +465,9 @@ const fullUrls = computed(() => {
                 <span class="text-muted-foreground/60 w-20">{{ label }}:</span>
                 <code class="bg-muted px-1.5 py-0.5 rounded">{{ baseUrl }}{{ suffix }}</code>
                 <button
-                  class="text-muted-foreground hover:text-foreground transition-colors"
-                  @click="copyToClipboard(`${baseUrl}${suffix}`, key)"
+                  :disabled="!isDeployed"
+                  :class="['transition-colors', isDeployed ? 'text-muted-foreground hover:text-foreground' : 'text-muted-foreground/30 cursor-not-allowed']"
+                  @click="isDeployed && copyToClipboard(`${baseUrl}${suffix}`, key)"
                 >
                   <Check
                     v-if="copied === key"
@@ -513,6 +480,12 @@ const fullUrls = computed(() => {
                 </button>
               </div>
             </div>
+            <p
+              v-if="!isDeployed"
+              class="text-xs italic mt-1"
+            >
+              Deploy your study to get shareable URLs.
+            </p>
           </div>
         </div>
       </div>
@@ -535,7 +508,7 @@ const fullUrls = computed(() => {
                       class="shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent transition-all p-1 rounded"
                       @click="selectedService = key"
                     >
-                      <BookOpen class="size-3.5" />
+                      <Info class="size-3.5" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
