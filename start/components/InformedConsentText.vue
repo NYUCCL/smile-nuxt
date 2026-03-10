@@ -1,36 +1,54 @@
 <template>
-  <div class="max-w-none [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:first:mt-0 [&_p]:mb-4 [&_p]:leading-relaxed">
-    <h3>About This Study</h3>
+  <div class="p-3 pt-2 text-left">
+    <h1 class="text-3xl font-bold">
+      <i-mdi-approve class="inline-block mr-2" />Informed Consent
+    </h1>
+    <hr class="mt-2 mb-3 h-px">
     <p>
       You are being asked to participate in a research study. This document
       provides you with information about the study. Your participation is
       voluntary, and you may choose not to participate or withdraw at any time.
     </p>
-
-    <h3>What Will I Be Asked To Do?</h3>
+    <ul class="pl-8 pt-3 pb-3 list-square">
+      <li>
+        Participation in this study will take about [estimated time] to complete,
+        and you will receive [describe compensation here] for your participation.
+      </li>
+      <li>
+        You will complete a brief computer-based task. The task involves
+        [describe your task here].
+      </li>
+      <li>In addition, by agreeing to participate, you understand you must be 18 years or older to participate.</li>
+      <li>
+        There are no known risks associated with your participation in this research beyond those of everyday life.
+      </li>
+      <li>
+        Confidentiality of your research records will be strictly maintained. We assign code numbers to each participant
+        so that data is never directly linked to individual identity, and we are interested in group results rather than
+        the responses of particular individuals.
+      </li>
+      <li>
+        Taking part in this study is voluntary. Not taking part or withdrawing after the study has begun will result in
+        no penalty. You have the right to skip or not answer any questions you prefer not to answer.
+      </li>
+    </ul>
     <p>
-      You will complete a brief computer-based task. The task involves
-      [describe your task here]. The study should take approximately
-      [estimated time] to complete.
-    </p>
-
-    <h3>Compensation</h3>
-    <p>
-      You will be compensated [describe compensation here] for your
-      participation.
-    </p>
-
-    <h3>Confidentiality</h3>
-    <p>
-      Your responses will be anonymous. We will not collect any personally
-      identifying information. Data will be stored securely and used only
-      for research purposes.
-    </p>
-
-    <h3>Contact</h3>
-    <p>
-      If you have questions about this study, please contact
-      [your name] at [your email].
+      If there is anything about the study or your participation that is unclear or that you do not understand, if you
+      have questions or wish to report a research-related problem, you may contact the principal investigator,
+      [your name] at [your address],
+      [your email].
     </p>
   </div>
 </template>
+
+<style scoped>
+/* Ensure list bullets are visible */
+ul {
+  list-style-type: square;
+  padding-left: 2rem;
+}
+
+li {
+  margin-bottom: 0.5rem;
+}
+</style>
