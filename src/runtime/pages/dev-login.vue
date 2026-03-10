@@ -65,12 +65,12 @@ async function login() {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--muted);
   font-family: system-ui, -apple-system, sans-serif;
 }
 
 .login-card {
-  background: white;
+  background: var(--background);
   border-radius: 8px;
   padding: 2rem;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -81,11 +81,12 @@ async function login() {
 .login-card h2 {
   margin: 0 0 0.5rem;
   font-size: 1.25rem;
+  color: var(--foreground);
 }
 
 .login-card p {
   margin: 0 0 1rem;
-  color: #666;
+  color: var(--muted-foreground);
   font-size: 0.875rem;
 }
 
@@ -97,15 +98,17 @@ form {
 
 input {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border);
   border-radius: 4px;
   font-size: 1rem;
+  background: var(--background);
+  color: var(--foreground);
 }
 
 button {
   padding: 0.5rem 1rem;
-  background: #333;
-  color: white;
+  background: var(--primary);
+  color: var(--primary-foreground);
   border: none;
   border-radius: 4px;
   font-size: 1rem;
@@ -113,7 +116,8 @@ button {
 }
 
 button:hover:not(:disabled) {
-  background: #555;
+  background: var(--primary);
+  opacity: 0.85;
 }
 
 button:disabled {
@@ -122,7 +126,7 @@ button:disabled {
 }
 
 .error {
-  color: #c00;
+  color: var(--destructive);
   margin: 0;
 }
 </style>

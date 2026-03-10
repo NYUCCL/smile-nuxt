@@ -224,7 +224,7 @@ function resetDevState() {
                   size="xs"
                   @click="toggleRotation"
                 >
-                  <RotateCcw :class="{ 'text-blue-400': api.store.dev.isRotated }" />
+                  <RotateCcw :class="{ 'text-link-button-foreground': api.store.dev.isRotated }" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">

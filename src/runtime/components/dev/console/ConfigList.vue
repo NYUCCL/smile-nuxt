@@ -188,16 +188,4 @@ function option_selected(option) {
   font-weight: 400;
 }
 
-/* Selected state styling */
-.config-list-container .bg-blue-100 {
-  background-color: var(--accent);
-}
-
-.config-list-container .text-blue-800 {
-  color: var(--accent-foreground);
-}
-
-.config-list-container .border-blue-200 {
-  border-color: var(--accent);
-}
 </style>

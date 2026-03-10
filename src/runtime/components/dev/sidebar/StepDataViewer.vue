@@ -130,31 +130,31 @@ const isSinglePrimitive = (value) => {
 }
 
 .node-content:hover {
-  background-color: #f0f0f0;
+  background-color: var(--muted);
 }
 
 .expand-icon {
   display: inline-block;
   width: 16px;
-  color: #666;
+  color: var(--muted-foreground);
 }
 
 .key {
-  color: #0baac3;
+  color: var(--data-key-color);
   margin-right: 4px;
 }
 
 .preview {
-  color: #666;
+  color: var(--muted-foreground);
   font-style: italic;
 }
 
 .primitive-value {
-  color: #dda814;
+  color: var(--data-value-color);
 }
 
 .nested-content {
   padding-left: 20px;
-  border-left: 1px dotted #ccc;
+  border-left: 1px dotted var(--border);
 }
 </style>
