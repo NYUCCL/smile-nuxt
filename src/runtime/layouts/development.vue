@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { Toaster } from 'vue-sonner'
 import 'vue-sonner/style.css'
 
@@ -16,8 +16,15 @@ const { showAggressiveOverlay } = useWindowSizer({ useDeviceContainer: true })
 
 const height_pct = computed(() => `${api.store.dev.consoleBarHeight}px`)
 
+const mounted = ref(false)
+onMounted(() => { mounted.value = true })
+
 const isLoading = computed(() => {
-  return api.currentRouteName() === undefined
+  return !mounted.value
+})
+
+const isRouteNotFound = computed(() => {
+  return mounted.value && api.currentRouteName() === undefined
 })
 </script>
 
@@ -84,6 +91,18 @@ const isLoading = computed(() => {
                   >
                     <div class="loading-spinner" />
                     <p>Loading...</p>
+                  </div>
+                  <!-- Route not found -->
+                  <div
+                    v-else-if="isRouteNotFound"
+                    class="loading-container"
+                  >
+                    <p class="not-found-title">
+                      Route Not Found
+                    </p>
+                    <p class="not-found-message">
+                      The path <code>{{ api.route.path }}</code> is not registered in the timeline.
+                    </p>
                   </div>
                   <!-- Experiment content via slot -->
                   <template v-else>
@@ -273,5 +292,24 @@ const isLoading = computed(() => {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.not-found-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--destructive);
+}
+
+.not-found-message {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.not-found-message code {
+  background-color: var(--muted);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8rem;
 }
 </style>
