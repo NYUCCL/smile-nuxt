@@ -9,6 +9,18 @@ import useAPI from '../../../composables/useAPI'
 const api = useAPI()
 
 /**
+ * Database info fetched from server
+ * @type {import('vue').Ref<{type: string, url: string}|null>}
+ */
+const dbInfo = ref(null)
+if (import.meta.client) {
+  fetch('/api/db-info')
+    .then(r => r.json())
+    .then((data) => { dbInfo.value = data })
+    .catch(() => {})
+}
+
+/**
  * Timer ref for updating last write time
  * @type {import('vue').Ref<number|null>}
  */
@@ -84,8 +96,20 @@ onBeforeUnmount(() => {
   <!-- Database status info panel -->
   <table class="w-full text-sm table-border-top">
     <tbody>
+      <!-- Database row -->
+      <tr
+        v-if="dbInfo"
+        class="table-row-base table-row-even hidden sm:table-row"
+      >
+        <td class="table-cell-base table-cell-left table-cell-small">
+          <b>Database:</b>
+        </td>
+        <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
+          {{ dbInfo.type }} <span class="text-muted-foreground">{{ dbInfo.url }}</span>
+        </td>
+      </tr>
       <!-- Last route row -->
-      <tr class="table-row-base table-row-even hidden sm:table-row">
+      <tr class="table-row-base table-row-odd hidden sm:table-row">
         <td class="table-cell-base table-cell-left table-cell-small">
           <b>Last route:</b>
         </td>
@@ -94,7 +118,7 @@ onBeforeUnmount(() => {
         </td>
       </tr>
       <!-- Mode row -->
-      <tr class="table-row-base table-row-odd hidden sm:table-row">
+      <tr class="table-row-base table-row-even hidden sm:table-row">
         <td class="table-cell-base table-cell-left table-cell-small">
           <b>Mode:</b>
         </td>
@@ -103,7 +127,7 @@ onBeforeUnmount(() => {
         </td>
       </tr>
       <!-- DocRef row -->
-      <tr class="table-row-base table-row-even">
+      <tr class="table-row-base table-row-odd">
         <td class="table-cell-base table-cell-left table-cell-small">
           <b>DocRef:</b>
         </td>
@@ -112,7 +136,7 @@ onBeforeUnmount(() => {
         </td>
       </tr>
       <!-- Writes row -->
-      <tr class="table-row-base table-row-odd hidden sm:table-row">
+      <tr class="table-row-base table-row-even hidden sm:table-row">
         <td class="table-cell-base table-cell-left table-cell-small">
           <b>Writes:</b>
         </td>
@@ -121,7 +145,7 @@ onBeforeUnmount(() => {
         </td>
       </tr>
       <!-- Last write row -->
-      <tr class="table-row-base table-row-even hidden sm:table-row">
+      <tr class="table-row-base table-row-odd hidden sm:table-row">
         <td class="table-cell-base table-cell-left table-cell-small">
           <b>Last save:</b>
         </td>
@@ -130,7 +154,7 @@ onBeforeUnmount(() => {
         </td>
       </tr>
       <!-- Auto save row -->
-      <tr class="table-row-base table-row-odd hidden sm:table-row">
+      <tr class="table-row-base table-row-even hidden sm:table-row">
         <td class="table-cell-base table-cell-left table-cell-small">
           <b>Auto save:</b>
         </td>
@@ -139,7 +163,7 @@ onBeforeUnmount(() => {
         </td>
       </tr>
       <!-- Size row -->
-      <tr class="table-row-base table-row-even hidden sm:table-row table-border-bottom">
+      <tr class="table-row-base table-row-odd hidden sm:table-row table-border-bottom">
         <td class="table-cell-base table-cell-left table-cell-small">
           <b>Size:</b>
         </td>

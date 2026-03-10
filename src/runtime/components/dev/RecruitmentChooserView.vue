@@ -8,6 +8,15 @@ const api = useViewAPI()
 const store = useSmileStore()
 const config = store.config
 
+// Fetch database info from server
+const dbInfo = ref(null)
+if (import.meta.client) {
+  fetch('/api/db-info')
+    .then(r => r.json())
+    .then((data) => { dbInfo.value = data })
+    .catch(() => {})
+}
+
 // Currently selected service for detail view (null = card grid)
 const selectedService = ref(null)
 
@@ -393,6 +402,16 @@ const currentService = computed(() => services[selectedService.value])
                   />
                 </button>
               </dd>
+
+              <template v-if="dbInfo">
+                <dt class="text-muted-foreground/60">
+                  Database
+                </dt>
+                <dd class="font-mono flex items-center gap-1">
+                  <span class="text-xs">{{ dbInfo.type }}</span>
+                  <code class="text-xs text-muted-foreground">{{ dbInfo.url }}</code>
+                </dd>
+              </template>
 
               <template v-if="config.github?.repoName">
                 <dt class="text-muted-foreground/60">
