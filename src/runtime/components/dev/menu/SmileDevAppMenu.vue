@@ -269,14 +269,9 @@ const isDarkMode = computed({
 </template>
 
 <style scoped>
-/* Main button styling with light theme */
+/* Main button styling */
 .mainbutton {
-  background-color: rgb(175, 218, 236);
-}
-
-/* Main button styling with dark theme */
-.dark .mainbutton {
-  background-color: rgb(192, 240, 163);
-  color: rgb(0, 0, 0);
+  background-color: var(--dev-brand-bg);
+  color: var(--dev-brand-text);
 }
 </style>

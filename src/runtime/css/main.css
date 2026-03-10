@@ -197,6 +197,19 @@
   --pinned-route: rgb(255, 208, 80);
   --hover-table-row: var(--muted);
 
+  /* Spinner colors */
+  --spinner-track: oklch(0.95 0 0);
+  --spinner-active: var(--primary-button);
+
+  /* Dev banner (local dev server stripe) */
+  --dev-banner-stripe-1: oklch(0.87 0.17 85);
+  --dev-banner-stripe-2: oklch(0.84 0.16 85);
+  --dev-banner-text: oklch(0.15 0 0);
+
+  /* Dev brand button (sidebar logo) */
+  --dev-brand-bg: oklch(0.85 0.06 210);
+  --dev-brand-text: var(--foreground);
+
   /* Log colors */
   --log-yellow: oklch(0.985 0 0);
   --log-red: oklch(0.985 0 0);
@@ -291,6 +304,19 @@
   --dev-contrast-text: #4d4d4d;
   --pinned-route: rgb(255, 208, 80);
   --hover-table-row: var(--muted);
+
+  /* Spinner colors */
+  --spinner-track: oklch(0.3 0 0);
+  --spinner-active: var(--primary-button);
+
+  /* Dev banner (local dev server stripe) */
+  --dev-banner-stripe-1: oklch(0.38 0 0);
+  --dev-banner-stripe-2: oklch(0.33 0 0);
+  --dev-banner-text: oklch(0.82 0 0);
+
+  /* Dev brand button (sidebar logo) */
+  --dev-brand-bg: oklch(0.7 0.1 142);
+  --dev-brand-text: oklch(0.15 0 0);
 
   /* Log colors */
   --log-yellow: #adaa5b;

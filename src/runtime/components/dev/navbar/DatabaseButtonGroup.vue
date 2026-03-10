@@ -73,8 +73,8 @@ const database_tooltip = computed(() => {
                 :percentage="Math.round(api.store.localState.approxDataSize / 1048576) * 100"
                 :size="12"
                 :stroke-width="40"
-                slicecolor="#aaa"
-                basecolor="#aaa"
+                slicecolor="var(--muted-foreground)"
+                basecolor="var(--muted-foreground)"
               />
             </div>
           </template>
