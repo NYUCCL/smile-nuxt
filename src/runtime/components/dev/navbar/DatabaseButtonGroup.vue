@@ -33,7 +33,7 @@ const database_tooltip = computed(() => {
   }
   if (api.store.browserEphemeral.dataLoaded) {
     msg += '| '
-    msg += Math.round((api.store.localState.approxDataSize / 1048576) * 1000) / 1000 + '% data used'
+    msg += Math.round((api.store.localState.approxDataSize / 20971520) * 1000) / 1000 + '% data used'
   }
   return msg
 })
@@ -70,7 +70,7 @@ const database_tooltip = computed(() => {
           <template v-if="!api.store.browserEphemeral.dataLoaded">
             <div class="mt-1">
               <CircleProgress
-                :percentage="Math.round(api.store.localState.approxDataSize / 1048576) * 100"
+                :percentage="Math.round(api.store.localState.approxDataSize / 20971520) * 100"
                 :size="12"
                 :stroke-width="40"
                 slicecolor="var(--muted-foreground)"
@@ -81,7 +81,7 @@ const database_tooltip = computed(() => {
           <template v-else>
             <div class="mt-1">
               <CircleProgress
-                :percentage="Math.round(api.store.localState.approxDataSize / 1048576) * 100"
+                :percentage="Math.round(api.store.localState.approxDataSize / 20971520) * 100"
                 :size="12"
                 :stroke-width="40"
                 slicecolor="var(--primary-button)"
