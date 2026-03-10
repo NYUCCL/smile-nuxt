@@ -65,7 +65,7 @@ onUnmounted(() => {
 
     <!-- Close button in top-right corner -->
     <Button
-      class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+      class="absolute top-4 right-4 text-muted-foreground hover:text-foreground p-2 rounded-full hover:bg-muted transition-colors"
       aria-label="close"
       @click="$emit('toggleConsent')"
     >
@@ -84,7 +84,7 @@ onUnmounted(() => {
             </template>
             <!-- Error fallback if consent text component is not available -->
             <template v-else>
-              <div class="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+              <div class="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
                 Error: Unable to load consent form text. Please contact the study administrator.
               </div>
             </template>

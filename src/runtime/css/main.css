@@ -244,6 +244,12 @@
   --step-leaf-color: oklch(0.75 0.18 142);
   --step-home-color: oklch(0.6 0.15 200);
 
+  /* Error notification colors */
+  --error-notif-bg: oklch(0.97 0.02 25);
+  --error-notif-bg-end: oklch(0.94 0.04 25);
+  --error-notif-border: oklch(0.88 0.08 25);
+  --error-notif-text: oklch(0.577 0.245 27.325);
+
   /* Log colors */
   --log-yellow: oklch(0.97 0.04 85);
   --log-red: oklch(0.96 0.03 25);
@@ -377,6 +383,12 @@
   --step-label-color: oklch(0.65 0.12 175);
   --step-leaf-color: oklch(0.7 0.18 142);
   --step-home-color: oklch(0.7 0.15 200);
+
+  /* Error notification colors */
+  --error-notif-bg: oklch(0.25 0.06 25);
+  --error-notif-bg-end: oklch(0.22 0.08 25);
+  --error-notif-border: oklch(0.35 0.1 25);
+  --error-notif-text: oklch(0.637 0.237 25.331);
 
   /* Log colors */
   --log-yellow: oklch(0.25 0.04 85);

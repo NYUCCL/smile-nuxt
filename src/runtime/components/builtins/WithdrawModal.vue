@@ -107,7 +107,7 @@ onUnmounted(() => {
 
     <!-- Close button -->
     <Button
-      class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+      class="absolute top-4 right-4 text-muted-foreground hover:text-foreground p-2 rounded-full hover:bg-muted transition-colors"
       aria-label="close"
       @click="$emit('toggleWithdraw')"
     >
@@ -122,7 +122,7 @@ onUnmounted(() => {
           <!-- Modal header with title -->
           <template #title>
             <h3 class="text-3xl font-semibold">
-              <LogOut class="text-red-500 inline-block mr-2" />Withdraw from study?
+              <LogOut class="text-destructive inline-block mr-2" />Withdraw from study?
             </h3>
           </template>
 
@@ -153,7 +153,7 @@ onUnmounted(() => {
                     <Checkbox
                       :id="`withdraw-option-${index}`"
                       :checked="forminfo.reason_select.includes(option)"
-                      class="border-gray-600 data-[state=checked]:bg-gray-800 data-[state=checked]:border-gray-800"
+                      class="border-input data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       @update:checked="
                         (checked) => {
                           if (checked) {
@@ -178,7 +178,7 @@ onUnmounted(() => {
                     </Label>
                   </div>
                 </div>
-                <p class="text-xs text-gray-500">
+                <p class="text-xs text-muted-foreground">
                   Select all that apply.
                 </p>
               </div>
@@ -196,7 +196,7 @@ onUnmounted(() => {
                   class="w-full bg-background dark:bg-background text-base resize-vertical"
                   rows="4"
                 />
-                <p class="text-xs text-gray-500">
+                <p class="text-xs text-muted-foreground">
                   Please let us know any additional information you would like to share.
                 </p>
               </div>
@@ -214,7 +214,7 @@ onUnmounted(() => {
                   placeholder="participant@gmail.com"
                   class="w-full text-base bg-background dark:bg-background"
                 />
-                <p class="text-xs text-gray-500">
+                <p class="text-xs text-muted-foreground">
                   Please enter your email address so we can follow up with you. This is optional and we otherwise will
                   try to figure out how to reach you. However, this can help avoid any potential problems. Feel free to
                   use an anonymized email like your Prolific contact email, Hide my email (Apple), or create a free

@@ -81,8 +81,8 @@ const _props = defineProps({
 }
 
 .error-notification {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--error-notif-bg);
+  border: 1px solid var(--error-notif-border);
 }
 
 .notification-content {
@@ -91,7 +91,7 @@ const _props = defineProps({
 }
 
 .error-content {
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  background: linear-gradient(135deg, var(--error-notif-bg) 0%, var(--error-notif-bg-end) 100%);
 }
 
 .command-badge {
@@ -114,9 +114,9 @@ const _props = defineProps({
 }
 
 .error-key {
-  background: #ef4444;
-  color: #fef2f2;
-  border: 1px solid #ef4444;
+  background: var(--error-notif-text);
+  color: var(--error-notif-bg);
+  border: 1px solid var(--error-notif-text);
 }
 
 .action-text {
@@ -127,7 +127,7 @@ const _props = defineProps({
 }
 
 .error-text {
-  color: #ef4444;
+  color: var(--error-notif-text);
 }
 
 .notification-arrow {
@@ -143,9 +143,9 @@ const _props = defineProps({
 }
 
 .error-arrow {
-  background: #fef2f2;
-  border-left: 1px solid #fecaca;
-  border-top: 1px solid #fecaca;
+  background: var(--error-notif-bg);
+  border-left: 1px solid var(--error-notif-border);
+  border-top: 1px solid var(--error-notif-border);
 }
 
 /* Animation */

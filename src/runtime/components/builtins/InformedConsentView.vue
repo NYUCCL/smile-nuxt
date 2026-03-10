@@ -75,7 +75,7 @@ onBeforeUnmount(() => {
               read the consent form (you can scroll the page).
             </p>
 
-            <div class="border-t border-gray-200 my-4" />
+            <div class="border-t border-border my-4" />
 
             <div class="flex items-center space-x-2 mb-4">
               <Switch
@@ -96,7 +96,7 @@ onBeforeUnmount(() => {
             <div class="hidden">
               <Label
                 for="your_name"
-                class="text-sm font-medium text-gray-700 mb-2 block"
+                class="text-sm font-medium text-foreground mb-2 block"
               >
                 Required! Please enter your name:
               </Label>

@@ -48,7 +48,7 @@ const _props = defineProps({
       </p>
 
       <!-- Visual separator -->
-      <hr class="border-gray-300 my-4">
+      <hr class="border-muted-foreground/30 my-4">
 
       <!-- Study summary -->
       <p>
@@ -67,9 +67,9 @@ const _props = defineProps({
       >
 
       <!-- Lab information card -->
-      <article class="border border-gray-300 rounded-lg shadow-lg">
+      <article class="border border-border rounded-lg shadow-lg">
         <!-- Card header -->
-        <div class="bg-gray-100 px-3 py-2 text-xs font-medium border-b border-gray-300 rounded-t-lg">
+        <div class="bg-muted px-3 py-2 text-xs font-medium border-b border-border rounded-t-lg">
           <p><Sparkles class="inline" />&nbsp;&nbsp;Who are we?</p>
         </div>
 
@@ -80,26 +80,26 @@ const _props = defineProps({
             <a
               href="http://gureckislab.org"
               target="_blank"
-              class="text-green-500 hover:text-green-600"
+              class="text-link-button-foreground hover:text-link-button-foreground/80"
             >Computation and Cognition Lab</a>
             at New York University under the direction to
             <a
               href="http://todd.gureckislab.org"
               target="_blank"
-              class="text-green-500 hover:text-green-600"
+              class="text-link-button-foreground hover:text-link-button-foreground/80"
             >Dr. Todd Gureckis</a>. Our lab uses games and other fun tasks to study human intellience. Our research is funded in the public
             interest by the United States
             <a
               href="https://nsf.gov"
               target="_new"
-              class="text-green-500 hover:text-green-600"
+              class="text-link-button-foreground hover:text-link-button-foreground/80"
             >National Science Foundation</a>
             among other organizations and non-profit foundations and we publish our work, code, and results for the
             public. We very much appreciate research participants in our studies and have a public
             <a
               href="http://gureckislab.org/research-code-of-ethics.html"
               target="_new"
-              class="text-green-500 hover:text-green-600"
+              class="text-link-button-foreground hover:text-link-button-foreground/80"
             >code of ethics</a>
             we strive to uphold in all our studies.
           </div>

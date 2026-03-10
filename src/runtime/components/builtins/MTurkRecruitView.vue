@@ -136,7 +136,7 @@ function submitForm(event) {
         </p>
 
         <!-- Visual separator -->
-        <hr class="border-gray-300 my-4">
+        <hr class="border-muted-foreground/30 my-4">
 
         <!-- Completion code submission form -->
         <form
@@ -156,11 +156,11 @@ function submitForm(event) {
                 v-model="completionCode"
                 name="completioncode"
                 placeholder="Paste your completion code here"
-                :class="{ 'border-red-500': formError }"
+                :class="{ 'border-destructive': formError }"
               />
               <p
                 v-if="formError"
-                class="text-red-500 text-sm mt-1"
+                class="text-destructive text-sm mt-1"
               >
                 {{ formError }}
               </p>
