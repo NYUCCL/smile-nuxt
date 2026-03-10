@@ -103,7 +103,7 @@ const services = {
     studyUrl: computed(() => `${baseUrl.value}/mturk`),
     setupSteps: [
       'You\'ll need the <strong>AWS CLI</strong> or a tool like <a href="https://github.com/Mechanical-Turk-Requester" target="_blank" class="underline font-medium">Boto3 (Python)</a> to create ExternalQuestion HITs.',
-      'Create an ExternalQuestion XML pointing to the MTurk URL shown below: <pre class="mt-1 p-2 bg-gray-100 rounded text-xs overflow-x-auto">&lt;ExternalQuestion xmlns="..."&gt;\n  &lt;ExternalURL&gt;YOUR_MTURK_URL&lt;/ExternalURL&gt;\n  &lt;FrameHeight&gt;800&lt;/FrameHeight&gt;\n&lt;/ExternalQuestion&gt;</pre>',
+      'Create an ExternalQuestion XML pointing to the MTurk URL shown below: <pre class="mt-1 p-2 bg-muted rounded text-xs overflow-x-auto">&lt;ExternalQuestion xmlns="..."&gt;\n  &lt;ExternalURL&gt;YOUR_MTURK_URL&lt;/ExternalURL&gt;\n  &lt;FrameHeight&gt;800&lt;/FrameHeight&gt;\n&lt;/ExternalQuestion&gt;</pre>',
       'Create the HIT using <code>create_hit_type</code> and <code>create_hit_with_hit_type</code> (or equivalent).',
       'SMILE handles the MTurk form submission automatically — when participants finish, the Thanks page posts their completion to <code>turkSubmitTo</code>.',
       'For testing, use the <strong>MTurk Sandbox</strong> (<code>https://workersandbox.mturk.com</code>) before publishing to production.',
@@ -562,53 +562,53 @@ const currentService = computed(() => services[selectedService.value])
 
 <style scoped>
 .is-blue {
-  background-color: rgb(102, 209, 255);
-  color: #393939;
+  background-color: var(--recruit-blue);
+  color: var(--recruit-text);
 }
 
 .is-red {
-  background-color: rgb(255, 102, 133);
-  color: #393939;
+  background-color: var(--recruit-red);
+  color: var(--recruit-text);
 }
 
 .is-light-yellow {
-  background-color: rgb(245, 213, 138);
-  color: #393939;
+  background-color: var(--recruit-yellow-light);
+  color: var(--recruit-text);
 }
 
 .is-yellow {
-  background-color: rgb(255, 183, 15);
-  color: #393939;
+  background-color: var(--recruit-yellow);
+  color: var(--recruit-text);
 }
 
 .is-pink {
-  background-color: #ffc0cb;
-  color: #393939;
+  background-color: var(--recruit-pink);
+  color: var(--recruit-text);
 }
 
 .is-green {
-  background-color: rgb(91, 228, 166);
-  color: #393939;
+  background-color: var(--recruit-green);
+  color: var(--recruit-text);
 }
 
 .is-orange {
-  background-color: rgb(255, 179, 102);
-  color: #393939;
+  background-color: var(--recruit-orange);
+  color: var(--recruit-text);
 }
 
 .is-teal {
-  background-color: rgb(102, 217, 204);
-  color: #393939;
+  background-color: var(--recruit-teal);
+  color: var(--recruit-text);
 }
 
 .is-coral {
-  background-color: rgb(255, 140, 130);
-  color: #393939;
+  background-color: var(--recruit-coral);
+  color: var(--recruit-text);
 }
 
 .is-purple {
-  background-color: #ebaeff;
-  color: #393939;
+  background-color: var(--recruit-purple);
+  color: var(--recruit-text);
   border: none;
 }
 
