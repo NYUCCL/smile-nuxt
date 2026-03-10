@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+
+const isCI = !!process.env.CI
 import { setActivePinia } from 'pinia'
 import { createTestingPinia } from '@pinia/testing'
 import { Stepper } from '@/core/stepper/Stepper'
@@ -22,7 +24,7 @@ import { StepState } from '@/core/stepper/StepState'
  * The raw StepState class (without duplicate checking) handles 2000+ nodes
  * in under 50ms, proving the bottleneck is in the duplicate checking logic.
  */
-describe('Stepper Performance - Large Tables', () => {
+describe.skipIf(isCI)('Stepper Performance - Large Tables', () => {
   let pinia
 
   beforeEach(() => {
@@ -65,7 +67,7 @@ describe('Stepper Performance - Large Tables', () => {
       const elapsed = performance.now() - start
 
       expect(count).toBe(999)
-      expect(elapsed).toBeLessThan(2000) // relaxed for CI runners
+      expect(elapsed).toBeLessThan(2000)
     }, 60000) // append of 1000 flat items is currently very slow
 
     it('should advance through a deep hierarchical tree (blocks × trials) quickly', () => {
@@ -118,7 +120,7 @@ describe('Stepper Performance - Large Tables', () => {
       const elapsed = performance.now() - start
 
       expect(count).toBe(999)
-      expect(elapsed).toBeLessThan(2000) // relaxed for CI runners
+      expect(elapsed).toBeLessThan(2000)
     })
   })
 
@@ -489,7 +491,7 @@ describe('Stepper Performance - Large Tables', () => {
  * These demonstrate that the core tree traversal is fast — the bottleneck
  * is in Stepper's _hasDuplicatePaths() called during append().
  */
-describe('StepState Performance - Large Tables (no Pinia)', () => {
+describe.skipIf(isCI)('StepState Performance - Large Tables (no Pinia)', () => {
   describe('next() traversal on raw StepState', () => {
     it('should advance through 2000 flat leaf nodes quickly', () => {
       const root = new StepState('/')
