@@ -1,0 +1,90 @@
+---
+alwaysApply: true
+---
+
+You are an expert in JavaScript, Vue 3, Nuxt 3, Tailwind CSS, and the SMILE experiment framework.
+
+# Project Overview
+
+This is a behavioral experiment built with @nyuccl/smile, a Nuxt 3 module for online cognitive science research. The experiment timeline is defined in `design.js`. Custom task components live in `components/`.
+
+# Code Style
+
+- Use `<script setup>` with Composition API; never use Options API.
+- Use Tailwind CSS for all styling.
+- Use PascalCase for component filenames (e.g., `MyTaskView.vue`).
+- Use camelCase for variables and functions.
+- Order SFC sections: `<script setup>`, `<template>`, `<style>`.
+- Write concise, readable code. Prefer descriptive names (e.g., `isLoading`, `hasResponse`).
+
+# Auto-Imports
+
+The @nyuccl/smile module auto-imports composables and components in `.vue` files — no import statements needed:
+
+- Composables: `useAPI()`, `useViewAPI()`, `useTimeline()`, `useStepper()`, `useSmileStore()`, `useLog()`, `Timeline`
+- UI: `Button`, `Card`, `Input`, `Select`, `Switch`, `Dialog`, etc. (shadcn-vue)
+- Built-in views: `ConstrainedTaskWindow`, `InformedConsentView`, `ThanksView`, etc.
+- Icons: `<i-mdi-icon-name />` syntax via unplugin-icons
+
+Auto-import does NOT work in plain `.js` files like `design.js` — use explicit imports there.
+
+# Overriding Built-In Components
+
+Place a component with the same name in `components/` to override any built-in. Your local version takes priority automatically.
+
+# SMILE API
+
+View components (pages with trials/stepper) use `useViewAPI()`. Non-view components use `useAPI()`. Both are auto-imported.
+
+```js
+const api = useViewAPI()
+```
+
+## Key API Methods
+
+Navigation:
+- `api.goNextView()` / `api.goPrevView()` — move between timeline views
+- `api.goNextStep()` / `api.goPrevStep()` — move between trials within a view
+- `api.goToView('name')` — jump to a named view
+
+Data:
+- `api.recordPageData({ key: value })` — record page-level data (object, not array)
+- `api.recordStep()` — record current `api.stepData` for the trial
+- `api.stepData.field = value` — set data on current step
+- `api.persist.myVar = value` — persistent variable (survives reload)
+
+Stepper:
+- `api.steps.append([...])` — add trials; returns array of states for nesting
+- `.shuffle()` — randomize trial order
+- `api.stepIndex` / `api.nSteps` — current position and total
+- `api.path` — current path as array
+- `api.isLastStep()` — check if on last trial
+
+Timing:
+- `api.startTimer()` / `api.elapsedTime()` — persistent timer
+
+Input:
+- `api.onKeyDown(keys, handler, { dedupe: true })` — keyboard listener, returns stop function
+
+Randomization:
+- `api.shuffle(array)`, `api.randomInt(min, max)`
+- `api.faker.rnorm(mean, sd)`, `api.faker.rchoice(array)`, `api.faker.rbinom(n, p)`
+
+# Timeline (design.js)
+
+Pages are sequenced with `timeline.pushSeqView({ name, component, props, meta })`. Custom components must be explicitly imported and wrapped with `markRaw()`. Built-in views (e.g., `InformedConsentView`, `ThanksView`) are referenced by string name.
+
+# Adding New Components
+
+1. Create a PascalCase `.vue` file in `components/` (auto-imported in templates)
+2. Import it in `design.js` with `markRaw()` and add to timeline with `pushSeqView()`
+
+# E2E Tests
+
+Tests are in `test/e2e/` using Playwright. Use role-based selectors for shadcn-vue components (`getByRole('button')`, `getByRole('switch')`, `getByRole('combobox')`). Helpers in `helpers.ts` provide `clearState()`, `fillDemographicsPage1/2/3()`, and `selectOption()`. Database can be queried directly via `@libsql/client` for verification.
+
+# Data Constraints
+
+- Recorded data must be plain objects (not arrays at top level)
+- Keys cannot contain `.`, `/`, `[`, `]`, or `*`
+- No functions or symbols in recorded data
