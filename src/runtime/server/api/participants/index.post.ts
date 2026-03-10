@@ -2,7 +2,8 @@ import { randomUUID, createHmac } from 'node:crypto'
 import { defineEventHandler, readBody, setCookie } from 'h3'
 import { useRuntimeConfig } from 'nitropack/runtime'
 import { useDB } from '../../utils/db'
-import { participants } from '../../database/schema'
+import { participants, projects } from '../../database/schema'
+import { buildProjectId, getCurrentProjectInfo } from '../../utils/project'
 
 function signParticipantToken(id: string, secret: string): string {
   const issuedAt = Math.floor(Date.now() / 1000)
@@ -16,9 +17,23 @@ export default defineEventHandler(async (event) => {
   const id = randomUUID()
   const now = new Date()
 
+  // Determine project identity from server config (not client)
+  const info = getCurrentProjectInfo()
+  const projectId = buildProjectId(info.owner, info.repo, info.branch, info.mode)
+
+  // Upsert the project record
+  await db.insert(projects).values({
+    id: projectId,
+    owner: info.owner,
+    repo: info.repo,
+    branch: info.branch,
+    mode: info.mode,
+    createdAt: now,
+  }).onConflictDoNothing()
+
   await db.insert(participants).values({
     id,
-    projectRef: body.projectRef || 'unknown',
+    projectId,
     data: body.data || {},
     createdAt: now,
     updatedAt: now,

@@ -21,7 +21,7 @@ async function getAllParticipants(db: ReturnType<typeof createClient>) {
   const result = await db.execute('SELECT * FROM participants ORDER BY created_at DESC')
   return result.rows.map(row => ({
     id: row.id as string,
-    projectRef: row.project_ref as string,
+    projectId: row.project_id as string,
     data: JSON.parse(row.data as string),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -106,7 +106,7 @@ test.describe('Database persistence', () => {
     expect(participant!.data.consented).toBe(true)
     expect(participant!.data.recruitmentService).toBe('web')
     expect(participant!.data.seedID).toBeTruthy()
-    expect(participant!.projectRef).toBeTruthy()
+    expect(participant!.projectId).toBeTruthy()
   })
 
   test('creates private data record alongside participant', async ({ page }) => {

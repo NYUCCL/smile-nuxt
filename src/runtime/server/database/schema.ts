@@ -1,8 +1,19 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
 
+export const projects = sqliteTable('projects', {
+  id: text('id').primaryKey(),
+  owner: text('owner').notNull(),
+  repo: text('repo').notNull(),
+  branch: text('branch').notNull(),
+  mode: text('mode').notNull().default('live'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+})
+
 export const participants = sqliteTable('participants', {
   id: text('id').primaryKey(),
-  projectRef: text('project_ref').notNull(),
+  projectId: text('project_id')
+    .notNull()
+    .references(() => projects.id),
   data: text('data', { mode: 'json' }).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),

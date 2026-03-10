@@ -439,7 +439,7 @@ export default defineStore('smilestore', {
       try {
         const { id } = await $fetch('/api/participants', {
           method: 'POST',
-          body: { data: this.data, projectRef: appconfig.projectRef },
+          body: { data: this.data },
         })
         this.cookieState.participantId = id
         const { id: privateId } = await $fetch(`/api/participants/${id}/private`, {
