@@ -58,7 +58,7 @@ test.describe('Stepper persistence across page reload', () => {
 
     // Record starting stepper index
     const stateBefore = await getStepperState(page, 'stroop')
-    const indexBefore = stateBefore.currentIndex
+    const _indexBefore = stateBefore.currentIndex
 
     // Complete a couple of trials by pressing a key (r/g/b)
     await page.keyboard.press('r')
@@ -256,7 +256,7 @@ test.describe('Stepper persistence across page reload', () => {
     await page.keyboard.press('r')
     await page.waitForTimeout(300)
 
-    const stateAfterFirst = await getStepperState(page, 'stroop')
+    const _stateAfterFirst = await getStepperState(page, 'stroop')
 
     // First reload
     await page.reload()

@@ -15,7 +15,8 @@ api.steps.append([
 function nextStep() {
   if (api.hasNextStep()) {
     api.goNextStep()
-  } else {
+  }
+  else {
     api.goNextView()
   }
 }
@@ -29,7 +30,10 @@ function nextStep() {
     :height="api.config.windowsizerRequest?.height"
   >
     <div class="text-center p-8">
-      <p id="step-label" class="text-lg mb-4">
+      <p
+        id="step-label"
+        class="text-lg mb-4"
+      >
         {{ api.stepData?.label || 'No label' }}
       </p>
 
@@ -39,7 +43,10 @@ function nextStep() {
         v-if="api.dataAlongPath?.[api.dataAlongPath.length - 1]?.type"
       />
 
-      <p id="step-index" class="text-sm text-muted-foreground mt-4">
+      <p
+        id="step-index"
+        class="text-sm text-muted-foreground mt-4"
+      >
         Step {{ api.stepIndex + 1 }} of {{ api.nSteps }}
       </p>
 

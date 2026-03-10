@@ -302,7 +302,10 @@ watch(
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger class="ml-1" style="color: var(--step-label-color)">
+            <TooltipTrigger
+              class="ml-1"
+              style="color: var(--step-label-color)"
+            >
               ({{ api.blockIndex }}/{{ api.blockLength }})
             </TooltipTrigger>
             <TooltipContent side="bottom">

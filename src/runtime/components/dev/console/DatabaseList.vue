@@ -191,5 +191,4 @@ function option_selected(option) {
   color: var(--data-key-color);
   font-weight: 400;
 }
-
 </style>
