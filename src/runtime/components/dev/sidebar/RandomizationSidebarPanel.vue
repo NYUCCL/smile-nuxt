@@ -66,7 +66,10 @@ watch(
  * @returns {string} The branch type character
  */
 const getBranchType = (index, total) => {
-  if (index === 0) {
+  if (total === 1) {
+    return '── '
+  }
+  else if (index === 0) {
     return '┌─ '
   }
   else if (index === total - 1) {
