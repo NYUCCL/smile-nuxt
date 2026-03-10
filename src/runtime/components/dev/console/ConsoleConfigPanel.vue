@@ -167,7 +167,7 @@ function _resetDevState() {
           Read more about configuration options
           <a
             href="https://smile.gureckislab.org/configuration.html"
-            class="text-blue-600 underline ml-1"
+            class="text-link-button-foreground underline ml-1"
           >in the docs</a>.
         </div>
       </div>

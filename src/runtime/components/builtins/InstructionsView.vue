@@ -63,7 +63,7 @@ function finish(_goto) {
       </p>
 
       <!-- Visual separator -->
-      <hr class="border-gray-300 my-4">
+      <hr class="border-muted-foreground/30 my-4">
 
       <!-- Navigation button container -->
       <div class="flex justify-end">

@@ -39,7 +39,7 @@ function finish() {
       </h1>
 
       <!-- Visual separator -->
-      <hr class="border-gray-300 my-4">
+      <hr class="border-muted-foreground/30 my-4">
 
       <!-- Navigation controls -->
       <div class="flex justify-end">

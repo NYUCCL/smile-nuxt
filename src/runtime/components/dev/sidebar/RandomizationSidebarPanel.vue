@@ -166,7 +166,7 @@ const getBranchType = (index, total) => {
                 :key="key"
               >
                 <li class="flex items-center mb-0 ml-0.5 mt-1">
-                  <span class="font-mono text-sm text-gray-500 whitespace-pre mr-0">{{
+                  <span class="font-mono text-sm text-muted-foreground whitespace-pre mr-0">{{
                     getBranchType(index, Object.keys(smilestore.localState.possibleConditions).length)
                   }}</span>
                   <Select

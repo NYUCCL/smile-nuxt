@@ -42,7 +42,7 @@ defineProps({
     <div class="flex items-center justify-center flex-1 min-w-0 px-2 py-1 rounded">
       <div class="flex items-center space-x-2">
         <!-- Middle content placeholder -->
-        <div class="text-xs text-gray-600">
+        <div class="text-xs text-muted-foreground">
           <!-- Middle content placeholder -->
         </div>
       </div>
@@ -50,7 +50,7 @@ defineProps({
 
     <!-- Right section - Control buttons -->
     <div class="flex items-center flex-shrink-0 px-1 py-1 rounded">
-      <div class="flex items-center space-x-2.5 border-gray-300 pl-4 rounded-l">
+      <div class="flex items-center space-x-2.5 border-border pl-4 rounded-l">
         <!-- Logout button (only when authenticated) -->
         <div class="flex items-center">
           <LogoutButton />
