@@ -41,7 +41,7 @@ test.describe('Participant API auth', () => {
 
   test('POST /api/participants sets smile_participant cookie', async ({ request }) => {
     const res = await request.post('/api/participants', {
-      data: { data: { test: true }, projectRef: 'test' },
+      data: { data: { test: true } },
     })
     expect(res.ok()).toBe(true)
     const body = await res.json()
@@ -51,28 +51,30 @@ test.describe('Participant API auth', () => {
     const setCookieHeader = res.headers()['set-cookie']
     expect(setCookieHeader).toBeDefined()
     expect(setCookieHeader).toContain('smile_participant=')
-    expect(setCookieHeader).toContain('httponly')
+    expect(setCookieHeader!.toLowerCase()).toContain('httponly')
   })
 
-  test('GET /api/participants/:id returns 403 without cookie', async ({ request }) => {
+  test('GET /api/participants/:id returns 403 without cookie', async ({ playwright }) => {
     // Create a participant first
-    const createRes = await request.post('/api/participants', {
-      data: { data: { test: true }, projectRef: 'test' },
+    const authedContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const createRes = await authedContext.post('/api/participants', {
+      data: { data: { test: true } },
     })
     const { id } = await createRes.json()
     createdIds.push(id)
 
     // Try to GET with a fresh context (no cookies)
-    const context = await request.newContext()
-    const res = await context.get(`/api/participants/${id}`)
+    const anonContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const res = await anonContext.get(`/api/participants/${id}`)
     expect(res.status()).toBe(403)
-    await context.dispose()
+    await authedContext.dispose()
+    await anonContext.dispose()
   })
 
   test('GET /api/participants/:id succeeds with valid cookie', async ({ request }) => {
     // Create a participant (this sets the cookie on the request context)
     const createRes = await request.post('/api/participants', {
-      data: { data: { test: true }, projectRef: 'test' },
+      data: { data: { test: true } },
     })
     const { id } = await createRes.json()
     createdIds.push(id)
@@ -82,68 +84,75 @@ test.describe('Participant API auth', () => {
     expect(res.ok()).toBe(true)
   })
 
-  test('PATCH /api/participants/:id returns 403 without cookie', async ({ request }) => {
-    const createRes = await request.post('/api/participants', {
-      data: { data: { test: true }, projectRef: 'test' },
+  test('PATCH /api/participants/:id returns 403 without cookie', async ({ playwright }) => {
+    const authedContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const createRes = await authedContext.post('/api/participants', {
+      data: { data: { test: true } },
     })
     const { id } = await createRes.json()
     createdIds.push(id)
 
-    const context = await request.newContext()
-    const res = await context.patch(`/api/participants/${id}`, {
+    const anonContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const res = await anonContext.patch(`/api/participants/${id}`, {
       data: { data: { modified: true } },
     })
     expect(res.status()).toBe(403)
-    await context.dispose()
+    await authedContext.dispose()
+    await anonContext.dispose()
   })
 
-  test('POST /api/participants/:id/private returns 403 without cookie', async ({ request }) => {
-    const createRes = await request.post('/api/participants', {
-      data: { data: { test: true }, projectRef: 'test' },
+  test('POST /api/participants/:id/private returns 403 without cookie', async ({ playwright }) => {
+    const authedContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const createRes = await authedContext.post('/api/participants', {
+      data: { data: { test: true } },
     })
     const { id } = await createRes.json()
     createdIds.push(id)
 
-    const context = await request.newContext()
-    const res = await context.post(`/api/participants/${id}/private`, {
+    const anonContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const res = await anonContext.post(`/api/participants/${id}/private`, {
       data: { data: { secret: 'value' } },
     })
     expect(res.status()).toBe(403)
-    await context.dispose()
+    await authedContext.dispose()
+    await anonContext.dispose()
   })
 
-  test('PATCH /api/participants/:id/private returns 403 without cookie', async ({ request }) => {
+  test('PATCH /api/participants/:id/private returns 403 without cookie', async ({ playwright }) => {
     // Create participant and private data with valid cookie
-    const createRes = await request.post('/api/participants', {
-      data: { data: { test: true }, projectRef: 'test' },
+    const authedContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const createRes = await authedContext.post('/api/participants', {
+      data: { data: { test: true } },
     })
     const { id } = await createRes.json()
     createdIds.push(id)
-    await request.post(`/api/participants/${id}/private`, {
+    await authedContext.post(`/api/participants/${id}/private`, {
       data: { data: { secret: 'value' } },
     })
 
     // Try to PATCH without cookie
-    const context = await request.newContext()
-    const res = await context.patch(`/api/participants/${id}/private`, {
+    const anonContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const res = await anonContext.patch(`/api/participants/${id}/private`, {
       data: { data: { secret: 'hacked' } },
     })
     expect(res.status()).toBe(403)
-    await context.dispose()
+    await authedContext.dispose()
+    await anonContext.dispose()
   })
 
-  test('cannot access another participant with wrong cookie', async ({ request }) => {
+  test('cannot access another participant with wrong cookie', async ({ playwright }) => {
     // Create participant A
-    const resA = await request.post('/api/participants', {
-      data: { data: { user: 'A' }, projectRef: 'test' },
+    const contextA = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const resA = await contextA.post('/api/participants', {
+      data: { data: { user: 'A' } },
     })
     const { id: idA } = await resA.json()
     createdIds.push(idA)
 
     // Create participant B in a new context
-    const contextB = await request.newContext()
+    const contextB = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
     const resB = await contextB.post('/api/participants', {
-      data: { data: { user: 'B' }, projectRef: 'test' },
+      data: { data: { user: 'B' } },
     })
     const { id: idB } = await resB.json()
     createdIds.push(idB)
@@ -152,25 +161,29 @@ test.describe('Participant API auth', () => {
     const crossRes = await contextB.get(`/api/participants/${idA}`)
     expect(crossRes.status()).toBe(403)
 
+    await contextA.dispose()
     await contextB.dispose()
   })
 
-  test('forged cookie with raw UUID is rejected', async ({ request }) => {
-    const createRes = await request.post('/api/participants', {
-      data: { data: { test: true }, projectRef: 'test' },
+  test('forged cookie with raw UUID is rejected', async ({ playwright }) => {
+    const authedContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const createRes = await authedContext.post('/api/participants', {
+      data: { data: { test: true } },
     })
     const { id } = await createRes.json()
     createdIds.push(id)
 
     // Try with a forged cookie (just the UUID, no HMAC signature)
-    const context = await request.newContext({
+    const forgedContext = await playwright.request.newContext({
+      baseURL: 'http://localhost:3000',
       extraHTTPHeaders: {
         Cookie: `smile_participant=${id}`,
       },
     })
-    const res = await context.get(`/api/participants/${id}`)
+    const res = await forgedContext.get(`/api/participants/${id}`)
     expect(res.status()).toBe(403)
-    await context.dispose()
+    await authedContext.dispose()
+    await forgedContext.dispose()
   })
 })
 
