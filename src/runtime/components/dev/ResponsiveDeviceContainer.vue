@@ -1,6 +1,6 @@
 <script setup>
 import { Maximize, Moon, RotateCcw, Sun, SunMoon } from 'lucide-vue-next'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import ResponsiveDeviceSelect from './menu/ResponsiveDeviceSelect.vue'
 import { useElementSize } from '@vueuse/core'
 
@@ -11,7 +11,16 @@ import { useSmileColorMode } from '../../composables/useColorMode'
 const api = useAPI()
 
 const fullScreenDiv = ref(null)
-const { width: _fullScreenWidth, height: _fullScreenHeight } = useElementSize(fullScreenDiv)
+const { width: fullScreenWidth, height: fullScreenHeight } = useElementSize(fullScreenDiv)
+
+// In fullscreen mode, sync the actual content area size to the store
+// so useWindowSizer can check against the real available space
+watch([fullScreenWidth, fullScreenHeight], ([w, h]) => {
+  if (api.store.dev.isFullscreen && w > 0 && h > 0) {
+    api.store.dev.deviceWidth = Math.round(w)
+    api.store.dev.deviceHeight = Math.round(h)
+  }
+})
 
 const {
   state: experimentColorMode,

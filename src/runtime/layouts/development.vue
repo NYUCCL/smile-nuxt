@@ -9,8 +9,10 @@ import DevConsole from '#smile-dev/console/SmileDevConsole.vue'
 import DevSideBar from '#smile-dev/sidebar/SmileDevSideBar.vue'
 import ResponsiveDeviceContainer from '#smile-dev/ResponsiveDeviceContainer.vue'
 import SmileDevPresentationView from '#smile-dev/SmileDevPresentationView.vue'
+import useWindowSizer from '#smile-composables/useWindowSizer'
 
 const api = useAPI()
+const { showAggressiveOverlay } = useWindowSizer({ useDeviceContainer: true })
 
 const height_pct = computed(() => `${api.store.dev.consoleBarHeight}px`)
 
@@ -74,7 +76,7 @@ const isLoading = computed(() => {
               <!-- Main content area with console -->
               <div class="content-and-console">
                 <!-- Main content - scrollable experiment container -->
-                <div class="main-content @container bg-background text-foreground">
+                <div class="main-content @container bg-background text-foreground relative">
                   <!-- Loading state -->
                   <div
                     v-if="isLoading"
@@ -86,7 +88,11 @@ const isLoading = computed(() => {
                   <!-- Experiment content via slot -->
                   <template v-else>
                     <ResponsiveDeviceContainer>
-                      <slot />
+                      <WindowSizerView
+                        v-if="showAggressiveOverlay"
+                        triggered
+                      />
+                      <slot v-else />
                     </ResponsiveDeviceContainer>
                   </template>
                 </div>
