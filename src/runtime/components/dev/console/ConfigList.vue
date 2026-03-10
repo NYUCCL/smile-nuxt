@@ -49,7 +49,7 @@ const data_field = computed(() => {
     const pieces = props.data.split('.')
     let view_data = api.all_config
     for (let i = 0; i < pieces.length; i++) {
-      if (view_data[pieces[i]]) {
+      if (view_data != null && typeof view_data === 'object' && pieces[i] in view_data) {
         view_data = view_data[pieces[i]]
       }
     }
@@ -67,9 +67,10 @@ const data_field = computed(() => {
  * @returns {string} Truncated text
  */
 function truncateText(text, maxLength = 30) {
-  if (!text) return text
-  if (text.length <= maxLength) return text
-  return text.substring(0, maxLength) + '...'
+  if (text === null || text === undefined) return text
+  const str = String(text)
+  if (str.length <= maxLength) return str
+  return str.substring(0, maxLength) + '...'
 }
 
 /**
@@ -187,5 +188,4 @@ function option_selected(option) {
   color: var(--data-key-color);
   font-weight: 400;
 }
-
 </style>

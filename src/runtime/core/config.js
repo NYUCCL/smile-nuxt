@@ -101,19 +101,6 @@ export default {
   windowsizerAggressive: import.meta.env.VITE_WINDOWSIZER_AGGRESSIVE === 'true',
   anonymousMode: import.meta.env.VITE_ANONYMOUS_MODE === 'true',
   unpaidStudy: import.meta.env.VITE_UNPAID_STUDY === 'true',
-  sona: {
-    url: import.meta.env.VITE_SONA_URL,
-    experimentId: import.meta.env.VITE_SONA_EXPERIMENT_ID,
-    creditToken: import.meta.env.VITE_SONA_CREDIT_TOKEN,
-  },
-  sonaPaid: {
-    url: import.meta.env.VITE_SONA_PAID_URL,
-    experimentId: import.meta.env.VITE_SONA_PAID_EXPERIMENT_ID,
-    creditToken: import.meta.env.VITE_SONA_PAID_CREDIT_TOKEN,
-  },
-  spark: {
-    completionUrl: 'https://spark.hartleylab.org/completed',
-  },
   firebaseConfig: {
     apiKey: import.meta.env.VITE_FIREBASE_APIKEY,
     authDomain: import.meta.env.VITE_FIREBASE_AUTHDOMAIN,

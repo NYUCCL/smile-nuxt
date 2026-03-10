@@ -336,7 +336,7 @@ onMounted(() => {
               <Button
                 variant="default"
                 as="a"
-                :href="`${api.config.sona.url}/webstudy_credit.aspx?experiment_id=${api.config.sona.experimentId}&credit_token=${api.config.sona.creditToken}&survey_code=${api.store.private.recruitmentInfo.survey_code}`"
+                :href="`${api.store.private.recruitmentInfo.url}/webstudy_credit.aspx?experiment_id=${api.store.private.recruitmentInfo.experimentId}&credit_token=${api.store.private.recruitmentInfo.creditToken}&survey_code=${api.store.private.recruitmentInfo.survey_code}`"
               >
                 Return to SONA for credit
                 <ArrowRight />
@@ -377,7 +377,7 @@ onMounted(() => {
               <Button
                 variant="default"
                 as="a"
-                :href="`${api.config.sonaPaid.url}/webstudy_credit.aspx?experiment_id=${api.config.sonaPaid.experimentId}&credit_token=${api.config.sonaPaid.creditToken}&survey_code=${api.store.private.recruitmentInfo.survey_code}`"
+                :href="`${api.store.private.recruitmentInfo.url}/webstudy_credit.aspx?experiment_id=${api.store.private.recruitmentInfo.experimentId}&credit_token=${api.store.private.recruitmentInfo.creditToken}&survey_code=${api.store.private.recruitmentInfo.survey_code}`"
               >
                 Return to SONA for payment
                 <ArrowRight />
@@ -418,7 +418,7 @@ onMounted(() => {
               <Button
                 variant="default"
                 as="a"
-                :href="`${api.config.spark.completionUrl}/${api.store.private.recruitmentInfo.subject_ID}`"
+                :href="`${api.store.private.recruitmentInfo.completionUrl}/${api.store.private.recruitmentInfo.subject_ID}`"
               >
                 Return to SPARK
                 <ArrowRight />

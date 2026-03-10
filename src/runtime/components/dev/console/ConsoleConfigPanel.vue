@@ -102,6 +102,24 @@ function panel2_select(option) {
  * @param {string} option - Selected option key
  */
 function panel3_select(option) {
+  // Navigate to the selected item and check if it's a navigable object
+  const currentPath = panel_path(0)
+  if (currentPath) {
+    const pieces = currentPath.split('.')
+    let view_data = api.all_config
+    for (let i = 0; i < pieces.length; i++) {
+      if (view_data != null && typeof view_data === 'object' && pieces[i] in view_data) {
+        view_data = view_data[pieces[i]]
+      }
+    }
+    // Only navigate deeper if the selected item is a non-null object
+    if (view_data != null && typeof view_data === 'object' && option in view_data) {
+      const child = view_data[option]
+      if (child == null || typeof child !== 'object') {
+        return // Don't navigate into primitive values
+      }
+    }
+  }
   browse_panels.path.push(String(option))
   save_path()
 }

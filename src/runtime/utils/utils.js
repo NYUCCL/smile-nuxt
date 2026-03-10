@@ -115,12 +115,18 @@ export function processQuery(query, service) {
     log.log('SONA (credit) mode')
     smilestore.setRecruitmentService(service, {
       survey_code: urlParams.survey_code,
+      url: import.meta.env.VITE_SONA_URL,
+      experimentId: import.meta.env.VITE_SONA_EXPERIMENT_ID,
+      creditToken: import.meta.env.VITE_SONA_CREDIT_TOKEN,
     })
   }
   else if (service === 'sona_paid' && urlParams.survey_code) {
     log.log('SONA (paid) mode')
     smilestore.setRecruitmentService(service, {
       survey_code: urlParams.survey_code,
+      url: import.meta.env.VITE_SONA_PAID_URL,
+      experimentId: import.meta.env.VITE_SONA_PAID_EXPERIMENT_ID,
+      creditToken: import.meta.env.VITE_SONA_PAID_CREDIT_TOKEN,
     })
   }
   else if (service === 'spark' && urlParams.subject_ID) {
@@ -130,6 +136,7 @@ export function processQuery(query, service) {
       participant_ID: urlParams.participant_ID,
       age: urlParams.age,
       gender: urlParams.gender,
+      completionUrl: 'https://spark.hartleylab.org/completed',
     })
   }
   else if (service === 'panda' && urlParams.ID) {
