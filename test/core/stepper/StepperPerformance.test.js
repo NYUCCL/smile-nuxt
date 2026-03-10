@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-
-const isCI = !!process.env.CI
 import { setActivePinia } from 'pinia'
 import { createTestingPinia } from '@pinia/testing'
 import { Stepper } from '@/core/stepper/Stepper'
 import { StepState } from '@/core/stepper/StepState'
+
+const isCI = !!process.env.CI
 
 /**
  * Performance tests for large stepper tables.
