@@ -144,7 +144,7 @@ const colorMode = computed(() => {
                   size="xs"
                   @click="toggleRotation"
                 >
-                  <RotateCcw :class="{ 'text-blue-400': api.store.dev.isRotated }" />
+                  <RotateCcw :class="{ 'text-link-button-foreground': api.store.dev.isRotated }" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
@@ -355,7 +355,7 @@ const colorMode = computed(() => {
 
 .resize-handle {
   position: absolute;
-  background: #8f8f8f;
+  background: var(--resize-handle);
   border-radius: 20px;
   transition: all 0.2s;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -363,12 +363,12 @@ const colorMode = computed(() => {
 }
 
 .resize-handle:hover {
-  background: #90b7e5;
+  background: var(--resize-handle-hover);
   transform: scale(1.1);
 }
 
 .resize-handle:active {
-  background: #90b7e5;
+  background: var(--resize-handle-hover);
   transform: scale(1.05);
 }
 

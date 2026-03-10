@@ -15,23 +15,23 @@ const api = useAPI()
     >
       <StepperSeparator
         class="absolute left-[calc(50%+20px)] right-[calc(-50%+10px)] top-5 block h-0.5 shrink-0 rounded-full bg-muted"
-        :class="[api.store.cookieState.knownUser ? 'bg-green-500' : 'bg-gray-300']"
+        :class="[api.store.cookieState.knownUser ? 'bg-status-green-fill' : '']"
       />
 
       <StepperTrigger as-child>
         <div
           class="z-10 rounded-full shrink-0 p-3"
-          :class="[api.store.cookieState.knownUser ? 'bg-green-200' : 'bg-muted']"
+          :class="[api.store.cookieState.knownUser ? 'bg-status-green-bg' : 'bg-muted']"
         >
           <UserMinus
-            :class="[api.store.cookieState.knownUser ? 'text-green-500' : 'text-gray-500']"
+            :class="[api.store.cookieState.knownUser ? 'text-status-green-text' : 'text-muted-foreground']"
           />
         </div>
       </StepperTrigger>
 
       <div class="flex flex-col items-center text-center">
         <StepperDescription
-          :class="[api.store.cookieState.knownUser ? 'text-green-500' : 'text-gray-500']"
+          :class="[api.store.cookieState.knownUser ? 'text-status-green-text' : 'text-muted-foreground']"
           class="text-[0.6rem] text-muted-foreground transition font-mono"
         >
           {{ api.store.cookieState.knownUser ? 'Known user' : 'Unknown user' }}
@@ -48,26 +48,26 @@ const api = useAPI()
         class="absolute left-[calc(50%+20px)] right-[calc(-50%+10px)] top-5 block h-0.5 shrink-0 rounded-full bg-muted"
         :class="[
           api.store.browserEphemeral.dataLoaded && !api.store.browserEphemeral.unsavedChanges
-            ? 'bg-green-500'
+            ? 'bg-status-green-fill'
             : api.store.browserEphemeral.dataLoaded && api.store.browserEphemeral.unsavedChanges
-              ? 'bg-yellow-500'
-              : 'bg-gray-300',
+              ? 'bg-status-yellow-fill'
+              : '',
         ]"
       />
 
       <StepperTrigger as-child>
         <div
           class="z-10 rounded-full shrink-0 p-3 cursor-pointer"
-          :class="[api.store.browserEphemeral.dataLoaded ? 'bg-green-200' : 'bg-muted']"
+          :class="[api.store.browserEphemeral.dataLoaded ? 'bg-status-green-bg' : 'bg-muted']"
           @click="api.connectDB()"
         >
-          <Database :class="[api.store.browserEphemeral.dataLoaded ? 'text-green-500' : 'text-gray-500']" />
+          <Database :class="[api.store.browserEphemeral.dataLoaded ? 'text-status-green-text' : 'text-muted-foreground']" />
         </div>
       </StepperTrigger>
 
       <div class="flex flex-col items-center text-center">
         <StepperDescription
-          :class="[api.store.browserEphemeral.dataLoaded ? 'text-green-500' : 'text-gray-500']"
+          :class="[api.store.browserEphemeral.dataLoaded ? 'text-status-green-text' : 'text-muted-foreground']"
           class="text-[0.6rem] text-muted-foreground transition font-mono"
         >
           {{ api.store.browserEphemeral.dataLoaded ? 'Record created' : 'No record yet' }}
@@ -85,19 +85,19 @@ const api = useAPI()
           class="z-10 rounded-full shrink-0 p-3"
           :class="[
             api.store.browserEphemeral.dataLoaded && !api.store.browserEphemeral.unsavedChanges
-              ? 'bg-green-200'
+              ? 'bg-status-green-bg'
               : api.store.browserEphemeral.dataLoaded && api.store.browserEphemeral.unsavedChanges
-                ? 'bg-amber-100'
+                ? 'bg-status-yellow-bg'
                 : 'bg-muted',
           ]"
         >
           <CloudUpload
             :class="[
               api.store.browserEphemeral.dataLoaded && !api.store.browserEphemeral.unsavedChanges
-                ? 'text-green-500'
+                ? 'text-status-green-text'
                 : api.store.browserEphemeral.dataLoaded && api.store.browserEphemeral.unsavedChanges
-                  ? 'text-yellow-500'
-                  : 'text-gray-500',
+                  ? 'text-status-yellow-text'
+                  : 'text-muted-foreground',
             ]"
           />
         </div>
@@ -107,10 +107,10 @@ const api = useAPI()
         <StepperDescription
           :class="[
             api.store.browserEphemeral.dataLoaded && !api.store.browserEphemeral.unsavedChanges
-              ? 'text-green-500'
+              ? 'text-status-green-text'
               : api.store.browserEphemeral.dataLoaded && api.store.browserEphemeral.unsavedChanges
-                ? 'text-red-500'
-                : 'text-gray-500',
+                ? 'text-status-red-text'
+                : 'text-muted-foreground',
           ]"
           class="text-[0.6rem] text-muted-foreground transition font-mono"
         >

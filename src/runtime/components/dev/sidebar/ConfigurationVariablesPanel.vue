@@ -107,7 +107,7 @@ const colorModeDisplayText = computed(() => {
           <td
             class="table-cell-base table-cell-left table-cell-small font-mono"
             :class="{
-              'bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-400': api.store.browserEphemeral.tooSmall,
+              'bg-danger-button-light text-danger-button-light-foreground': api.store.browserEphemeral.tooSmall,
             }"
             colspan="4"
           >

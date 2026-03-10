@@ -67,13 +67,13 @@ function getBgClass(msg) {
     case 'log':
       return 'bg-background'
     case 'warn':
-      return 'bg-yellow-100'
+      return 'log-bg-warn'
     case 'error':
-      return 'bg-red-100'
+      return 'log-bg-error'
     case 'debug':
       return 'bg-muted text-muted-foreground'
     case 'success':
-      return 'bg-green-100'
+      return 'log-bg-success'
     default:
       return 'bg-background'
   }
@@ -339,16 +339,16 @@ function getBgClass(msg) {
   border-color: var(--dev-lines);
 }
 
-/* Keep semantic colors for log types but make them theme-aware */
-.bg-yellow-100 {
+/* Semantic log type background colors */
+.log-bg-warn {
   background-color: var(--log-yellow);
 }
 
-.bg-red-100 {
+.log-bg-error {
   background-color: var(--log-red);
 }
 
-.bg-green-100 {
+.log-bg-success {
   background-color: var(--log-green);
 }
 </style>

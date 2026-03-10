@@ -99,6 +99,14 @@
   --color-dev-bg: var(--dev-bg);
   --color-dev-bg-contrast: var(--dev-bg-contrast);
 
+  --color-status-green-bg: var(--status-green-bg);
+  --color-status-green-text: var(--status-green-text);
+  --color-status-green-fill: var(--status-green-fill);
+  --color-status-yellow-bg: var(--status-yellow-bg);
+  --color-status-yellow-text: var(--status-yellow-text);
+  --color-status-yellow-fill: var(--status-yellow-fill);
+  --color-status-red-text: var(--status-red-text);
+
   --page-bg-color: var(--background);
   --page-text-color: var(--foreground);
 }
@@ -210,6 +218,19 @@
   --dev-brand-bg: oklch(0.85 0.06 210);
   --dev-brand-text: var(--foreground);
 
+  /* Status indicator colors */
+  --status-green-bg: oklch(0.93 0.08 142);
+  --status-green-text: oklch(0.55 0.18 142);
+  --status-green-fill: oklch(0.65 0.2 142);
+  --status-yellow-bg: oklch(0.93 0.08 85);
+  --status-yellow-text: oklch(0.65 0.18 70);
+  --status-yellow-fill: oklch(0.72 0.2 70);
+  --status-red-text: var(--destructive);
+
+  /* Resize handle colors */
+  --resize-handle: oklch(0.6 0 0);
+  --resize-handle-hover: oklch(0.65 0.1 230);
+
   /* Log colors */
   --log-yellow: oklch(0.985 0 0);
   --log-red: oklch(0.985 0 0);
@@ -257,10 +278,10 @@
   --sidebar-ring: oklch(0.442 0.017 285.786);
 
   /* Button variant colors - Dark mode */
-  --primary-button: oklch(0.488 0.243 264.376);
+  --primary-button: oklch(0.65 0.15 200);
   --primary-button-foreground: oklch(0.985 0 0);
-  --primary-button-light: oklch(0.3 0.1 264.376);
-  --primary-button-light-foreground: oklch(0.8 0.15 264.376);
+  --primary-button-light: oklch(0.3 0.1 200);
+  --primary-button-light-foreground: oklch(0.8 0.15 200);
   --link-button: oklch(0.7 0.15 195);
   --link-button-foreground: oklch(0.7 0.15 195);
   --link-button-light: oklch(0.3 0.1 264.376);
@@ -317,6 +338,19 @@
   /* Dev brand button (sidebar logo) */
   --dev-brand-bg: oklch(0.7 0.1 142);
   --dev-brand-text: oklch(0.15 0 0);
+
+  /* Status indicator colors */
+  --status-green-bg: oklch(0.3 0.1 142);
+  --status-green-text: oklch(0.7 0.18 142);
+  --status-green-fill: oklch(0.65 0.2 142);
+  --status-yellow-bg: oklch(0.35 0.1 70);
+  --status-yellow-text: oklch(0.8 0.2 70);
+  --status-yellow-fill: oklch(0.75 0.2 70);
+  --status-red-text: var(--destructive-foreground);
+
+  /* Resize handle colors */
+  --resize-handle: oklch(0.5 0 0);
+  --resize-handle-hover: oklch(0.6 0.1 230);
 
   /* Log colors */
   --log-yellow: #adaa5b;
