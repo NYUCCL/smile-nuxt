@@ -17,7 +17,9 @@ const { showAggressiveOverlay } = useWindowSizer({ useDeviceContainer: true })
 const height_pct = computed(() => `${api.store.dev.consoleBarHeight}px`)
 
 const mounted = ref(false)
-onMounted(() => { mounted.value = true })
+onMounted(() => {
+  mounted.value = true
+})
 
 const isLoading = computed(() => {
   return !mounted.value

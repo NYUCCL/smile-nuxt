@@ -6,7 +6,9 @@ import PresentationNavBar from '#smile-dev/presentation/PresentationNavBar.vue'
 const api = useAPI()
 
 const mounted = ref(false)
-onMounted(() => { mounted.value = true })
+onMounted(() => {
+  mounted.value = true
+})
 
 const isLoading = computed(() => {
   return !mounted.value
