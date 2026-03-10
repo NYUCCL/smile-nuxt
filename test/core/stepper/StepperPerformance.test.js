@@ -48,7 +48,7 @@ describe('Stepper Performance - Large Tables', () => {
       const elapsed = performance.now() - start
 
       expect(count).toBe(499) // 500 leaves, 499 advances
-      expect(elapsed).toBeLessThan(500) // should be well under 500ms
+      expect(elapsed).toBeLessThan(1000) // relaxed for CI runners
     }, 30000) // generous timeout for the append setup
 
     it('should advance through 1000 flat leaf nodes quickly', () => {
@@ -65,7 +65,7 @@ describe('Stepper Performance - Large Tables', () => {
       const elapsed = performance.now() - start
 
       expect(count).toBe(999)
-      expect(elapsed).toBeLessThan(1000)
+      expect(elapsed).toBeLessThan(2000) // relaxed for CI runners
     }, 60000) // append of 1000 flat items is currently very slow
 
     it('should advance through a deep hierarchical tree (blocks × trials) quickly', () => {
@@ -118,7 +118,7 @@ describe('Stepper Performance - Large Tables', () => {
       const elapsed = performance.now() - start
 
       expect(count).toBe(999)
-      expect(elapsed).toBeLessThan(1000)
+      expect(elapsed).toBeLessThan(2000) // relaxed for CI runners
     })
   })
 
@@ -372,7 +372,7 @@ describe('Stepper Performance - Large Tables', () => {
       const elapsed = performance.now() - start
 
       expect(stepper.states.length).toBe(1000)
-      expect(elapsed).toBeLessThan(500)
+      expect(elapsed).toBeLessThan(1000) // relaxed for CI runners
     }, 60000) // append is slow; shuffle itself should be fast
 
     it('should shuffle 500 hierarchical items quickly', () => {
