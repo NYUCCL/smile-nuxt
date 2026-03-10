@@ -469,10 +469,10 @@ export default defineStore('smilestore', {
           }
         }
         catch (err) {
-          if (err?.statusCode === 404) {
-            // User in cookie but not in DB — reset everything
+          if (err?.statusCode === 404 || err?.statusCode === 403) {
+            // User in cookie but not in DB or token invalid — reset everything
             const log = useLog()
-            log.warn('SMILESTORE: Participant not found in DB, resetting to new user')
+            log.warn('SMILESTORE: Participant not found or token invalid, resetting to new user')
             this.resetOrphanedUser()
           }
           else {
@@ -569,7 +569,13 @@ export default defineStore('smilestore', {
           log.success('SMILESTORE: saveData() successful (force = ' + force + ')')
         }
         catch (err) {
-          log.error('SMILESTORE: error saving data: ' + err)
+          if (err?.statusCode === 403) {
+            log.warn('SMILESTORE: Participant token invalid during save, resetting to new user')
+            this.resetOrphanedUser()
+          }
+          else {
+            log.error('SMILESTORE: error saving data: ' + err)
+          }
         }
       }
       else if (!this.data.consented && !this.cookieState.consented) {
