@@ -81,7 +81,7 @@ const initDev = {
 const initCookieState = {
   knownUser: false,
   lastRoute: 'landing',
-  docRef: null,
+  participantId: null,
   completionCode: null,
   consented: false,
   withdrawn: false,
@@ -96,7 +96,7 @@ const initCookieState = {
  * localStorage on load and watches for changes to write back.
  */
 const initLocalState = {
-  privateDocRef: null,
+  privateDataId: null,
   verifiedVisibility: false,
   reset: false,
   totalWrites: 0,
@@ -159,7 +159,7 @@ export default defineStore('smilestore', {
     const cookieState = {
       knownUser: useCookie(`${prefix}knownUser`, { default: () => false, maxAge: COOKIE_MAX_AGE }).value ?? false,
       lastRoute: useCookie(`${prefix}lastRoute`, { default: () => 'landing', maxAge: COOKIE_MAX_AGE }).value ?? 'landing',
-      docRef: useCookie(`${prefix}docRef`, { default: () => null, maxAge: COOKIE_MAX_AGE }).value ?? null,
+      participantId: useCookie(`${prefix}participantId`, { default: () => null, maxAge: COOKIE_MAX_AGE }).value ?? null,
       completionCode: useCookie(`${prefix}completionCode`, { default: () => null, maxAge: COOKIE_MAX_AGE }).value ?? null,
       consented: useCookie(`${prefix}consented`, { default: () => false, maxAge: COOKIE_MAX_AGE }).value ?? false,
       withdrawn: useCookie(`${prefix}withdrawn`, { default: () => false, maxAge: COOKIE_MAX_AGE }).value ?? false,
@@ -236,8 +236,8 @@ export default defineStore('smilestore', {
       return pageDataFields
     },
     getShortId: (state) => {
-      if (!state.cookieState.docRef || typeof state.cookieState.docRef !== 'string') return 'N/A'
-      return `${state.cookieState.docRef.substring(0, 10)}`
+      if (!state.cookieState.participantId || typeof state.cookieState.participantId !== 'string') return 'N/A'
+      return `${state.cookieState.participantId.substring(0, 10)}`
     },
   },
 
@@ -441,12 +441,12 @@ export default defineStore('smilestore', {
           method: 'POST',
           body: { data: this.data, projectRef: appconfig.projectRef },
         })
-        this.cookieState.docRef = id
+        this.cookieState.participantId = id
         const { id: privateId } = await $fetch(`/api/participants/${id}/private`, {
           method: 'POST',
           body: { data: this.private },
         })
-        this.localState.privateDocRef = privateId
+        this.localState.privateDataId = privateId
         this.setDataLoaded()
       }
       catch (err) {
@@ -455,9 +455,9 @@ export default defineStore('smilestore', {
     },
 
     async loadData() {
-      if (this.cookieState.docRef) {
+      if (this.cookieState.participantId) {
         try {
-          const result = await $fetch(`/api/participants/${this.cookieState.docRef}`)
+          const result = await $fetch(`/api/participants/${this.cookieState.participantId}`)
           if (result?.data) {
             this.data = result.data
             this.localState.approxDataSize = JSON.stringify(result.data).length
@@ -552,12 +552,12 @@ export default defineStore('smilestore', {
         }
 
         try {
-          await $fetch(`/api/participants/${this.cookieState.docRef}`, {
+          await $fetch(`/api/participants/${this.cookieState.participantId}`, {
             method: 'PATCH',
             body: { data: this.data },
           })
-          if (this.localState.privateDocRef) {
-            await $fetch(`/api/participants/${this.cookieState.docRef}/private`, {
+          if (this.localState.privateDataId) {
+            await $fetch(`/api/participants/${this.cookieState.participantId}/private`, {
               method: 'PATCH',
               body: { data: this.private },
             })

@@ -206,12 +206,12 @@ test.describe('Database persistence', () => {
     expect(dbRouteNames).toContain('consent')
     expect(dbRouteNames).toContain('demograph')
 
-    // Verify the participant ID was written to a cookie (docRef)
+    // Verify the participant ID was written to a cookie
     const cookies = await page.context().cookies()
-    const docRefCookie = cookies.find(c => c.name.includes('docRef'))
-    expect(docRefCookie).toBeTruthy()
+    const participantIdCookie = cookies.find(c => c.name.includes('participantId'))
+    expect(participantIdCookie).toBeTruthy()
     // Cookie value may be URL-encoded with quotes (%22)
-    const cookieVal = decodeURIComponent(docRefCookie!.value).replace(/^"|"$/g, '')
+    const cookieVal = decodeURIComponent(participantIdCookie!.value).replace(/^"|"$/g, '')
     expect(cookieVal).toBe(participant!.id)
   })
 

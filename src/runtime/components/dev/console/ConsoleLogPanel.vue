@@ -212,11 +212,10 @@ function getBgClass(msg) {
                     v-else-if="msg.message.includes('TRIAL STEPPER')"
                     class="size-3.5"
                   />
-                  <img
-                    v-else-if="msg.message.includes('FIRESTORE')"
-                    :src="'/firebase-bw.svg'"
-                    width="15"
-                  >
+                  <Database
+                    v-else-if="msg.message.includes('DATABASE')"
+                    class="size-3.5"
+                  />
                   <ChevronRight
                     v-else
                     class="size-3.5"
@@ -274,11 +273,10 @@ function getBgClass(msg) {
                     v-else-if="msg.message.includes('TRIAL STEPPER')"
                     class="size-3.5"
                   />
-                  <img
-                    v-else-if="msg.message.includes('FIRESTORE')"
-                    :src="'/firebase-bw.svg'"
-                    width="15"
-                  >
+                  <Database
+                    v-else-if="msg.message.includes('DATABASE')"
+                    class="size-3.5"
+                  />
                   <ChevronRight
                     v-else
                     class="size-3.5"

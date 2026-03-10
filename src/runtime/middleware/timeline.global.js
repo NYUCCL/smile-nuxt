@@ -371,7 +371,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       }
       if (typeof document !== 'undefined') {
         const prefix = `smile_${store.config.codeName}_`
-        const cookieKeys = ['knownUser', 'lastRoute', 'docRef', 'completionCode', 'consented', 'withdrawn', 'done', 'seedID', 'seedSet']
+        const cookieKeys = ['knownUser', 'lastRoute', 'participantId', 'completionCode', 'consented', 'withdrawn', 'done', 'seedID', 'seedSet']
         cookieKeys.forEach((key) => {
           document.cookie = `${prefix}${key}=; path=/; max-age=0; SameSite=Lax`
         })

@@ -329,7 +329,7 @@ export class SmileAPI {
     }
     if (typeof document !== 'undefined') {
       const prefix = `smile_${this.config.codeName}_`
-      const cookieKeys = ['knownUser', 'lastRoute', 'docRef', 'completionCode', 'consented', 'withdrawn', 'done', 'seedID', 'seedSet']
+      const cookieKeys = ['knownUser', 'lastRoute', 'participantId', 'completionCode', 'consented', 'withdrawn', 'done', 'seedID', 'seedSet']
       cookieKeys.forEach((key) => {
         document.cookie = `${prefix}${key}=; path=/; max-age=0; SameSite=Lax`
       })
@@ -538,7 +538,7 @@ export class SmileAPI {
         if (Array.isArray(value[i])) {
           return {
             valid: false,
-            error: `Nested arrays are not allowed in Firestore at path: ${path}[${i}]`,
+            error: `Nested arrays are not allowed at path: ${path}[${i}]`,
           }
         }
         // Recursively validate array elements
@@ -577,8 +577,8 @@ export class SmileAPI {
    * Data is organized by visit number using visit_N keys (visit_0, visit_1, etc.).
    * Multiple calls within the same visit append to that visit's timestamps and data arrays.
    *
-   * Note: Data must be Firestore-compatible. Arrays at the top level are not allowed
-   * because they would create nested arrays when stored. Use an object wrapper instead.
+   * Note: Arrays at the top level are not allowed because they would create nested
+   * arrays when stored. Use an object wrapper instead.
    *
    * @param {object} data - The data to record for this page (must be an object, not an array)
    * @param {string} [routeName] - Optional route name override. Uses current route if not provided
@@ -616,7 +616,7 @@ export class SmileAPI {
       return false
     }
 
-    // Validate Firestore compatibility
+    // Validate data structure
     const validation = this.validateData(data)
     if (!validation.valid) {
       this.logStore.error(`SMILE API: recordPageData() - Invalid data: ${validation.error}`)

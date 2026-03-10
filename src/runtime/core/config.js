@@ -50,13 +50,6 @@ function parseWidthHeight(value) {
  * @property {object} windowsizerRequest - Requested window dimensions
  * @property {boolean} windowsizerAggressive - Whether to force window sizing
  * @property {boolean} anonymousMode - Whether to enable anonymous mode
- * @property {object} firebaseConfig - Firebase configuration object
- * @property {string} firebaseConfig.apiKey - Firebase API key
- * @property {string} firebaseConfig.authDomain - Firebase auth domain
- * @property {string} firebaseConfig.projectId - Firebase project ID
- * @property {string} firebaseConfig.storageBucket - Firebase storage bucket
- * @property {string} firebaseConfig.messagingSenderId - Firebase messaging sender ID
- * @property {string} firebaseConfig.appId - Firebase app ID
  */
 const codeName = import.meta.env.VITE_CODE_NAME || 'unnamed-experiment'
 const projectRef = (import.meta.env.VITE_DEPLOY_BASE_PATH || '/local/experiment/main/').slice(1, -1).replace(/\//g, '-')
@@ -101,12 +94,4 @@ export default {
   windowsizerAggressive: import.meta.env.VITE_WINDOWSIZER_AGGRESSIVE === 'true',
   anonymousMode: import.meta.env.VITE_ANONYMOUS_MODE === 'true',
   unpaidStudy: import.meta.env.VITE_UNPAID_STUDY === 'true',
-  firebaseConfig: {
-    apiKey: import.meta.env.VITE_FIREBASE_APIKEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTHDOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECTID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGEBUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGINGSENDERID,
-    appId: import.meta.env.VITE_FIREBASE_APPID,
-  },
 }

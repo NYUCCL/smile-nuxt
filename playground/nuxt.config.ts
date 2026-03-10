@@ -47,6 +47,9 @@ export default defineNuxtConfig({
   compatibilityDate: 'latest',
   vite: {
     envDir: '..',
+    server: {
+      allowedHosts: ['m4mini'],
+    },
     define: {
       'import.meta.env.VITE_SMILE_VERSION': JSON.stringify(smileVersion),
       // Merge git/deploy env vars into Vite's define so import.meta.env picks them up in all modes

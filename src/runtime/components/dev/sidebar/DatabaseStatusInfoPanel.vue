@@ -129,10 +129,10 @@ onBeforeUnmount(() => {
       <!-- DocRef row -->
       <tr class="table-row-base table-row-odd">
         <td class="table-cell-base table-cell-left table-cell-small">
-          <b>DocRef:</b>
+          <b>Participant ID:</b>
         </td>
         <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
-          {{ api.store.cookieState.docRef || '(none)' }}
+          {{ api.store.cookieState.participantId || '(none)' }}
         </td>
       </tr>
       <!-- Writes row -->

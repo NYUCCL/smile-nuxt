@@ -233,7 +233,7 @@ test.describe('Participant auth in experiment flow', () => {
     expect(participant).not.toBeNull()
     createdIds.push(participant!.id)
 
-    // Tamper with the participant cookie (keep docRef cookie so store thinks user is known)
+    // Tamper with the participant cookie (keep participantId cookie so store thinks user is known)
     await page.context().addCookies([{
       name: 'smile_participant',
       value: 'fake-uuid.fake-signature',
@@ -262,7 +262,7 @@ test.describe('Participant auth in experiment flow', () => {
     expect(participant).not.toBeNull()
     createdIds.push(participant!.id)
 
-    // Delete only the participant auth cookie (keep docRef so store tries to load)
+    // Delete only the participant auth cookie (keep participantId so store tries to load)
     const cookies = await page.context().cookies()
     const nonParticipantCookies = cookies.filter(c => c.name !== 'smile_participant')
     await page.context().clearCookies()
