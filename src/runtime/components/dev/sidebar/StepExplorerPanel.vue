@@ -302,7 +302,7 @@ watch(
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger class="ml-1 text-teal-500">
+            <TooltipTrigger class="ml-1" style="color: var(--step-label-color)">
               ({{ api.blockIndex }}/{{ api.blockLength }})
             </TooltipTrigger>
             <TooltipContent side="bottom">
@@ -451,7 +451,7 @@ watch(
   align-items: baseline; /* Change from center to baseline */
   font-family: Arial, Helvetica, sans-serif;
   font-weight: 800;
-  color: #389e95;
+  color: var(--step-path-color);
   font-size: 0.9rem;
   line-height: 1; /* Add line-height to control vertical spacing */
 }
@@ -461,7 +461,7 @@ watch(
   font-size: clamp(0.5rem, 0.8rem, 0.8rem); /* Shrink font size if needed but not larger than 0.9rem */
   font-family: monospace;
   font-weight: 500;
-  color: #246761;
+  color: var(--step-path-color);
   line-height: 1;
   white-space: nowrap; /* Prevent wrapping */
   overflow: hidden; /* Hide overflow */
@@ -476,22 +476,22 @@ watch(
 
 .nav-button {
   font-size: 0.6rem;
-  border-left: 1px solid #e4e4e4;
+  border-left: 1px solid var(--dev-lines);
 }
 .nav-button-small {
   font-size: 0.5rem;
-  border-left: 1px solid #e4e4e4;
+  border-left: 1px solid var(--dev-lines);
 }
 .smaller {
   padding-bottom: 11px;
   padding-top: 10px;
 }
 .topbar {
-  background-color: #f8f8f8;
+  background-color: var(--muted);
   padding-left: 10px;
 }
 .topbar-border {
-  border-top: 1px solid #e4e4e4;
+  border-top: 1px solid var(--dev-lines);
   padding-top: 4px;
 }
 
@@ -501,7 +501,7 @@ watch(
   padding-top: 3px;
   font-family: monospace;
   font-weight: 500;
-  color: #e49310;
+  color: var(--step-index-color);
   line-height: 1; /* Add line-height to match */
   text-align: right;
   position: absolute;
@@ -514,7 +514,7 @@ watch(
   line-height: 1.4;
   font-family: monospace;
   font-weight: 800;
-  color: #6a6a6a;
+  color: var(--muted-foreground);
   white-space: pre-wrap;
 }
 
@@ -613,7 +613,7 @@ watch(
   font-size: 0.7rem;
   font-weight: 500;
   font-family: monospace;
-  color: #10a8a2;
+  color: var(--step-label-color);
   padding-right: 6px;
 }
 

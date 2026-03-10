@@ -219,9 +219,9 @@
   --dev-brand-text: var(--foreground);
 
   /* Status indicator colors */
-  --status-green-bg: oklch(0.93 0.08 142);
-  --status-green-text: oklch(0.55 0.18 142);
-  --status-green-fill: oklch(0.65 0.2 142);
+  --status-green-bg: oklch(0.93 0.06 175);
+  --status-green-text: oklch(0.55 0.12 175);
+  --status-green-fill: oklch(0.65 0.12 175);
   --status-yellow-bg: oklch(0.93 0.08 85);
   --status-yellow-text: oklch(0.65 0.18 70);
   --status-yellow-fill: oklch(0.72 0.2 70);
@@ -231,10 +231,23 @@
   --resize-handle: oklch(0.6 0 0);
   --resize-handle-hover: oklch(0.65 0.1 230);
 
+  /* Data browser colors (DatabaseList, ConfigList) */
+  --data-key-color: oklch(0.6 0.15 200);
+  --data-value-color: oklch(0.65 0.15 80);
+
+  /* Step explorer colors */
+  --step-path-color: oklch(0.45 0.1 175);
+  --step-selected-bg: oklch(0.94 0.06 170);
+  --step-selected-bg-hover: oklch(0.9 0.05 170);
+  --step-index-color: oklch(0.65 0.15 70);
+  --step-label-color: oklch(0.55 0.12 175);
+  --step-leaf-color: oklch(0.75 0.18 142);
+  --step-home-color: oklch(0.6 0.15 200);
+
   /* Log colors */
-  --log-yellow: oklch(0.985 0 0);
-  --log-red: oklch(0.985 0 0);
-  --log-green: oklch(0.985 0 0);
+  --log-yellow: oklch(0.97 0.04 85);
+  --log-red: oklch(0.96 0.03 25);
+  --log-green: oklch(0.96 0.03 175);
 
   /* Scrollbar colors for light mode */
   --scrollbar-track: #f1f1f1;
@@ -340,9 +353,9 @@
   --dev-brand-text: oklch(0.15 0 0);
 
   /* Status indicator colors */
-  --status-green-bg: oklch(0.3 0.1 142);
-  --status-green-text: oklch(0.7 0.18 142);
-  --status-green-fill: oklch(0.65 0.2 142);
+  --status-green-bg: oklch(0.3 0.08 175);
+  --status-green-text: oklch(0.7 0.12 175);
+  --status-green-fill: oklch(0.65 0.12 175);
   --status-yellow-bg: oklch(0.35 0.1 70);
   --status-yellow-text: oklch(0.8 0.2 70);
   --status-yellow-fill: oklch(0.75 0.2 70);
@@ -352,10 +365,23 @@
   --resize-handle: oklch(0.5 0 0);
   --resize-handle-hover: oklch(0.6 0.1 230);
 
+  /* Data browser colors (DatabaseList, ConfigList) */
+  --data-key-color: oklch(0.7 0.15 200);
+  --data-value-color: oklch(0.75 0.15 80);
+
+  /* Step explorer colors */
+  --step-path-color: oklch(0.65 0.1 175);
+  --step-selected-bg: oklch(0.35 0.1 170);
+  --step-selected-bg-hover: oklch(0.3 0.08 170);
+  --step-index-color: oklch(0.75 0.15 70);
+  --step-label-color: oklch(0.65 0.12 175);
+  --step-leaf-color: oklch(0.7 0.18 142);
+  --step-home-color: oklch(0.7 0.15 200);
+
   /* Log colors */
-  --log-yellow: #adaa5b;
-  --log-red: #976464;
-  --log-green: #6c9659;
+  --log-yellow: oklch(0.25 0.04 85);
+  --log-red: oklch(0.25 0.04 25);
+  --log-green: oklch(0.22 0.03 175);
 
   /* Scrollbar colors for dark mode */
   --scrollbar-track: #2a2a2a;

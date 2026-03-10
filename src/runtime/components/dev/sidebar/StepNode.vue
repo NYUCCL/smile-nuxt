@@ -101,11 +101,12 @@ const getChildVerticalLines = (verticalLines, index, total) => {
         :class="{ 'leaf-state': !state.isLeaf }"
       >{{ state.path }} <Flag
         v-if="state.isFirstLeaf"
-        class="home-icon inline"
+        class="home-icon inline size-3.5"
       />
         <Leaf
           v-else-if="state.isLeaf"
-          class="text-green-400 dark:text-green-500 inline"
+          class="inline size-3.5"
+          style="color: var(--step-leaf-color)"
         />
       </span>
     </div>
@@ -156,14 +157,14 @@ const getChildVerticalLines = (verticalLines, index, total) => {
 }
 
 .node-selected {
-  background-color: rgb(146, 249, 224);
-  color: black;
+  background-color: var(--step-selected-bg);
+  color: var(--foreground);
   border-radius: 10px;
   margin-right: 70px;
 }
 
 .node-selected:hover {
-  background-color: rgba(146, 249, 224, 0.5);
+  background-color: var(--step-selected-bg-hover);
 }
 
 .vertical-lines {
@@ -181,7 +182,7 @@ const getChildVerticalLines = (verticalLines, index, total) => {
 
 .node-data {
   margin-left: 8px;
-  color: #666;
+  color: var(--muted-foreground);
   font-family: monospace;
 }
 
@@ -193,7 +194,7 @@ const getChildVerticalLines = (verticalLines, index, total) => {
 
 .end-state {
   opacity: 0.4;
-  color: #f10e0e;
+  color: var(--status-red-text);
 }
 
 .leaf-state {
@@ -201,16 +202,12 @@ const getChildVerticalLines = (verticalLines, index, total) => {
 }
 
 .leaf-icon {
-  color: #04a004;
+  color: var(--step-leaf-color);
   opacity: 0.35;
 }
 
-.dark.leaf-icon {
-  color: #c7fbb7;
-}
-
 .home-icon {
-  color: #0eb6e0;
+  color: var(--step-home-color);
   opacity: 0.65;
 }
 </style>

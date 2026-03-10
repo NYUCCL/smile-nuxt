@@ -169,23 +169,23 @@ function option_selected(option) {
 
 /* Semantic styling for config list items */
 .item-key {
-  color: #0baac3; /* Blue for keys */
-  font-weight: 400; /* Remove semibold */
+  color: var(--data-key-color);
+  font-weight: 400;
 }
 
 .primitive-item .item-value {
-  color: #dda814; /* Orange for primitive values */
-  font-weight: 400; /* Remove semibold */
+  color: var(--data-value-color);
+  font-weight: 400;
 }
 
 .object-item .item-key {
-  color: #0baac3; /* Blue for keys in clickable objects */
-  font-weight: 400; /* Remove semibold */
+  color: var(--data-key-color);
+  font-weight: 400;
 }
 
 .object-item .item-value {
-  color: #0baac3; /* Blue for clickable object values */
-  font-weight: 400; /* Remove semibold */
+  color: var(--data-key-color);
+  font-weight: 400;
 }
 
 /* Selected state styling */
