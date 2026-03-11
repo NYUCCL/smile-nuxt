@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process'
+import { loadEnv } from 'vite'
 import Icons from 'unplugin-icons/vite'
 import Components from 'unplugin-vue-components/vite'
 import IconsResolver from 'unplugin-icons/resolver'
@@ -9,6 +10,22 @@ try {
 }
 catch {
   console.warn('[SMILE] Could not generate git env — scripts/generate_git_env.sh failed')
+}
+
+// Load all env layers (.env, .env.local, .env.git.local, etc.)
+const env = {
+  ...loadEnv('production', '.', ''),
+  ...loadEnv('git', '.', ''),
+}
+
+// Inject non-VITE env vars into process.env for server-side use
+// (Nuxt auto-loads VITE_ vars for the client, but server-only vars
+//  like TURSO_DATABASE_URL need manual injection)
+const serverEnvKeys = ['SMILE_DEV_PASSWORD', 'SMILE_PUBLIC_PRESENTATION', 'TURSO_DATABASE_URL', 'TURSO_AUTH_TOKEN']
+for (const key of serverEnvKeys) {
+  if (env[key] && !process.env[key]) {
+    process.env[key] = env[key]
+  }
 }
 
 export default defineNuxtConfig({

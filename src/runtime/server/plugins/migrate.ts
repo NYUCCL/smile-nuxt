@@ -58,5 +58,7 @@ export default defineNitroPlugin(async () => {
     // PRAGMA or rename not supported — column already correct or fresh DB
   }
 
-  console.log('[SMILE] Database tables initialized')
+  const dbUrl = process.env.TURSO_DATABASE_URL || 'file:.data/experiment.db'
+  const dbType = dbUrl.startsWith('libsql://') || dbUrl.startsWith('https://') ? 'Turso' : 'Local SQLite'
+  console.log(`[SMILE] Database tables initialized (${dbType}: ${dbType === 'Turso' ? dbUrl.replace(/\/\/.*@/, '//***@') : dbUrl})`)
 })
