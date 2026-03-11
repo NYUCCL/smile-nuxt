@@ -648,6 +648,7 @@ export class SmileAPI {
     // Append timestamp and data to the current visit
     this.store.data[fieldName][visitKey].timestamps.push(Date.now())
     this.store.data[fieldName][visitKey].data.push(JSON.parse(JSON.stringify(data)))
+    this.store.browserEphemeral.unsavedChanges = true
 
     this.logStore.debug(`SMILE API: recordPageData() recorded to ${fieldName}.${visitKey}`, data)
 

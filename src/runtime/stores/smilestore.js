@@ -404,6 +404,7 @@ export default defineStore('smilestore', {
     setRecruitmentService(service, info) {
       this.data.recruitmentService = service
       this.private.recruitmentInfo = info
+      this.browserEphemeral.unsavedChanges = true
     },
 
     autofill() {
@@ -416,20 +417,24 @@ export default defineStore('smilestore', {
 
     recordData(data) {
       this.data.studyData.push(JSON.parse(JSON.stringify(data)))
+      this.browserEphemeral.unsavedChanges = true
     },
 
     recordProperty(name, data) {
       this.data[name] = JSON.parse(JSON.stringify(data))
+      this.browserEphemeral.unsavedChanges = true
     },
 
     setCondition(name, cond) {
       this.localState.conditions[name] = cond
       this.data.conditions[name] = cond
+      this.browserEphemeral.unsavedChanges = true
     },
 
     setRandomizedRoute(name, route) {
       this.localState.randomizedRoutes[name] = route
       this.data.randomizedRoutes[name] = route
+      this.browserEphemeral.unsavedChanges = true
     },
 
     async setKnown() {
@@ -528,6 +533,7 @@ export default defineStore('smilestore', {
         timestamp: currentTime,
         timeDelta: null,
       })
+      this.browserEphemeral.unsavedChanges = true
     },
 
     async saveData(force = false) {
