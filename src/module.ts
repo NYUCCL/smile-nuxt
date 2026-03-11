@@ -36,9 +36,12 @@ export default defineNuxtModule<ModuleOptions>({
     if (Array.isArray(_nuxt.options.nitro.watchOptions.ignored)) {
       _nuxt.options.nitro.watchOptions.ignored.push('**/.data/**')
     }
-    _nuxt.options.watch = _nuxt.options.watch || {}
-    _nuxt.options.watch.exclude = _nuxt.options.watch.exclude || []
-    _nuxt.options.watch.exclude.push('.data/**')
+    _nuxt.options.watchers = _nuxt.options.watchers || {} as typeof _nuxt.options.watchers
+    _nuxt.options.watchers.chokidar = _nuxt.options.watchers.chokidar || {}
+    _nuxt.options.watchers.chokidar.ignored = _nuxt.options.watchers.chokidar.ignored || []
+    if (Array.isArray(_nuxt.options.watchers.chokidar.ignored)) {
+      _nuxt.options.watchers.chokidar.ignored.push('**/.data/**')
+    }
 
     // Serve module static assets (e.g. smile.svg) at /_smile/
     _nuxt.options.nitro.publicAssets = _nuxt.options.nitro.publicAssets || []

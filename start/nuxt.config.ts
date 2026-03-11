@@ -21,7 +21,10 @@ const env = {
 // Inject non-VITE env vars into process.env for server-side use
 // (Nuxt auto-loads VITE_ vars for the client, but server-only vars
 //  like TURSO_DATABASE_URL need manual injection)
-const serverEnvKeys = ['SMILE_DEV_PASSWORD', 'SMILE_PUBLIC_PRESENTATION', 'TURSO_DATABASE_URL', 'TURSO_AUTH_TOKEN']
+const serverEnvKeys = [
+  'SMILE_DEV_PASSWORD', 'SMILE_PUBLIC_PRESENTATION', 'TURSO_DATABASE_URL', 'TURSO_AUTH_TOKEN',
+  'VITE_GIT_OWNER', 'VITE_GIT_REPO_NAME', 'VITE_GIT_BRANCH_NAME', 'VITE_CODE_NAME', 'VITE_PROJECT_REF',
+]
 for (const key of serverEnvKeys) {
   if (env[key] && !process.env[key]) {
     process.env[key] = env[key]
