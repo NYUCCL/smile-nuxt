@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { test, expect, type Page } from '@playwright/test'
 import { clearState } from './helpers'
 
 /**
@@ -21,7 +22,7 @@ test.describe('Stepper persistence across page reload', () => {
   // ---------------------------------------------------------------------------
 
   /** Read the stepper state for a given view from localStorage. */
-  async function getStepperState(page, viewName: string) {
+  async function getStepperState(page: Page, viewName: string): Promise<any> {
     return page.evaluate((view) => {
       // Find the smile localStorage key (pattern: smilestore-<codeName>)
       const key = Object.keys(localStorage).find(k => k.startsWith('smilestore-'))
@@ -97,7 +98,7 @@ test.describe('Stepper persistence across page reload', () => {
     const stateBeforeReload = await getStepperState(page, 'stroop')
 
     // Find the stroop block (first state) and its first child trial
-    const stroopBlock = stateBeforeReload.states.find(s => s.id === 'stroop')
+    const stroopBlock = stateBeforeReload.states.find((s: any) => s.id === 'stroop')
     expect(stroopBlock).toBeTruthy()
     expect(stroopBlock.states.length).toBeGreaterThan(0)
 
@@ -114,7 +115,7 @@ test.describe('Stepper persistence across page reload', () => {
 
     // Verify the same data is still in localStorage
     const stateAfterReload = await getStepperState(page, 'stroop')
-    const stroopBlockAfter = stateAfterReload.states.find(s => s.id === 'stroop')
+    const stroopBlockAfter = stateAfterReload.states.find((s: any) => s.id === 'stroop')
     const firstTrialAfter = stroopBlockAfter.states[0]
 
     expect(firstTrialAfter.data.word).toBe(firstTrial.data.word)
@@ -134,7 +135,7 @@ test.describe('Stepper persistence across page reload', () => {
 
     // The stroop block-level data should contain serialized faker functions
     // (rt, hit, response are defined as faker functions in StroopExpView.vue)
-    const stroopBlock = state.states.find(s => s.id === 'stroop')
+    const stroopBlock = state.states.find((s: any) => s.id === 'stroop')
     expect(stroopBlock).toBeTruthy()
 
     const blockData = stroopBlock.data
@@ -175,7 +176,7 @@ test.describe('Stepper persistence across page reload', () => {
     // If faker functions failed to reconstruct, the step data recording
     // would throw or produce null values. Verify the step still advanced.
     const state = await getStepperState(page, 'stroop')
-    const stroopBlock = state.states.find(s => s.id === 'stroop')
+    const stroopBlock = state.states.find((s: any) => s.id === 'stroop')
     // After pressing a key, the stepper should have advanced (currentIndex > 0)
     // or the first trial should have recorded response data
     const firstTrial = stroopBlock.states[0]
@@ -222,7 +223,7 @@ test.describe('Stepper persistence across page reload', () => {
     // Capture the full tree structure before reload
     const stateBefore = await getStepperState(page, 'stroop')
     const stateCount = stateBefore.states.length
-    const stroopBefore = stateBefore.states.find(s => s.id === 'stroop')
+    const stroopBefore = stateBefore.states.find((s: any) => s.id === 'stroop')
     const trialCount = stroopBefore.states.length
 
     // Reload
@@ -233,12 +234,12 @@ test.describe('Stepper persistence across page reload', () => {
     const stateAfter = await getStepperState(page, 'stroop')
     expect(stateAfter.states.length).toBe(stateCount)
 
-    const stroopAfter = stateAfter.states.find(s => s.id === 'stroop')
+    const stroopAfter = stateAfter.states.find((s: any) => s.id === 'stroop')
     expect(stroopAfter.states.length).toBe(trialCount)
 
     // Verify all trial IDs match (including shuffled order)
-    const idsBefore = stroopBefore.states.map(s => s.id)
-    const idsAfter = stroopAfter.states.map(s => s.id)
+    const idsBefore = stroopBefore.states.map((s: any) => s.id)
+    const idsAfter = stroopAfter.states.map((s: any) => s.id)
     expect(idsAfter).toEqual(idsBefore)
   })
 
@@ -279,7 +280,7 @@ test.describe('Stepper persistence across page reload', () => {
     expect(stateAfterSecondReload.currentIndex).toBe(stateAfterSecond.currentIndex)
 
     // Both trials should have recorded data
-    const stroopBlock = stateAfterSecondReload.states.find(s => s.id === 'stroop')
+    const stroopBlock = stateAfterSecondReload.states.find((s: any) => s.id === 'stroop')
     expect(stroopBlock).toBeTruthy()
   })
 })
@@ -295,7 +296,7 @@ test.describe('Component references in step data', () => {
   })
 
   /** Read the stepper state for a given view from localStorage. */
-  async function getStepperState(page, viewName: string) {
+  async function getStepperState(page: Page, viewName: string): Promise<any> {
     return page.evaluate((view) => {
       const key = Object.keys(localStorage).find(k => k.startsWith('smilestore-'))
       if (!key) return null
@@ -325,9 +326,9 @@ test.describe('Component references in step data', () => {
     const state = await getStepperState(page, 'compsteps')
 
     // Each step should have a type field serialized as __vueComponent
-    const stepA1 = state.states.find(s => s.id === 'step-a1')
-    const stepB1 = state.states.find(s => s.id === 'step-b1')
-    const stepA2 = state.states.find(s => s.id === 'step-a2')
+    const stepA1 = state.states.find((s: any) => s.id === 'step-a1')
+    const stepB1 = state.states.find((s: any) => s.id === 'step-b1')
+    const stepA2 = state.states.find((s: any) => s.id === 'step-a2')
 
     expect(stepA1.data.type).toEqual({ __vueComponent: true, componentName: 'TrialTypeA' })
     expect(stepB1.data.type).toEqual({ __vueComponent: true, componentName: 'TrialTypeB' })
@@ -355,7 +356,7 @@ test.describe('Component references in step data', () => {
     const stateAfter = await getStepperState(page, 'compsteps')
     expect(stateAfter.states.length).toBe(stateBefore.states.length)
 
-    const stepA1 = stateAfter.states.find(s => s.id === 'step-a1')
+    const stepA1 = stateAfter.states.find((s: any) => s.id === 'step-a1')
     expect(stepA1.data.type).toEqual({ __vueComponent: true, componentName: 'TrialTypeA' })
     expect(stepA1.data.label).toBe('First A trial')
   })
@@ -427,7 +428,7 @@ test.describe('Component references in step data', () => {
     // The view re-runs setup, so it may reset to step 1, but the localStorage
     // should still contain the correct component metadata for all steps
     const state = await getStepperState(page, 'compsteps')
-    const stepB1 = state.states.find(s => s.id === 'step-b1')
+    const stepB1 = state.states.find((s: any) => s.id === 'step-b1')
     expect(stepB1.data.type).toEqual({ __vueComponent: true, componentName: 'TrialTypeB' })
   })
 })

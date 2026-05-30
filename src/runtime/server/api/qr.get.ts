@@ -1,3 +1,4 @@
+// @ts-expect-error — qrcode-svg has no type declarations
 import QRCode from 'qrcode-svg'
 import { defineEventHandler, getQuery, getRequestURL, setResponseHeader } from 'h3'
 

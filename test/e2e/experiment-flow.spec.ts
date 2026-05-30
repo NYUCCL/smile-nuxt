@@ -1,8 +1,8 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { clearState, fillDemographicsPage1, fillDemographicsPage2, fillDemographicsPage3 } from './helpers'
 
 test.describe('Full experiment flow', () => {
-  const readyButton = page => page.getByRole('button', { name: /I'm ready/i })
+  const readyButton = (page: Page) => page.getByRole('button', { name: /I'm ready/i })
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/welcome')

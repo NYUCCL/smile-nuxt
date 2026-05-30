@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { createClient } from '@libsql/client'
 import { clearState } from './helpers'
 
@@ -27,7 +27,7 @@ async function cleanupProjects(db: ReturnType<typeof createClient>, ids: string[
 // ---------------------------------------------------------------------------
 
 test.describe('Project creation on participant consent', () => {
-  const readyButton = page => page.getByRole('button', { name: /I'm ready/i })
+  const readyButton = (page: Page) => page.getByRole('button', { name: /I'm ready/i })
   let db: ReturnType<typeof createClient>
   const createdParticipantIds: string[] = []
   const createdProjectIds: string[] = []
@@ -61,7 +61,7 @@ test.describe('Project creation on participant consent', () => {
       'SELECT * FROM participants ORDER BY created_at DESC LIMIT 1',
     )
     expect(participantResult.rows.length).toBe(1)
-    const participant = participantResult.rows[0]
+    const participant = participantResult.rows[0]!
     createdParticipantIds.push(participant.id as string)
 
     // The participant should reference a project
@@ -75,7 +75,7 @@ test.describe('Project creation on participant consent', () => {
       args: [projectId],
     })
     expect(projectResult.rows.length).toBe(1)
-    const project = projectResult.rows[0]
+    const project = projectResult.rows[0]!
     expect(project.owner).toBeTruthy()
     expect(project.repo).toBeTruthy()
     expect(project.branch).toBeTruthy()
@@ -92,7 +92,7 @@ test.describe('Project creation on participant consent', () => {
     const participantResult = await db.execute(
       'SELECT * FROM participants ORDER BY created_at DESC LIMIT 1',
     )
-    const participant = participantResult.rows[0]
+    const participant = participantResult.rows[0]!
     createdParticipantIds.push(participant.id as string)
     const projectId = participant.project_id as string
     createdProjectIds.push(projectId)
@@ -107,7 +107,7 @@ test.describe('Project creation on participant consent', () => {
       sql: 'SELECT * FROM projects WHERE id = ?',
       args: [projectId],
     })
-    const project = projectResult.rows[0]
+    const project = projectResult.rows[0]!
     expect(project.owner).toBe(owner)
     expect(project.repo).toBe(repo)
     expect(project.branch).toBe(branch)
@@ -124,7 +124,7 @@ test.describe('Project creation on participant consent', () => {
     const participantResult = await db.execute(
       'SELECT * FROM participants ORDER BY created_at DESC LIMIT 1',
     )
-    const participant = participantResult.rows[0]
+    const participant = participantResult.rows[0]!
     createdParticipantIds.push(participant.id as string)
     const projectId = participant.project_id as string
     createdProjectIds.push(projectId)
@@ -133,7 +133,7 @@ test.describe('Project creation on participant consent', () => {
       sql: 'SELECT * FROM projects WHERE id = ?',
       args: [projectId],
     })
-    const project = projectResult.rows[0]
+    const project = projectResult.rows[0]!
 
     // In dev mode (pnpm run dev), mode should be 'test'
     expect(project.mode).toBe('test')
@@ -150,7 +150,7 @@ test.describe('Project creation on participant consent', () => {
     const firstResult = await db.execute(
       'SELECT * FROM participants ORDER BY created_at DESC LIMIT 1',
     )
-    const firstParticipant = firstResult.rows[0]
+    const firstParticipant = firstResult.rows[0]!
     createdParticipantIds.push(firstParticipant.id as string)
     const firstProjectId = firstParticipant.project_id as string
     createdProjectIds.push(firstProjectId)
@@ -171,7 +171,7 @@ test.describe('Project creation on participant consent', () => {
     const secondResult = await db.execute(
       'SELECT * FROM participants ORDER BY created_at DESC LIMIT 1',
     )
-    const secondParticipant = secondResult.rows[0]
+    const secondParticipant = secondResult.rows[0]!
     createdParticipantIds.push(secondParticipant.id as string)
     const secondProjectId = secondParticipant.project_id as string
 
@@ -183,7 +183,7 @@ test.describe('Project creation on participant consent', () => {
       sql: 'SELECT COUNT(*) as count FROM projects WHERE id = ?',
       args: [firstProjectId],
     })
-    expect(Number(projectCount.rows[0].count)).toBe(1)
+    expect(Number(projectCount.rows[0]!.count)).toBe(1)
 
     await page2.close()
   })
@@ -221,7 +221,7 @@ test.describe('Project API auth and scoping', () => {
       sql: 'SELECT project_id FROM participants WHERE id = ?',
       args: [id],
     })
-    createdProjectIds.push(participantResult.rows[0].project_id as string)
+    createdProjectIds.push(participantResult.rows[0]!.project_id as string)
 
     // In dev mode, no auth needed — should succeed
     const res = await request.get('/api/projects')
@@ -261,7 +261,7 @@ test.describe('Project API auth and scoping', () => {
       sql: 'SELECT project_id FROM participants WHERE id = ?',
       args: [id1],
     })
-    const projectId = participantResult.rows[0].project_id as string
+    const projectId = participantResult.rows[0]!.project_id as string
     createdProjectIds.push(projectId)
 
     // List participants for this project
@@ -288,7 +288,7 @@ test.describe('Project API auth and scoping', () => {
       sql: 'SELECT project_id FROM participants WHERE id = ?',
       args: [id],
     })
-    const projectId = participantResult.rows[0].project_id as string
+    const projectId = participantResult.rows[0]!.project_id as string
     createdProjectIds.push(projectId)
 
     const res = await request.get(

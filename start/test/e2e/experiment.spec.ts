@@ -12,7 +12,7 @@
  * Run with: pnpm test:e2e
  * See: https://playwright.dev/docs/writing-tests
  */
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { createClient } from '@libsql/client'
 import { clearState, fillDemographicsPage1, fillDemographicsPage2, fillDemographicsPage3 } from './helpers'
 
@@ -28,9 +28,9 @@ async function getLatestParticipant(db: ReturnType<typeof createClient>) {
   const result = await db.execute('SELECT * FROM participants ORDER BY created_at DESC LIMIT 1')
   if (result.rows.length === 0) return null
   return {
-    id: result.rows[0].id as string,
-    projectRef: result.rows[0].project_ref as string,
-    data: JSON.parse(result.rows[0].data as string),
+    id: result.rows[0]!.id as string,
+    projectRef: result.rows[0]!.project_ref as string,
+    data: JSON.parse(result.rows[0]!.data as string),
   }
 }
 
@@ -44,7 +44,7 @@ async function cleanupParticipant(db: ReturnType<typeof createClient>, id: strin
 // ---------------------------------------------------------------------------
 
 test.describe('Experiment flow', () => {
-  const readyButton = (page) => page.getByRole('button', { name: /I'm ready/i })
+  const readyButton = (page: Page) => page.getByRole('button', { name: /I'm ready/i })
   let db: ReturnType<typeof createClient>
   let createdIds: string[] = []
 

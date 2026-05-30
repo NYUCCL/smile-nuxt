@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { createClient } from '@libsql/client'
 import { clearState, fillDemographicsPage1, fillDemographicsPage2, fillDemographicsPage3 } from './helpers'
 
@@ -13,7 +13,7 @@ function getDB() {
 /** Count rows in participants table */
 async function countParticipants(db: ReturnType<typeof createClient>) {
   const result = await db.execute('SELECT COUNT(*) as count FROM participants')
-  return Number(result.rows[0].count)
+  return Number(result.rows[0]!.count)
 }
 
 /** Get all participant rows */
@@ -42,9 +42,9 @@ async function getPrivateData(db: ReturnType<typeof createClient>, participantId
   })
   if (result.rows.length === 0) return null
   return {
-    id: result.rows[0].id as string,
-    participantId: result.rows[0].participant_id as string,
-    data: JSON.parse(result.rows[0].data as string),
+    id: result.rows[0]!.id as string,
+    participantId: result.rows[0]!.participant_id as string,
+    data: JSON.parse(result.rows[0]!.data as string),
   }
 }
 
@@ -57,7 +57,7 @@ async function cleanupParticipants(db: ReturnType<typeof createClient>, ids: str
 }
 
 test.describe('Database persistence', () => {
-  const readyButton = page => page.getByRole('button', { name: /I'm ready/i })
+  const readyButton = (page: Page) => page.getByRole('button', { name: /I'm ready/i })
   let db: ReturnType<typeof createClient>
   let countBefore: number
   let createdIds: string[] = []

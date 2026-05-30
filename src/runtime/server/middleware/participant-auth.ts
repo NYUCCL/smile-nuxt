@@ -12,7 +12,9 @@ function verifyParticipantToken(token: string, expectedId: string, secret: strin
   const parts = token.split('.')
   if (parts.length !== 3) return false
 
-  const [cookieId, issuedAtStr, cookieSig] = parts
+  const cookieId = parts[0]!
+  const issuedAtStr = parts[1]!
+  const cookieSig = parts[2]!
   if (cookieId !== expectedId) return false
 
   // Check expiry
@@ -38,9 +40,9 @@ export default defineEventHandler(async (event) => {
     return
   }
 
-  const pathId = match[1]
+  const pathId = match[1]!
   const config = useRuntimeConfig()
-  const secret = config.smile?.tursoAuthToken || config.smile?.devPassword || 'smile-local-dev-key'
+  const secret = (config.smile?.tursoAuthToken || config.smile?.devPassword || 'smile-local-dev-key') as string
 
   // Check signed participant cookie (fast path, no DB query)
   const participantToken = getCookie(event, 'smile_participant')
