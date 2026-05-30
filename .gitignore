@@ -34,9 +34,6 @@ dist-ssr
 # Local SQLite database
 .data/
 
-# Drizzle migration metadata
-drizzle/meta/
-
 # Firebase service account (legacy)
 *.service-account*
 components.d.ts
