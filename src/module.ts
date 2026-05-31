@@ -98,6 +98,22 @@ export default defineNuxtModule<ModuleOptions>({
       _nuxt.options.alias[dep] = dirname(_require.resolve(`${dep}/package.json`))
     }
 
+    // Dedupe shared singletons: when the module is installed into a consumer
+    // (via link: or normal npm), pnpm's strict isolation may resolve `vue` and
+    // `pinia` to two different copies — one from the module's node_modules,
+    // one from the consumer's. That breaks Pinia (setActivePinia registers on
+    // one instance, getActivePinia reads from the other) and creates subtle
+    // bugs with Vue reactivity. Forcing dedupe collapses them to a single copy.
+    _nuxt.options.vite.resolve = _nuxt.options.vite.resolve || {}
+    _nuxt.options.vite.resolve.dedupe = _nuxt.options.vite.resolve.dedupe || []
+    if (Array.isArray(_nuxt.options.vite.resolve.dedupe)) {
+      for (const dep of ['vue', 'pinia']) {
+        if (!_nuxt.options.vite.resolve.dedupe.includes(dep)) {
+          _nuxt.options.vite.resolve.dedupe.push(dep)
+        }
+      }
+    }
+
     // Inject SMILE version so config.js can read it via import.meta.env
     let smileVersion = '0.0.0'
     try {
