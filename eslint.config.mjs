@@ -20,6 +20,7 @@ export default createConfigForNuxt({
       'docs/**',
       'plans/**',
       'start/**',
+      'src/runtime/server/database/migrations.ts',
     ],
   })
   .append(
