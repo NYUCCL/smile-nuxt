@@ -237,64 +237,30 @@ export class SmileAPI {
 
   // URL helpers
 
-  // TODO: Asset loading via import.meta.glob() needs rework for Nuxt module.
-  // In the SPA, these paths were relative to the source file location.
-  // In the Nuxt module, user assets live in the consuming app, not the module.
-  // These will be addressed in Phase 4 (User Layer) or Phase M (Build & Publish).
-  // For now, the glob imports will resolve to empty objects (no matching files).
+  /**
+   * Get the URL for an asset in the consumer app's public/ directory.
+   * @param {string} name - Relative path (no leading slash), e.g. 'stimuli/dog.png'
+   * @returns {string} Absolute URL respecting deployBasePath
+   */
+  getPublicUrl = name => (this.runtimeConfig?.public?.deployBasePath || '/') + name.replace(/^\//, '')
 
   /**
-   * Eagerly import all user assets using Vite's glob import
-   * This allows dynamic path resolution for nested directories
-   * @private
+   * Get the URL for an asset shipped by the @nyuccl/smile module itself
+   * (e.g. the SMILE logo). Module assets are served at /_smile/* via
+   * nitro.publicAssets — see src/module.ts.
+   * @param {string} name - Relative path under the module's public dir,
+   *   e.g. 'images/smile.svg'
+   * @returns {string} Absolute URL respecting deployBasePath
    */
-  // TODO: Asset loading via import.meta.glob needs rework for Nuxt module context.
-  // These paths are relative to the module, not the consuming app.
-  #userAssets = {}
+  getCoreStaticUrl = name => (this.runtimeConfig?.public?.deployBasePath || '/') + '_smile/' + name.replace(/^\//, '')
 
   /**
-   * Eagerly import all core assets using Vite's glob import
-   * This allows dynamic path resolution for nested directories
-   * @private
+   * Alias for getPublicUrl — kept for compatibility with experiments that
+   * use it to reference stimuli in their public/ directory.
+   * @param {string} name - Relative path
+   * @returns {string} Absolute URL
    */
-  #coreAssets = {}
-
-  /**
-   * Get the URL for a public asset using the deployment base path
-   * @param {string} name - The name/path of the public asset
-   * @returns {string} The complete URL for the public asset
-   */
-  getPublicUrl = name => (this.runtimeConfig?.public?.deployBasePath || '/') + name
-
-  /**
-   * Get the URL for a core static asset from the core assets directory
-   * @param {string} name - The name/path of the core static asset
-   * @returns {string} The complete URL for the core static asset
-   */
-  getCoreStaticUrl = (name) => {
-    const assetKey = `../../assets/${name}`
-    if (this.#coreAssets[assetKey]) {
-      return this.#coreAssets[assetKey]
-    }
-    // Fallback to original method if glob doesn't find it
-    console.warn(`Core asset not found in glob imports: ${name}`)
-    return new URL(`../../assets/${name}`, import.meta.url).href
-  }
-
-  /**
-   * Get the URL for a user static asset from the user assets directory
-   * @param {string} name - The name/path of the user static asset
-   * @returns {string} The complete URL for the user static asset
-   */
-  getStaticUrl = (name) => {
-    const assetKey = `../../user/assets/${name}`
-    if (this.#userAssets[assetKey]) {
-      return this.#userAssets[assetKey]
-    }
-    // Fallback to original method if glob doesn't find it
-    console.warn(`User asset not found in glob imports: ${name}`)
-    return new URL(`../../user/assets/${name}`, import.meta.url).href
-  }
+  getStaticUrl = name => this.getPublicUrl(name)
 
   /**
    * Reset the entire application state
@@ -937,29 +903,34 @@ export class SmileAPI {
   }
 
   /**
-   * Preloads all images from the user assets directory
+   * Preload images declared via the smile.preloadImages module option.
+   * Paths are resolved through getPublicUrl (consumer public/ directory).
+   * Browser caches each fetched image so subsequent views render instantly.
    * @returns {void}
    */
   preloadAllImages() {
-    // TODO: import.meta.glob paths need updating for Nuxt module context.
-    // User assets will be in the consuming app, not the module.
-    this.logStore.debug('Preloading images')
-    // TODO: import.meta.glob paths need updating for Nuxt module context.
-    // User assets live in the consuming app, not the module.
-    this.logStore.debug('Image preloading not yet implemented for Nuxt module')
+    const list = this.runtimeConfig?.public?.smile?.preloadImages || []
+    this.logStore.debug(`Preloading ${list.length} image(s)`)
+    if (typeof window === 'undefined') return
+    for (const path of list) {
+      const img = new window.Image()
+      img.src = this.getPublicUrl(path)
+    }
   }
 
   /**
-   * Preloads all videos from the user assets directory
+   * Preload videos declared via the smile.preloadVideos module option.
    * @returns {void}
    */
   preloadAllVideos() {
-    // TODO: import.meta.glob paths need updating for Nuxt module context.
-    // User assets will be in the consuming app, not the module.
-    this.logStore.debug('Preloading videos')
-    // TODO: import.meta.glob paths need updating for Nuxt module context.
-    // User assets live in the consuming app, not the module.
-    this.logStore.debug('Video preloading not yet implemented for Nuxt module')
+    const list = this.runtimeConfig?.public?.smile?.preloadVideos || []
+    this.logStore.debug(`Preloading ${list.length} video(s)`)
+    if (typeof window === 'undefined') return
+    for (const path of list) {
+      const video = window.document.createElement('video')
+      video.preload = 'auto'
+      video.src = this.getPublicUrl(path)
+    }
   }
 
   /**

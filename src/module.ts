@@ -6,16 +6,29 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import tailwindcss from '@tailwindcss/vite'
 
 // Module options TypeScript interface definition
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface ModuleOptions {}
+export interface ModuleOptions {
+  /**
+   * Paths (relative to public/) of images to warm into the browser cache
+   * when api.preloadAllImages() is called from a built-in or custom view.
+   * @example ['stimuli/dog.png', 'stimuli/cat.png']
+   */
+  preloadImages?: string[]
+  /**
+   * Paths (relative to public/) of videos to warm into the browser cache
+   * when api.preloadAllVideos() is called.
+   */
+  preloadVideos?: string[]
+}
 
 export default defineNuxtModule<ModuleOptions>({
   meta: {
     name: '@nyuccl/smile',
     configKey: 'smile',
   },
-  // Default configuration options of the Nuxt module
-  defaults: {},
+  defaults: {
+    preloadImages: [],
+    preloadVideos: [],
+  },
   setup(_options, _nuxt) {
     const resolver = createResolver(import.meta.url)
     const runtimeDir = fileURLToPath(new URL('./runtime', import.meta.url))
@@ -69,6 +82,8 @@ export default defineNuxtModule<ModuleOptions>({
       owner: process.env.VITE_GIT_OWNER || 'local',
       repo: process.env.VITE_GIT_REPO_NAME || 'experiment',
       branch: process.env.VITE_GIT_BRANCH_NAME || 'main',
+      preloadImages: _options.preloadImages || [],
+      preloadVideos: _options.preloadVideos || [],
     }
 
     // Aliases for layouts — layouts are copied into .nuxt/ so relative imports break;
