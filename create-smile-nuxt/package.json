@@ -6,12 +6,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nyuccl/smile-nuxt.git",
+    "url": "git+https://github.com/nyuccl/smile-nuxt.git",
     "directory": "create-smile-nuxt"
   },
   "type": "module",
   "bin": {
-    "create-smile-nuxt": "./src/index.mjs"
+    "create-smile-nuxt": "src/index.mjs"
   },
   "files": [
     "src"
