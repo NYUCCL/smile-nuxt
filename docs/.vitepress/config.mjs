@@ -119,6 +119,7 @@ export default defineConfig({
         text: 'Coding and Testing',
         items: [
           { text: 'Overview', link: '/coding/overview' },
+          { text: 'Project Organization', link: '/coding/organization' },
           { text: 'Developing', link: '/coding/developing' },
           { text: 'Configuring', link: '/coding/configuration' },
           { text: 'Components', link: '/coding/components' },
