@@ -16,11 +16,13 @@ function detectPackageManager() {
 }
 
 function parseArgs(argv) {
-  const args = { name: undefined, install: undefined, force: false }
+  const args = { name: undefined, install: undefined, git: undefined, force: false }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
     if (a === '--no-install') args.install = false
     else if (a === '--install') args.install = true
+    else if (a === '--no-git') args.git = false
+    else if (a === '--git') args.git = true
     else if (a === '--force' || a === '-f') args.force = true
     else if (a === '--help' || a === '-h') args.help = true
     else if (!a.startsWith('-') && !args.name) args.name = a
@@ -37,9 +39,30 @@ Usage:
 
 Options:
   --no-install       Skip installing dependencies
+  --no-git           Skip initializing a git repository
+  --git              Initialize a git repository (skip the prompt)
   --force, -f        Overwrite an existing non-empty directory
   --help, -h         Show this help
 `)
+}
+
+function hasGit() {
+  const result = spawnSync('git', ['--version'], {
+    stdio: 'ignore',
+    shell: process.platform === 'win32',
+  })
+  return result.status === 0
+}
+
+function initGitRepo(cwd) {
+  const opts = { cwd, stdio: 'ignore', shell: process.platform === 'win32' }
+  if (spawnSync('git', ['init', '-q', '-b', 'main'], opts).status !== 0) return false
+  if (spawnSync('git', ['add', '-A'], opts).status !== 0) return false
+  return spawnSync(
+    'git',
+    ['commit', '-q', '--no-gpg-sign', '-m', 'chore: initial commit from create-smile-nuxt'],
+    opts
+  ).status === 0
 }
 
 async function run() {
@@ -135,6 +158,31 @@ async function run() {
     }
     else {
       installSpinner.stop(`${pm} install failed — you can run it manually`)
+    }
+  }
+
+  let shouldGit = args.git
+  const gitAvailable = hasGit()
+  if (shouldGit === undefined && gitAvailable) {
+    const answer = await p.confirm({
+      message: 'Initialize a git repository?',
+      initialValue: true,
+    })
+    shouldGit = p.isCancel(answer) ? false : answer
+  }
+  if (shouldGit && !gitAvailable) {
+    p.log.warn('git not found on PATH — skipping repo init')
+    shouldGit = false
+  }
+
+  if (shouldGit) {
+    const gitSpinner = p.spinner()
+    gitSpinner.start('Initializing git repository')
+    if (initGitRepo(targetDir)) {
+      gitSpinner.stop('Git repository initialized')
+    }
+    else {
+      gitSpinner.stop('git init failed — you can run it manually')
     }
   }
 
