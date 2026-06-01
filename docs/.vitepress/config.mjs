@@ -109,7 +109,6 @@ export default defineConfig({
           { text: 'Introduction', link: '/introduction' },
           { text: 'Quick Start', link: '/quickstart' },
           { text: 'Key Concepts', link: '/concepts' },
-          { text: 'Starting a new project', link: '/starting' },
           { text: 'Getting help', link: '/help' },
         ],
       },
@@ -153,7 +152,7 @@ export default defineConfig({
       {
         text: 'Recruiting participants',
         items: [
-          { text: 'Deploying', link: '/recruit/deploying' },
+          { text: 'Cloud Hosting', link: '/recruit/deploying' },
           { text: 'Recruitment Services', link: '/recruit/recruitment' },
           //{ text: '📈 Dashboard', link: '/dashboard' },
           //{ text: '😇 Ethical considerations', link: '/ethics' },

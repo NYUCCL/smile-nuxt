@@ -1,15 +1,18 @@
-# Deploying your experiment
+# Cloud Hosting
 
-Deploying (or hosting) your experiment involves building the web application and
-then transferring a copy of the files to a suitable public website where
-participants can access them.
+To put your experiment in front of participants, you'll host it on the cloud —
+that means signing up for a couple of services, configuring your project to
+talk to them, and pushing your code so the experiment goes live at a public
+URL.
 
-## Before you deploy: account setup
+Local development needs none of this; if you only need to develop and test
+locally, [Quick Start](/quickstart) is all you need. Come back here when
+you're ready to recruit real participants.
 
-Local development needs **no accounts** — `pnpm dev` writes to a local
-SQLite file and serves the experiment from `localhost`. But to put your
-experiment in front of real participants, you'll need two free accounts.
-You only ever do this setup once.
+## Account setup
+
+You'll need two free accounts. This is one-time setup — once you've done
+it, every new experiment uses the same accounts.
 
 ### 1. Vercel (hosting + HTTPS)
 

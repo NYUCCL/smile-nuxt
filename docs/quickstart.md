@@ -90,5 +90,5 @@ place in the experiment.
 
 - Read [Key Concepts](/concepts) for the mental model behind <SmileText/>.
 - Skim the [Developing](/coding/developing) guide for the dev-mode tools.
-- When you're ready to put your experiment online, see
-  [Deploying](/recruit/deploying).
+- When you're ready to put your experiment online (Vercel + Turso setup,
+  GitHub Action wiring, public URLs), see [Cloud Hosting](/recruit/deploying).
