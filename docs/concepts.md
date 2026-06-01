@@ -425,8 +425,7 @@ and debug your experiment. We think of it as enabling "brain surgery" on your
 experiment. You can use these tools to bounce around, inspect various elements
 of your interface, and check the format of your data. You can read more about
 [development](/coding/developing) in the remainder of the documentation.
-However, assuming you've [installed the required software](/requirements),
-[set up](/labconfig), and [configured your repo](/starting), you can type
+However, assuming you've followed the [Quick Start](/quickstart), you can type
 
 ```sh
 npm run dev

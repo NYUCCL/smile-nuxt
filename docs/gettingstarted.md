@@ -4,7 +4,7 @@ The <SmileText/> repo
 ([https://github.com/NYUCCL/smile](https://github.com/NYUCCL/smile)) includes
 both the code and documentation for the code.
 
-Next, follow the guide on [required software](/requirements).
+If you haven't already, make sure you have Node.js (≥ 22) and pnpm installed — see the [Quick Start](/quickstart) for setup.
 
 The next step is to fork the project from
 [github repo](https://github.com/NYUCCL/smile), clone it on your machine, and

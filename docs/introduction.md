@@ -53,7 +53,7 @@ programmers (or AI-assisted programmers) accomplish more in less time.
 Current development is happening at
 [https://github.com/nyuccl/smile](https://github.com/nyuccl/smile).
 
-Ready to get started? Continue [here](/requirements).
+Ready to get started? Jump to the [Quick Start](/quickstart).
 
 Not sure? Let us walk you through some [key concepts](/concepts).
 
