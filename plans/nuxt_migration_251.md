@@ -2377,11 +2377,11 @@ Each phase should be executed in a **fresh Claude Code agent session** so the ag
 | 11 | Phase 11 (34–37) | Dev tools components | DONE |
 | 12 | Phase 12 (38–39) | ~~Firebase~~ Server API (Drizzle + Turso/SQLite) | DONE (redesigned) |
 | 13 | Phase 13 (40) | Full integration test | DONE |
-| 14 | Phase 14 (41–43) | Wire up test infrastructure, make tests pass | DONE (341 unit + 16 E2E) |
-| 15 | Phase 15 (44–45) | Build module, test fresh install | **NEXT** |
-| 16 | Phase 16 (46) | TypeScript conversion (optional) | NOT STARTED |
-| 17 | Phase 17 (47–49) | Vercel deployment, CI/CD, Slack | NOT STARTED |
-| 18 | Phase 18 (50–54) | Full documentation rewrite | NOT STARTED |
+| 14 | Phase 14 (41–43) | Wire up test infrastructure, make tests pass | DONE (385 unit + 16 E2E) |
+| 15 | Phase 15 (44–45) | Build module, test fresh install | DONE (npm publish 2026-06-01 as `@nyuccl/smile-nuxt@0.2.0-beta.1`) |
+| 16 | Phase 16 (46) | TypeScript conversion (optional) | IN PROGRESS (opportunistic, not phase-shaped anymore) |
+| 17 | Phase 17 (47–49) | Vercel deployment, CI/CD, Slack | IN PROGRESS (build verified, manual deploy not yet run) |
+| 18 | Phase 18 (50–54) | Full documentation rewrite | **NEXT** |
 
 **Why phase-level, not step-level**: Individual steps (e.g., "copy one file") are too small for a full session spin-up. But steps within a phase share context that the agent benefits from (e.g., Steps 7–9 need to understand the circular dependency together; Steps 18–20 need to understand the guard logic holistically).
 
@@ -4012,7 +4012,7 @@ Write:
 3. **Circular Dependency (log ↔ smilestore)**: These two stores import each other. **Mitigated by Steps 7–9** — both are copied together and tested as a pair.
 4. **State Persistence**: Tiered cookie/localStorage persistence must work correctly. **Mitigated by Step 9** (localStorage) and cookie tier implementation. Server-side data via Drizzle + Turso/SQLite (replaced Firebase). **Status: RESOLVED.**
 5. **Development Tools**: Complex UI components with many features. **Mitigated by Steps 34–37** — each dev tool component is copied and integrated independently. **Status: RESOLVED.**
-6. **Asset loading (`import.meta.glob`)**: The module's `useAPI.js` has stubbed-out asset loading. `#userAssets` and `#coreAssets` are `{}`, and `getCoreStaticUrl()`, `getStaticUrl()`, `preloadAllImages()`, `preloadAllVideos()` are non-functional. This must be resolved before Phase M (Build & Publish) to support consuming apps that have static assets. **Status: OPEN.**
+6. **Asset loading (`import.meta.glob`)**: The module's `useAPI.js` has stubbed-out asset loading. `#userAssets` and `#coreAssets` are `{}`, and `getCoreStaticUrl()`, `getStaticUrl()`, `preloadAllImages()`, `preloadAllVideos()` are non-functional. This must be resolved before Phase M (Build & Publish) to support consuming apps that have static assets. **Status: RESOLVED** (2026-05-31, commit `9ca0b3c`). Helpers now have correct module-consumer semantics: `getPublicUrl`/`getStaticUrl` resolve against the consumer's `public/`, `getCoreStaticUrl` resolves against `/_smile/*` (the module's bundled assets), and `preloadAllImages`/`preloadAllVideos` consume a declarative `smile.preloadImages`/`preloadVideos` list from `nuxt.config.ts`.
 
 ### Mitigation Strategies
 
@@ -4201,25 +4201,30 @@ Once the Nuxt version is stable and documented:
 
 ---
 
-### Current Status (as of 2026-03-06)
+### Current Status (as of 2026-06-01)
 
-**All phases through L (Testing) are complete.** The module is functional with a full experiment flow running in the playground.
+**All phases through 15 (Build & Publish) are complete.** Module is published to npm as `@nyuccl/smile-nuxt@0.2.0-beta.1` and verified working end-to-end in a fresh consumer install (`nuxi init` style: scaffold from `start/`, `pnpm install` from npm, `pnpm dev`, walk the experiment flow). The remaining work is Phase 17 (Vercel deployment verification) and Phase 18 (docs rewrite).
 
 #### Major Deviations from Original Plan
 
-1. **Repo restructured to root**: The original plan placed the module at `packages/nuxt/`. The repo was restructured so module code lives at root (`src/module.ts`, `src/runtime/`). The `packages/` directory has been removed entirely. Playground is at `playground/`, docs at `docs/`.
+1. **Repo restructured to root**: The original plan placed the module at `packages/nuxt/`. The repo was restructured so module code lives at root (`src/module.ts`, `src/runtime/`). The `packages/` directory has been removed entirely. Playground is at `playground/`, docs at `docs/`, starter template at `start/`.
 
-2. **Firebase replaced with Server API**: Phase 12 (Steps 38-39) was redesigned. Instead of Firebase/Firestore, the module now uses:
+2. **Package name is `@nyuccl/smile-nuxt`, not `@nyuccl/smile`**: The bare `@nyuccl/smile` namespace is reserved for the legacy SPA so the migration doesn't stomp on the existing namespace. First publish under `@nyuccl/smile-nuxt` was 2026-06-01 (`0.2.0-beta.1`). The earlier `chore: release vN.M.X` commits in git history (through `beta.41`) were partial release-script runs that never reached npm.
+
+3. **Firebase replaced with Server API**: Phase 12 (Steps 38-39) was redesigned. Instead of Firebase/Firestore, the module now uses:
    - Nitro server API routes (`src/runtime/server/api/participants/`) with Drizzle ORM
    - Local dev: `file:.data/experiment.db` (auto-created SQLite)
    - Production: Turso via `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN` env vars
    - `smilestore.js` uses `$fetch('/api/participants/...')` instead of Firebase SDK
    - Dev auth via `dev-auth.ts` server middleware (password-based, session tokens in DB)
+   - **Auto-migrations**: Drizzle migrations are inlined into TS via `scripts/bundle-migrations.js` so they ship with the published module and serverless function bundles. The migrate Nitro plugin applies pending migrations at server startup, bootstrapping the `__drizzle_migrations` journal for legacy hand-rolled databases.
 
-3. **State persistence redesigned**: Tiered approach implemented:
+4. **State persistence redesigned**: Tiered approach implemented:
    - Tier 1 (cookies): `knownUser`, `consented`, `done`, `withdrawn`, `seedID`, `seedSet`, `completionCode`, `lastRoute`, `docRef`
    - Tier 2 (localStorage): `viewSteppers`, `routes`, `conditions`, etc.
    - Tier 3 (Pinia only): transient/ephemeral state
+
+5. **Consumer-install fixes for pnpm strict isolation**: `start/.npmrc` ships with `shamefully-hoist=true` (matches the workspace setup) so scaffolded projects don't hit the cascade of peer-dep resolution bugs that surface in strict isolation (reka-ui, pinia, vue, etc.). `vite.resolve.dedupe` in `src/module.ts` collapses `vue` and `pinia` to single instances as defense-in-depth.
 
 #### Testing Status
 
@@ -4236,15 +4241,31 @@ Once the Nuxt version is stable and documented:
 
 #### Known Open Items / TODOs
 
-1. **`import.meta.glob()` asset loading** (useAPI.js lines 238-258): `#userAssets` and `#coreAssets` are hardcoded to `{}`. In the old SPA these used `import.meta.glob()` to eagerly import assets at build time. In the Nuxt module context, user assets live in the consuming app, not the module, so the glob paths don't work. `getCoreStaticUrl()`, `getStaticUrl()`, `preloadAllImages()`, and `preloadAllVideos()` are all non-functional stubs. **Needs resolution before Phase M (Build & Publish)** — likely via a Nuxt module hook that registers the consuming app's asset directories, or by switching to `public/` directory assets.
+1. ~~**`import.meta.glob()` asset loading**~~ — **RESOLVED** 2026-05-31 (commit `9ca0b3c`). Asset helpers redesigned for the module-consumer context; see Risk Assessment item 6 above.
 
 2. **useAPI.test.js has 3 trivially passing tests**: These test mocked behavior rather than real API logic. Should be strengthened or removed.
 
 3. **StepperSerializer.test.js `domElement` test**: Tests DOM serialization with a mock element that may not exercise the real code path. Low priority.
 
-4. **CI/CD workflows**: Old SPA deploy workflows archived. Need Vercel/other deployment setup for the Nuxt app.
+4. **CI/CD workflows**: `start/.github/workflows/deploy.yml` exists with the full Option B workflow (codename URL aliases, prod + preview deploys) but has never been executed end-to-end against a real Vercel account. The smile-nuxt repo itself has `.github/workflows/ci.yml` for module lint/build/test.
 
-5. **Starter template**: `nyuccl/smile-starter` repo needs updating for the module-based architecture.
+5. ~~**Starter template**~~ — Now lives at `start/` in this repo (not in a separate `nyuccl/smile-starter` repo). The version sync script (`scripts/sync-starter-version.js`) keeps `start/package.json`'s `@nyuccl/smile-nuxt` reference pinned to the just-published version on every release.
+
+6. **First-time Vercel deploy never verified**: `nuxt build` with `NITRO_PRESET=vercel` is confirmed to produce a correctly-structured `.vercel/output/` artifact (smoke test 2026-06-01). The runtime behavior on Vercel's serverless functions (Turso connection, function cold starts, env vars) hasn't been validated against an actual deploy. The plan's TODO about Hobby-tier `vercel alias` support is also still unverified.
+
+7. **Documentation rewrite (Phase 18)**: Largely untouched. Open issues #11, #12, #13, #14, #29, #34, #35, #46 are all docs work.
+
+#### Open GitHub Issues (the live work-tracking)
+
+The plan's phase structure has stopped being load-bearing for new work. Day-to-day work is tracked in GitHub issues. Quick categorical breakdown of the 28+ open issues as of 2026-06-01:
+
+- **DB / Turso (#8 partially done, #35, #36, #46)** — auto-migrations shipped; embedded replicas, schema review, and docs still open
+- **Real bugs (#33, #41, #42, #47)** — window sizer, stepper bugs, remaining TS errors
+- **Features (#9, #38, #39, #40, #43, #44, #45)** — eject command, tree-shaking, telemetry, etc.
+- **Security / production-readiness (#31, #48)** — dev-tool audit, axios removal
+- **Docs (#11, #12, #13, #14, #29, #34, #46)** — the bulk of remaining work
+- **Future / strategic (#49)** — interactive init for alternate DB/deploy backends (placeholder)
+- **Release / CI (#1)** — release script should generate changelog and GitHub releases
 
 ### Agent Session Reference
 
