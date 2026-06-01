@@ -1,6 +1,6 @@
 # CI workflow for smile-nuxt module
 
-name: deploy
+name: ci
 
 on:
   push:
