@@ -32,7 +32,7 @@ for (const key of serverEnvKeys) {
 }
 
 export default defineNuxtConfig({
-  modules: ['@pinia/nuxt', '@nyuccl/smile'],
+  modules: ['@pinia/nuxt', '@nyuccl/smile-nuxt'],
 
   // SMILE module options (all optional — defaults are sensible)
   smile: {},

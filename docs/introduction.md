@@ -40,6 +40,14 @@ programmers (or AI-assisted programmers) accomplish more in less time.
 - 🐍 Easy-to-use [Python library](/analysis#python-analysis-library-smiledata)
   for data analysis with Polars DataFrames, built-in plotting, and support for
   Jupyter and Marimo notebooks.
+- 🛠️ Built on [Nuxt](https://nuxt.com), so every experiment has a real
+  server runtime available. Add custom server API routes for
+  custom data logic, condition assignment, randomization seeds, or
+  integrations with external services (e.g., LLMs).
+- 💾 Zero-config local database for development — your experiment writes to a
+  local SQLite file the moment you run `pnpm dev`, no setup required. Swap in
+  a hosted [Turso](https://turso.tech) database with two env vars when you're
+  ready to deploy.
 - 😎 Great-looking and detailed docs, if we do say so ourselves!
 
 Current development is happening at

@@ -1,0 +1,26 @@
+{
+  "name": "@nyuccl/create-smile-nuxt",
+  "version": "0.1.0",
+  "description": "Create a new SMILE experiment project with @nyuccl/smile-nuxt",
+  "author": "Todd Gureckis <gureckis@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nyuccl/smile-nuxt.git",
+    "directory": "create-smile-nuxt"
+  },
+  "type": "module",
+  "bin": {
+    "create-smile-nuxt": "./src/index.mjs"
+  },
+  "files": [
+    "src"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "giget": "^1.2.3"
+  }
+}
