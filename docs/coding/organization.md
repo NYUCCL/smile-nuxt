@@ -24,7 +24,7 @@ my-experiment/
 ├── scripts/             # Build-time helper scripts
 │
 ├── .env                 # Tracked config defaults (safe to commit)
-├── .env.example         # Reference for all available env vars
+├── .env.local.example   # Template to copy to .env.local for secrets
 ├── .gitignore           # Files git should ignore
 ├── .npmrc               # pnpm settings (shamefully-hoist=true)
 │
@@ -98,7 +98,7 @@ components.
 Empty by default. Add Tailwind plugins, CSS custom properties, or global
 overrides here. SMILE's own styles are loaded automatically by the module.
 
-### `.env` and `.env.local`
+### `.env`, `.env.local`, and `.env.local.example`
 
 `.env` holds non-secret defaults like UI mode, randomization seed, and
 branding — safe to commit.
@@ -106,6 +106,21 @@ branding — safe to commit.
 `.env.local` is gitignored and is where you put secrets: database tokens,
 the dev/presentation password, analytics keys. Values here override values
 in `.env`.
+
+`.env.local.example` is a tracked template that documents every variable
+you might want to put in `.env.local`. Copy it when you need to add secrets:
+
+```bash
+cp .env.local.example .env.local
+```
+
+Local dev doesn't require any secrets out of the box — SMILE uses a local
+SQLite database and the `/dev/` route skips its password gate when running
+via `pnpm dev`. You only need `.env.local` when you want to connect to a
+remote Turso database locally or test the production auth flow.
+
+For deployed experiments, put these same secrets in the **Vercel dashboard**
+(Settings → Environment Variables), not in any committed file.
 
 See [Configuration](/coding/configuration) for the full env-var reference.
 

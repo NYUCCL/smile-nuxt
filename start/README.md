@@ -8,8 +8,8 @@ Built with [@nyuccl/smile-nuxt](https://github.com/nyuccl/smile-nuxt) — a Nuxt
 # Install dependencies
 pnpm install
 
-# Copy env template and fill in your secrets
-cp .env.example .env.local
+# (Optional — only needed if you have secrets like a Turso URL to set)
+cp .env.local.example .env.local
 
 # Start developing
 pnpm dev

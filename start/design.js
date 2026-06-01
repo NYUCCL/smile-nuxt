@@ -25,7 +25,7 @@ export default function createTimeline(api) {
   const timeline = new Timeline(api)
 
   // --- Configuration ---
-  // These can also be set in .env (see .env.example for all options)
+  // These can also be set in .env (see .env.local.example for all options)
   api.setRuntimeConfig('labURL', 'https://mylab.edu')
   api.setRuntimeConfig('brandLogoFn', 'universitylogo.png')
 
