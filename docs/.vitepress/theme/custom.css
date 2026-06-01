@@ -1,7 +1,7 @@
 /**
  * Colors: Solid
  * -------------------------------------------------------------------------- */
-@import '../../../src/core/main.css';
+@import '../../../src/runtime/css/main.css';
 /* process the base smile files */
 
 @source '../../../docs/**/*.{md,vue,js,ts,css}';

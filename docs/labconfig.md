@@ -238,7 +238,10 @@ rules rely on the anonymous authentication you enabled above.
 Here is an example of the rules file that works well with Smile experiments (in
 `firebase/firebase.rules` of the main Smile repo):
 
-<<< @/../firebase/firebase.rules{js}
+> **Note:** This page is being rewritten — the Nuxt module uses Drizzle ORM
+> with Turso (libsql) instead of Firebase/Firestore. See `plans/docs_rewrite.md`
+> for the migration plan. The Firebase rules example previously embedded here
+> is no longer relevant.
 
 ## Setup Slack
 

@@ -3,12 +3,12 @@ import DefaultTheme from 'vitepress/theme'
 import DarkModeImage from './DarkModeImage.vue'
 import GureckisLabText from './GureckisLabText.vue'
 import SmileText from './SmileText.vue'
-import { TwoCol, TitleTwoCol, ConstrainedTaskWindow, ConstrainedPage } from '@/uikit/layouts'
-import { Button } from '@/uikit/components/ui/button'
-import { Badge } from '@/uikit/components/ui/badge'
-import { ButtonGroup, ButtonGroupItem } from '@/uikit/components/ui/button-group'
-import { Checkbox } from '@/uikit/components/ui/checkbox'
-import { Switch } from '@/uikit/components/ui/switch'
+import { TwoCol, TitleTwoCol, ConstrainedTaskWindow, ConstrainedPage } from '@/runtime/components/layouts'
+import { Button } from '@/runtime/components/ui/button'
+import { Badge } from '@/runtime/components/ui/badge'
+import { ButtonGroup, ButtonGroupItem } from '@/runtime/components/ui/button-group'
+import { Checkbox } from '@/runtime/components/ui/checkbox'
+import { Switch } from '@/runtime/components/ui/switch'
 import {
   Plus,
   Download,

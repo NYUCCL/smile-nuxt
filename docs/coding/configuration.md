@@ -455,9 +455,9 @@ the environment variable.
 If you look at the content of `src/config.js` you can see how these items are
 pulled into a global configuration object.
 
-<<< ../../src/core/config.js
+<<< ../../src/runtime/core/config.js
 
-It is important to keep in mind that variables passed to `src/core/config.js`
+It is important to keep in mind that variables passed to `src/runtime/core/config.js`
 will not necessarily appear in GitHub but **will** be visible to people
 performing your experiment via the source code. So it is useful to keep in mind
 if a configuration option should or shouldn't be shared with your Javascript
@@ -467,7 +467,7 @@ experiment.
 
 Adding new configuration options can also happen in `.env.local`. You simply
 make up a new `VITE_SOMETHING` variable. Then add it to the object in
-`src/core/config.js` to expose it to your web application! The configuration is
+`src/runtime/core/config.js` to expose it to your web application! The configuration is
 available as `smileconfig` anywhere in your Vue app. It's pretty easy.
 
 If you add any new configuration options, you must stop your development server
