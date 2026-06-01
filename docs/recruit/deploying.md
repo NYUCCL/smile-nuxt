@@ -4,6 +4,93 @@ Deploying (or hosting) your experiment involves building the web application and
 then transferring a copy of the files to a suitable public website where
 participants can access them.
 
+## Before you deploy: account setup
+
+Local development needs **no accounts** — `pnpm dev` writes to a local
+SQLite file and serves the experiment from `localhost`. But to put your
+experiment in front of real participants, you'll need two free accounts.
+You only ever do this setup once.
+
+### 1. Vercel (hosting + HTTPS)
+
+[Vercel](https://vercel.com) runs your experiment on a public URL with
+automatic HTTPS. The free **Hobby** tier is enough for most lab work.
+
+1. Sign up at [vercel.com](https://vercel.com) — connecting it to your
+   GitHub account makes one-click deploys possible later.
+2. If your lab will share infrastructure, create a Vercel **Team** and
+   invite labmates. Otherwise a personal account is fine.
+
+You'll add the actual project to Vercel after pushing your experiment
+repo to GitHub — see [Setting up your deploy](#setting-up-your-deploy)
+below.
+
+### 2. Turso (production database)
+
+[Turso](https://turso.tech) provides a managed [libSQL](https://github.com/tursodatabase/libsql)
+database — same SQL dialect as the local SQLite file <SmileText/> uses
+in dev, so your code works in both environments unchanged. The free
+tier handles a lot of experiments.
+
+1. Sign up at [turso.tech](https://turso.tech).
+2. Create a new database via the dashboard.
+3. From the database's "Connect" tab, copy:
+   - The **database URL** (`libsql://your-db.turso.io`)
+   - An **auth token**
+4. Paste both into your Vercel project's environment variables
+   (Project Settings → Environment Variables):
+   - `TURSO_DATABASE_URL`
+   - `TURSO_AUTH_TOKEN`
+5. Also set `SMILE_DEV_PASSWORD` in the same Vercel env-vars page —
+   this gates `/dev/` and `/presentation/` on the deployed site.
+
+::: tip One Turso DB or many?
+You can use one Turso database per experiment (cleanest separation) or
+share one database across several experiments (cheaper). <SmileText/>'s
+schema namespaces records by `project_ref`, so sharing is safe — but
+exports are simpler with one DB per experiment.
+:::
+
+### 3. GitHub (optional but recommended)
+
+You don't strictly need GitHub to deploy — you can use the
+[Vercel CLI](https://vercel.com/docs/cli) to push directly from your
+laptop. But putting your code on GitHub gives you:
+
+- Version control and backups
+- Auto-deploy to Vercel on every push (via the GitHub Action in the
+  starter, or via Vercel's GitHub integration)
+- Collaboration with labmates
+
+If your lab will have multiple researchers, create a GitHub
+[organization](https://docs.github.com/en/organizations/collaborating-with-groups-in-organizations/creating-a-new-organization-from-scratch)
+so experiment repos live under one shared account. Researchers can apply
+for a free [GitHub Education for Teachers](https://education.github.com/teachers)
+upgrade to unlock team features at no cost.
+
+## Setting up your deploy
+
+The starter ships with a GitHub Action at `.github/workflows/deploy.yml`
+that auto-deploys to Vercel on every push to `main`. To wire it up:
+
+1. Push your experiment repo to GitHub.
+2. In Vercel, click **Add New Project** → import your GitHub repo.
+3. Vercel will create the project; copy the **Project ID** and **Org ID**
+   from Project Settings → General.
+4. In your **GitHub repo** → Settings → Secrets and variables → Actions,
+   add three repo secrets:
+   - `VERCEL_TOKEN` — from [vercel.com/account/tokens](https://vercel.com/account/tokens)
+   - `VERCEL_ORG_ID`
+   - `VERCEL_PROJECT_ID`
+5. Push a commit. The GitHub Action runs, builds, and deploys.
+
+App-level secrets (`TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`,
+`SMILE_DEV_PASSWORD`) go in the **Vercel dashboard**, not GitHub —
+`vercel pull` downloads them at deploy time.
+
+---
+
+
 The steps to deploy are...
 
 1. **Use `git` to push changes to a branch of the repo for your project**

@@ -109,8 +109,6 @@ export default defineConfig({
           { text: 'Introduction', link: '/introduction' },
           { text: 'Quick Start', link: '/quickstart' },
           { text: 'Key Concepts', link: '/concepts' },
-          { text: 'Setup a new lab', link: '/labconfig' },
-          { text: 'Adding a new user', link: '/adduser' },
           { text: 'Starting a new project', link: '/starting' },
           { text: 'Getting help', link: '/help' },
         ],
