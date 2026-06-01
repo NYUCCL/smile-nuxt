@@ -22,7 +22,7 @@ export interface ModuleOptions {
 
 export default defineNuxtModule<ModuleOptions>({
   meta: {
-    name: '@nyuccl/smile',
+    name: '@nyuccl/smile-nuxt',
     configKey: 'smile',
   },
   defaults: {
@@ -92,7 +92,7 @@ export default defineNuxtModule<ModuleOptions>({
     _nuxt.options.alias['#smile-composables'] = resolver.resolve('./runtime/composables')
 
     // Resolve module dependencies so that .vue component files inside
-    // node_modules/@nyuccl/smile/dist/runtime/ can import them correctly
+    // node_modules/@nyuccl/smile-nuxt/dist/runtime/ can import them correctly
     // (pnpm strict isolation prevents Vite from resolving across package boundaries)
     for (const dep of ['lucide-vue-next', '@vueuse/core', 'motion', 'clipboard']) {
       _nuxt.options.alias[dep] = dirname(_require.resolve(`${dep}/package.json`))
@@ -132,25 +132,25 @@ export default defineNuxtModule<ModuleOptions>({
     _nuxt.options.vite.optimizeDeps = _nuxt.options.vite.optimizeDeps || {}
     _nuxt.options.vite.optimizeDeps.include = _nuxt.options.vite.optimizeDeps.include || []
     _nuxt.options.vite.optimizeDeps.include.push(
-      '@nyuccl/smile > seedrandom',
-      '@nyuccl/smile > lodash',
-      '@nyuccl/smile > clipboard',
-      '@nyuccl/smile > crypto-js/sha256',
-      '@nyuccl/smile > crypto-js/enc-base64',
-      '@nyuccl/smile > json-stable-stringify',
-      '@nyuccl/smile > qrcode-svg',
-      '@nyuccl/smile > lucide-vue-next',
-      '@nyuccl/smile > reka-ui',
-      '@nyuccl/smile > reka-ui/date',
-      '@nyuccl/smile > @internationalized/date',
-      '@nyuccl/smile > vue-sonner',
-      '@nyuccl/smile > class-variance-authority',
-      '@nyuccl/smile > clsx',
-      '@nyuccl/smile > tailwind-merge',
-      '@nyuccl/smile > @vueuse/core',
-      '@nyuccl/smile > uuid',
-      '@nyuccl/smile > axios',
-      '@nyuccl/smile > motion',
+      '@nyuccl/smile-nuxt > seedrandom',
+      '@nyuccl/smile-nuxt > lodash',
+      '@nyuccl/smile-nuxt > clipboard',
+      '@nyuccl/smile-nuxt > crypto-js/sha256',
+      '@nyuccl/smile-nuxt > crypto-js/enc-base64',
+      '@nyuccl/smile-nuxt > json-stable-stringify',
+      '@nyuccl/smile-nuxt > qrcode-svg',
+      '@nyuccl/smile-nuxt > lucide-vue-next',
+      '@nyuccl/smile-nuxt > reka-ui',
+      '@nyuccl/smile-nuxt > reka-ui/date',
+      '@nyuccl/smile-nuxt > @internationalized/date',
+      '@nyuccl/smile-nuxt > vue-sonner',
+      '@nyuccl/smile-nuxt > class-variance-authority',
+      '@nyuccl/smile-nuxt > clsx',
+      '@nyuccl/smile-nuxt > tailwind-merge',
+      '@nyuccl/smile-nuxt > @vueuse/core',
+      '@nyuccl/smile-nuxt > uuid',
+      '@nyuccl/smile-nuxt > axios',
+      '@nyuccl/smile-nuxt > motion',
     )
 
     // Add global CSS (Tailwind theme + SMILE styles)

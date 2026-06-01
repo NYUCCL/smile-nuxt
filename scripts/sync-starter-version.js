@@ -2,7 +2,7 @@
 
 /**
  * Syncs the root package.json version into the starter template's
- * @nyuccl/smile dependency, so they never drift apart.
+ * @nyuccl/smile-nuxt dependency, so they never drift apart.
  *
  * Run automatically as part of the release pipeline (after bumpp).
  */
@@ -20,8 +20,8 @@ const version = rootPkg.version
 const starterPkgPath = resolve(rootDir, 'start/package.json')
 const starterPkg = JSON.parse(readFileSync(starterPkgPath, 'utf8'))
 
-starterPkg.dependencies['@nyuccl/smile'] = `^${version}`
+starterPkg.dependencies['@nyuccl/smile-nuxt'] = `^${version}`
 
 writeFileSync(starterPkgPath, JSON.stringify(starterPkg, null, 2) + '\n')
 
-console.log(`  ✔  Synced start @nyuccl/smile to ^${version}`)
+console.log(`  ✔  Synced start @nyuccl/smile-nuxt to ^${version}`)

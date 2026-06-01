@@ -1,13 +1,13 @@
 # SMILE Experiment Project
 
-This is a behavioral experiment built with the [SMILE framework](https://smile.gureckislab.org) (`@nyuccl/smile`), a Nuxt 3 module for online cognitive science experiments.
+This is a behavioral experiment built with the [SMILE framework](https://smile.gureckislab.org) (`@nyuccl/smile-nuxt`), a Nuxt 3 module for online cognitive science experiments.
 
 ## Project Structure
 
 ```
 app.vue              # Root component (just renders <NuxtPage />)
 design.js            # Experiment timeline — sequence of pages participants see
-nuxt.config.ts       # Nuxt config — loads @nyuccl/smile module, icons, CSS
+nuxt.config.ts       # Nuxt config — loads @nyuccl/smile-nuxt module, icons, CSS
 components/          # Your custom Vue components (auto-imported in .vue files)
 assets/css/app.css   # Global styles and Tailwind CSS customizations
 public/              # Static assets (images, logos)
@@ -18,7 +18,7 @@ test/e2e/            # Playwright end-to-end tests
 
 ## Nuxt Auto-Imports
 
-The `@nyuccl/smile` module auto-imports everything you need in `.vue` files — no import statements required:
+The `@nyuccl/smile-nuxt` module auto-imports everything you need in `.vue` files — no import statements required:
 
 **Composables:** `useAPI()`, `useViewAPI()`, `useTimeline()`, `useStepper()`, `useSmileStore()`, `useLog()`, `useSmileColorMode()`, `Timeline`
 

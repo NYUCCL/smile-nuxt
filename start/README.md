@@ -1,6 +1,6 @@
 # My SMILE Experiment
 
-Built with [@nyuccl/smile](https://github.com/nyuccl/smile-nuxt) — a Nuxt module for online behavioral research.
+Built with [@nyuccl/smile-nuxt](https://github.com/nyuccl/smile-nuxt) — a Nuxt module for online behavioral research.
 
 ## Quick Start
 

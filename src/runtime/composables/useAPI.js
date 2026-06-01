@@ -245,7 +245,7 @@ export class SmileAPI {
   getPublicUrl = name => (this.runtimeConfig?.public?.deployBasePath || '/') + name.replace(/^\//, '')
 
   /**
-   * Get the URL for an asset shipped by the @nyuccl/smile module itself
+   * Get the URL for an asset shipped by the @nyuccl/smile-nuxt module itself
    * (e.g. the SMILE logo). Module assets are served at /_smile/* via
    * nitro.publicAssets — see src/module.ts.
    * @param {string} name - Relative path under the module's public dir,
