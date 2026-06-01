@@ -11,8 +11,8 @@ The short version:
 | -------------------- | -------------- | ---------------------------------------- |
 | Vue components       | ✅ Yes         | Local `components/` has higher priority than module dirs (`priority: -1`) |
 | Public assets        | N/A            | No collision — different URL namespaces (`/` vs `/_smile/`) |
-| CSS rules            | ⚠️ No, by default | Module's `main.css` loads after your `app.css` — module wins for equal specificity |
-| CSS variables (theme tokens) | ⚠️ Override with higher specificity | Same as above |
+| CSS rules            | ✅ Yes         | Module's `main.css` loads first; your `app.css` loads after, so your rules win at equal specificity |
+| CSS variables (theme tokens) | ✅ Yes | Same as above — redefine `--primary` etc. in your `app.css` |
 | Composables / API     | N/A            | Module exposes `useAPI()`, etc.; project doesn't redefine these |
 
 ## Vue components
@@ -96,57 +96,70 @@ This is a configuration override, not an asset override.
 
 ## CSS
 
-The module loads its global stylesheet (`runtime/css/main.css`) via
-`_nuxt.options.css.push()`. Your project's `assets/css/app.css` is
-registered first (in your `nuxt.config.ts`), so the final load order is:
+The module loads its global stylesheet (`runtime/css/main.css`) at the
+front of Nuxt's CSS array. Your project's `assets/css/app.css` is then
+registered after, so the final load order is:
 
-1. Your `assets/css/app.css`
-2. Module's `runtime/css/main.css`
+1. Module's `runtime/css/main.css`
+2. Your `assets/css/app.css`
 
-For equal-specificity selectors, **the module's styles win** because they
-load second. This is the opposite of what you might expect — heads-up.
+This means **your `app.css` wins at equal specificity** — the natural
+expectation for module-vs-project styling. Three practical cases:
 
-### What this means in practice
+### Tailwind utility classes
 
-- **Tailwind utility classes** are unaffected — Tailwind processes
-  utilities at compile time and the cascade order doesn't matter for
-  classes like `bg-primary` or `text-lg`.
-- **Custom CSS rules** you write in `app.css` (e.g.,
-  `.my-task-container { ... }`) work fine as long as you're not naming
-  the same class the module uses.
-- **CSS variables / theme tokens** (the module defines a long list of
-  `--primary`, `--background`, `--sidebar-bg`, etc.) require higher
-  specificity to override:
+Unaffected by load order. Tailwind processes utilities at compile time,
+so `bg-primary` and `text-lg` behave the same regardless of which CSS
+file is loaded first.
 
-  ```css
-  /* assets/css/app.css */
+### Custom CSS rules
 
-  /* This may NOT work — module's :root loads after */
-  :root {
-    --primary: oklch(0.55 0.2 250);
-  }
+Your `app.css` wins. Both of these work as you'd expect:
 
-  /* This DOES work — higher specificity wins */
-  html:root,
-  html.light {
-    --primary: oklch(0.55 0.2 250);
-  }
-  ```
+```css
+/* assets/css/app.css */
 
-  Or define them in a `@layer` that the module doesn't use, since later
-  layers always beat earlier layers.
+/* Override a built-in rule */
+body {
+  font-family: 'Comic Sans MS', cursive;
+}
 
-::: warning This is a current design quirk
-A future module update may load `main.css` first (so your `app.css`
-wins by default). Until then, plan for the override-with-higher-specificity
-pattern when customizing theme tokens.
-:::
+/* Your own rules */
+.my-task-container {
+  background: oklch(0.95 0.1 280);
+  border-radius: 12px;
+}
+```
+
+### CSS variables / theme tokens
+
+The module defines theme tokens like `--primary`, `--background`, and a
+long list of `--*-button` colors in `:root, .light` and `.dark` blocks.
+To rebrand the experiment, just redefine the ones you care about in your
+`app.css`:
+
+```css
+/* assets/css/app.css */
+
+:root,
+.light {
+  --primary: oklch(0.55 0.2 250);
+  --primary-button: oklch(0.55 0.2 250);
+  --primary-button-foreground: oklch(0.985 0 0);
+}
+
+.dark {
+  --primary: oklch(0.7 0.18 250);
+}
+```
+
+No higher-specificity gymnastics needed.
 
 ### Color mode (light/dark)
 
 Theme tokens are defined twice in `main.css` — once in `:root, .light`
-and once in `.dark`. To override a dark-mode color specifically, target
-`html.dark` (or higher specificity) in your `app.css`.
+and once in `.dark`. Override the relevant block(s) in your `app.css`
+using the matching selector.
 
 ## Composables and API
 
@@ -208,17 +221,18 @@ same-named file in their `components/` folder, because there's no
 ```
                 Vue component        Public asset        CSS rule
                 ─────────────        ────────────        ────────
-user wins?      ✅ always            n/a (separate URLs) ⚠️ needs higher
+user wins?      ✅ always            n/a (separate URLs) ✅ at equal
                 (priority 1 > -1)                          specificity
 
-module path     module dirs at       /_smile/*           main.css
+module path     module dirs at       /_smile/*           main.css (loads first)
                 priority: -1
 
 user path       components/          public/             assets/css/app.css
+                                                         (loads after main.css)
 
-shadowing       drop same-named      no override —       use html:root or
-                file in              they coexist        higher-specificity
-                components/                              selectors
+shadowing       drop same-named      no override —       redefine the
+                file in              they coexist        rule / variable
+                components/                              in app.css
 ```
 
 ## Next steps

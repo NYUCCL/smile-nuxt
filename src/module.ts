@@ -153,8 +153,11 @@ export default defineNuxtModule<ModuleOptions>({
       '@nyuccl/smile-nuxt > motion',
     )
 
-    // Add global CSS (Tailwind theme + SMILE styles)
-    _nuxt.options.css.push(resolver.resolve('./runtime/css/main.css'))
+    // Add global CSS (Tailwind theme + SMILE styles).
+    // Unshift (not push) so the module's stylesheet loads BEFORE the consumer's
+    // CSS array entries. That way a consumer's `assets/css/app.css` overrides
+    // the module's theme tokens at equal specificity.
+    _nuxt.options.css.unshift(resolver.resolve('./runtime/css/main.css'))
 
     // Client-only plugins — order matters:
     // 1. store-sync: patches localState from localStorage, sets up cookie/localStorage watchers
