@@ -24,9 +24,11 @@ pnpm create @nyuccl/smile-nuxt my-experiment
 ```
 
 Replace `my-experiment` with whatever you want to call your project. The CLI
-will ask if you want to install dependencies — say yes, and it will install
+will ask whether to install dependencies and whether to initialize a git
+repository — say yes to both. It will install
 [`@nyuccl/smile-nuxt`](https://www.npmjs.com/package/@nyuccl/smile-nuxt) and
-everything else the starter needs.
+everything else the starter needs, and leave you with a fresh git repo
+containing the initial scaffold.
 
 ::: tip Other package managers
 The same command works with `npm create`, `yarn create`, or `bun create`. The

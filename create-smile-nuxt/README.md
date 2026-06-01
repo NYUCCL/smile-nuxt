@@ -35,6 +35,8 @@ A ready-to-run Nuxt project pre-wired with [`@nyuccl/smile-nuxt`](https://www.np
 pnpm create @nyuccl/smile-nuxt <project-name> [options]
 
   --no-install    Skip installing dependencies
+  --no-git        Skip initializing a git repository
+  --git           Initialize a git repository (skip the prompt)
   --force, -f     Overwrite an existing non-empty directory
   --help, -h      Show help
 ```
