@@ -70,8 +70,9 @@ The same dev server exposes three views of your experiment:
 | `http://localhost:3000/dev/`          | Dev mode with the sidebar, route jumper, autofill, and data console. |
 | `http://localhost:3000/presentation/` | Presentation mode for screenshots, demos, and lab meetings.          |
 
-The default password for `/dev/` and `/presentation/` is `1234`. You can
-change it via `SMILE_DEV_PASSWORD` in `.env.local` later.
+In local development, the `/dev/` and `/presentation/` routes are open — no
+password required. When you deploy to production, set `SMILE_DEV_PASSWORD` in
+your Vercel dashboard to lock them down.
 
 ## 4. Make your first edit
 

@@ -6,15 +6,14 @@
 #   <codename>.vercel.app
 #   <owner>-<repo>-<branch>.vercel.app
 #
-# Required secrets (set in GitHub repo Settings > Secrets):
+# Required GitHub repo secrets (Settings > Secrets and variables > Actions):
 #   VERCEL_TOKEN      - Vercel personal access token (vercel.com/account/tokens)
 #   VERCEL_ORG_ID     - Your Vercel team/org ID (from .vercel/project.json or dashboard)
 #   VERCEL_PROJECT_ID - Your Vercel project ID (created on first deploy)
 #
-# Optional secrets:
-#   TURSO_DATABASE_URL  - Production database URL
-#   TURSO_AUTH_TOKEN    - Production database auth token
-#   SMILE_DEV_PASSWORD  - Password for /dev and /presentation modes
+# App secrets (TURSO_DATABASE_URL, TURSO_AUTH_TOKEN, SMILE_DEV_PASSWORD, etc.)
+# go in the Vercel dashboard (Settings > Environment Variables), NOT here.
+# `vercel pull` below downloads them into the build at deploy time.
 
 name: Deploy
 
