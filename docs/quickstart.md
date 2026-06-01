@@ -46,6 +46,13 @@ You should see Nuxt boot up and log a URL — usually
 [http://localhost:3000](http://localhost:3000). Open it in your browser and
 you should see the welcome page of a working experiment.
 
+::: warning First load is slow
+The very first page load can take 10–30 seconds while Vite discovers and
+pre-bundles dependencies. You may see a short hang, and Vite will print
+a "discovered new dependencies at runtime" notice in the terminal. This
+is normal — subsequent loads (and hot reloads after code edits) are fast.
+:::
+
 ::: info What just happened?
 On first run, <SmileText/> creates a local SQLite database at
 `.data/experiment.db` and runs migrations against it. Participant records,
