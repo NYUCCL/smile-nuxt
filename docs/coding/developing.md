@@ -5,30 +5,27 @@ web server running on your local computer (i.e., your laptop or desktop). This
 is much faster than waiting for changes to upload to the cloud and then having
 your browser download the files again.
 
-In <SmileText/>, this is all handled by [Vite](https://vitejs.dev). Vite is a
-development tool that is heavily optimized for developer experience (DX). There
-is a lot to say about the features of Vite, but more directly, to test your
-application locally simply type:
+In <SmileText/>, dev mode is handled by [Nuxt](https://nuxt.com) (which uses
+[Vite](https://vitejs.dev) under the hood). Vite is heavily optimized for
+developer experience (DX). To test your application locally, type:
 
 ```sh
-npm run dev
+pnpm dev
 ```
 
 in the project folder. You should see something like this:
 
 ```sh
-  vite v2.9.9 dev server running at:
-
-  > Local: http://localhost:3000/
-  > Network: use `--host` to expose
-
-  ready in 283ms.
+ℹ  SMILE 0.2.0-beta.3
+ℹ  Experiment:    http://localhost:3000
+ℹ  Dev:           http://localhost:3000/dev/
+ℹ  Presentation:  http://localhost:3000/presentation/
 ```
 
-If you open the link shown after `Local:` (in this case,
-`http://localhost:3000/`) in your browser[^mac], it will show you a live demo of
-your web experiment. This website will automatically refresh and change as you
-make modifications to your code. That's all you need to get started.
+If you open the link after `Experiment:` in your browser[^mac], it shows a
+live demo of your experiment. The other two URLs expose Smile's developer
+tools (covered below) and presentation mode. The page automatically
+refreshes as you edit your code — that's all you need to get started.
 
 [^mac]:
     On Mac, if you press the Command (⌘) key while clicking the link, it will
@@ -65,22 +62,32 @@ The developer tools let you:
 
 ## Testing the build process
 
-You can also test the build process locally. Simply type:
+You can also test the build process locally:
 
-```
-npm run build
+```sh
+pnpm build
 ```
 
-If the build is successful, the files will be bundled exactly as they will be on
-your final deployed website. (Files go into the `dist/` folder, which is not
-tracked by git).
+If the build is successful, the bundled output goes into the `.output/`
+folder (not tracked by git). Unlike the older static-SPA version of Smile
+— which produced a single `dist/` of static files — Nuxt builds **both** a
+client bundle and a small Node server entry by default. So `.output/`
+contains `public/` (the static assets and client JS) plus `server/` (a
+minimal Node app that serves them and handles API routes).
 
-Next, you can view the website almost exactly as it will appear online by
-typing:
+When you deploy to Vercel, Nuxt's Vercel preset is auto-detected and
+produces output tailored to that platform — you don't need to do anything
+special at build time. See [Cloud Hosting](/recruit/deploying) for the
+deployment flow.
 
+To preview the production build locally, type:
+
+```sh
+pnpm preview
 ```
-npm run preview
-```
+
+This boots the built server at `http://localhost:3000`, serving exactly
+what gets deployed. Useful for sanity-checking before you push.
 
 ## Hot Module Replacement
 
@@ -126,107 +133,8 @@ reduce the file size, and
 which organizes files into "chunks" that reflect common dependencies across
 different pages of a site.
 
-## Merging changes to the template into your existing project
+## Updating Smile
 
-Because Smile is still being developed, there may be changes to the Smile
-template after you begin setting up your own project. If you want to merge those
-changes into your own project, follow these steps:
-
-First, you need to make sure that your organization's fork of the Smile template
-(the base Smile repo for your organization) has the latest version of Smile.
-
-Once the Smile admin for your lab has merged any changes with your own lab's
-base repo, you can follow these steps to merge the changes into your own
-project.
-
-The first time you want to get changes from the Smile template, you need to add
-the base Smile repo for your lab as a new remote. For example, if your lab
-organization is called `NYUCCL` on Github and the template repo is called
-`smile`, you'd type the following command:
-
-```bash
-git remote add smile https://github.com/NYUCCL/smile.git
-```
-
-You only need to do this once. Next time, the Smile template will already be
-added as a remote.
-
-Next, create a new branch for the update:
-
-```bash
-git checkout -b update-template
-```
-
-Fetch only the current state of the template (without its full git history):
-
-```bash
-git fetch smile main --depth=1
-```
-
-Create a patch file showing all differences between your project and the
-template:
-
-```bash
-git diff HEAD smile/main > template_changes.patch
-```
-
-Apply the patch to your branch:
-
-```bash
-git apply template_changes.patch
-```
-
-### Handling merge conflicts
-
-If the patch applies cleanly, skip to the commit step below. If you see
-conflicts, git will report which files failed. To resolve them:
-
-1. Open each conflicted file in your editor
-2. Look for conflict markers that git inserted (they look like `<<<<<<<`,
-   `=======`, `>>>>>>>`)
-3. Manually edit the file to keep the changes you want
-4. Save the file
-5. Continue with any remaining conflicted files
-
-Alternatively, you can apply the patch with a 3-way merge strategy which can
-handle some conflicts automatically:
-
-```bash
-git apply --3way template_changes.patch
-```
-
-This will apply what it can and mark conflicts in files using standard git
-conflict markers, which you can then resolve using your normal merge conflict
-workflow.
-
-After resolving all conflicts, stage your changes:
-
-```bash
-git add .
-```
-
-Commit the template updates with a descriptive message:
-
-```bash
-git commit -m "Update from Smile template
-
-Applied latest changes from the Smile template repository.
-This update brings in new features and bug fixes without
-importing the template's full git history.
-
-Resolved conflicts in: [list any files where you manually resolved conflicts]"
-```
-
-Finally, merge the update branch into your main development branch:
-
-```bash
-git checkout main
-git merge update-template
-```
-
-You should re-run node's package installer in case any of the required packages
-changed:
-
-```bash
-npm i
-```
+Smile now ships as the `@nyuccl/smile-nuxt` npm package, so pulling in newer
+versions is a standard package-manager operation (no git-patch dance). See
+[Updating Smile](/updating) for the full workflow.

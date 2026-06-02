@@ -118,7 +118,6 @@ export default defineConfig({
         items: [
           { text: 'Overview', link: '/coding/overview' },
           { text: 'Project Organization', link: '/coding/organization' },
-          { text: 'Overrides & Resolution', link: '/coding/overrides' },
           { text: 'Developing', link: '/coding/developing' },
           { text: 'Configuring', link: '/coding/configuration' },
           { text: 'Components', link: '/coding/components' },
@@ -130,6 +129,7 @@ export default defineConfig({
           { text: 'Randomization', link: '/coding/randomization' },
           { text: 'Persistence', link: '/coding/persistence' },
           { text: 'Data storage', link: '/coding/datastorage' },
+          { text: 'Server-side logic', link: '/coding/serverside' },
 
           //{ text: '💰 Computing bonuses', link: '/bonuses' },
           //{ text: '🆘 Dealing with Errors', link: '/problems' },

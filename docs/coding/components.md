@@ -154,6 +154,14 @@ The script has the special word `setup` and initializes the `count` variable to
 zero and makes it reactive (more on that below, but here is Vue's
 [documentation](https://v3.vuejs.org/guide/reactivity.html)).
 
+::: tip Auto-imported in <SmileText/>
+Nuxt auto-imports the Vue composition API helpers (`ref`, `computed`,
+`reactive`, `watch`, etc.) in any `.vue` file, so in a Smile project you can
+drop the `import { ref } from 'vue'` line. The example above includes it for
+clarity, but in your own component the `<script setup>` block would just be
+`const count = ref(0)`.
+:::
+
 #### Styles
 
 Finally, the `<style>` section defines how elements of the template should look.
@@ -224,14 +232,13 @@ will result in:
 
 each with a self-contained counter.
 
-Importantly, components can include and use other components. For example, the
-following component imports the `SimpleButton` component and a new `TextInput`
-component:
+Importantly, components can include and use other components. In a vanilla
+Vue project you would explicitly `import` each child component:
 
 ```vue
 <script setup>
-import SimpleButton from '@/components/SimpleButton.vue'
-import TextInput from '@/components/TextInput.vue'
+import SimpleButton from './SimpleButton.vue'
+import TextInput from './TextInput.vue'
 </script>
 
 <template>
@@ -242,7 +249,21 @@ import TextInput from '@/components/TextInput.vue'
 </template>
 ```
 
-This way more complex elements can be composed out of simpler elements.
+In a <SmileText/> project you don't need the `import` lines at all — Nuxt
+auto-imports anything in `components/` (and Smile's built-in views), so the
+same component is just:
+
+```vue
+<template>
+  <div>
+    <SimpleButton />
+    <TextInput />
+  </div>
+</template>
+```
+
+This way more complex elements can be composed out of simpler elements with
+very little boilerplate.
 
 ## Declarative Rendering and Reactivity
 
@@ -441,12 +462,16 @@ How do they work then?
 
 Vue applications use a build system that sort of "compiles" and "bundles" the
 code in the SFC into one or more .html, .js, and .css files that work in the way
-that browsers can understand. This is the role that Vite plays in <SmileText/>.
-Vite is a super-optimized build tool that can take the SFC files and turn them
-into a webpage that can be loaded in a browser. This aspect of Vite is similar
-to other build tools you might have heard of including Webpack, Parcel, or
-Rollup. It takes in the .vue file and outputs a .html, .js, and .css file you
-can load in a browser.
+that browsers can understand. In <SmileText/> this build step is handled by
+[Nuxt](https://nuxt.com), the meta-framework that wraps Vue, which uses
+[Vite](https://vitejs.dev) under the hood as its bundler. Vite is a
+super-optimized build tool that can take the SFC files and turn them into a
+webpage that can be loaded in a browser. This aspect of Vite is similar to
+other build tools you might have heard of, including Webpack, Parcel, or
+Rollup. It takes in the .vue file and outputs the .html, .js, and .css files
+needed by the browser. (Nuxt adds file-based routing, auto-imports, and a
+production server preset on top of that — features we use throughout
+<SmileText/>.)
 
 Building a website might seem like an unnecessary complexity, but is fairly
 common (if you've used Overleaf to write a paper you are familiar with letting a
@@ -513,15 +538,60 @@ help engage students in the research process.
 
 ## Component organization
 
-When you start developing your own components there are a few guidelines. First,
-components should be named using Pascal Case names (e.g., `StatusBar.vue` or
-`InformedConsentButton.vue` as opposed to `statusbar.vue` (lowercase),
-`statusBar.vue` (camel case) or `status-bar.vue` (kebab case)). This is the
-official recommendation of the
+When you start developing your own components there are a few guidelines.
+First, components should be named using Pascal Case (e.g., `StatusBar.vue`
+or `InformedConsentButton.vue` as opposed to `statusbar.vue` (lowercase),
+`statusBar.vue` (camel case), or `status-bar.vue` (kebab case)). This is
+the official recommendation of the
 [Vue documentation](https://vuejs.org/guide/components/registration.html#component-name-casing).
 
-Second, new components should be placed in your project's `components/` folder.
-Nuxt auto-imports any `.vue` file in that folder, so you can use it in your
-templates without an explicit `import` statement. This will help you stay
-organized and help other users of your code know where to look to find an
-element they might like to reuse in their projects.
+Second, place new components in your project's `components/` folder. Nuxt
+auto-discovers everything in there, which has a few practical consequences
+worth knowing about.
+
+### Auto-import in `.vue` files
+
+Any `.vue` file you drop in `components/` is automatically available by
+its PascalCase filename in any other `.vue` file's `<template>` — no
+`import` statement needed. Smile's built-in views (`InformedConsentView`,
+`DemographicSurveyView`, `WindowSizerView`, `DebriefView`, all the
+shadcn-vue UI primitives, etc.) are auto-imported the same way. The
+practical effect: most of your `.vue` files won't have any `import`
+statements at all.
+
+### Explicit imports in `.js` files
+
+Auto-import only works inside `.vue` files. In plain `.js` files — most
+importantly `design.js`, where you wire up the experiment timeline — you
+still need explicit imports for your own components:
+
+```js
+import MyTaskView from './components/MyTaskView.vue'
+
+timeline.pushSeqView({
+  name: 'task',
+  component: markRaw(MyTaskView),
+})
+```
+
+For Smile's built-in views, `design.js` can reference them by **string
+name** instead of importing them, because the module registers them as
+global components:
+
+```js
+timeline.pushSeqView({
+  name: 'consent',
+  component: 'InformedConsentView',
+})
+```
+
+### Overriding built-in components
+
+If you create a component in `components/` whose filename matches one of
+the module's built-ins (e.g., `components/InformedConsentView.vue`), your
+version replaces the module's everywhere — including the string-name
+references in `design.js`. This makes it easy to swap a built-in view for
+a custom one without changing your timeline code.
+
+For the precedence rules and resolution chain in detail, see
+[Overrides & Resolution](/coding/organization#overrides-resolution).
