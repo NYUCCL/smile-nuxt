@@ -520,6 +520,8 @@ components should be named using Pascal Case names (e.g., `StatusBar.vue` or
 official recommendation of the
 [Vue documentation](https://vuejs.org/guide/components/registration.html#component-name-casing).
 
-Second, new components should be placed in your `src/user/components` folder.
-This will help you stay organized and help other users of your code know where
-to look to find an element they might like to reuse in their projects.
+Second, new components should be placed in your project's `components/` folder.
+Nuxt auto-imports any `.vue` file in that folder, so you can use it in your
+templates without an explicit `import` statement. This will help you stay
+organized and help other users of your code know where to look to find an
+element they might like to reuse in their projects.

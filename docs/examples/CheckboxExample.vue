@@ -19,5 +19,5 @@
 </template>
 
 <script setup>
-import { Checkbox } from '@/uikit/components/ui/checkbox'
+import { Checkbox } from '@/runtime/components/ui/checkbox'
 </script>

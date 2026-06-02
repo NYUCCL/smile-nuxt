@@ -18,5 +18,5 @@
 </template>
 
 <script setup>
-import { TwoCol } from '@/uikit/layouts'
+import { TwoCol } from '@/runtime/components/layouts'
 </script>

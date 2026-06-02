@@ -639,8 +639,8 @@ import useViewAPI from '@/core/composables/useViewAPI'
 const api = useViewAPI()
 
 // import the constrained task window layout and a nice button
-import { ConstrainedTaskWindow } from '@/uikit/layouts'
-import { Button } from '@/uikit/components/ui/button'
+import { ConstrainedTaskWindow } from '@/runtime/components/layouts'
+import { Button } from '@/runtime/components/ui/button'
 
 // initialize the persistent variables
 // these will persist across browser reloads

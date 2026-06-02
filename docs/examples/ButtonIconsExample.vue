@@ -14,6 +14,6 @@
 </template>
 
 <script setup>
-import { Button } from '@/uikit/components/ui/button'
+import { Button } from '@/runtime/components/ui/button'
 import { Plus, Download, Check, AlertTriangle, Trash, Info, Settings, Edit } from 'lucide-vue-next'
 </script>

@@ -1,7 +1,8 @@
 # Quick Start
 
-This page walks you through getting the <SmileText/> starter template running
-on your local machine in developer mode.
+This page walks you through getting a basic <SmileText/> starter template running
+on your local machine in developer mode. Start here if you are just exploring
+for the first time or starting a new project.
 
 ## Prerequisites
 
@@ -9,7 +10,7 @@ Before you start, install:
 
 - **Node.js** (≥ 22). Check with `node -v`. Download from
   [nodejs.org](https://nodejs.org/) if you don't have it.
-- **pnpm** (the package manager <SmileText/> uses). Install with:
+- **pnpm** (the package manager <SmileText/> recommends). Install with:
   ```bash
   npm install -g pnpm
   ```
@@ -74,14 +75,8 @@ bun dev
 
 You should see Nuxt boot up and log a URL — usually
 [http://localhost:3000](http://localhost:3000). Open it in your browser and
-you should see the welcome page of a working experiment.
-
-::: warning First load is slow
-The very first page load can take 10–30 seconds while Vite discovers and
-pre-bundles dependencies. You may see a short hang, and Vite will print
-a "discovered new dependencies at runtime" notice in the terminal. This
-is normal — subsequent loads (and hot reloads after code edits) are fast.
-:::
+you should see the welcome page of a working experiment. (The first load can be
+slow as it pre-bundles dependencies.)
 
 ::: info What just happened?
 On first run, <SmileText/> creates a local SQLite database at
@@ -101,8 +96,9 @@ The same dev server exposes three views of your experiment:
 | `http://localhost:3000/presentation/` | Presentation mode for screenshots, demos, and lab meetings.          |
 
 In local development, the `/dev/` and `/presentation/` routes are open — no
-password required. When you deploy to production, set `SMILE_DEV_PASSWORD` in
-your Vercel dashboard to lock them down.
+password required. When you deploy to production/the cloud you and choose to
+password protect or omit the functionality of those extra tools so they are not
+inadvertently available to participants.
 
 ## 4. Make your first edit
 
@@ -120,5 +116,5 @@ place in the experiment.
 
 - Read [Key Concepts](/concepts) for the mental model behind <SmileText/>.
 - Skim the [Developing](/coding/developing) guide for the dev-mode tools.
-- When you're ready to put your experiment online (Vercel + Turso setup,
-  GitHub Action wiring, public URLs), see [Cloud Hosting](/recruit/deploying).
+- When you're ready to put your experiment online
+  in a publicly available spot see [Cloud Hosting](/recruit/deploying).

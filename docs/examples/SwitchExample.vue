@@ -18,5 +18,5 @@
 </template>
 
 <script setup>
-import { Switch } from '@/uikit/components/ui/switch'
+import { Switch } from '@/runtime/components/ui/switch'
 </script>

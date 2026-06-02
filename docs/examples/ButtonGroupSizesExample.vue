@@ -30,5 +30,5 @@
 </template>
 
 <script setup>
-import { ButtonGroup, ButtonGroupItem } from '@/uikit/components/ui/button-group'
+import { ButtonGroup, ButtonGroupItem } from '@/runtime/components/ui/button-group'
 </script>

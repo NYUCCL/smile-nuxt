@@ -48,18 +48,30 @@ resources for the parts of the Vue.js ecosystem used in the project:
   Vue.js
 - [Vuejs docs](https://vuejs.org/guide/introduction.html) - Complete docs for
   Vue.js
-- [Vue Router](https://router.vuejs.org/) used to jump between different pages
-  on the timeline
-- [Pinia](https://pinia.vuejs.org/) is used to manage the underlying application
-  state
-- [VueUse](https://vueuse.org/) collection of Vue utilities used in the project
+- [VueUse](https://vueuse.org/) collection of Vue composables (useful for things
+  like keyboard, mouse, and storage helpers)
+
+### Nuxt
+
+Smile is distributed as a [Nuxt](https://nuxt.com) module, so every
+experiment is itself a Nuxt application. Nuxt handles routing,
+auto-imports, the server runtime (via Nitro), and the dev server.
+Most of the features of a experiment that aren't part of <SmileText />
+itself come from Nuxt:
+
+- [Nuxt docs](https://nuxt.com/docs) - the main reference, well organized
+- [Nuxt modules](https://nuxt.com/modules) - how Nuxt modules work (useful if
+  you want to extend Smile or write your own module)
+- [Nitro](https://nitro.build) - the server runtime Smile uses for API
+  routes, middleware, and the production build
 
 ### Vite
 
-Vite is the build tool used in the project. This compiles together the various
-libraries used during development so they load quickly on the participant's
-browser. In addition, Vite enables fast development of complex front-end
-Javascript applications. Here are some resources for learning more about Vite:
+Vite is the build tool that Nuxt uses under the hood. It compiles the various
+libraries together so they load quickly on the participant's browser, and
+enables fast development of complex front-end Javascript applications. You
+typically don't interact with Vite directly when using Smile, but knowing it
+exists helps when reading error messages:
 
 - [Vite](https://vitejs.dev/) - the Vite docs are quite comprehensive
 - [Vitepress](https://vitepress.vuejs.org) - this documentation website uses

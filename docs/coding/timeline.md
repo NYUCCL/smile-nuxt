@@ -21,12 +21,12 @@ and come back to the experiment on the **same trial** they left off on.
 This page shows how to configure and control <SmileText />'s timeline
 implementation, and how to customize it with more complex behaviors.
 
-## The Design File (`user/design.js`)
+## The Design File (`design.js`)
 
 Perhaps the most important user-configurable file in a <SmileText /> experiment
-is the design file located in `src/user/design.js`. This file is where you
-configure the timeline of your experiment. You can take a look at the
-[default version](https://github.com/NYUCCL/smile/blob/main/src/user/design.js)
+is the design file located at `design.js` in your project root. This file is
+where you configure the timeline of your experiment. You can take a look at the
+[default version](https://github.com/NYUCCL/smile-nuxt/blob/nuxt/start/design.js)
 of this file which is short, self-explanatory, and well commented.
 
 The design file sets up the sequence of [Views](/coding/views) that the
@@ -353,7 +353,7 @@ one of those paths. There are two types of nodes: <i>randomized</i> and
 Let's say you want participants to see a page of instructions and then complete
 two tasks, which should be presented in a random order across participants.
 After the two tasks, you want to show the debrief View. Here's what your
-`src/design.js` file might look like:
+`design.js` file might look like:
 
 ```js
 import RandomSubTimeline from '@/core/subtimeline'
@@ -541,7 +541,7 @@ the `finish()` method):
 ```vue
 <script setup>
 import useAPI from '@/core/composables/useAPI'
-import { Button } from '@/uikit/components/ui/button'
+import { Button } from '@/runtime/components/ui/button'
 const api = useAPI()
 
 function finish(goto) {

@@ -7,5 +7,5 @@
 </template>
 
 <script setup>
-import { CenteredContent } from '@/uikit/layouts'
+import { CenteredContent } from '@/runtime/components/layouts'
 </script>

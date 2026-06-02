@@ -5,6 +5,16 @@ project. It covers the basics of programming new task elements, configuring the
 timeline/flow of your experiments, and customizing the look and feel of your
 experiments.
 
+## Project Organization
+
+When you scaffold a new experiment, you get a Nuxt project pre-wired for Smile
+with a particular file and folder layout. The
+[project organization](/coding/organization) page walks through each file and
+folder so you know what is yours to edit, what is yours to leave alone, and
+what is generated. The most important files to know about are `design.js`
+(your experiment timeline), `nuxt.config.ts` (Nuxt configuration), and the
+`components/` folder (your custom views and UI).
+
 ## Developer mode
 
 When learning about <SmileText/> and later developing/debugging your experiment,
@@ -24,10 +34,9 @@ in the project folder to get started.
 
 Every experiment is different and requires different configuration options for
 things like database credentials, etc. In <SmileText/>, configs are set using
-`.env` files. Some of these are automatically generated, some are passed from
-the [base repo](/labconfig) to child repos, and some need to be customized for
-each experiment. [This section](/coding/configuration) of the documentation
-explains all the configuration settings available.
+`.env` files. Some of these are automatically generated, and some need to be
+customized for each experiment. [This section](/coding/configuration) of the
+documentation explains all the configuration settings available.
 
 ## Components
 
@@ -68,7 +77,8 @@ before we perform the actual experiment. Smile provides a
 
 The timeline is configured in an important file in every <SmileText/> project
 called the [design file](/coding/timeline#the-design-file-user-design-js)
-(located at `src/user/design.js`). This file is where you configure the timeline
+(located at `design.js` in your project root). This file is where you configure
+the timeline
 for your experiment, including which phases are included and the order in which
 they appear. In addition, the design is used to specify randomization across
 conditions, preloading of content, and other important features of your

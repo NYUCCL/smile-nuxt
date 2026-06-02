@@ -54,7 +54,7 @@ to configure your deployment process.
 Runtime configuration is done using the `api.setRuntimeConfig()` function. This
 is useful for configuation options that are specific to the flow of your
 experiment but are not passwords or other sensitive information. The most common
-use case here is to set options in the `src/user/design.js` file.
+use case here is to set options in the `design.js` file.
 
 For example, the following code sets several options at the top of the design.js
 file. These override the default values in the `.env` file but can be a more
@@ -232,7 +232,7 @@ means they are made available to the web application/experiment.
   lab website or university homepage so participants can learn more about the
   organization conducting the study.
 - `VITE_BRAND_LOGO_FN` is the filename of the logo for your lab. This is used in
-  the header of the experiment. The file should placed be in `src/user/assets/`.
+  the header of the experiment. The file should be placed in `public/`.
 - `VITE_RANDOM_SEED` initializes the pseudo-random number generator in
   <SmileText />
 - `VITE_AUTO_SAVE_DATA` configures if smile attempts to automatically save data

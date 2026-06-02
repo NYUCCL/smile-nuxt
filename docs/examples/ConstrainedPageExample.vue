@@ -7,5 +7,5 @@
 </template>
 
 <script setup>
-import { ConstrainedPage } from '@/uikit/layouts'
+import { ConstrainedPage } from '@/runtime/components/layouts'
 </script>

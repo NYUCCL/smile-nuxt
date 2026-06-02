@@ -12,5 +12,5 @@
 </template>
 
 <script setup>
-import { Button } from '@/uikit/components/ui/button'
+import { Button } from '@/runtime/components/ui/button'
 </script>

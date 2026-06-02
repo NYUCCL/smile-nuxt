@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.nuxt/
+.output/
+.data/
+.vercel/
+test-results/
+playwright-report/
+pnpm-lock.yaml
+
+# Source dirs are formatted by ESLint (@nuxt/eslint-config with stylistic
+# enabled) via `pnpm lint --fix`. Keep prettier out of these so the two
+# formatters don't conflict over edge cases.
+src/
+playground/
+test/

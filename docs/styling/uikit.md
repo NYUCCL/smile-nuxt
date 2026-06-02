@@ -31,17 +31,17 @@ look and feel. We anticipate adding more here over time.
 
 ## Importing Components
 
-All UIkit components can be imported from the `@/uikit/components` directory.
+All UIkit components can be imported from the `@/runtime/components/ui` directory.
 The full list of available components is in the file. Most are in fact imported
 from [Shadcn-vue](https://www.shadcn-vue.com/), but some have been extended for
 use in Smile and are documented here:
 
 ```javascript
-import { Badge } from '@/uikit/components/badge'
-import { Button } from '@/uikit/components/button'
-import { ButtonGroup, ButtonGroupItem } from '@/uikit/components/button-group'
-import { Checkbox } from '@/uikit/components/checkbox'
-import { Switch } from '@/uikit/components/switch'
+import { Badge } from '@/runtime/components/ui/badge'
+import { Button } from '@/runtime/components/ui/button'
+import { ButtonGroup, ButtonGroupItem } from '@/runtime/components/ui/button-group'
+import { Checkbox } from '@/runtime/components/ui/checkbox'
+import { Switch } from '@/runtime/components/ui/switch'
 ```
 
 ## Button Component

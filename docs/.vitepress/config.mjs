@@ -109,6 +109,7 @@ export default defineConfig({
           { text: 'Introduction', link: '/introduction' },
           { text: 'Quick Start', link: '/quickstart' },
           { text: 'Key Concepts', link: '/concepts' },
+          { text: 'Updating Smile', link: '/updating' },
           { text: 'Getting help', link: '/help' },
         ],
       },

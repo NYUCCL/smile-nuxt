@@ -7,5 +7,5 @@
 </template>
 
 <script setup>
-import { ConstrainedTaskWindow } from '@/uikit/layouts'
+import { ConstrainedTaskWindow } from '@/runtime/components/layouts'
 </script>

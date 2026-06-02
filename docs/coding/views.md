@@ -742,7 +742,7 @@ them as needed for your study.
 The Status Bar is a persistent navigation component that appears at the top of
 every view throughout the experiment. It provides essential study information
 and participant controls that are always accessible such as the lab logo
-(`src/user/assets/universitylogo.png`), the study code name, version information
+(`public/universitylogo.png`), the study code name, version information
 (i.e., the git commit hash for debugging purposes, along with the current mode
 (development, testing, presentation)), a shortened user ID. It also provides two
 buttons (After the user consents) which allow users to review the informed

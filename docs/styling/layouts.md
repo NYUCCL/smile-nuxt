@@ -48,7 +48,7 @@ mobile and arranges them horizontally on larger screens.
 
 ```vue
 <script setup>
-import { TwoCol } from '@/uikit/layouts'
+import { TwoCol } from '@/runtime/components/layouts'
 </script>
 
 <template>
@@ -107,7 +107,7 @@ Same as TwoCol, plus:
 
 ```vue
 <script setup>
-import { TitleTwoCol } from '@/uikit/layouts'
+import { TitleTwoCol } from '@/runtime/components/layouts'
 </script>
 
 <template>
@@ -175,7 +175,7 @@ specified (forcing the browser to scroll).
 
 ```vue
 <script setup>
-import { ConstrainedTaskWindow } from '@/uikit/layouts'
+import { ConstrainedTaskWindow } from '@/runtime/components/layouts'
 </script>
 
 <template>
@@ -249,7 +249,7 @@ When `responsiveUI` is `false`, the layout uses fixed dimensions:
 
 ```vue
 <script setup>
-import { ConstrainedPage } from '@/uikit/layouts'
+import { ConstrainedPage } from '@/runtime/components/layouts'
 </script>
 
 <template>
@@ -303,7 +303,7 @@ and centering behavior.
 
 ```vue
 <script setup>
-import { CenteredContent } from '@/uikit/layouts'
+import { CenteredContent } from '@/runtime/components/layouts'
 </script>
 
 <template>

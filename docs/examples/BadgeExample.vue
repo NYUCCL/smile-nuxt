@@ -10,5 +10,5 @@
 </template>
 
 <script setup>
-import { Badge } from '@/uikit/components/ui/badge'
+import { Badge } from '@/runtime/components/ui/badge'
 </script>

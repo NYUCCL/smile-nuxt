@@ -37,9 +37,9 @@ response. We will slowly build this up by adding complexity and features to help
 illustrate the key concepts in Smile.
 
 Each View is a Vue component. You can create a new view by creating a new file
-in the `src/user/components` folder. For example, if you want to create a new
+in the `./components` folder of the starter template (see [Project Organization](/coding/organization.md)). For example, if you want to create a new
 view called `MyView.vue`, you would create a new file in the
-`src/user/components` folder called `MyView.vue`.
+`./components` folder called `MyView.vue`.
 
 A typical Vue component has three parts:
 
@@ -66,13 +66,13 @@ The style is the CSS that is used to style the component.
 This example View component does nothing except display the text "My Experiment"
 in a large (h1) font.
 
-To begin using Smile, import the Smile API and use it to define the steps in the
+To begin using Smile, import the Smile API (it is autoimported so you don't need
+to include an `import` command) and use it to define the steps in the
 experiment.
 
-```vue{2-4,6-11}
+```vue{2-3,5-10}
 <script setup>
 // import and initialize smile API
-import useViewAPI from '@/core/composables/useViewAPI'
 const api = useViewAPI()
 
 api.steps.append([
@@ -96,10 +96,9 @@ This defines four steps in the experiment. Each step has a `word` property. This
 is incomplete, however, because it doesn't actually show the word to the user.
 We want to advance through these steps each time the user presses the spacebar.
 
-```vue{13-15}
+```vue{12-14}
 <script setup>
 // import and initialize smile API
-import useViewAPI from '@/core/composables/useViewAPI'
 const api = useViewAPI()
 
 api.steps.append([
@@ -131,10 +130,9 @@ will talk about paths in a later section of the documentation.
 Now we need to actually display the word to the user. We can do this by updating
 the template part of the component.
 
-```vue{20}
+```vue{19}
 <script setup>
 // import and initialize smile API
-import useViewAPI from '@/core/composables/useViewAPI'
 const api = useViewAPI()
 
 api.steps.append([
@@ -187,10 +185,9 @@ example, it might make sense to record the amount of time it took them to press
 each spacebar. We can use Smile's API to add a timer to the View to measure the
 user's reaction time.
 
-```vue{13-16,19-21}
+```vue{12-15,18-20}
 <script setup>
 // import and initialize smile API
-import useViewAPI from '@/core/composables/useViewAPI'
 const api = useViewAPI()
 
 api.steps.append([
@@ -264,10 +261,9 @@ nested steps, randomization, and more. We provide complete documentation of
 The last step is to leave this View and go to the next one. To do this we should
 change it so that when there are no more steps we exit to the next View.
 
-```vue{22-26}
+```vue{21-25}
 <script setup>
 // import and initialize smile API
-import useViewAPI from '@/core/composables/useViewAPI'
 const api = useViewAPI()
 
 api.steps.append([
@@ -321,6 +317,60 @@ experiments. Smile's API provides many more complex features which are
 introduced in the rest of the documentation.** But before we get into these
 advanced features, let's walk through the process of placing this View in the
 Timeline.
+
+## Making it look nicer
+
+Smile provides a lot of tools to help you style, layout, and improve the
+professional look and feel of your experiment. To make things look nicer lets
+use the `ConstrainedTaskWindow` [Layout](/styling/layouts.md) and some
+[Tailwind CSS](styling/tailwind.md) classes to adjust the fonts and centering.
+
+```vue{28-42}
+<script setup>
+const api = useViewAPI()
+
+api.steps.append([
+  { word: 'THIS' },
+  { word: 'IS' },
+  { word: 'A' },
+  { word: 'TEST' },
+])
+
+if (!api.isTimerStarted()) {
+  api.startTimer()
+}
+
+api.onKeyDown(' ', () => {
+  const reactionTime = api.elapsedTime()
+  api.stepData.reactionTime = reactionTime
+  api.recordStep()
+  if (api.isLastStep()) {
+    api.goNextView()
+  } else {
+    api.goNextStep()
+  }
+})
+</script>
+
+<template>
+  <ConstrainedTaskWindow
+    variant="ghost"
+    :responsive-u-i="api.config.responsiveUI"
+    :width="api.config.windowsizerRequest.width"
+    :height="api.config.windowsizerRequest.height"
+  >
+    <div class="flex h-full w-full flex-col items-center justify-center text-center">
+      <h1 class="text-7xl font-bold tracking-wide">
+        {{ api.stepData.word }}
+      </h1>
+      <p class="mt-10 text-lg text-muted-foreground">
+        Press space bar
+      </p>
+    </div>
+  </ConstrainedTaskWindow>
+</template>
+
+```
 
 ## Placing your new Experiment View in the Timeline
 
@@ -428,31 +478,34 @@ of your interface, and check the format of your data. You can read more about
 However, assuming you've followed the [Quick Start](/quickstart), you can type
 
 ```sh
-npm run dev
+pnpm dev
 ```
 
 to start the development server. This will show you something like this:
 
 ```sh
-> smile@0.0.0 dev
-> vite
+> my-experiment@ dev /Users/you/Desktop/my-experiment
+> nuxt dev
 
-  ➜  Regenerating local environment file based on git info env/.env.git.local
+  ➜  Regenerating local environment file based on git info .env.git.local
+│
+●  Nuxt 4.4.6 (with Nitro 2.13.4, Vite 7.3.5 and Vue 3.5.35)
 
-  VITE v6.3.3  ready in 474 ms
+  ➜ Local:    http://localhost:3000/
+  ➜ Network:  use --host to expose
 
-  ➜  Local:   http://localhost:3010/nyuccl/smile/main/
-  ➜  Network: use --host to expose
-  ➜  Inspect: http://localhost:3010/nyuccl/smile/main/__inspect/
-  ➜  press h + enter to show help
-  ➜  stripping dev/present mode components from src/core/App.vue
-  ➜  stripping dev/present mode components from src/core/SmileApp.vue
+  ➜ DevTools: press Shift + Option + D in the browser (v3.2.4)
+
+ℹ
+ℹ   SMILE 0.2.0-beta.2
+ℹ   Experiment:    http://localhost:3000
+ℹ   Dev:           http://localhost:3000/dev/
+ℹ   Presentation:  http://localhost:3000/presentation/
+✔ Vite client built in 24ms
+✔ Vite server built in 18ms
+✔ Nuxt Nitro server built in 540ms
+ℹ Vite client warmed up in 1ms
+[SMILE] Database initialized (Local SQLite: file:.data/experiment.db) — up to date
 ```
 
 Then you simply open the URL labeled "Local" in your browser.
-
-<!--
-Critically, when running in development mode, Smile provides a GUI "overlay"
-which allows you to see and explore the current state and flow of the
-experiment. The dev mode tools are best explained in this video:
--->

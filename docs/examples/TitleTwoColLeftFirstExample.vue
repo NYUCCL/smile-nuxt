@@ -23,5 +23,5 @@
 </template>
 
 <script setup>
-import { TitleTwoCol } from '@/uikit/layouts'
+import { TitleTwoCol } from '@/runtime/components/layouts'
 </script>
