@@ -17,11 +17,27 @@ Before you start, install:
 
 ## 1. Scaffold a new project
 
-Use `pnpm create` to scaffold a new experiment in a new directory:
+Use your preferred package manager's `create` command:
 
-```bash
+::: code-group
+
+```sh [pnpm]
 pnpm create @nyuccl/smile-nuxt my-experiment
 ```
+
+```sh [npm]
+npm create @nyuccl/smile-nuxt my-experiment
+```
+
+```sh [yarn]
+yarn create @nyuccl/smile-nuxt my-experiment
+```
+
+```sh [bun]
+bun create @nyuccl/smile-nuxt my-experiment
+```
+
+:::
 
 Replace `my-experiment` with whatever you want to call your project. The CLI
 will ask whether to install dependencies and whether to initialize a git
@@ -30,17 +46,31 @@ repository — say yes to both. It will install
 everything else the starter needs, and leave you with a fresh git repo
 containing the initial scaffold.
 
-::: tip Other package managers
-The same command works with `npm create`, `yarn create`, or `bun create`. The
-CLI detects which one you used and tailors the next-step hints accordingly.
-:::
-
 ## 2. Start the dev server
 
-```bash
+```sh
 cd my-experiment
+```
+
+::: code-group
+
+```sh [pnpm]
 pnpm dev
 ```
+
+```sh [npm]
+npm run dev
+```
+
+```sh [yarn]
+yarn dev
+```
+
+```sh [bun]
+bun dev
+```
+
+:::
 
 You should see Nuxt boot up and log a URL — usually
 [http://localhost:3000](http://localhost:3000). Open it in your browser and
