@@ -37,7 +37,7 @@ ANOTHER_OPTION    = 33
 MY_CONFIG         = '${MY_CONFIG_OPTION}1234'
 ```
 
-As described in the [starting a new project](/starting) guide, you will want to
+As described in the [Quickstart](/quickstart) guide, you will want to
 add the env files to your project from your lab. You either will have created
 them yourself or you will have received them from your lab.
 

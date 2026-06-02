@@ -19,7 +19,7 @@ code, the overall logic behind how it works, and how to set it up for a new lab.
 ## Getting started quickly
 
 If you start your project using the <SmileText /> Github template, and are in
-the gureckislab and follow the [starting a new project](/starting) guide then
+the gureckislab and follow the [Quickstart](/quickstart) guide then
 there's nothing else for you to do. Your application already has the ability to
 save data to a password protected lab database and will begin saving the data
 from your experiment as participants progress through your task!
@@ -367,8 +367,7 @@ but there are many helpful videos and documentation websites:
 - The [Cloud Firestore Console](https://console.firebase.google.com/u/0/)
 
 If you haven't set up your lab yet, please refer to the documentation which can
-walk you through creating a Google Firestore database. In particular, read and
-follow [this section](/labconfig#setup-firebase).
+walk you through creating a Google Firestore database.
 
 ## Limitations
 

@@ -282,7 +282,7 @@ messages.
 
 Second, make sure you have a set of `.env.*.local` files in the `env/` folder
 and have run the `npm run upload_config` command (refer back to the
-[initial setup instructions](/starting)). This latter command uploads some
+[Quickstart](/quickstart)). This latter command uploads some
 specific configuration options to GitHub which are needed for your deployment to
 run. You can verify these have been set by going to your repository on the
 GitHub website, clicking Settings, then "Secrets". There should be several
@@ -342,12 +342,11 @@ You can run most of the steps up to this point locally by just typing
 
 ### Uploading files to an Internet-accessible server
 
-Next, the GitHub action uploads the files to the server using rsync. The remote
-host, folder, and other options are set using GitHub Secrets which are encrypted
-environment variables that you configure on the repository settings. Generally
-these will be set for you when your [lab base repo](/labconfig) is configured,
-but read more about [configuration options](/coding/configuration) to customize
-or adjust.
+Next, the GitHub action uploads the files to the server using rsync. The
+remote host, folder, and other options are set using GitHub Secrets —
+encrypted environment variables that you configure under the repository's
+Settings → Secrets. See [Configuration](/coding/configuration) for the
+full list of options you can customize.
 
 ### Notifying the Slack bot
 

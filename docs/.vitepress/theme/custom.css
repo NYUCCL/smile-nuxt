@@ -7,7 +7,7 @@
 @source '../../../docs/**/*.{md,vue,js,ts,css}';
 @source '../../../src/**/*.{md,vue,js,ts,css}';
 
-::root {
+:root {
   --vp-c-white: #ffffff;
   --vp-c-black: #000000;
 

@@ -175,7 +175,7 @@ tasks and help improve the consistency of the design.
 
 ## Built-in Views
 
-When you [setup](/starting) the default <SmileText /> project you automatically
+When you [set up](/quickstart) the default <SmileText /> project you automatically
 get a number of built-in Views that are useful for most experiments. These
 include things like obtaining [informed consent](#informed-consent), presenting
 [instructions](#simple-instructions), etc... This section describes these

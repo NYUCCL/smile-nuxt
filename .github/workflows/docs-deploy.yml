@@ -39,6 +39,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      # Generates .nuxt/tsconfig.json at the repo root, which the docs build
+      # needs because root tsconfig.json extends ./.nuxt/tsconfig.json. Without
+      # this, Vite's esbuild plugin fails to transform docs/.vitepress/theme/*.ts.
+      - name: Prepare Nuxt module (generate .nuxt/tsconfig.json)
+        run: pnpm dev:prepare
+
       - name: Build docs
         run: pnpm docs:build
 

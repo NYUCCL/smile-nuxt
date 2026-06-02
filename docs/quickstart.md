@@ -74,7 +74,7 @@ bun dev
 :::
 
 You should see Nuxt boot up and log a URL — usually
-[http://localhost:3000](http://localhost:3000). Open it in your browser and
+`http://localhost:3000`. Open it in your browser and
 you should see the welcome page of a working experiment. (The first load can be
 slow as it pre-bundles dependencies.)
 
