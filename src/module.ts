@@ -41,19 +41,31 @@ export default defineNuxtModule<ModuleOptions>({
     // Transpile runtime directory so .js files are processed
     _nuxt.options.build.transpile.push(runtimeDir)
 
-    // Exclude local SQLite database from file watchers to prevent rebuild
-    // loops (the migrate plugin writes to .data/experiment.db on startup)
+    // Exclude noisy/large directories from file watchers. Reduces chokidar
+    // descriptor count (helps avoid EMFILE on macOS) and prevents rebuild
+    // loops from .data/ (migrate plugin writes experiment.db on startup).
+    const watchIgnores = [
+      '**/.data/**',
+      '**/node_modules/**',
+      '**/.nuxt/**',
+      '**/.output/**',
+      '**/.vercel/**',
+      '**/analysis/**',
+      '**/test/**',
+      '**/test-results/**',
+      '**/playwright-report/**',
+    ]
     _nuxt.options.nitro = _nuxt.options.nitro || {}
     _nuxt.options.nitro.watchOptions = _nuxt.options.nitro.watchOptions || {}
     _nuxt.options.nitro.watchOptions.ignored = _nuxt.options.nitro.watchOptions.ignored || []
     if (Array.isArray(_nuxt.options.nitro.watchOptions.ignored)) {
-      _nuxt.options.nitro.watchOptions.ignored.push('**/.data/**')
+      _nuxt.options.nitro.watchOptions.ignored.push(...watchIgnores)
     }
     _nuxt.options.watchers = _nuxt.options.watchers || {} as typeof _nuxt.options.watchers
     _nuxt.options.watchers.chokidar = _nuxt.options.watchers.chokidar || {}
     _nuxt.options.watchers.chokidar.ignored = _nuxt.options.watchers.chokidar.ignored || []
     if (Array.isArray(_nuxt.options.watchers.chokidar.ignored)) {
-      _nuxt.options.watchers.chokidar.ignored.push('**/.data/**')
+      _nuxt.options.watchers.chokidar.ignored.push(...watchIgnores)
     }
 
     // Serve module static assets (e.g. smile.svg) at /_smile/
@@ -151,6 +163,12 @@ export default defineNuxtModule<ModuleOptions>({
       '@nyuccl/smile-nuxt > uuid',
       '@nyuccl/smile-nuxt > axios',
       '@nyuccl/smile-nuxt > motion',
+      // Nuxt devtools deps — Vite discovers these at runtime on first dev page
+      // load and triggers a full reload to re-optimize. Including them upfront
+      // avoids that reload. (Not prefixed with `@nyuccl/smile-nuxt >` because
+      // they come from Nuxt itself, not the module's dep subgraph.)
+      '@vue/devtools-core',
+      '@vue/devtools-kit',
     )
 
     // Add global CSS (Tailwind theme + SMILE styles).

@@ -49,6 +49,11 @@ export default defineNuxtConfig({
       Icons({ compiler: 'vue3' }),
       Components({ resolvers: [IconsResolver()] }),
     ],
+    // Pre-bundle Nuxt devtools deps so Vite doesn't discover them at runtime
+    // on first dev page load (which triggers a full reload to re-optimize).
+    optimizeDeps: {
+      include: ['@vue/devtools-core', '@vue/devtools-kit'],
+    },
   },
 
   compatibilityDate: 'latest',
