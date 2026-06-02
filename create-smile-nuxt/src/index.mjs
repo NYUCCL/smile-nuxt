@@ -61,7 +61,7 @@ function initGitRepo(cwd) {
   return spawnSync(
     'git',
     ['commit', '-q', '--no-gpg-sign', '-m', 'chore: initial commit from create-smile-nuxt'],
-    opts
+    opts,
   ).status === 0
 }
 
@@ -81,7 +81,7 @@ async function run() {
       placeholder: 'my-experiment',
       validate(value) {
         if (!value) return 'Please enter a project name'
-        if (!/^[a-z0-9][a-z0-9._-]*$/i.test(value))
+        if (!/^[a-z0-9][\w.-]*$/i.test(value))
           return 'Use letters, numbers, dashes, dots, or underscores; must start with a letter or number'
       },
     })
