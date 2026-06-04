@@ -17,7 +17,6 @@
  */
 import { defineStore } from 'pinia'
 import { useCookie, navigateTo } from '#imports'
-import axios from 'axios'
 import appconfig from '../core/config.js'
 import useLog from './log.js'
 
@@ -361,11 +360,14 @@ export default defineStore('smilestore', {
     getBrowserFingerprint() {
       let ip = 'unknown'
       const log = useLog()
-      axios
-        .get('https://api.ipify.org/?format=json')
+      fetch('https://api.ipify.org/?format=json')
         .then((response) => {
-          if (response.data.ip) {
-            ip = response.data.ip
+          if (!response.ok) throw new Error(`HTTP ${response.status}`)
+          return response.json()
+        })
+        .then((data) => {
+          if (data.ip) {
+            ip = data.ip
             log.success('SMILESTORE: User IP address detected (using api.ipify.org): ' + ip)
           }
         })

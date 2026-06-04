@@ -161,7 +161,6 @@ export default defineNuxtModule<ModuleOptions>({
       '@nyuccl/smile-nuxt > tailwind-merge',
       '@nyuccl/smile-nuxt > @vueuse/core',
       '@nyuccl/smile-nuxt > uuid',
-      '@nyuccl/smile-nuxt > axios',
       '@nyuccl/smile-nuxt > motion',
       // Nuxt devtools deps — Vite discovers these at runtime on first dev page
       // load and triggers a full reload to re-optimize. Including them upfront

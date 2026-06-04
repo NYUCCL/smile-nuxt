@@ -37,13 +37,6 @@ vi.mock('../../src/runtime/stores/log', () => {
   }
 })
 
-// Mock axios for getBrowserFingerprint
-vi.mock('axios', () => ({
-  default: {
-    get: vi.fn().mockResolvedValue({ data: { ip: '127.0.0.1' } }),
-  },
-}))
-
 // Mock Nuxt auto-imports used by runtime code
 vi.mock('#imports', () => ({
   defineNuxtPlugin: fn => fn,
