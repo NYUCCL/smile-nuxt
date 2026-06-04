@@ -59,8 +59,7 @@ pnpm dev
 ```
 
 Then open `http://localhost:3000`. See the full
-[Quick Start guide](https://smile.gureckislab.org/quickstart) for the
-`npm` / `yarn` / `bun` variants and a walkthrough of dev mode.
+[Quick Start guide](https://smile.gureckislab.org/quickstart).
 
 ## License
 
