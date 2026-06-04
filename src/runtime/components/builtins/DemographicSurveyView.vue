@@ -28,6 +28,7 @@ const isPopoverOpen = ref(false)
 if (!api.persist.isDefined('forminfo')) {
   api.persist.forminfo = reactive({
     dob: '',
+    age: '',
     gender: '',
     race: '',
     hispanic: '',
@@ -53,13 +54,20 @@ const formattedDate = computed(() => {
   return new Intl.DateTimeFormat('en-US', { dateStyle: 'long' }).format(date)
 })
 
+// Prolific's ToS prohibits collecting DOB. When recruited via Prolific we ask
+// for age in years instead, and store it in a separate `age` field so the two
+// input modes stay distinguishable in the data.
+const isProlific = computed(() => api.getRecruitmentService() === 'prolific')
+
+const ageOptions = Array.from({ length: 110 - 8 + 1 }, (_, i) => String(i + 8))
+
 /**
  * Computed property to check if page one is complete
  * Validates that all required fields on the first page are filled
  */
 const page_one_complete = computed(
   () =>
-    api.persist.forminfo.dob !== ''
+    (isProlific.value ? api.persist.forminfo.age !== '' : api.persist.forminfo.dob !== '')
     && api.persist.forminfo.gender !== ''
     && api.persist.forminfo.race !== ''
     && api.persist.forminfo.hispanic !== ''
@@ -94,7 +102,12 @@ const page_three_complete = computed(
  * Pre-populates the form with sample data
  */
 function autofill() {
-  api.persist.forminfo.dob = '1978-09-12'
+  if (isProlific.value) {
+    api.persist.forminfo.age = '34'
+  }
+  else {
+    api.persist.forminfo.dob = '1978-09-12'
+  }
   api.persist.forminfo.gender = 'Male'
   api.persist.forminfo.race = 'Caucasian/White'
   api.persist.forminfo.hispanic = 'No'
@@ -194,8 +207,36 @@ function finish() {
           v-if="api.pathString === 'survey_page1'"
           class="border border-border text-left bg-muted p-6 rounded-lg"
         >
-          <!-- Date of Birth field -->
-          <div class="mb-3">
+          <!-- Age field (Prolific) — Prolific's ToS prohibits DOB collection -->
+          <div
+            v-if="isProlific"
+            class="mb-3"
+          >
+            <label class="block text-md font-semibold text-foreground mb-2"> Age </label>
+            <Select v-model="api.persist.forminfo.age">
+              <SelectTrigger class="w-full bg-background dark:bg-background text-base">
+                <SelectValue placeholder="Select your age" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="years in ageOptions"
+                  :key="years"
+                  :value="years"
+                >
+                  {{ years }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p class="text-xs text-muted-foreground mt-1">
+              How old are you (in years)? (required)
+            </p>
+          </div>
+
+          <!-- Date of Birth field (non-Prolific) -->
+          <div
+            v-else
+            class="mb-3"
+          >
             <label class="block text-md font-semibold text-foreground mb-2"> Date of Birth </label>
             <Popover v-model:open="isPopoverOpen">
               <PopoverTrigger as-child>

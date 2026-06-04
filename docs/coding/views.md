@@ -548,6 +548,14 @@ participants in a study (age, gender, country, primary language, etc...). In
 addition, it is useful to know if a subject is color blind in case the studies
 relies on color information.
 
+When the participant was recruited via Prolific (i.e.,
+`api.getRecruitmentService() === 'prolific'`), the first page of the survey
+swaps the date-of-birth picker for an **Age** dropdown (years, 8–110). This is
+required because Prolific's Terms of Service prohibit collecting participants'
+date of birth. The two inputs are stored in separate keys on the recorded page
+data — `dob` for the date picker, `age` for the dropdown — so analyses can
+unambiguously tell which input mode produced a given row.
+
 ```js
 // put this at the top of the file
 import DemographicSurveyView from '@/builtins/demographicSurvey/DemographicSurveyView.vue'
