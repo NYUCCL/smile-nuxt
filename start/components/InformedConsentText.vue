@@ -4,51 +4,26 @@
       <i-mdi-approve class="inline-block mr-2" />Informed Consent
     </h1>
     <hr class="mt-2 mb-3 h-px">
-    <p>
-      You are being asked to participate in a research study. This document
-      provides you with information about the study. Your participation is
-      voluntary, and you may choose not to participate or withdraw at any time.
-    </p>
-    <ul class="pl-8 pt-3 pb-3 list-square">
-      <li>
-        Participation in this study will take about [estimated time] to complete,
-        and you will receive [describe compensation here] for your participation.
-      </li>
-      <li>
-        You will complete a brief computer-based task. The task involves
-        [describe your task here].
-      </li>
-      <li>In addition, by agreeing to participate, you understand you must be 18 years or older to participate.</li>
-      <li>
-        There are no known risks associated with your participation in this research beyond those of everyday life.
-      </li>
-      <li>
-        Confidentiality of your research records will be strictly maintained. We assign code numbers to each participant
-        so that data is never directly linked to individual identity, and we are interested in group results rather than
-        the responses of particular individuals.
-      </li>
-      <li>
-        Taking part in this study is voluntary. Not taking part or withdrawing after the study has begun will result in
-        no penalty. You have the right to skip or not answer any questions you prefer not to answer.
-      </li>
-    </ul>
-    <p>
-      If there is anything about the study or your participation that is unclear or that you do not understand, if you
-      have questions or wish to report a research-related problem, you may contact the principal investigator,
-      [your name] at [your address],
-      [your email].
+
+    <div class="p-4 mb-4 border-2 border-dashed border-amber-500 rounded bg-amber-50 dark:bg-amber-950/40">
+      <p class="font-semibold mb-2">
+        Replace this placeholder with your study's informed consent text.
+      </p>
+      <p>
+        Edit <code class="bg-muted px-1 rounded">components/InformedConsentText.vue</code>
+        and replace the contents below with the consent language your IRB has approved.
+      </p>
+      <p class="mt-2">
+        A fully formatted example you can copy from is in
+        <code class="bg-muted px-1 rounded">components/InformedConsentTextSample.vue</code>.
+      </p>
+    </div>
+
+    <p class="text-muted-foreground">
+      Your consent body typically describes the study's purpose and expected
+      duration, what participants will be asked to do, any risks and benefits,
+      confidentiality protections, the participant's right to withdraw at any
+      time, and contact information for the principal investigator.
     </p>
   </div>
 </template>
-
-<style scoped>
-/* Ensure list bullets are visible */
-ul {
-  list-style-type: square;
-  padding-left: 2rem;
-}
-
-li {
-  margin-bottom: 0.5rem;
-}
-</style>

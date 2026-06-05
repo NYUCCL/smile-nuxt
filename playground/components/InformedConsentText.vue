@@ -4,55 +4,26 @@
       <i-mdi-approve class="inline-block mr-2" />Informed Consent
     </h1>
     <hr class="mt-2 mb-3 h-px">
-    <p>
-      If you agree to be in this study, you will be asked to look at pictures of objects or pictures presented on a
-      computer display, watch videos, listen to sounds, or observe lights controlled by the computer and to make
-      judgments about them using a keyboard, mouse, or other input device attached to a computer.
-    </p>
-    <ul class="pl-8 pt-3 pb-3 list-square">
-      <li>
-        Participation in this study will take about 30 minutes to complete, and you will receive $4.50 for your
-        participation. As an additional incentive to try your best at the task, you may earn a cash bonus of up to
-        $10.00 based on your performance.
-      </li>
-      <li>When you complete the study, a thorough verbal and written explanation of it will be provided.</li>
-      <li>In addition, by agreeing to participate, you understand you must be 18 years or older to participate.</li>
-      <li>
-        There are no known risks associated with your participation in this research beyond those of everyday life.
-        Although you will receive no direct benefits, this research may help the investigator understand how people
-        learn new categories.
-      </li>
-      <li>
-        Confidentiality of your research records will be strictly maintained. We assign code numbers to each participant
-        so that data is never directly linked to individual identity, and we are interested in group results rather than
-        the responses of particular individuals. Any emails will never be shared with anyone nor linked to your data.
-        Data are kept in our laboratory and are only viewed by the investigators. These data files are kept on our
-        computer indefinitely.
-      </li>
-      <li>
-        Taking part in this study is voluntary. Not taking part or withdrawing after the study has begun will result in
-        no loss of services from NYU to which you are otherwise entitled. You have the right to skip or not answer any
-        questions you prefer not to answer.
-      </li>
-    </ul>
-    <p>
-      If there is anything about the study or your participation that is unclear or that you do not understand, if you
-      have questions or wish to report a research-related problem, you may contact the principal investigator,
-      <a href="https://mylab.edu">Your Name</a> at Your Address, Your City, State, Zip,
-      <a href="mailto:you@university.edu">you@university.edu</a>. For questions about your rights as a
-      research participant, you may contact your university's IRB office.
+
+    <div class="p-4 mb-4 border-2 border-dashed border-amber-500 rounded bg-amber-50 dark:bg-amber-950/40">
+      <p class="font-semibold mb-2">
+        Replace this placeholder with your study's informed consent text.
+      </p>
+      <p>
+        Edit <code class="bg-muted px-1 rounded">components/InformedConsentText.vue</code>
+        and replace the contents below with the consent language your IRB has approved.
+      </p>
+      <p class="mt-2">
+        A fully formatted example you can copy from is in
+        <code class="bg-muted px-1 rounded">components/InformedConsentTextSample.vue</code>.
+      </p>
+    </div>
+
+    <p class="text-muted-foreground">
+      Your consent body typically describes the study's purpose and expected
+      duration, what participants will be asked to do, any risks and benefits,
+      confidentiality protections, the participant's right to withdraw at any
+      time, and contact information for the principal investigator.
     </p>
   </div>
 </template>
-
-<style scoped>
-/* Ensure list bullets are visible */
-ul {
-  list-style-type: square;
-  padding-left: 2rem;
-}
-
-li {
-  margin-bottom: 0.5rem;
-}
-</style>
