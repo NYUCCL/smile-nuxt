@@ -316,6 +316,33 @@ Workaround: override the entire view (using Approach A or B), then use
 your custom `Button` inside that override.
 :::
 
+#### Troubleshooting overrides
+
+If your override doesn't seem to be taking effect, check the following in
+order:
+
+1. **Filename matches the built-in exactly.** The drop-in override is
+   name-based — `informedConsentView.vue` won't shadow
+   `InformedConsentView.vue`. Match the source's PascalCase.
+2. **The file is in `components/` at the project root**, not a subfolder
+   and not `src/components/`. The starter's `components/` is the dir Nuxt
+   scans.
+3. **You're overriding a *view*, not a UI primitive used inside one.**
+   Dropping `components/Button.vue` won't change buttons inside a
+   pre-compiled module view like `InformedConsentView` — see the warning
+   above for the compile-time vs runtime distinction.
+4. **The dev server has picked it up.** A newly-created file occasionally
+   misses an HMR cycle. If your change doesn't apply, stop the dev server
+   (`Ctrl+C`) and run `pnpm dev` again.
+5. **Vite's pre-bundle cache isn't stale.** If the browser console shows
+   `504 (Outdated Optimize Dep)` errors or `Failed to fetch dynamically
+   imported module`, hard-refresh the tab (`Cmd+Shift+R`). As a last
+   resort, delete `node_modules/.cache/vite/` and restart.
+6. **For slot-content overrides** (e.g., `InformedConsentText`), the
+   built-in view consumes content via `api.setAppComponent(...)` — make
+   sure that registration is still present in `design.js`. This is not
+   the same mechanism as a same-name view override.
+
 ### Creating a timeline
 
 Your `design.js` exports a `createTimeline(api)` function. The `api`

@@ -257,14 +257,6 @@ component to `global: true` automatically. This means
 `design.js` resolve to your override, not the module's original.
 :::
 
-::: info Why string references still work after an override
-When Nuxt detects that your local component shadows a global module
-component, the module's `components:extend` hook promotes your local
-component to `global: true` automatically. This means
-`<component :is="'AdvertisementView'">` and string references in
-`design.js` resolve to your override, not the module's original.
-:::
-
 #### Customizing without overriding the whole view
 
 For the most common customizations — consent body text, debrief body text,
