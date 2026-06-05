@@ -1,6 +1,6 @@
 {
   "name": "@nyuccl/create-smile-nuxt",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Create a new SMILE experiment project with @nyuccl/smile-nuxt",
   "author": "Todd Gureckis <gureckis@gmail.com>",
   "license": "MIT",
