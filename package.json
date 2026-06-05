@@ -35,7 +35,7 @@
     "dev": "pnpm run dev:prepare && nuxt dev playground",
     "dev:build": "nuxt build playground",
     "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxt prepare playground",
-    "release": "pnpm run lint && pnpm run test && bumpp --no-push && node scripts/sync-starter-version.js && git add start/package.json && git commit --amend --no-edit && pnpm run prepack && changelogen --no-bump && pnpm publish --access public --tag beta && git push --follow-tags",
+    "release": "pnpm whoami && pnpm run lint && pnpm run test && bumpp --no-push && node scripts/sync-starter-version.js && git add start/package.json && git commit --amend --no-edit && pnpm run prepack && changelogen --no-bump && pnpm publish --access public --tag beta && git push --follow-tags",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest watch",
