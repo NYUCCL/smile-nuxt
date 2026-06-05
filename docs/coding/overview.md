@@ -11,9 +11,7 @@ When you scaffold a new experiment, you get a Nuxt project pre-wired for Smile
 with a particular file and folder layout. The
 [project organization](/coding/organization) page walks through each file and
 folder so you know what is yours to edit, what is yours to leave alone, and
-what is generated. The most important files to know about are `design.js`
-(your experiment timeline), `nuxt.config.ts` (Nuxt configuration), and the
-`components/` folder (your custom views and UI).
+what is generated.
 
 ## Developer mode
 
@@ -25,7 +23,7 @@ debug and test your experiment. You can learn more about developer mode
 [here](/coding/developing). But the TL;DR is:
 
 ```
-npm run dev
+pnpm dev
 ```
 
 in the project folder to get started.

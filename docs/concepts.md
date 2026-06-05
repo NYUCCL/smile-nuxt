@@ -235,26 +235,25 @@ resulting data to a new property in the `api.stepData` object called
 `api.stepData.reactionTime`. We are free to make new properties on the current
 `api.stepData` or to modify existing ones.
 
-Then we call `api.recordStep()` to record the step data. This persists the data
-so that it will be written to the database record for this participant. It's
-worth mentioning that this doesn't mean the data will be immediately stored in
-the database. For example, Firebase (the recommended database for Smile) limits
-how frequently we can write to documents, but rest assured, `api.recordStep()`
-will buffer your participant's trial data so that it is safely written to the
-database at the next opportunity. In addition, even if the subject reloads the
-browser at this point, the data for that trial will be restored for later
-syncing, limiting data loss.
+Then we call `api.recordStep()` to record the step data. This persists the
+data so that it will be written to the database record for this participant.
+It's worth mentioning that this doesn't mean the data is immediately written
+to the remote database — <SmileText/> throttles writes (see `maxWrites` and
+`minWriteInterval` in [Configuration](/coding/configuration#client-visible-defaults-ui-branding-data-saving))
+to guard against runaway loops. `api.recordStep()` buffers your participant's
+trial data so it is safely written at the next opportunity. In addition, even
+if the subject reloads the browser at this point, the data for that trial is
+restored for later syncing, limiting data loss.
 
 **What this section reveals is that Smile's API goes beyond basic Vue components
 to provide ways to define steps or trials in an experiment, save data to a
 database, persist data across page loads, and conveniently record data typically
 needed in behavioral experiments.**
 
-It gets much more advanced and powerful from there. For example
-[here](https://github.com/NYUCCL/smile/blob/main/src/user/components/stroop_exp/StroopExpView.vue)
-is a more complex example of a Stroop experiment which uses hierarchically
-nested steps, randomization, and more. We provide complete documentation of
-[steps](/coding/steps) and the [API](/api).
+It gets much more advanced and powerful from there. We provide complete
+documentation of [steps](/coding/steps) and the [API](/api), including how to
+compose hierarchically nested steps, randomization, and condition-aware
+flows.
 
 ### Transitioning to the next View
 
@@ -312,13 +311,7 @@ Views in the overall flow of our experiment, we don't need to update our code.
 This makes it easy to share your Views with others and reuse them in different
 experiments.
 
-**Hopefully this gives you a sense of how Smile's API can be used to build
-experiments. Smile's API provides many more complex features which are
-introduced in the rest of the documentation.** But before we get into these
-advanced features, let's walk through the process of placing this View in the
-Timeline.
-
-## Making it look nicer
+### Making it look nicer
 
 Smile provides a lot of tools to help you style, layout, and improve the
 professional look and feel of your experiment. To make things look nicer lets
@@ -372,11 +365,17 @@ api.onKeyDown(' ', () => {
 
 ```
 
+**Hopefully this gives you a sense of how Smile's API can be used to build
+experiments. Smile's API provides many more complex features which are
+introduced in the rest of the documentation.** But before we get into these
+advanced features, let's walk through the process of placing this View in the
+Timeline.
+
 ## Placing your new Experiment View in the Timeline
 
-All the files that you regularly need to edit are in the `src/user` folder. The
-`design.js` file is the main entry point for your experiment. It is where you
-define the overall flow of your experiment.
+The files you regularly need to edit live in the project root, with custom
+components inside `components/`. The `design.js` file is the main entry point
+for your experiment. It is where you define the overall flow.
 
 We recommend you take a look at this file. It is fairly long and starts with
 some boilerplate configuration and importing. But the key section is where the
@@ -386,72 +385,73 @@ timeline is defined. For example, look for a code section like this:
 // demographic survey
 timeline.pushSeqView({
   name: 'demograph',
-  component: DemographicSurvey,
+  component: 'DemographicSurveyView',
 })
 
 // windowsizer
 timeline.pushSeqView({
   name: 'windowsizer',
-  component: WindowSizer,
+  component: 'WindowSizerView',
 })
 
 // instructions
 timeline.pushSeqView({
   name: 'instructions',
-  component: Instructions,
+  component: 'InstructionsView',
 })
 ```
 
-This shows the three Views that are currently defined in the experiment. The
-`timeline.pushSeqView` method is used to add a new View to the timeline. The
-`name` property is used to identify the View. The `component` property is the
-Vue component that is used to display the View.
+This shows three Views in the experiment. The `timeline.pushSeqView` method
+adds a new View to the timeline. The `name` property identifies the View. The
+`component` property is the Vue component used to display the View. Built-in
+views are referenced as **string names** — they're auto-registered as global
+Vue components by `@nyuccl/smile-nuxt`, so no `import` line is needed.
 
-We can add our new View to the timeline by adding a new `pushSeqView` call.
-Let's say we want to add it after the windowsizer View. We would add it like
-this:
+We can add our new View to the timeline with another `pushSeqView` call.
+Let's say we want to add it after the windowsizer View. Custom (user-authored)
+views are imported as files and wrapped with `markRaw()` so Vue's reactivity
+system doesn't try to proxy the component definition:
 
-```js{1-2,16-20}
+```js{1-3,17-21}
 // put this up at the top of the design.js file with the other imports
-import MyView from '@/user/components/MyView.vue'
+import { markRaw } from 'vue'
+import MyView from './components/MyView.vue'
 
 // demographic survey
 timeline.pushSeqView({
   name: 'demograph',
-  component: DemographicSurvey,
+  component: 'DemographicSurveyView',
 })
 
 // windowsizer
 timeline.pushSeqView({
   name: 'windowsizer',
-  component: WindowSizer,
+  component: 'WindowSizerView',
 })
 
 // myview inserted here
 timeline.pushSeqView({
   name: 'myview',
-  component: MyView,
+  component: markRaw(MyView),
 })
 
 // instructions
 timeline.pushSeqView({
   name: 'instructions',
-  component: Instructions,
+  component: 'InstructionsView',
 })
 ```
 
-Here, we imported our new View (you should do this at the top of the `design.js`
-file with the other imports). Then we added a new `pushSeqView` call to add it
-to the timeline. The `name` property is used to identify the View. The
-`component` property is the Vue component that is used to display the View.
+See [Components: string names vs. `markRaw()`](/coding/timeline#components-string-names-vs-markraw) for why the two cases are handled differently.
 
-You'll notice that there are many other Views in the default timeline including
-`WindowSizer`, `Instructions`, and `Consent`. These are all
-[built in Views](/coding/views.html#built-in-views-1) that are provided by Smile
-which are commonly used in experiments. You can of course remove any of these,
-or edit them to your liking. Some are quite sophisticated and can save you a lot
-of time such as the `InstructionsQuiz` View which can be used to quickly build
-[comprehension check quizzes](/styling/forms).
+You'll notice that the default timeline contains many other built-in views
+including `WindowSizerView`, `InstructionsView`, and `InformedConsentView`.
+These are all
+[built-in Views](/coding/views.html#built-in-views-1) that ship with
+<SmileText/> for use in experiments. You can remove or
+[override](/coding/views) any of them. Some are quite sophisticated and can
+save you a lot of time, such as the `InstructionsQuiz` View used to quickly
+build [comprehension check quizzes](/styling/forms).
 
 With this change, there is a new sequence to the experiment:
 

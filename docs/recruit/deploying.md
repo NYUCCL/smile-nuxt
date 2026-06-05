@@ -280,18 +280,16 @@ that your app deployed here are some useful hints for fixing things.
 First, check the `#smile-deploy` slack channel and see if there are any relevant
 messages.
 
-Second, make sure you have a set of `.env.*.local` files in the `env/` folder
-and have run the `npm run upload_config` command (refer back to the
-[Quickstart](/quickstart)). This latter command uploads some
-specific configuration options to GitHub which are needed for your deployment to
-run. You can verify these have been set by going to your repository on the
-GitHub website, clicking Settings, then "Secrets". There should be several
-repository secrets including `SECRET_APP_CONFIG` and `EXP_DEPLOY_PATH`, etc...
+Second, make sure the required environment variables are set in your Vercel
+project. Open Project Settings → Environment Variables and confirm that
+`TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, and `SMILE_DEV_PASSWORD` are all
+present for the environment you're deploying to (Production / Preview /
+Development). Missing or misnamed env vars are the most common cause of a
+broken first deploy.
 
-Third, run the `npm run build` and `npm run preview` commands and verify that
-these steps are completed without error on your local machine. If there are
-errors they may be preventing GitHub from building your site. Fix the errors
-locally and push the changes.
+Third, run `pnpm build` (and optionally `pnpm preview`) locally and verify the
+build completes without error. If it errors locally, the same error will fail
+the GitHub Action — fix it locally and push the fix.
 
 Finally, go to the GitHub repo for your project on the github.com website and
 click the "Actions" tab. This will show a history of recent "workflow" runs.
@@ -357,10 +355,9 @@ bot. This lets you verify the code was deployed and provides you with an
 up-to-date URL to share with participants. This includes a QR code which can be
 used to recruit anonymous participants to the task via a physical flye/poster.
 
-If the deployment script fails, GitHub will attempt to notify the slack bot
-about the error. However, it requires that the GitHub secrets have been properly
-uploaded with `npm run upload_config` so the absence of an error notification
-isn't proof things did work.
+If the deployment fails, GitHub Actions will show the failed run with a red
+:x: in the repo's Actions tab. The absence of a Slack notification on its own
+isn't proof things worked — always check Actions for the actual deploy status.
 
 ## Blocking web crawlers
 

@@ -1,38 +1,38 @@
 # Getting started contributing
 
 The <SmileText/> repo
-([https://github.com/NYUCCL/smile](https://github.com/NYUCCL/smile)) includes
-both the code and documentation for the code.
+([https://github.com/NYUCCL/smile-nuxt](https://github.com/NYUCCL/smile-nuxt))
+includes both the code and documentation for the code.
 
 If you haven't already, make sure you have Node.js (≥ 22) and pnpm installed — see the [Quick Start](/quickstart) for setup.
 
 The next step is to fork the project from
-[github repo](https://github.com/NYUCCL/smile), clone it on your machine, and
-set your current terminal to the working copy. Then, install the required
-javascript dependencies using `npm`, the node package manager (similar to `pip`
+[github repo](https://github.com/NYUCCL/smile-nuxt), clone it on your machine,
+and set your current terminal to the working copy. Then, install the required
+javascript dependencies using `pnpm`, the node package manager (similar to `pip`
 in python). This can be accomplished with three simple commands in your terminal
 program (you can also clone the repo using GUI tools if you prefer):
 
 ```
-git clone https://github.com/nyuccl/smile.git
-cd smile
-npm install
+git clone https://github.com/nyuccl/smile-nuxt.git
+cd smile-nuxt
+pnpm install
 ```
 
 Once you have the packages installed you can use different commands to start the
-local development server for either the documentation website or the experiment
-project.
+local development server for either the documentation website or the playground
+experiment.
 
-To start the experiment development server:
+To start the playground development server:
 
 ```
-npm run dev
+pnpm dev
 ```
 
 To start the documentation development server:
 
 ```
-npm run docs:dev
+pnpm docs:dev
 ```
 
 Either of these commands will print out a URL that looks roughly like

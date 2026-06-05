@@ -100,7 +100,7 @@ A workflow that balances staying current with experiment stability:
 4. **When archiving an experiment** — leave the pin and lockfile in place
    in the repo. Future you can always reproduce the exact build.
 
-## How to read SMILE version numbers
+## How to read version numbers
 
 <SmileText/> follows [Semantic Versioning](https://semver.org) (SemVer). Version numbers look like `MAJOR.MINOR.PATCH`:
 

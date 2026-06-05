@@ -181,10 +181,6 @@ export default defineConfig({
           { text: 'Design Philosophy', link: '/philosophy' },
         ],
       },
-      {
-        text: 'Misc',
-        items: [{ text: 'Cheat sheet', link: '/cheatsheet' }],
-      },
     ],
     footer: {
       message: 'Released under the MIT License.',

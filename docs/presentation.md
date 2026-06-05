@@ -23,13 +23,15 @@ There are three things that presentation mode enables:
 
 ## How to use Presentation Mode
 
-To run the default experiment in developer mode run
+Presentation mode is a route, not a separate command. Start the dev server
+normally and visit the `/presentation/` route:
 
 ```
-npm run dev:present
+pnpm dev
 ```
 
-This will launch a website that looks something like this:
+Then open `http://localhost:3000/presentation/` in your browser. It looks
+something like this:
 
 ![Presentation Mode](/images/presentmode.png)
 

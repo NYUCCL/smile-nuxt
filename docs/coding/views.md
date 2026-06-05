@@ -1,7 +1,3 @@
-<script setup>
-//import AdvertisementView from '../src/builtins/recruitment/AdvertisementView.vue'
-</script>
-
 # Views
 
 [Components](/coding/components) are the basic building blocks of a <SmileText/>
@@ -36,7 +32,7 @@ Views are a useful way of thinking about bigger parts or phases of an
 experiment. Views tend to be modular and reusable "sections" of an experiment
 that you might use in different experiments or different parts of the same
 experiment. The sequencing of different Views is controlled by the
-[**Timeline**](/coding/timeline) (and more specifically `@/user/design.js`).
+[**Timeline**](/coding/timeline) (and more specifically `design.js`).
 
 ## ViewAPI
 
@@ -46,7 +42,7 @@ in the `<script setup>` section of your View component. It is accessed via the
 
 ```vue
 <script setup>
-import useViewAPI from '@/core/composables/useViewAPI'
+// useViewAPI is auto-imported by @nyuccl/smile-nuxt — no import needed
 const api = useViewAPI()
 </script>
 ```
@@ -78,7 +74,8 @@ There is more information on view navigation in the
 important point is that `goNextView()`, `goPrevView()`, and `goToView()` also
 automatically call `saveData()` on the global store prior to View changes. So as
 a result, you can trust that your data will be saved/synchronized with the
-persistent store (Firestore) whenever you navigated between Views.
+persistent store (Turso/libsql, see [Data Storage](/coding/datastorage))
+whenever you navigate between Views.
 
 ## Persisting data for the view
 
@@ -187,13 +184,13 @@ your experiment.
 Each View can be configured with a set of
 [props](https://vuejs.org/guide/components/props) (basically input parameters)
 that control the behavior of the View. These props will be configured in the
-`@/user/design.js`. Examples of all of the props will be shown in the below
+`design.js`. Examples of all of the props will be shown in the below
 examples.
 
 ### Metadata options
 
 Each View can also be defined with a set of metadata properties that control
-page access. These `meta` property will be configured in the `@/user/design.js`.
+page access. These `meta` property will be configured in the `design.js`.
 Examples on all of the metadata properties will be shown in the below examples,
 and more information can be found
 [here](https://router.vuejs.org/guide/advanced/meta.html#Route-Meta-Fields).
@@ -215,16 +212,19 @@ and more information can be found
 | [Feedback](#feedback)                        | No    | A survey for soliciting structured and unstructured feedback on the study                                                                 |
 | [Thanks Page](#thanks)                       | No    | A thank you page                                                                                                                          |
 
-These components are located in the `src/builtins` directory. In <SmileText/> a
-short-hand for the src folder is '@' so for instance '@/builtins' refers to the
-`src/builtins` directory.
+These components ship inside the `@nyuccl/smile-nuxt` module and are
+**auto-registered** as global Vue components. That means in `design.js` you
+reference them by **string name** (e.g., `component: 'InformedConsentView'`)
+— no `import` statement required. To override a built-in, drop a
+same-named `.vue` file in your project's `components/` folder and yours
+wins (see [Overrides & Resolution](/coding/organization#overrides-resolution)).
 
 ## Built-in Views
 
 ### Recruitment Advertisement
 
-**Base Component**: `@/builtins/advertisement/AdvertisementView.vue`  
-**Code**: [source](https://github.com/NYUCCL/smile/blob/main/src/builtins/advertisement/AdvertisementView.vue)  
+**Component name**: `AdvertisementView` (auto-imported)  
+**Source**: [github](https://github.com/NYUCCL/smile-nuxt/blob/main/src/runtime/components/builtins/AdvertisementView.vue)  
 **Typical
 accessibility**: `{allowAlways: true}`
 
@@ -236,62 +236,36 @@ participate. There is a animated button which will take the participant to the
 next View in the timeline.
 
 - The template can be edited to change the text.
-- The logo image imports from `@/user/assets/brain.svg`.
+- The logo image imports from `public/brain.svg`.
 
 <AdvertisementView/>
 
 Example `design.js` entry:
 
 ```js
-// put this at the top of the file
-import AdvertisementView from '@/builtins/advertisement/AdvertisementView.vue'
-
 timeline.pushSeqView({
-  path: '/welcome',
+  path: '/welcome/:service?',
   name: 'welcome_anonymous',
-  component: AdvertisementView,
+  component: 'AdvertisementView',
   meta: {
     prev: undefined,
     next: 'consent',
-    allowAlways: true,
     requiresConsent: false,
   },
 })
 ```
 
-Another `design.js` alternative for studies that use external services like
-Prolific:
-
-```js
-// put this at the top of the file
-import AdvertisementView from '@/builtins/advertisement/AdvertisementView.vue'
-
-timeline.pushSeqView({
-  path: '/welcome/:service',
-  name: 'welcome_referred',
-  component: AdvertisementView,
-  meta: {
-    prev: undefined,
-    next: 'consent',
-    allowAlways: true,
-    requiresConsent: false,
-  },
-  beforeEnter: (to) => {
-    // processes info to get the service-specific
-    // participant info (e.g., Profilic ID)
-    processQuery(to.query, to.params.service)
-  },
-})
-```
-
-This will automatically save service-specific participant info to your data
-(e.g., Prolific ID), with current built-in support for Prolific, Amazon MTurk,
-and CloudResearch.
+The optional `:service?` segment lets the same route handle both anonymous
+arrivals and participants referred from external services like Prolific,
+Amazon MTurk, or CloudResearch. When the URL includes a service segment
+(e.g., `/welcome/prolific?PROLIFIC_PID=...`), the built-in view extracts
+the relevant ID and saves it with the participant's data — no separate
+`beforeEnter` hook needed.
 
 ### MTurk Recruitment
 
-**Base Component**: `@/builtins/mturk/MTurkRecruitView.vue`  
-**Code**: [source](https://github.com/NYUCCL/smile/blob/main/src/builtins/mturk/MTurkRecruitView.vue)  
+**Component name**: `MTurkRecruitView` (auto-imported)  
+**Source**: [github](https://github.com/NYUCCL/smile-nuxt/blob/main/src/runtime/components/builtins/MTurkRecruitView.vue)  
 **Typical
 accessibility**: `{allowAlways: true}`
 
@@ -310,16 +284,13 @@ HIT, they then see a new page with a button which will launch the <SmileText/>
 experiment in a new browser window.
 
 - The template can be edited to change the text.
-- The logo image imports from `@/user/assets/brain.svg`.
+- The logo image imports from `public/brain.svg`.
 
 ```js
-// put this at the top of the file
-import MTurkRecruitView from '@/builtins/mturk/MTurkRecruitView.vue'
-
-this.registerView({
+timeline.registerView({
   path: '/mturk',
   name: 'mturk',
-  component: MTurkRecruitView,
+  component: 'MTurkRecruitView',
   props: {
     estimated_time: api.getConfig('estimated_time'),
     payrate: api.getConfig('payrate'),
@@ -333,8 +304,8 @@ this.registerView({
 
 ### Informed Consent
 
-**Base Component**: `@/builtins/informedConsent/InformedConsentView.vue`  
-**Code**: [source](https://github.com/NYUCCL/smile/blob/main/src/builtins/informedConsent/InformedConsentView.vue)  
+**Component name**: `InformedConsentView` (auto-imported)  
+**Source**: [github](https://github.com/NYUCCL/smile-nuxt/blob/main/src/runtime/components/builtins/InformedConsentView.vue)  
 **Typical
 accessibility**: `{requiresConsent: false, requiresDone: false}`
 
@@ -346,67 +317,70 @@ checkbox. If the participant agrees, then the Informed Consent View sets a flag
 in the application state indicating that the participant has consented. Clicking
 a button continues to the next View in the timeline.
 
-The text of the informed consent should be updated for each study and placed in
-`@/user/components/InformedConsentText.vue`.
+The text of the informed consent should be updated for each study. The
+starter ships with `components/InformedConsentText.vue` pre-created as a
+placeholder — edit it with your IRB-approved consent body. A fully
+formatted reference template is available alongside it as
+`components/InformedConsentTextSample.vue`; copy from it as a starting
+point if useful.
 
-After a participant accepts the informed consent (usually the first few steps of
-study) they will see a button in the [status bar](#status-bar) that will always
-be available allowing them to review the consent form in case they have
-questions. Clicking this button pops up a modal with the text of the informed
-consent (also `@/builtins/informedConsent/InformedConsentText.vue`).
+`design.js` registers the text component for both the consent page and the
+status-bar consent modal:
 
 ```js
-// put this at the top of the file
-import InformedConsentView from '@/builtins/informedConsent/InformedConsentView.vue'
+import InformedConsentText from './components/InformedConsentText.vue'
+// ...inside createTimeline(api):
+api.setAppComponent('informed_consent_text', InformedConsentText)
+```
 
+After a participant accepts the informed consent (usually the first few
+steps of study) they will see a button in the [status bar](#status-bar)
+that always lets them review the consent form. Clicking it pops up a
+modal that renders the same registered text component.
+
+```js
 // consent
 timeline.pushSeqView({
   name: 'consent',
-  component: InformedConsentView,
+  component: 'InformedConsentView',
   meta: {
     requiresConsent: false,
-    setConsented: true, // set the status to consented ater this route
+    setConsented: true, // set the status to consented after this route
   },
 })
 ```
 
 ### Window Sizer
 
-**Base Component**: `@/builtins/windowSizer/WindowSizerView.vue`  
-**Code**: [source](https://github.com/NYUCCL/smile/blob/main/src/builtins/windowSizer/WindowSizerView.vue)  
+**Component name**: `WindowSizerView` (auto-imported)  
+**Source**: [github](https://github.com/NYUCCL/smile-nuxt/blob/main/src/runtime/components/builtins/WindowSizerView.vue)  
 **Typical
 accessibility**: `{requiresConsent: true, requiresDone: false}`
 
-The window sizer is a small component
-`src/builtins/windowSizer/WindowSizerView.vue` that will display a box with a
-configured size on the screen and ask the participant to adjust their browser
-window to that size so everything is visible. It looks like this:
+The window sizer displays a box with a configured size on the screen and
+asks the participant to adjust their browser window to that size so
+everything is visible. It looks like this:
 
 ![Window sizer](/images/windowsizer.png)
 
-The size of the box is configured in `env/.env` file using the
-`VITE_WINDOWSIZER_REQUEST` configuration option. The default value is `800x600`
-which means 800 pixel wide and 600 pixels tall. You can change these values as
-needed. In development mode, you will need to restart the development server
-since environment files are only read once when the application first loads.
+The size of the box is configured in your project's `.env` file using the
+`VITE_WINDOWSIZER_REQUEST` option. The default is `800x600` (800 pixels
+wide × 600 pixels tall). Change these as needed; restart `pnpm dev` for
+changes to env files to take effect.
 
-In addition to a View appearing on the Timeline in a particular place, it is
-possible to re-trigger this View when the browser detects the user has adjusted
-the browser to no longer make the task viewport the requested size. To enable
-this behavior set `VITE_WINDOWSIZER_AGGRESSIVE = true` in the `env/.env` file.
+In addition to appearing on the timeline in a particular place, the
+window sizer can also re-trigger whenever the browser detects the user
+resized below the requested size. To enable this behavior set
+`VITE_WINDOWSIZER_AGGRESSIVE = true` in `.env`.
 
-To add it to the timeline just add this in the appropriate place inside
-`src/router.js`;
+Add it to the timeline like any other view in `design.js`:
 
 ```js
-// put this at the top of the file
-import WindowSizerView from '@/builtins/windowSizer/WindowSizerView.vue'
-
 // windowsizer
 timeline.pushSeqView({
   path: '/windowsizer',
   name: 'windowsizer',
-  component: WindowSizerView,
+  component: 'WindowSizerView',
 })
 ```
 
@@ -419,18 +393,16 @@ with custom weights so that the Instructions View displays the correct text.
 This page is also always accessible such that the user is able to return to it
 if they do not pass the instructions quiz.
 
-**Base Component**: `@/builtins/instructions/InstructionsView.vue`  
-**Code**: [source](https://github.com/NYUCCL/smile/blob/main/src/builtins/instructions/InstructionsView.vue)  
+**Component name**: `InstructionsView` (auto-imported)  
+**Source**: [github](https://github.com/NYUCCL/smile-nuxt/blob/main/src/runtime/components/builtins/InstructionsView.vue)  
 **Typical
 accessibility**: `{requiresConsent: true, requiresDone: false}`
 
 [TO DO: Add info about instructions]
 
 ```js
-// put this at the top of the file
-import InstructionsView from '@/builtins/instructions/InstructionsView.vue'
-import useAPI from '@/core/composables/useAPI'
-const api = useAPI()
+// `api` here is the parameter passed into `createTimeline(api)` —
+// no need to call useAPI() in design.js.
 
 // assign instruction condition
 api.randomAssignCondition({
@@ -441,7 +413,7 @@ api.randomAssignCondition({
 // instructions
 timeline.pushSeqView({
   name: 'instructions',
-  component: InstructionsView,
+  component: 'InstructionsView',
   meta: {
     allowAlways: true,
   },
@@ -450,8 +422,8 @@ timeline.pushSeqView({
 
 ### Instructions Quiz
 
-**Base Component**: `@/builtins/instructionsQuiz/InstructionsQuiz.vue`  
-**Code**: [source](https://github.com/NYUCCL/smile/blob/main/src/builtins/instructionsQuiz/InstructionsQuiz.vue)  
+**Component name**: `InstructionsQuiz` (auto-imported)  
+**Source**: [github](https://github.com/NYUCCL/smile-nuxt/blob/main/src/runtime/components/builtins/InstructionsQuiz.vue)  
 **Typical
 accessibility**: `{requiresConsent: true, requiresDone: false}`
 
@@ -462,7 +434,7 @@ are redirected to the timeline at the location specified in the `returnTo` prop,
 which is by default the instructions page, and will be asked to try the quiz
 again.
 
-The quiz questions are configured in `@/user/components/quizQuestions.js` as an
+The quiz questions are configured in `./components/quizQuestions.js` as an
 array of dictionary objects, where each dictionary represents a page of multiple
 questions. Each question has an id, a question text, a list of answers, and the
 correct answer(s). The field `multiSelect` can be set to true if a question has
@@ -511,7 +483,7 @@ export const QUIZ_QUESTIONS = [
 ]
 ```
 
-The questions from `@/user/components/quizQuestions.js` are then imported and
+The questions from `./components/quizQuestions.js` are then imported and
 passed to `InstructionsQuiz` component as a prop (`quizQuestions`). The
 `randomizeQuestionsAndAnswers` prop is optional and defaults to `true`. This
 will randomize the order of the questions and answers on each page at loading
@@ -520,12 +492,13 @@ questions and answers will be different each time). If set to `false`, the
 questions will be randomized in the same way each time the quiz is taken.
 
 ```js
-// import the quiz questions
-import { QUIZ_QUESTIONS } from './components/quizQuestions'
+// import the quiz questions (custom data lives in your project)
+import { QUIZ_QUESTIONS } from './components/quizQuestions.js'
+
 // instructions quiz
 timeline.pushSeqView({
   name: 'quiz',
-  component: InstructionsQuiz,
+  component: 'InstructionsQuiz',
   props: {
     questions: QUIZ_QUESTIONS,
     returnTo: 'instructions',
@@ -536,8 +509,8 @@ timeline.pushSeqView({
 
 ### Demographic Survey
 
-**Base Component**: `@/builtins/demographicSurvey/DemographicSurveyView.vue`  
-**Code**: [source](https://github.com/NYUCCL/smile/blob/main/src/builtins/demographicSurvey/DemographicSurveyView.vue)  
+**Component name**: `DemographicSurveyView` (auto-imported)  
+**Source**: [github](https://github.com/NYUCCL/smile-nuxt/blob/main/src/runtime/components/builtins/DemographicSurveyView.vue)  
 **Typical
 accessibility**: `{requiresConsent: true, requiresDone: false}`
 
@@ -557,20 +530,17 @@ data — `dob` for the date picker, `age` for the dropdown — so analyses can
 unambiguously tell which input mode produced a given row.
 
 ```js
-// put this at the top of the file
-import DemographicSurveyView from '@/builtins/demographicSurvey/DemographicSurveyView.vue'
-
 timeline.pushSeqView({
   path: '/demograph',
   name: 'demograph',
-  component: DemographicSurveyView,
+  component: 'DemographicSurveyView',
 })
 ```
 
 ### Device Survey
 
-**Base Component**: `@/builtins/deviceSurvey/DeviceSurveyView.vue`  
-**Code**: [source](https://github.com/NYUCCL/smile/blob/main/src/builtins/deviceSurvey/DeviceSurveyView.vue)  
+**Component name**: `DeviceSurveyView` (auto-imported)  
+**Source**: [github](https://github.com/NYUCCL/smile-nuxt/blob/main/src/runtime/components/builtins/DeviceSurveyView.vue)  
 **Typical
 accessibility**: `{requiresConsent: true, requiresDone: false}`
 
@@ -598,21 +568,18 @@ If you want this to be the last View in the study you can set the `setDone` meta
 field.
 
 ```js
-// put this at the top of the file
-import DeviceSurveyView from '@/builtins/deviceSurvey/DeviceSurveyView.vue'
-
 timeline.pushSeqView({
-  path: '/demograph',
-  name: 'demograph',
-  component: DeviceSurveyView,
+  path: '/device',
+  name: 'device',
+  component: 'DeviceSurveyView',
   meta: { setDone: true }, // optional if this is the last form
 })
 ```
 
 ### Withdraw
 
-**Base Component**: `@/builtins/withdraw/WithdrawView.vue`  
-**Code**: [source](https://github.com/NYUCCL/smile/blob/main/src/builtins/withdraw/WithdrawView.vue)  
+**Component name**: `WithdrawView` (auto-imported)  
+**Source**: [github](https://github.com/NYUCCL/smile-nuxt/blob/main/src/runtime/components/builtins/WithdrawView.vue)  
 **Typical
 accessibility**: `{ requiresWithdraw: true }`
 
@@ -635,9 +602,6 @@ withdraws and to try to contact the participant if needed for partial
 compensation.
 
 ```js
-// put this at the top of the file
-import WithdrawView from '@/builtins/withdraw/WithdrawView.vue'
-
 // withdraw
 timeline.registerView({
   name: 'withdraw',
@@ -645,32 +609,32 @@ timeline.registerView({
     requiresWithdraw: true,
     resetApp: api.getConfig('allowRepeats'),
   },
-  component: WithdrawView,
+  component: 'WithdrawView',
 })
 ```
 
 ### Debrief
 
-**Base Component**: `@/builtins/debrief/DebriefView.vue`  
-**Code**: [source](https://github.com/NYUCCL/smile/blob/main/src/builtins/debrief/DebriefView.vue)  
+**Component name**: `DebriefView` (auto-imported)  
+**Source**: [github](https://github.com/NYUCCL/smile-nuxt/blob/main/src/runtime/components/builtins/DebriefView.vue)  
 **Typical
 accessibility**: `{requiresConsent: true, requiresDone: false}`
 
 The debrief page displays the text that explains the purpose of the experiment
 and provides the participant with any additional postfacto information about the
 task they just completed. The text can be customized in
-`@/user/components/DebriefText.vue`, and this page will transition the user to
+`components/DebriefText.vue` in your project, and this page will transition the user to
 their post-experiment surveys.
 
 ```js
-// put this at the top of the file
-import DebriefView from '@/builtins/debrief/DebriefView.vue'
+// at the top of design.js — DebriefText is your custom .vue file
+import { markRaw } from 'vue'
+import DebriefText from './components/DebriefText.vue'
 
 // debrief
-import DebriefText from '@/user/components/DebriefText.vue' // get access to the global store
 timeline.pushSeqView({
   name: 'debrief',
-  component: DebriefView,
+  component: 'DebriefView',
   props: {
     debriefText: markRaw(DebriefText),
   },
@@ -679,19 +643,16 @@ timeline.pushSeqView({
 
 ### Thanks
 
-**Base Component**: `@/builtins/thanks/ThanksView.vue`  
-**Code**: [source](https://github.com/NYUCCL/smile/blob/main/src/builtins/thanks/ThanksView.vue)  
+**Component name**: `ThanksView` (auto-imported)  
+**Source**: [github](https://github.com/NYUCCL/smile-nuxt/blob/main/src/runtime/components/builtins/ThanksView.vue)  
 **Typical
 accessibility**: `{requiresDone: true}`
 
 ```js
-// put this at the top of the file
-import ThanksView from '@/builtins/thanks/ThanksView.vue'
-
 // thanks
 timeline.pushSeqView({
   name: 'thanks',
-  component: ThanksView,
+  component: 'ThanksView',
   meta: {
     requiresDone: true,
     resetApp: api.getConfig('allowRepeats'),
@@ -701,8 +662,8 @@ timeline.pushSeqView({
 
 ### Feedback Survey
 
-**Base Component**: `@/builtins/taskFeedbackSurvey/TaskFeedbackSurveyView.vue`  
-**Code**: [source](https://github.com/NYUCCL/smile/blob/main/src/builtins/taskFeedbackSurvey/TaskFeedbackSurveyView.vue)  
+**Component name**: `TaskFeedbackSurveyView` (auto-imported)  
+**Source**: [github](https://github.com/NYUCCL/smile-nuxt/blob/main/src/runtime/components/builtins/TaskFeedbackSurveyView.vue)  
 **Typical
 accessibility**: `{requiresConsent: true, requiresDone: false}`
 
@@ -715,13 +676,10 @@ If you want this to be the last view in the study, you can set the `setDone`
 meta field.
 
 ```js
-// put this at the top of the file
-import TaskFeedbackSurveyView from '@/builtins/taskFeedbackSurvey/TaskFeedbackSurveyView.vue'
-
 // feedback
 timeline.pushSeqView({
   name: 'feedback',
-  component: TaskFeedbackSurveyView,
+  component: 'TaskFeedbackSurveyView',
   meta: { setDone: true }, // optional if this is the last form
 })
 ```
@@ -733,19 +691,22 @@ that appear on the main App and are thus visible on every View on the timeline.
 These provide information that is useful to participants at any moment in the
 task. For example, the Status Bar provides a way for participants to withdraw
 from a study at any time, report an issue, look at the informed consent form
-again. These components are called "Navbars" and are not arranged on the
-Timeline but instead are imported in the top level `App.vue` file.
+again. These components are called "Navbars" and aren't arranged on the timeline
+— they're rendered globally by the module's layouts.
 
-In addition there are a few modals that are used to collect information from
-participants when they are withdrawing from a study or reporting an issue.
+In addition there are a few modals that are used to collect information
+from participants when they are withdrawing from a study or reporting an
+issue.
 
-All these components are includes in the `@/builtins` directory and you can edit
-them as needed for your study.
+All these components are auto-registered by `@nyuccl/smile-nuxt`. To
+customize one, drop a same-named `.vue` file in your project's
+`components/` folder — yours wins via priority (see
+[Overrides & Resolution](/coding/organization#overrides-resolution)).
 
 ### Status Bar
 
-**Base Component**: `@/builtins/statusBar/StatusBar.vue`  
-**Code**: [source](https://github.com/NYUCCL/smile/blob/main/src/builtins/statusBar/StatusBar.vue)
+**Component name**: `StatusBar` (auto-imported)  
+**Source**: [github](https://github.com/NYUCCL/smile-nuxt/blob/main/src/runtime/components/builtins/StatusBar.vue)
 
 The Status Bar is a persistent navigation component that appears at the top of
 every view throughout the experiment. It provides essential study information
@@ -760,8 +721,8 @@ and hiding certain information on very narrow displays.
 
 ### Withdraw Modal
 
-**Base Component**: `@/builtins/withdraw/WithdrawModal.vue`  
-**Code**: [source](https://github.com/NYUCCL/smile/blob/main/src/builtins/withdraw/WithdrawModal.vue)
+**Component name**: `WithdrawModal` (auto-imported)  
+**Source**: [github](https://github.com/NYUCCL/smile-nuxt/blob/main/src/runtime/components/builtins/WithdrawModal.vue)
 
 The Withdraw Modal is a form that appears when participants click the "Withdraw"
 button in the Status Bar. It provides a structured way for participants to

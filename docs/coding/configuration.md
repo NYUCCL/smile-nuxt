@@ -1,65 +1,45 @@
-# Configuration Options
+# Configuration
 
-<style>
-.note {
-    font-size: 0.9em;
-    text-align: right;
-}
-</style>
+Every experiment needs configuration — UI defaults, database credentials,
+branding, data-saving limits, and so on. <SmileText/> organizes these into
+three clear buckets and gives you a strong preferred place to set most of
+them. This page describes the system end-to-end.
 
-Applications inevitably need configuration options. These control the look and
-feel of your experiment or have the password for databases or other services.
+## Quick start
 
-This guide gives you the minimum information you need to get started as well as
-details on adding new configuration options specific for your project.
+The starter ships with sensible defaults. For local development you usually
+don't have to configure anything — `pnpm dev` just works. To deploy, you'll
+need to set two secrets:
 
-## Getting started quickly
+1. **Turso database credentials** (`TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN`) —
+   see [Cloud Hosting](/recruit/deploying) for the full setup.
+2. **A dev-mode password** (`SMILE_DEV_PASSWORD`) that gates `/dev/` and
+   `/presentation/` on the deployed site.
 
-Configuration options in <SmileText /> are either stored in the `env/` folder or
-can be configured at runtime using the `api.setRuntimeConfig()` function (see
-the full API docs [here](/api)).
+Everything else in this guide is optional — read it when you want to tune
+the experiment's behavior, branding, or data limits.
 
-[Dotenv](https://dotenv.org) files are simply plain text files that define
-configuration options in all caps along with values separated by an equals
-sign.[^wisdom]. For example:
+## How configuration is organized
 
-[^wisdom]:
-    Some wisdom about these things is available on the
-    [12 Factor App](https://12factor.net) site, particularly the section on
-    [config](https://12factor.net/config). In this document, it is argued that
-    environment variables are the safest way to configure sensitive information
-    (this way they are never mentioned in files that could be accidentally
-    committed.)
+<SmileText/> has three categories of config. Knowing which bucket a value
+lives in tells you where to set it and who can read it.
 
-```
-MY_CONFIG_OPTION  = 'hi'
-ANOTHER_OPTION    = 33
-MY_CONFIG         = '${MY_CONFIG_OPTION}1234'
-```
+| Category                       | Lives in                                              | Visible to browser? | When to touch                                            |
+| ------------------------------ | ----------------------------------------------------- | :-----------------: | -------------------------------------------------------- |
+| **Server-only secrets**        | `.env.local` (dev) / hosting provider env vars (prod) |         No          | Database creds, dev password                             |
+| **Client-visible settings**    | `design.js` via `setRuntimeConfig`, or `.env`         |         Yes         | UI, branding, data-save throttling, experiment defaults  |
+| **Auto-generated git metadata**| `.env.git.local` (do not edit)                        |         Yes         | Never — regenerated on every Nuxt startup                |
 
-As described in the [Quickstart](/quickstart) guide, you will want to
-add the env files to your project from your lab. You either will have created
-them yourself or you will have received them from your lab.
+The recommended way to set client-visible settings is **in `design.js`** using
+`api.setRuntimeConfig()`. The `.env` files are treated as a defaults layer that
+`setRuntimeConfig` overrides. This means your experiment configuration lives
+with your code, ships in your repo, and is portable across machines.
 
-After all the necessary files are in the `env` folder run:
+## Setting experiment options in `design.js`
 
-```
-npm run upload_config
-```
-
-to configure your deployment process.
-
-## Runtime configuration
-
-Runtime configuration is done using the `api.setRuntimeConfig()` function. This
-is useful for configuation options that are specific to the flow of your
-experiment but are not passwords or other sensitive information. The most common
-use case here is to set options in the `design.js` file.
-
-For example, the following code sets several options at the top of the design.js
-file. These override the default values in the `.env` file but can be a more
-clear and convenient way to set them (it is also easier to share the design.js
-file).
+`api.setRuntimeConfig(key, value)` sets a configuration value at app startup.
+Use it at the top of `design.js` to tune the experiment's behavior. The most
+common knobs:
 
 ```js
 api.setRuntimeConfig('allowRepeats', false)
@@ -79,402 +59,177 @@ api.setRuntimeConfig('minWriteInterval', 2000)
 api.setRuntimeConfig('autoSave', true)
 ```
 
-::: danger Warning!
-
-Runtime configuration will **override** the values in the `.env` files. As a
-result it makes sense to treat the `.env` files as default values which can be
-modified in `design.js`.
-
-:::
-
-Runtime configuration also allows you to easily add new configuration options
-that might be specific for your study that you want to configure in a global
-place.
-
-For example, you might want to the pay rate for your study. You could add this
-to the `design.js` file as follows:
+You can also add **your own** keys here. For example, a pay rate string:
 
 ```js
 api.setRuntimeConfig(
   'payrate',
-  '$15USD/hour prorated for estimated completition time + performance related bonus'
+  '$15USD/hour prorated for estimated completion time plus performance bonus'
 )
 ```
 
-Then in your component you can access this configuration option as follows:
+Then read it anywhere in your views:
 
 ```js
 const payrate = api.getRuntimeConfig('payrate')
 ```
 
-Runtime configuration options override the values in the `.env` files if they
-have the same name. For example, if the `.env` file contains an option
-`VITE_LAB_URL` then setting `api.setRuntimeConfig('labURL')` will override it
-(see below for the `VITE_` syntax). However, if you create a novel runtime
-config it will be stored separately (specifically `smileConfig.runtime`) in your
-data file.
+::: info Where the value goes
+Built-in keys mutate the matching field on the smile config store. Novel keys
+are stored under `store.config.runtime.<key>`. Either way they're included in
+the participant's `smileConfig` data export, so the exact configuration that
+produced any given record is recoverable from the data itself.
+:::
 
-## Types of configuration variables
+::: danger Overrides
+Calling `setRuntimeConfig('foo', value)` overrides any `.env`-provided default
+with the same meaning. Treat `.env` as a floor and `design.js` as the source
+of truth.
+:::
 
-There are several configuration variables across different files. The first
-thing to be aware of is that some variables begin with `VITE_` (e.g.,
-`VITE_LAB_URL`). These variables can be exported and made available to the
-Javascript of your experiment.
+## Environment variables you might edit
 
-Variables that do not begin with `VITE_` are only available for other purposes
-(e.g., configuring GitHub Actions, etc...).
+Two prefixes exist:
 
-## How configuration files are organized
+- **`SMILE_*`** and **`TURSO_*`** — server-only. Read in `src/module.ts`,
+  exposed only to Nitro server routes via `useRuntimeConfig().smile`. Never
+  bundled into the browser.
+- **`VITE_*`** — read at build time and embedded in the client bundle.
+  Visible to participants via the source code, so don't put secrets here.
 
-Configuration files go in the `env` folder. Here is a typical listing of this
-folder.
+For local development, put values in `.env.local` (gitignored). The starter
+ships with `.env.local.example` — copy it to `.env.local` and fill in your
+values. For production, set the same variables in your hosting provider's
+dashboard (e.g., Vercel: Project Settings → Environment Variables).
 
-```
-env/
-├── .env
-├── .env.local
-├── .env.git.local
-├── .env.docs.local
-└── .env.deploy.local
-```
+::: tip Restart after editing env files
+Nuxt reads `.env` files once at startup. If you change a value, stop and
+restart the dev server (`pnpm dev`) to pick it up.
+:::
 
-You may not see all these files to begin with and so may need to create them (as
-just described in a [previous section of this page](#getting-started-quickly) or
-manually).
+### Server secrets
 
-All the filenames begin with `.env` which is the convention used by the
-[dotenv](https://dotenv.org) package. This is a growing standard within the web
-application community.
+| Variable                    | What it does                                                                                                                  |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `TURSO_DATABASE_URL`        | libSQL/Turso database URL for production. If unset, falls back to local SQLite at `.data/experiment.db`.                      |
+| `TURSO_AUTH_TOKEN`          | Auth token for the Turso database.                                                                                            |
+| `SMILE_DEV_PASSWORD`        | Password that gates `/dev/` and `/presentation/` on deployed sites. Unset in local dev means those routes are open.           |
+| `SMILE_PUBLIC_PRESENTATION` | Set to `true` to leave `/presentation/` open without the dev password (useful for unlisted demo links).                       |
 
-Some files end in `.local` as the file extension. These files are by default
-ignored by git (via the `.gitignore` file) and so are not version tracked. This
-is necessary because some configuration options which go in those files are
-considered "secret" and we don't want them easily searched in GitHub when/if
-your project repository becomes publically shared.
+See [Cloud Hosting](/recruit/deploying) for the full Vercel + Turso wiring.
 
-Note that if you change the value of any configuration options, you must stop
-your development server and start it again (running `npm run dev`) to see
-changes update. Unlike code changes, Vite cannot update reload these while the
-server is running.
+### Client-visible defaults (UI, branding, data saving)
 
-Let's consider the files one by one.
+These can equivalently be set via `setRuntimeConfig` in `design.js` — the
+runtime call wins. They exist as env vars mainly for CI scenarios where you
+want to ship two builds of the same experiment with different defaults.
 
-#### Experiment Options (`.env`)
+| Variable                       | Default                     | What it does                                                                                                                                       |
+| ------------------------------ | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VITE_ALLOW_REPEATS`           | `false`                     | Try to prevent participants from taking the task more than once.                                                                                   |
+| `VITE_COLOR_MODE`              | `light`                     | UI color mode: `light` / `dark` / `system`.                                                                                                        |
+| `VITE_RESPONSIVE_UI`           | `true`                      | Whether the default layout responds to window resizes.                                                                                             |
+| `VITE_WINDOWSIZER_REQUEST`     | `800x600`                   | Requested content area size (`WIDTHxHEIGHT`).                                                                                                      |
+| `VITE_WINDOWSIZER_AGGRESSIVE`  | `true`                      | If `true`, re-trigger the window sizer when the user shrinks the window.                                                                           |
+| `VITE_ANONYMOUS_MODE`          | `false`                     | Hide default lab/branding text — useful for double-blind paper submissions.                                                                        |
+| `VITE_LAB_URL`                 | `https://gureckislab.org`   | Lab homepage URL used in headers.                                                                                                                  |
+| `VITE_BRAND_LOGO_FN`           | `universitylogo.png`        | Filename of the brand logo. Place the file in `public/`.                                                                                           |
+| `VITE_AUTO_SAVE_DATA`          | `true`                      | Auto-call `saveData()` between View transitions.                                                                                                   |
+| `VITE_MAX_WRITES`              | `1000`                      | Cap on participant data writes per session. Guards against runaway loops more than against hosting cost.                                           |
+| `VITE_MIN_WRITE_INTERVAL`      | `2000`                      | Minimum milliseconds between writes.                                                                                                               |
+| `VITE_MAX_STEPS`               | `5000`                      | Maximum number of steps any one View component can contain.                                                                                        |
+| `VITE_RANDOM_SEED`             | `100012`                    | Seed for the deterministic PRNG used in condition assignment and randomization. The dev sidebar's seed control is easier during interactive work.  |
+| `VITE_GOOGLE_ANALYTICS`        | _(unset)_                   | Google Analytics ID, if you want analytics on the deployed site.                                                                                   |
 
-`.env` **is** version tracked in git and contains what we will call
-**experiment** configuration options. These options are usually critical for
-replicability of an experiment. Here is a typical file with fake entries for the
-values (adjust for your situation):
+### Recruitment service variables (SONA)
 
-```
-# this file is tracked by github and contains
-# default configuration parameters for the experiment
-# these can be overridden by the user in the design.js file
-# use the api.setRuntimeConfig() function
-# this is to provide defaults for the experiment in case the user
-# does not specify all the parameters in the design.js file
+If you use [SONA](https://www.sona-systems.com/) as a recruitment service, set
+these in `.env.local` so the credit redirect URLs resolve correctly. See
+[Recruitment](/recruit/recruitment) for the full SONA integration story.
 
-# allow repeats
-VITE_ALLOW_REPEATS               = false
+| Variable                        | What it does                                                            |
+| ------------------------------- | ----------------------------------------------------------------------- |
+| `VITE_SONA_URL`                 | Base URL of your SONA installation (e.g., `https://yourlab.sona-systems.com`). |
+| `VITE_SONA_EXPERIMENT_ID`       | SONA experiment ID for the unpaid (credit) study.                       |
+| `VITE_SONA_CREDIT_TOKEN`        | Credit-granting token issued by SONA.                                   |
+| `VITE_SONA_PAID_URL`            | Base URL of the paid SONA installation (if separate from the credit one).|
+| `VITE_SONA_PAID_EXPERIMENT_ID`  | SONA experiment ID for the paid study.                                  |
+| `VITE_SONA_PAID_CREDIT_TOKEN`   | Credit-granting token for the paid study.                               |
 
-# color mode (light, dark or system)
-VITE_COLOR_MODE                  = light
+## Auto-generated git metadata
 
+When the dev server starts, `scripts/generate_git_env.sh` reads your local
+git checkout and writes a `.env.git.local` file with values like:
 
-# should the ui default to allow responsive resizing
-VITE_RESPONSIVE_UI               = true
-
-# window sizing
-VITE_WINDOWSIZER_REQUEST         = 800x600
-VITE_WINDOWSIZER_AGGRESSIVE      = true
-
-# branding
-VITE_ANONYMOUS_MODE              = false
-VITE_LAB_URL                     = 'https://mylab.edu'
-VITE_BRAND_LOGO_FN                = 'universitylogo.png'
-
-# randomization
-VITE_RANDOM_SEED                 = 100012
-
-# data saving
-VITE_AUTO_SAVE_DATA              = true
-VITE_MAX_WRITES                  = 1000
-VITE_MIN_WRITE_INTERVAL          = 2000
-
-# stepper configuration
-VITE_MAX_STEPS                   = 5000
-
-```
-
-Notice that the configuration options in this file begin with `VITE_`. This
-means they are made available to the web application/experiment.
-
-- `VITE_ALLOW_REPEATS` attempts to prevent participants from taking your task
-  more than once.
-- `VITE_COLOR_MODE` sets the color mode of the experiment. Can be 'light',
-  'dark', or 'system' (where system attempts to ask the browser what the setting
-  should be based on the users OS)
-- `VITE_RESPONSIVE_UI` set to true if you want the default
-  [layout](/styling/layouts) to be responsive or fixed to the windowsizer
-  request
-- `VITE_WINDOWSIZER_REQUEST` configures the requested size of the page for
-  rendering content (used by WindowSizerView.vue component)
-- `VITE_WINDOWSIZER_AGGRESSIVE` if set to true and the user resizes the page,
-  this will hide the task and show a guide to resize the window. It is called
-  "aggressive" since it really stops the task moving forward when the user makes
-  their window too small. This is enabled only after the subject is told and
-  agrees they made the window a given size.
-- `VITE_ANONYMOUS_MODE` is a boolean that configures if the experiment should be
-  deployed in anonymous mode. This mode is useful for submitting a link to the
-  study with a paper submission. In this mode, all <SmileText/>-default
-  references to the organization conducting the study are removed.
-- `VITE_LAB_URL` is the URL of the lab website. This can be used to link to the
-  lab website or university homepage so participants can learn more about the
-  organization conducting the study.
-- `VITE_BRAND_LOGO_FN` is the filename of the logo for your lab. This is used in
-  the header of the experiment. The file should be placed in `public/`.
-- `VITE_RANDOM_SEED` initializes the pseudo-random number generator in
-  <SmileText />
-- `VITE_AUTO_SAVE_DATA` configures if smile attempts to automatically save data
-  when pages/view in the [timeline](timeline.html) are advanced.
-- `VITE_MAX_WRITES` configures the maximum total number of writes that each
-  experiment can perform to the Firestore database. Each write to the database
-  document costs money so this can prevent runaway costs. It can be adjusted if
-  needed though for you specific experiment.
-- `VITE_MIN_WRITE_INTERVAL` configured the minimum time in milliseconds that
-  should pass between writes to the Firestore. This respects Firestore's limit
-  of 1 write per document per second. It defaults to 2000ms.
-- `VITE_MAX_STEPS` configures the maximum number of rows/steps that can be
-  contained in a View component. This helps manage performance and UI complexity
-  when dealing with large numbers of steps in your experiment.
-
-#### Web Services Options (`.env.local`)
-
-`.env.local` contains options for connection to other web services such as
-Firebase/Firestore for databases or for tracking bugs. These options are not
-particularly "secret" (the options begin with `VITE_` which means they are made
-available to the webapp), but aren't things we necessarily want to be crawlable
-on github public repositories.
-
-```
-# enter firebase database credentials
-VITE_FIREBASE_APIKEY             = apikey
-VITE_FIREBASE_AUTHDOMAIN         = project.firebaseapp.com
-VITE_FIREBASE_PROJECTID          = project
-VITE_FIREBASE_STORAGEBUCKET      = project.appspot.com
-VITE_FIREBASE_MESSAGINGSENDERID  = msgid
-VITE_FIREBASE_APPID              = appid
-
-# enter google analytics id
-VITE_GOOGLE_ANALYTICS            = xxxx
+```sh
+VITE_PROJECT_NAME
+VITE_GIT_OWNER
+VITE_GIT_REPO_NAME
+VITE_GIT_BRANCH_NAME
+VITE_GIT_HASH
+VITE_GIT_LAST_MSG
+VITE_CODE_NAME
+VITE_PROJECT_REF
+VITE_DEPLOY_BASE_PATH
 ```
 
-- There several `VITE_FIREBASE_` options for configuring Google's Firestore
-  backend (see [data storage](/coding/datastorage) for more info).
-- `VITE_GOOGLE_ANALYTICS` is the Google Analytics ID for your experiment
-  (optional)
+::: warning Don't edit `.env.git.local`
+The file is regenerated on every Nuxt startup. Local edits are overwritten.
+It's also gitignored — you can't share values by committing it.
+:::
 
-#### Code Version Options (`.env.github.local`)
+These power <SmileText/>'s
+[data provenance](/analysis.html#data-provenance) features. Every participant
+record carries the git hash that produced it, so you can recover the exact
+code that ran any given session by checking out the same commit.
 
-The `.env.github.local` file contains information about the latest git commit
-for this project. The purpose of this file is so that your Javascript
-application can keep track of which version of the code it is running. One key
-principle of <SmileText/> is that
-[data must always be linked to the code that created it](/philosophy.html#data-must-always-be-linked-to-the-code-that-created-it).
+## Adding your own configuration option
 
-This file is generated automatically using a
-[post commit hook](https://www.atlassian.com/git/tutorials/git-hooks) which
-finds the current information and regenerates the file. For this reason you
-should **never edit this file**. A helpful message at the top of the file will
-always remind you this. The post-commit hook logic which generates the file is
-stored in `scripts/post-commit`.
+You have three options, ordered from easiest to most involved.
 
-```
-# DO NOT EDIT THIS FILE IT IS AUTOMATICALLY GENERATED
-# this file is automatically generated by
-# the post-commit hook (see scripts/post-commit).
+### 1. Runtime config in `design.js` (recommended)
 
-VITE_PROJECT_NAME      = my_cool_project
-VITE_GIT_HASH          = de318d8
-VITE_GIT_REPO_NAME     = ${VITE_PROJECT_NAME}
-VITE_GIT_OWNER         = gureckis
-VITE_GIT_BRANCH_NAME   = main
-VITE_GIT_LAST_MSG      = trigger a deployment!!
-VITE_DEPLOY_BASE_PATH  =  "/${VITE_GIT_OWNER}/${VITE_GIT_REPO_NAME}/${VITE_GIT_BRANCH_NAME}/"
-VITE_CODE_NAME         = something-something-something
-
-# this port might not be correct, but it doesn't really matter
-VITE_DEV_PORT_NUM      =  3000
-VITE_DEPLOY_URL        =  "http://localhost:${VITE_PORT_NUM}${VITE_DEPLOY_BASE_PATH}"
-VITE_CODE_NAME_DEPLOY_URL         =  "http://localhost:${VITE_DEV_PORT_NUM}/e/${VITE_CODE_NAME}"
+```js
+api.setRuntimeConfig('myKey', value)
+// ...later, in a view:
+const myValue = api.getRuntimeConfig('myKey')
 ```
 
-Options include
+Stored in the Pinia store, exported with the participant's `smileConfig`.
+This is the right answer for almost everything experiment-related.
 
-- `VITE_PROJECT_NAME` is the name of your project (obtained from your the name
-  of your git repository)
-- `VITE_GIT_HASH` is a
-  [SHA hash](https://www.designveloper.com/blog/hash-values-sha-1-in-git/) that
-  indexes the current commit. This can be used on GitHub to look up any version
-  of the code as you develop.
-- `VITE_REPO_NAME` has the same value as `VITE_PROJECT_NAME`.
-- `VITE_GIT_OWNER` is the username of the owner of the repository
-- `VITE_BRANCH_NAME` is the name of the branch the most recent commit was made
-  on
-- `VITE_GIT_LAST_MSG` is the last commit message
-- `VITE_DEPLOY_BASE_PATH` is the most important variable in the file because it
-  configures your
-  [deployment path](/recruit/deploying.html#using-github-as-a-project-organizing-tool)
-  or where you code will appear on the server. It is built up out of the
-  configuration options above.
-- `VITE_CODE_NAME` is a unique hash of `VITE_DEPLOY_BASE_PATH`` using human
-  readable words (via [codenamize](https://github.com/stemail23/codenamize-js))
-- `VITE_DEV_PORT_NUM ` is what port Vite will try to use during development and
-  local integration testing (i.e., when you run `npm run dev`). Defaults to
-  `3010`.
-- `VITE_DEPLOY_URL` is the expected URL for your application. When you run the
-  deployment this is set to the final URL of your hosted server. When debugging
-  locally (`npm run dev`) this is set to the URL you open in your browser to
-  develop/debug.
-- `VITE_CODE_NAME_DEPLOY_URL` is the version of the deploy URL masked by the
-  `VITE_CODE_NAME`
+### 2. A `VITE_*` env var
 
-##### Docs Deployment Config (`.env.docs.local`)
+Useful when you want CI to pass different values per build, or when a value
+genuinely differs by environment (dev vs. staging vs. prod).
 
-This file configures where the <SmileText/> documentation will be deployed to.
-These options should generally be shielded from public repositories. Note that
-these variable names do not begin with `VITE_` meaning they are not accessible
-to your Javascript experiment.
+1. Add `VITE_MY_OPTION` to `.env` (tracked default) or `.env.local`
+   (machine-specific).
+2. Surface it on the global config map by adding a line to
+   `src/runtime/core/config.js`.
+3. Read it via the same `api.getRuntimeConfig('myOption')` call (the runtime
+   config layer reads from the global config map as its floor).
 
-```
-# this file is not tracked by github and contains
-# sensitive information inluding write access to our documentation
-# web server!
+### 3. A server-only secret
 
-# enter docs web server information here
-DOCS_DEPLOY_HOST        = "docs.mydomain.org"
-DOCS_DEPLOY_PATH        = "/home/user/domain.org"
-DOCS_DEPLOY_PORT        = 22
-DOCS_DEPLOY_USER        = user
-DOCS_DEPLOY_KEY         = "-----BEGIN RSA PRIVATE KEY-----\nYOURKEY\n-----END RSA PRIVATE KEY-----"
-```
+For credentials and other values that **must not** reach the browser.
 
-- `DOCS_DEPLOY_HOST` is the hostname of where you upload your files
-- `DOCS_DEPLOY_PATH` is the directory you upload your docs to
-- `DOCS_DEPLOY_PORT` is the ssh port for your server (usually 22)
-- `DOCS_DEPLOY_USER` is the username for your server
-- `DOCS_DEPLOY_KEY` is the RSA private key used to access your server via
-  passwordless ssh[^rsakey]
+1. Add `MY_SECRET` to `.env.local` (and to your hosting provider's env vars
+   for production).
+2. Wire it into `src/module.ts`'s `runtimeConfig.smile` block.
+3. Read it in a Nitro server route via
+   `useRuntimeConfig().smile.mySecret`.
 
-##### Deployment Config (`.env.deploy.local`)
+Never reference a server secret from a Vue component — it isn't bundled.
 
-The final file configures similar (secret) deployment options for your actual
-experiment.
+## Reference: where things live
 
-```
-# this file is not tracked by github and contains
-# sensitive information inluding write access to our experiment
-# hosting web server!
-
-# enter experiment hosting web server information here
-EXP_DEPLOY_HOST        = "exps.mydomain.org"
-EXP_DEPLOY_PATH        = "/home/user/exps.mydomain.org"
-EXP_DEPLOY_PORT        = 22
-EXP_DEPLOY_USER        = user
-EXP_DEPLOY_MODE        = production
-SLACK_WEBHOOK_URL      = https://hooks.slack.com/workflows/something
-SLACK_WEBHOOK_ERROR_URL= https://hooks.slack.com/workflows/somethingelse
-SLACK_DOCS_WEBHOOK_URL = https://hooks.slack.com/workflows/docswebhook
-EXP_DEPLOY_KEY         = "-----BEGIN RSA PRIVATE KEY-----\n-----END RSA PRIVATE KEY-----"
-
-```
-
-- `EXP_DEPLOY_HOST` is the hostname of where you upload your files
-- `EXP_DEPLOY_PATH` is the directory you upload your experiment to
-- `EXP_DEPLOY_PORT` is the ssh port for your server (usually 22)
-- `EXP_DEPLOY_USER` is the username for your server
-- `EXP_DEPLOY_MODE` is the mode of the deployment (production, development, or
-  presentation)
-- `SLACK_WEBHOOK_URL` is the url for the Slack Webhook for posting deployment
-  messages
-- `SLACK_WEBHOOK_ERROR_URL` is the url for the Slack Webhook for posting error
-  messages
-- `SLACK_DOCS_WEBHOOK_URL` is the url for the Slack Webhook for posting
-  documentation deployment messages (only needed on the base Smile repo)
-- `EXP_DEPLOY_KEY` is the RSA private key used to access your server via
-  passwordless ssh[^rsakey]
-
-[^rsakey]: The key needs to be all on one line with `\n` character coding new lines.
-
-## Configuring your deployment settings on GitHub
-
-Several of the configuration options are designed to configure
-["secrets"](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
-on your GitHub repo. These are variables that you define in the settings section
-of the repository which can then be accessed by a script at run time using
-Github Actions. They are omitted from version control and from logs making it a
-good way to share sensitive information without exposing them in a public repo.
-When you run `npm run upload_config` you should see output like this (with
-NYUCCL/smile replaced with your username and repo):
-
-```
-> smile@0.0.0 upload_config
-> sh scripts/update_config.sh
-
-✓ Set Actions secret SECRET_APP_CONFIG for NYUCCL/smile
-✓ Set Actions secret DOCS_DEPLOY_PORT for NYUCCL/smile
-✓ Set Actions secret DOCS_DEPLOY_PATH for NYUCCL/smile
-✓ Set Actions secret DOCS_DEPLOY_USER for NYUCCL/smile
-✓ Set Actions secret DOCS_DEPLOY_HOST for NYUCCL/smile
-✓ Set Actions secret DOCS_DEPLOY_KEY for NYUCCL/smile
-✓ Set Actions secret EXP_DEPLOY_HOST for NYUCCL/smile
-✓ Set Actions secret SLACK_WEBHOOK_ERROR_URL for NYUCCL/smile
-✓ Set Actions secret EXP_DEPLOY_KEY for NYUCCL/smile
-✓ Set Actions secret EXP_DEPLOY_USER for NYUCCL/smile
-✓ Set Actions secret EXP_DEPLOY_PATH for NYUCCL/smile
-✓ Set Actions secret EXP_DEPLOY_PORT for NYUCCL/smile
-✓ Set Actions secret SLACK_WEBHOOK_URL for NYUCCL/smile
-```
-
-These secrets are used by the GitHub actions to properly build and deploy your
-website and docs without causing problems. See the discussion
-[here](https://stackoverflow.com/questions/60176044/how-do-i-use-an-env-file-with-github-actions)
-for some helpful tips.
-
-## Importing configuration settings into your experiment
-
-Variables with the name `VITE_` are made available to your web
-application/experiment. [Vite](https://vitejs.dev) uses the
-[dotenv Node.js package](https://vitejs.dev/guide/env-and-mode.html) to read in
-`.env` files and make them accessible in your javascript. This is done by doing
-a static string replacement operation on all the files before building them (and
-is also done as a step in the development server). The variables become
-available in your code as `import.meta.env.VITE_XXXX` where `XXX` is the name of
-the environment variable.
-
-If you look at the content of `src/config.js` you can see how these items are
-pulled into a global configuration object.
-
-<<< ../../src/runtime/core/config.js
-
-It is important to keep in mind that variables passed to `src/runtime/core/config.js`
-will not necessarily appear in GitHub but **will** be visible to people
-performing your experiment via the source code. So it is useful to keep in mind
-if a configuration option should or shouldn't be shared with your Javascript
-experiment.
-
-## Adding new configuration options
-
-Adding new configuration options can also happen in `.env.local`. You simply
-make up a new `VITE_SOMETHING` variable. Then add it to the object in
-`src/runtime/core/config.js` to expose it to your web application! The configuration is
-available as `smileconfig` anywhere in your Vue app. It's pretty easy.
-
-If you add any new configuration options, you must stop your development server
-and start it again (running `npm run dev`) to see changes update. Unlike code
-changes, Vite cannot update reload these while the server is running.
-
-Note: if you add new configuration options, you need to also update them on
-GitHub for those to sync to deployments. Run `npm run upload_config` as
-explained above under
-[Configuring your deployment settings on GitHub](#configuring-your-deployment-settings-on-github).
+| Path                                                              | Purpose                                                                          |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `design.js`                                                       | Recommended place to set most experiment-level config via `setRuntimeConfig`.    |
+| `.env`                                                            | Tracked defaults for `VITE_*` UI/branding/data-saving values.                    |
+| `.env.local`                                                      | Gitignored secrets and machine-specific overrides. Copy from `.env.local.example`. |
+| `.env.git.local`                                                  | Auto-generated git metadata. Don't edit, don't commit.                           |
+| `src/runtime/core/config.js`                                      | The runtime config map consumed by the app. Add new `VITE_*` surfaces here.      |
+| `src/module.ts`                                                   | Where server secrets are wired into `runtimeConfig.smile`.                       |
+| Hosting provider dashboard (e.g., Vercel Project → Env Variables) | Where the same env vars go for production deployment.                            |

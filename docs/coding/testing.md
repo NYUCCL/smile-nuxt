@@ -102,28 +102,11 @@ npx vitest timeline
 For more information about the vitest command line options
 [see these documents](https://vitest.dev/guide/cli.html).
 
-### Testing firestore/firebase
+### Testing the database layer
 
-Often it is helpful to run tests of database writing using Firebase/Firestore
-without actually writing to the live database (because such transactions run
-against the account costs). Instead you an run a local emulator of the
-Firebase/Firestore system using the
-[Firebase Local Emulator Suite](https://firebase.google.com/docs/emulator-suite).
-The google website includes information about how to install and run this code.
-
-Once you launch the emulator using
-
-```
-firebase emulators:start
-```
-
-You'll be able to connect to a local web process (running on port 4000) which
-mimics the Firebase console where you can run test.
-
-In order to run <SmileText/> in testing mode you need to run it in testing mode.
-This forces the system to use the local Firebase emulator instead of the real,
-web-based Firebase.
-
-```
-npm run dev:test
-```
+Local development uses a SQLite file at `.data/experiment.db`, which is the
+same libSQL dialect used by Turso in production — so tests that exercise the
+database layer don't need a separate emulator. The end-to-end suite runs against
+this local file. See [Data Storage](/coding/datastorage) for the full data
+layer story, and [Configuration](/coding/configuration) for how to point at a
+remote Turso instance instead.

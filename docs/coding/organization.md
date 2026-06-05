@@ -34,17 +34,6 @@ my-experiment/
 └── README.md            # Per-project README
 ```
 
-Generated at runtime (you can ignore these — they're in `.gitignore`):
-
-```
-node_modules/            # Installed dependencies
-.nuxt/                   # Nuxt build cache
-.output/                 # Production build output
-.data/                   # Local SQLite database (dev only)
-test-results/            # Playwright run artifacts
-playwright-report/       # Playwright HTML reports
-```
-
 ## Files you'll edit often
 
 ### `design.js` — your experiment timeline
@@ -68,14 +57,17 @@ See [Timeline and Design File](/coding/timeline) for the full reference.
 
 ### `components/` — your custom views and UI
 
-Anything you build lives here. The starter ships with four examples:
+Anything you build lives here. The starter ships with five examples:
 
 - **`MyTaskView.vue`** — placeholder for your experiment task. Replace this
   with your own logic.
 - **`StroopExpView.vue`** — a working color-word Stroop task. Useful as a
   worked example; delete or replace when you don't need it.
-- **`InformedConsentText.vue`** — the consent body text. Edit to match your
-  IRB protocol.
+- **`InformedConsentText.vue`** — the consent body text. Ships as a
+  placeholder; edit it with your IRB-approved language.
+- **`InformedConsentTextSample.vue`** — a fully formatted consent template
+  you can copy from when filling in `InformedConsentText.vue`. Not wired
+  into the experiment.
 - **`DebriefText.vue`** — the debrief shown after the experiment finishes.
 
 Components in this folder are **auto-imported** in `.vue` files — use them
@@ -124,49 +116,6 @@ For deployed experiments, put these same secrets in the **Vercel dashboard**
 
 See [Configuration](/coding/configuration) for the full env-var reference.
 
-## Files that just work — leave alone unless you have a reason
-
-### `app.vue`
-
-The Vue root. It contains exactly:
-
-```vue
-<template>
-  <NuxtPage />
-</template>
-```
-
-Nuxt routes traffic into the right view based on the URL. You almost never
-need to touch this.
-
-### `nuxt.config.ts`
-
-Loads the `@nyuccl/smile-nuxt` module, sets up icons and CSS, and injects
-git-derived env vars into `process.env` for server-side use.
-
-You will edit this when you want to:
-
-- Add module options (`smile: { ... }`)
-- Add another Nuxt module to your project
-- Configure Vite or build settings
-
-### `package.json`
-
-Your project's dependencies and scripts. Most likely edits:
-
-- `pnpm add <pkg>` to add a new dependency (don't hand-edit)
-- Tweaking the `scripts:` section if you add custom build/test commands
-
-### `playwright.config.ts`
-
-End-to-end test config. Tells Playwright to start the dev server before
-running tests. Rarely changed.
-
-### `tsconfig.json`
-
-Just extends Nuxt's auto-generated config. Don't modify unless you're doing
-something unusual with TypeScript paths.
-
 ## Folders for testing and analysis
 
 ### `test/e2e/`
@@ -194,8 +143,6 @@ analysis is versioned with the code that produced the data.
 
 See [Analyzing data](/analysis) for the workflow.
 
-## Build, deploy, and tooling
-
 ### `scripts/`
 
 - **`generate_git_env.sh`** — runs on every `pnpm install` and before every
@@ -214,17 +161,6 @@ when you change your deployment target or add additional CI steps.
 
 See [Deploying](/recruit/deploying) for setup.
 
-### `.npmrc`
-
-```ini
-shamefully-hoist=true
-auto-install-peers=true
-```
-
-Tells pnpm to flatten `node_modules` so Nuxt's auto-imports resolve correctly.
-Don't remove this — without it, things like Vue and Pinia won't be found by
-the module.
-
 ### `CLAUDE.md` and `.cursor/rules/`
 
 Context files for AI coding assistants. `CLAUDE.md` is read by Claude Code,
@@ -239,16 +175,16 @@ Safe to edit, customize, or delete if you don't use AI assistants.
 You'll see these appear after you run `pnpm install` and `pnpm dev`. They are
 all in `.gitignore` — never commit them.
 
-| Path                  | What it is                                                       |
-| --------------------- | ---------------------------------------------------------------- |
-| `node_modules/`       | Installed npm packages                                           |
-| `.nuxt/`              | Nuxt's build cache and generated types                           |
-| `.output/`            | Production build artifacts (created by `pnpm build`)             |
-| `.data/`              | Local SQLite database for dev (`experiment.db`)                  |
-| `.env.git.local`      | Auto-generated git-derived env vars (regenerated each dev start) |
-| `test-results/`       | Playwright test artifacts                                        |
-| `playwright-report/`  | Playwright HTML reports                                          |
-| `.vercel/`            | Vercel CLI metadata if you've linked the project locally         |
+| Path                 | What it is                                                       |
+| -------------------- | ---------------------------------------------------------------- |
+| `node_modules/`      | Installed npm packages                                           |
+| `.nuxt/`             | Nuxt's build cache and generated types                           |
+| `.output/`           | Production build artifacts (created by `pnpm build`)             |
+| `.data/`             | Local SQLite database for dev (`experiment.db`)                  |
+| `.env.git.local`     | Auto-generated git-derived env vars (regenerated each dev start) |
+| `test-results/`      | Playwright test artifacts                                        |
+| `playwright-report/` | Playwright HTML reports                                          |
+| `.vercel/`           | Vercel CLI metadata if you've linked the project locally         |
 
 ## Overrides & resolution
 
@@ -258,36 +194,68 @@ precedence rules — who wins when names collide.
 
 The short version:
 
-| Layer                        | Project wins? | Mechanism                                                                |
-| ---------------------------- | ------------- | ------------------------------------------------------------------------ |
-| Vue components               | ✅ Yes        | Local `components/` has higher priority than module dirs (`priority: -1`) |
-| Public assets                | N/A           | No collision — different URL namespaces (`/` vs `/_smile/`)               |
-| CSS rules                    | ✅ Yes        | Module's `main.css` loads first; your `app.css` wins at equal specificity |
-| CSS variables (theme tokens) | ✅ Yes        | Same as above — redefine `--primary` etc. in your `app.css`               |
-| Composables / API            | N/A           | Module exposes `useAPI()` etc.; project doesn't redefine these            |
+| Layer                                 | Project wins?             | Mechanism                                                                 |
+| ------------------------------------- | ------------------------- | ------------------------------------------------------------------------- |
+| Built-in views (string-referenced)    | ✅ Yes                    | Local `components/` has higher priority than module dirs (`priority: -1`) |
+| UI primitives & layouts (`Button`, …) | ⚠️ Only in your own files | Module views are pre-compiled — their `<Button>` references are baked in  |
+| Public assets                         | N/A                       | No collision — different URL namespaces (`/` vs `/_smile/`)               |
+| CSS rules                             | ✅ Yes                    | Module's `main.css` loads first; your `app.css` wins at equal specificity |
+| CSS variables (theme tokens)          | ✅ Yes                    | Same as above — redefine `--primary` etc. in your `app.css`               |
+| Composables / API                     | N/A                       | Module exposes `useAPI()` etc.; project doesn't redefine these            |
 
 ### Vue components
 
 Any time the module registers a component (via `addComponentsDir`), it does
 so with `priority: -1`. Nuxt's component resolver uses priority to break
-name collisions: higher priority wins.
+name collisions: higher priority wins. Your local `components/` is
+registered by Nuxt itself with the default priority, so a same-named file
+there outranks the module's version.
 
-Your local `components/` is registered by Nuxt itself with the default
-priority (effectively `1`), so **a file in your `components/` with the same
-name as a module component replaces it everywhere**.
+But there's an important wrinkle: **where the lookup happens matters**.
+
+- **Runtime lookups (string-named built-ins)** — fully overridable. The
+  timeline references built-in views by string (`component:
+'InformedConsentView'`), and Vue resolves that name at render time
+  against the global component registry. The module's `components:extend`
+  hook promotes your local override to `global: true`, so Vue finds your
+  version. Dropping `components/AdvertisementView.vue` into your project
+  replaces the built-in everywhere — including in the string-reference in
+  `design.js`.
+
+- **Compile-time references (UI/layout inside module views)** — _not_
+  overridable. The module's built-in views like `InformedConsentView`
+  reference UI primitives like `<Button>` and layout helpers like
+  `<CenteredContent>` directly in their templates. Those `.vue` files
+  were already compiled when the module was published to npm; the
+  `<Button>` inside `InformedConsentView` is baked in to the module's
+  version. Dropping `components/Button.vue` into your project will change
+  your own `.vue` files, but not what `<Button>` looks like inside the
+  module's `InformedConsentView`.
+
+If you need to change a UI primitive's look inside a built-in view, the
+workaround is to override the **entire** view (using the timeline's
+[two-approach override pattern](/coding/timeline#overriding-a-built-in-view))
+and use your custom `Button` inside that override.
 
 The module registers four directories at `priority: -1`:
 
 - `components/ui/` — shadcn-vue primitives (`Button`, `Card`, `Input`, …)
-- `components/forms/` — form pieces (survey scaffolding, demographic widgets)
-- `components/layouts/` — `ConstrainedTaskWindow`, `TwoCol`, etc.
+  — overrideable only in your own templates
+- `components/forms/` — form pieces — overrideable only in your own templates
+- `components/layouts/` — `ConstrainedTaskWindow`, `TwoCol`, etc. —
+  overrideable only in your own templates
 - `components/builtins/` — full views (`InformedConsentView`,
-  `DemographicSurveyView`, `WindowSizerView`, `DebriefView`, …)
+  `DemographicSurveyView`, `WindowSizerView`, `DebriefView`, …) —
+  **fully overrideable** everywhere, because the timeline references them
+  by string at runtime
 
-So if you want a custom welcome page, just drop
-`components/AdvertisementView.vue` into your project. Your version replaces
-the built-in everywhere — including inside `design.js` where the timeline
-still references `'AdvertisementView'` as a string.
+::: info Why string references still work after an override
+When Nuxt detects that your local component shadows a global module
+component, the module's `components:extend` hook promotes your local
+component to `global: true` automatically. This means
+`<component :is="'AdvertisementView'">` and string references in
+`design.js` resolve to your override, not the module's original.
+:::
 
 ::: info Why string references still work after an override
 When Nuxt detects that your local component shadows a global module

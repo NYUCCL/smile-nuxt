@@ -2,7 +2,8 @@
 
 Web experiments are often composed of several parts presented in sequence. For
 example, we might show a welcome page → informed consent → instructions → etc.
-<SmileText /> provides a central "sequencing" feature which makes it easy to
+
+Smile provides a central "sequencing" feature which makes it easy to
 configure, customize, and move through different stages of an experiment. We
 call this the **"timeline."**
 
@@ -26,7 +27,7 @@ implementation, and how to customize it with more complex behaviors.
 Perhaps the most important user-configurable file in a <SmileText /> experiment
 is the design file located at `design.js` in your project root. This file is
 where you configure the timeline of your experiment. You can take a look at the
-[default version](https://github.com/NYUCCL/smile-nuxt/blob/nuxt/start/design.js)
+[default version](https://github.com/NYUCCL/smile-nuxt/blob/nuxt/starter-template/design.js)
 of this file which is short, self-explanatory, and well commented.
 
 The design file sets up the sequence of [Views](/coding/views) that the
@@ -40,84 +41,68 @@ Timeline object and how to configure your design file.
 
 ## Single-page Applications and Routing
 
-Many modern apps such as <SmileText/> are what are known as **Single-page
-Applications (SPAs)**. Rather than having content spread across multiple HTML
-pages, these apps load a single HTML page and then use a Javascript framework to
-control the dynamic interactions of the page including showing and hiding
-different elements, handling events like clicks, loading data to or from a
-server, etc... However, it is often useful to be able to directly access
-different content in a web app using URLs. For example, users might want to
-bookmark the login or settings page of a web app, so they need a distinct URL
-that will pull each of these views up.
+<SmileText/> runs as a **Single-page Application (SPA)** — a single HTML
+shell that uses JavaScript to swap content in and out as participants
+move through the experiment, without round-trips to the server for every
+new page. There's a small stack underneath the timeline:
 
-Because SPAs load the entire app from a single URL, the solution to this for
-SPAs is known as a **router**. A router is a piece of software running in the
-browser which interprets URL requests and programmatically changes the visible
-content on the webpage, mimicking normal browser requests for specific pages. In
-Smile, routing is handled by the [Vue Router](https://router.vuejs.org), which
-is a powerful open-source project built for routing in [Vue](https://vuejs.org)
-applications.
+1. **[Nuxt](https://nuxt.com)** — the meta-framework that wraps Vue. The
+   `@nyuccl/smile-nuxt` module sets `ssr = false` so each experiment runs
+   purely client-side (no server-rendered HTML, no hydration step).
+2. **[Vue Router](https://router.vuejs.org)** — Nuxt's built-in router,
+   which maps URLs to Vue components. The module registers a handful of
+   catch-all routes (`/:slug(.*)*`, `/dev/:slug(.*)*`,
+   `/presentation/:slug(.*)*`) so the timeline's named views resolve at
+   any URL.
+3. **Smile's `Timeline` class** — sits on top of Vue Router and adds the
+   ordered sequencing semantics: which view comes next, navigation
+   permissions, randomized branches, persistence across reloads.
 
-Smile does all of the router set-up for you, so
-[all you need to do](/coding/timeline#timeline) is provide a list of Views, as
-well as any logic that connects them to each other. However, if you want to
-learn more about the Vue router, you can check out the Vue Router
-[documentation](https://router.vuejs.org/guide/#javascript).
+You don't interact with Nuxt's router or Vue Router directly in everyday
+work — `design.js` configures the timeline and the module handles the
+routing details. The timeline is
+[all you need to wire up](/coding/timeline#timeline) for most experiments.
 
 ## URLs and Routes
 
-A quick note about URLs and routes. We sometimes mention a base path or base URL
-for a project. This is the full deployment URL to your experiment including the
-protocol (`http://`), the domain (`exps.gureckislab.org`), as well as subfolders
-(`/ghuser/repo/branch/`) etc... For example, `http://exps.gureckislab.org/`
-might be the base path. This is configured via the `VITE_CODE_NAME_DEPLOY_URL`
-or `VITE_DEPLOY_URL` in the `env/.env.git` file (see the docs on
-[configuration](/coding/configuration)).
+A few notes on the URL shape your experiment uses.
 
-Routes are configured beneath this base URL so `/` means the original base URL
-but `/about` means `http://exps.gureckislab.org/#/about`. The base URL can also
-include subfolders so for instance the base route could just as easily be
-`https://exps.gureckislab.org/ghuser/repo/branch/#/about`. The base folder is
-where your `index.html` for the SPA is located during deployment or development.
+**Base URL.** This is the deploy URL to your experiment — protocol,
+domain, and any subpath, e.g. `https://exps.gureckislab.org/`. Configured
+via `VITE_CODE_NAME_DEPLOY_URL` / `VITE_DEPLOY_URL` in your project's
+`.env` (see [Configuration](/coding/configuration)).
 
-The `#` character in these URLs is not a typo. When you access a URL with
-slashes on it typically it is interpreted by the browser as a new network
-request for a particular resource on the webserver. An exception is for content
-that follows `#` character which indicates a link to different content on the
-**same page** (e.g., read about the `<a name>` tag also known as
-[fragment identifiers](https://www.w3.org/TR/html401/intro/intro.html#fragment-uri)
-in HTML). Changes to this part of the URL do not trigger page reloads
-ordinarily.
+**HTML5 history mode, not hash mode.** Smile uses standard HTML5 history
+URLs, so paths look like `https://exps.gureckislab.org/consent` — not
+`/#/consent`. (The deploy server is responsible for routing every path
+under the base URL to your `index.html`; Vercel's preset handles this
+automatically.) Each timeline view's `name` becomes its path by default:
+`name: 'consent'` ⇒ `/consent`, `name: 'debrief'` ⇒ `/debrief`. You can
+override with an explicit `path:` in the view object if needed.
 
-The easiest way to think about it is like this:
+**Module-provided route shapes.** Three URL spaces come pre-wired:
 
-![how route URLS are processed](/images/routing.png)
+| Path                | What it serves                                                                 |
+| ------------------- | ------------------------------------------------------------------------------ |
+| `/...`              | Your timeline. Each view name maps to a path; `/` resolves to the first view.  |
+| `/dev/...`          | Developer mode (sidebar, route jumper, data inspector, autofill, dev console). |
+| `/presentation/...` | Presentation mode (clean view for screenshots and demos).                      |
 
-Words that are separated by slashes appearing before the `#` (or everything, if
-there are no `#`s) are sent by the browser to the web server as resource
-requests using standard `http` protocol, which triggers a page reload from the
-server. Things that appear after the `#` do _not_ trigger a page reload. The Vue
-Router interprets changes appearing after the `#`, parses the content, and uses
-it to determine what Vue components to load (based on the routing table that you
-configure).[^hash]
+You'll mostly see and link to the top-level paths. The dev and
+presentation paths come along for free via the module — you don't add
+them in `design.js`.
 
-[^hash]:
-    The `VueRouter.createWebHashHistory()` call is what tells the router to use
-    the `#` navigation strategy.
-
-In <SmileText/>, key steps in the experiment are indexed by routes that map to
-page-level components called [Views](/coding/views). So `/consent` would load
-the consent View and `/debrief` would load the debriefing View. This is good
-organization but also helpful for [debugging/developing](/coding/developing)
-since you can easily jump to different sections of the task.
+The dual purpose of named paths is also a debugging affordance: because
+each view has a stable URL, you can jump directly to any section of the
+experiment in dev mode without playing through everything before it.
 
 ## Timeline
 
 As just described, the Vue Router is a mapping between different URLs and Vue
 components (i.e., Views) to load. However, in experiments, we often want to step
 through content sequentially. For this purpose, Smile implements a simple
-Timeline class (see `src/timeline.js`) which acts as a wrapper around the basic
-Vue Router.
+`Timeline` class (auto-imported by the module) which acts as a wrapper
+around the basic Vue Router.
 
 The timeline class allows you to configure a sequence of Views as well as allow
 for Views that are not part of a sequence:
@@ -194,13 +179,157 @@ prevented from starting the experiment again or not access the final page.
 
 :::
 
-### Creating a timeline
+### Components: string names vs. `markRaw()`
 
-A timeline is created like this:
+The `component` field accepts two kinds of values, and the right choice
+depends on whether you're using a **built-in** view from the module or a
+**custom** view from your own project.
+
+**Built-in views — pass a string:**
 
 ```js
-import Timeline from '@/core/timeline' // note that the '@' resolves to /src in Smile
-const timeline = new Timeline()
+timeline.pushSeqView({
+  name: 'consent',
+  component: 'InformedConsentView', // string name, no import needed
+})
+```
+
+Built-ins (`AdvertisementView`, `InformedConsentView`,
+`DemographicSurveyView`, `WindowSizerView`, `InstructionsView`,
+`InstructionsQuiz`, `DebriefView`, `DeviceSurveyView`,
+`TaskFeedbackSurveyView`, `ThanksView`, `WithdrawView`) are auto-registered
+as global Vue components by `@nyuccl/smile-nuxt`. Referencing them by
+string name lets the timeline defer component lookup until render time —
+which is also what makes
+[the override-by-name pattern](#overriding-a-built-in-view) work.
+
+**Custom views — import the file and wrap with `markRaw()`:**
+
+```js
+import { markRaw } from 'vue'
+import MyTaskView from './components/MyTaskView.vue'
+
+timeline.pushSeqView({
+  name: 'task',
+  component: markRaw(MyTaskView), // must be markRaw'd
+})
+```
+
+The same rule applies to component props that hold component definitions
+(e.g., the `informedConsentText` and `debriefText` props):
+
+```js
+import { markRaw } from 'vue'
+import InformedConsentText from './components/InformedConsentText.vue'
+
+timeline.pushSeqView({
+  name: 'consent',
+  component: 'InformedConsentView',
+  props: {
+    informedConsentText: markRaw(InformedConsentText),
+  },
+})
+```
+
+::: info Why `markRaw()`?
+A Vue component definition is a plain object that should be treated as
+**static configuration** — not reactive data. When you pass an imported
+component directly into a reactive context (props, refs, anything Pinia
+touches), Vue's reactivity system wraps it in a `Proxy`. That breaks
+internal optimizations, logs console warnings about marking components
+reactive, and can cause subtle bugs.
+
+`markRaw()` tells Vue "this object is plain configuration — don't try to
+make it reactive." String-named built-ins skip this issue because the
+timeline only stores the **name**; the component is resolved later by
+Vue's component registry, never going through reactive wrapping.
+:::
+
+::: tip Plain `.js` files don't get auto-import
+Nuxt auto-imports work in `.vue` files but **not** in `design.js` (which
+is plain JS). So even though `markRaw` is auto-imported in your view
+components, `design.js` needs the explicit `import { markRaw } from 'vue'`
+line at the top. Same goes for `Timeline` (auto-imported in `design.js`
+specifically because the module registers it as an auto-import) — but
+your own custom components still need explicit imports here.
+:::
+
+### Overriding a built-in view
+
+There are two ways to replace a built-in view with one of your own. Both
+are fully supported — pick based on how much explicitness you want.
+
+#### Approach A — Explicit import (recommended)
+
+Create a component with **any name** in your project's `components/`
+folder, import it in `design.js`, and pass it with `markRaw()`. This
+mirrors how the starter handles `MyTaskView` and `StroopExpView`:
+
+```js
+import { markRaw } from 'vue'
+import MyCustomConsent from './components/MyCustomConsent.vue'
+
+timeline.pushSeqView({
+  name: 'consent',
+  component: markRaw(MyCustomConsent),
+  meta: { requiresConsent: false, setConsented: true },
+})
+```
+
+You pick the filename, you control the props, the override is visible in
+`design.js`. This is the recommended default.
+
+#### Approach B — Drop-in by name
+
+Drop a file with the **exact same name** as the built-in into
+`components/`. The string reference in `design.js` automatically resolves
+to your local version, no `design.js` change needed:
+
+```
+components/InformedConsentView.vue    ← overrides the built-in
+```
+
+```js
+timeline.pushSeqView({
+  name: 'consent',
+  component: 'InformedConsentView', // now resolves to your local file
+  meta: { requiresConsent: false, setConsented: true },
+})
+```
+
+This works because the module registers built-ins with `priority: -1` and
+a `components:extend` hook ensures your override inherits the `global`
+flag needed for string-based `<component :is>` resolution. It's
+convenient for a quick swap; less explicit than Approach A.
+
+::: warning Override limits for UI and layout components
+Approaches A and B both work for **view components** (the ones you push
+to the timeline). But overrides of **UI primitives** like `Button`,
+`Input`, `Card`, or **layout helpers** like `CenteredContent`, `TwoCol`,
+**don't propagate into the module's pre-compiled view templates**. If you
+drop `components/Button.vue` into your project, your version shows up in
+your own `.vue` files, but the `<Button>` used inside the module's
+`InformedConsentView` keeps the module's version — those references were
+baked in when the module was published.
+
+Workaround: override the entire view (using Approach A or B), then use
+your custom `Button` inside that override.
+:::
+
+### Creating a timeline
+
+Your `design.js` exports a `createTimeline(api)` function. The `api`
+parameter is the [API](/api) object — `@nyuccl/smile-nuxt` passes it in
+when it calls your function. Inside, instantiate the timeline:
+
+```js
+// Timeline is auto-imported by the module
+export default function createTimeline(api) {
+  const timeline = new Timeline(api)
+  // ...
+  timeline.build()
+  return timeline
+}
 ```
 
 There are four key methods available on the timeline instance:
@@ -232,42 +361,50 @@ timeline and figures out which View is the successor or predecessor of each
 
 This should be called as the final step.  It takes the configured timeline and configures the progress tracking (for an optional progress bar you can make visible to participants).  The progress tracking counts the total number of routes, and for the sequential routes converts the order into a percentage complete (e.g., if there were three routes each would add 33% to the total as you step through). -->
 
-Here is an example configuring three sequential routes and one non-sequential
-route:
+Here is an example configuring three sequential routes and one
+non-sequential route. The built-in `AdvertisementView` and `ThanksView`
+are passed by string; the custom `Instructions.vue` and `Config.vue` are
+imported and wrapped in `markRaw()`:
 
 ```js
-import Timeline from '@/core/timeline'
-const timeline = new Timeline()
+import { markRaw } from 'vue'
+import Instructions from './components/Instructions.vue'
+import Config from './components/Config.vue'
 
-// first route
-timeline.pushSeqView({
-  path: '/',
-  name: 'welcome',
-  component: WelcomeComponent,
-})
+export default function createTimeline(api) {
+  const timeline = new Timeline(api)
 
-// second route
-timeline.pushSeqView({
-  path: '/instructions',
-  name: 'instructions',
-  component: InstructionsComponent,
-})
+  // first route — built-in
+  timeline.pushSeqView({
+    path: '/',
+    name: 'welcome',
+    component: 'AdvertisementView',
+  })
 
-// third route
-timeline.pushSeqView({
-  path: '/thanks',
-  name: 'thanks',
-  component: ThanksComponent,
-})
+  // second route — custom component
+  timeline.pushSeqView({
+    path: '/instructions',
+    name: 'instructions',
+    component: markRaw(Instructions),
+  })
 
-// a non-sequential route available for debugging
-timeline.registerView({
-  path: '/config',
-  name: 'config',
-  component: ConfigComponent,
-})
+  // third route — built-in
+  timeline.pushSeqView({
+    path: '/thanks',
+    name: 'thanks',
+    component: 'ThanksView',
+  })
 
-timeline.build()
+  // a non-sequential route available for debugging
+  timeline.registerView({
+    path: '/config',
+    name: 'config',
+    component: markRaw(Config),
+  })
+
+  timeline.build()
+  return timeline
+}
 ```
 
 During development you can, of course, comment out certain Views to help isolate
@@ -298,26 +435,26 @@ successor using `meta: {next: 'some_name'}` (or predecessor using
 timeline.pushSeqView({
   name: 'first',
   meta: { next: 'second' }, // this should jump to a specific route (by name)
-  component: FirstComponent,
+  component: markRaw(FirstComponent),
 })
 
 // alternative first route
 timeline.pushSeqView({
   name: 'first_alternate',
   meta: { next: 'second' }, // this should jump to a specific route (by name)
-  component: AlternativeFirstCompomnet,
+  component: markRaw(AlternativeFirstComponent),
 })
 
 // second route
 timeline.pushSeqView({
   name: 'second',
-  component: SecondComponent,
+  component: markRaw(SecondComponent),
 })
 
 // third route
 timeline.pushSeqView({
   name: 'third',
-  component: ThirdComponent,
+  component: markRaw(ThirdComponent),
 })
 
 timeline.build()
@@ -356,43 +493,52 @@ After the two tasks, you want to show the debrief View. Here's what your
 `design.js` file might look like:
 
 ```js
-import RandomSubTimeline from '@/core/subtimeline'
-import Timeline from '@/core/timeline'
-const timeline = new Timeline()
+import { markRaw } from 'vue'
+import Instructions from './components/Instructions.vue'
+import Task1 from './components/Task1.vue'
+import Task2 from './components/Task2.vue'
+import Debrief from './components/Debrief.vue'
 
-// push instructions
-timeline.pushSeqView({
-  name: 'instructions',
-  component: Instructions,
-})
+export default function createTimeline(api) {
+  const timeline = new Timeline(api)
 
-// register tasks
-randTimeline.registerView({
-  name: 'task1',
-  component: Task1,
-})
+  // push instructions (sequential)
+  timeline.pushSeqView({
+    name: 'instructions',
+    component: markRaw(Instructions),
+  })
 
-randTimeline.registerView({
-  name: 'task2',
-  component: Task2,
-})
+  // register tasks (not yet placed in the timeline — they'll be
+  // pulled in by the randomized node below)
+  timeline.registerView({
+    name: 'task1',
+    component: markRaw(Task1),
+  })
 
-// push randomized node with the two orderings
-timeline.pushRandomizedNode({
-  name: 'randomOrder',
-  options: [
-    ['task1', 'task2'],
-    ['task2', 'task1'],
-  ],
-})
+  timeline.registerView({
+    name: 'task2',
+    component: markRaw(Task2),
+  })
 
-// push debriefing form
-timeline.pushSeqView({
-  name: 'debrief',
-  component: Debrief,
-})
+  // push randomized node with two orderings — each option is a list of
+  // route names (strings) referring to the routes registered above
+  timeline.pushRandomizedNode({
+    name: 'randomOrder',
+    options: [
+      ['task1', 'task2'],
+      ['task2', 'task1'],
+    ],
+  })
 
-timeline.build()
+  // push debriefing form
+  timeline.pushSeqView({
+    name: 'debrief',
+    component: markRaw(Debrief),
+  })
+
+  timeline.build()
+  return timeline
+}
 ```
 
 Note that the Views that make up each path are <i>registered</i> (added with the
@@ -426,40 +572,49 @@ useful than a simple randomized node if other aspects of the experiment will
 depend on the condition. Here's an example:
 
 ```js
-import Timeline from '@/core/timeline'
-const timeline = new Timeline()
+import { markRaw } from 'vue'
+import Instructions from './components/Instructions.vue'
+import TaskA from './components/TaskA.vue'
+import TaskB from './components/TaskB.vue'
 
-// assign participants to condition specifying task order
-api.randomAssignCondition({
-  taskOrder: ['AB', 'BA'],
-})
+export default function createTimeline(api) {
+  const timeline = new Timeline(api)
 
-// push instructions
-timeline.pushSeqView({
-  name: 'instructions',
-  component: Instructions,
-})
+  // assign participants to a condition specifying task order
+  api.randomAssignCondition({
+    taskOrder: ['AB', 'BA'],
+  })
 
-// push tasks into timeline as "non-sequential" routes
-randTimeline.registerView({
-  name: 'taskA',
-  component: TaskA,
-})
+  // push instructions
+  timeline.pushSeqView({
+    name: 'instructions',
+    component: markRaw(Instructions),
+  })
 
-randTimeline.registerView({
-  name: 'taskB',
-  component: TaskB,
-})
+  // register the tasks (not yet in the timeline)
+  timeline.registerView({
+    name: 'taskA',
+    component: markRaw(TaskA),
+  })
 
-timeline.pushConditionalNode({
-  name: 'ConditionalRandom',
-  taskOrder: {
-    AB: ['taskA', 'taskB'],
-    BA: ['taskB', 'taskA'],
-  },
-})
+  timeline.registerView({
+    name: 'taskB',
+    component: markRaw(TaskB),
+  })
 
-timeline.build()
+  // push a conditional node — the per-condition values list registered
+  // route names to play in order for participants in that condition
+  timeline.pushConditionalNode({
+    name: 'ConditionalRandom',
+    taskOrder: {
+      AB: ['taskA', 'taskB'],
+      BA: ['taskB', 'taskA'],
+    },
+  })
+
+  timeline.build()
+  return timeline
+}
 ```
 
 It's also possible to have nested nodes. In the example below, there are two
@@ -469,56 +624,46 @@ participants are randomly assigned to see either task C or task D afterwards
 (based on the variation condition):
 
 ```js
-import Timeline from '@/core/timeline'
-const timeline = new Timeline()
+import { markRaw } from 'vue'
+import TaskA from './components/TaskA.vue'
+import TaskB from './components/TaskB.vue'
+import TaskC from './components/TaskC.vue'
+import TaskD from './components/TaskD.vue'
 
-api.randomAssignCondition({
-  taskOrder: ['AB', 'BA'],
-})
+export default function createTimeline(api) {
+  const timeline = new Timeline(api)
 
-api.randomAssignCondition({
-  variation: ['C', 'D'],
-})
+  api.randomAssignCondition({ taskOrder: ['AB', 'BA'] })
+  api.randomAssignCondition({ variation: ['C', 'D'] })
 
-// the tasks (registered)
-timeline.registerView({
-  name: 'taskA',
-  component: TaskA,
-})
+  // the tasks (registered, not yet placed)
+  timeline.registerView({ name: 'taskA', component: markRaw(TaskA) })
+  timeline.registerView({ name: 'taskB', component: markRaw(TaskB) })
+  timeline.registerView({ name: 'taskC', component: markRaw(TaskC) })
+  timeline.registerView({ name: 'taskD', component: markRaw(TaskD) })
 
-timeline.registerView({
-  name: 'taskB',
-  component: TaskB,
-})
+  // the inner node — registered, referenced by the outer node by name
+  timeline.registerConditionalNode({
+    name: 'InnerConditionalRandom',
+    variation: {
+      C: ['taskC'],
+      D: ['taskD'],
+    },
+  })
 
-timeline.registerView({
-  name: 'taskC',
-  component: TaskC,
-})
+  // the outer node (pushed) — its options can reference both individual
+  // registered views and the inner node by name
+  timeline.pushConditionalNode({
+    name: 'ConditionalRandom',
+    taskOrder: {
+      AB: ['taskA', 'taskB', 'InnerConditionalRandom'],
+      BA: ['taskB', 'taskA', 'InnerConditionalRandom'],
+    },
+  })
 
-timeline.registerView({
-  name: 'taskD',
-  component: TaskD,
-})
-
-timeline.registerConditionalNode({
-  name: 'InnerConditionalRandom',
-  variation: {
-    C: ['taskC'],
-    D: ['taskD'],
-  },
-})
-
-// the outer node (pushed)
-timeline.pushConditionalNode({
-  name: 'ConditionalRandom',
-  taskOrder: {
-    AB: ['taskA', 'taskB', 'InnerConditionalRandom'],
-    BA: ['taskB', 'taskA', 'InnerConditionalRandom'],
-  },
-})
-
-timeline.build()
+  timeline.build()
+  return timeline
+}
 ```
 
 ## Using the Timeline
@@ -540,11 +685,10 @@ the `finish()` method):
 
 ```vue
 <script setup>
-import useAPI from '@/core/composables/useAPI'
-import { Button } from '@/runtime/components/ui/button'
+// useAPI and Button are auto-imported by @nyuccl/smile-nuxt
 const api = useAPI()
 
-function finish(goto) {
+function finish() {
   api.goNextView()
 }
 </script>
@@ -564,7 +708,7 @@ function finish(goto) {
 One important feature of these navigation functions are that they calls
 `saveData()` on the global store prior to View changes. So as a result, you can
 trust that your data will be saved/synchronized with the persistent store
-(Firestore) whenever you navigated between sequential Views. See the data
+(Turso/libsql) whenever you navigate between sequential Views. See the data
 storage docs on [automatic saving](/coding/datastorage.html#automatic-saving).
 This only works if you use the API to advance between Views.
 
@@ -594,14 +738,15 @@ if the subject modified the URL in the browser directly). However, if the same
 link was implemented using an internal API navigation function it would be
 always allowed:
 
-```js
-import useAPI from '@/core/composables/useAPI'
+```vue
+<script setup>
+// useAPI is auto-imported
 const api = useAPI()
 
 function go_to_instructions() {
-  console.log('go')
   api.goToView('instructions')
 }
+</script>
 ```
 
 ```vue
@@ -620,20 +765,20 @@ a result, it should be disallowed.
 ### Repeating a task more than once
 
 The View permissions mean that participants move through the phases of your
-study in a predictable and determined way. However, at the end of a study they
-might be allowed to repeat the task. If you want to allow repeats then you can
-set the `VITE_ALLOW_REPEATS` variable in the `env/.env`.
+study in a predictable and determined way. However, at the end of a study
+they might be allowed to repeat the task. To allow repeats, set
+`VITE_ALLOW_REPEATS=true` in your project's `.env` file.
 
-Then, in the last View of your experiment, you can set the `resetApp` field.
+Then, in the last View of your experiment, set the `resetApp` field:
 
 ```js
-// thanks/submit page
+// thanks/submit page — built-in view by string name
 timeline.pushSeqView({
   name: 'thanks',
-  component: Thanks,
+  component: 'ThanksView',
   meta: {
     requiresDone: true,
-    resetApp: smilestore.config.allowRepeats,
+    resetApp: api.getConfig('allowRepeats'),
   },
 })
 ```
@@ -653,25 +798,25 @@ navigation to a View or redirect it. Here is an example using the <SmileText />
 Timeline object.
 
 ```js
-// welcome screen
+// welcome screen — built-in view referenced by name
 timeline.pushSeqView({
   name: 'welcome',
-  component: Advertisement,
+  component: 'AdvertisementView',
   beforeEnter: (to, from) => {
     console.log(to, from)
   },
 })
 ```
 
-The `beforeEnter` method will run before the View is loaded. This can be helpful
-for doing computation prior to the View loading. For example, after the user
-consents to the study it might make sense to create a database record for them.
-So we might add a special method to the View _after_ the consent form to handle
-that.
+The `beforeEnter` method runs before the View is loaded. This can be
+helpful for doing computation prior to the View loading. For example,
+after the user consents to the study it might make sense to create a
+database record for them. So we might add a special method to the View
+_after_ the consent form to handle that.
 
-It is also possible to register route guards to all Views using the
-`.beforeEach()` method. In `src/core/router.js` there is a method `addGuards()`
-which has examples of registering global guards.
+Smile's module registers global route guards internally (for consent,
+done-state, and presentation-mode enforcement); per-view `beforeEnter`
+guards layer on top of those.
 
 Note that Vue Router provides a variety of lifecycle hooks that you can
 customize for all or individual routes. See the documentation
