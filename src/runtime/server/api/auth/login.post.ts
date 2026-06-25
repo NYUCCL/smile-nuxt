@@ -1,28 +1,43 @@
 import { randomUUID } from 'node:crypto'
 import { defineEventHandler, readBody, createError, setCookie } from 'h3'
-import { useRuntimeConfig } from 'nitropack/runtime'
 import bcrypt from 'bcryptjs'
 import { useDB } from '../../utils/db'
+import {
+  accessForScope,
+  passwordForScope,
+  cookieNameForScope,
+  signSessionToken,
+  type Scope,
+} from '../../utils/dev-auth'
 import { devSessions } from '../../database/schema'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const config = useRuntimeConfig()
-  const devPassword = config.smile?.devPassword
+  const scope: Scope = body?.scope === 'presentation' ? 'presentation' : 'dev'
+  const mode = accessForScope(scope)
 
-  if (!devPassword) {
-    throw createError({ statusCode: 500, statusMessage: 'Dev password not configured' })
+  // Nothing to log into when the route is disabled or already public.
+  if (mode === 'disabled') {
+    throw createError({ statusCode: 404, statusMessage: 'Not Found' })
+  }
+  if (mode === 'open') {
+    throw createError({ statusCode: 400, statusMessage: 'No login required' })
+  }
+
+  const expected = passwordForScope(scope)
+  if (!expected) {
+    throw createError({ statusCode: 500, statusMessage: 'Password not configured' })
   }
 
   let isValid: boolean
-  if (devPassword.startsWith('$2')) {
+  if (expected.startsWith('$2')) {
     // Hashed password (bcrypt)
-    isValid = await bcrypt.compare(body.password, devPassword)
+    isValid = await bcrypt.compare(body.password, expected)
   }
   else {
     // Legacy plaintext — still works but log a warning
-    console.warn('[smile] Dev password is stored in plaintext. Run `pnpm smile:hash-password` to generate a hashed version.')
-    isValid = body.password === devPassword
+    console.warn(`[smile] ${scope} password is stored in plaintext. Run \`pnpm smile:hash-password\` to generate a hashed version.`)
+    isValid = body.password === expected
   }
 
   if (!isValid) {
@@ -30,15 +45,15 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = useDB()
-  const token = randomUUID()
+  const id = randomUUID()
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
 
   await db.insert(devSessions).values({
-    id: token,
+    id,
     expiresAt,
   })
 
-  setCookie(event, 'smile_dev_session', token, {
+  setCookie(event, cookieNameForScope(scope), signSessionToken(id, scope), {
     httpOnly: true,
     secure: false, // allow HTTP for local preview; deployed behind HTTPS proxy
     sameSite: 'lax',
@@ -46,5 +61,5 @@ export default defineEventHandler(async (event) => {
     maxAge: 7 * 24 * 60 * 60,
   })
 
-  return { success: true }
+  return { success: true, scope }
 })

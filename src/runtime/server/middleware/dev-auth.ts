@@ -1,57 +1,41 @@
-import { eq } from 'drizzle-orm'
-import { defineEventHandler, getCookie, getRequestURL, sendRedirect } from 'h3'
-import { useRuntimeConfig } from 'nitropack/runtime'
-import { useDB } from '../utils/db'
-import { devSessions } from '../database/schema'
+import { defineEventHandler, getRequestURL, sendRedirect, createError } from 'h3'
+import { accessForScope, passwordForScope, hasValidSession, type Scope } from '../utils/dev-auth'
 
 export default defineEventHandler(async (event) => {
   const path = getRequestURL(event).pathname
 
-  // Only gate /dev and /presentation paths
+  // Only gate /dev and /presentation paths. (/dev-login and /api/auth/* don't
+  // match these prefixes, so they pass through and the login flow works.)
   const isDevPath = path.startsWith('/dev/') || path === '/dev'
   const isPresentationPath = path.startsWith('/presentation/') || path === '/presentation'
-
   if (!isDevPath && !isPresentationPath) {
     return
   }
 
-  // Allow presentation mode through if public presentation is enabled
-  const config = useRuntimeConfig()
-  if (isPresentationPath && config.smile?.publicPresentation) {
-    return
-  }
-
-  // Allow auth API endpoints through (login, session check, logout)
-  if (path.startsWith('/api/auth')) {
-    return
-  }
-
-  // Allow the login page itself
-  if (path === '/dev-login') {
-    return
-  }
-
-  // Check if dev password is configured — if not, allow through (local dev without auth)
-  if (!config.smile?.devPassword) {
-    return
-  }
-
-  // In development mode, skip auth gate (developer is already local)
+  // Local development: the tools are always available, no password.
   if (import.meta.dev) {
     return
   }
 
-  // Check session cookie
-  const token = getCookie(event, 'smile_dev_session')
-  const loginUrl = `/dev-login?redirect=${encodeURIComponent(path)}`
-  if (!token) {
-    return sendRedirect(event, loginUrl)
+  const scope: Scope = isDevPath ? 'dev' : 'presentation'
+  const mode = accessForScope(scope)
+
+  // Public — the deliberate "extreme case".
+  if (mode === 'open') {
+    return
   }
 
-  const db = useDB()
-  const session = await db.select().from(devSessions).where(eq(devSessions.id, token)).get()
-
-  if (!session || session.expiresAt < new Date()) {
-    return sendRedirect(event, loginUrl)
+  // Not deployed at all (the default), or `password` mode with no password
+  // actually configured: behave as if the route doesn't exist.
+  if (mode === 'disabled' || !passwordForScope(scope)) {
+    throw createError({ statusCode: 404, statusMessage: 'Not Found' })
   }
+
+  // Password mode — require a valid session for this scope.
+  if (await hasValidSession(event, scope)) {
+    return
+  }
+
+  const loginUrl = `/dev-login?redirect=${encodeURIComponent(path)}&scope=${scope}`
+  return sendRedirect(event, loginUrl)
 })

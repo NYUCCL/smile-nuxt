@@ -1,7 +1,7 @@
 import { randomUUID, createHmac } from 'node:crypto'
 import { defineEventHandler, readBody, setCookie } from 'h3'
-import { useRuntimeConfig } from 'nitropack/runtime'
 import { useDB } from '../../utils/db'
+import { getAuthSecret } from '../../utils/dev-auth'
 import { participants, projects } from '../../database/schema'
 import { buildProjectId, getCurrentProjectInfo } from '../../utils/project'
 
@@ -39,9 +39,7 @@ export default defineEventHandler(async (event) => {
     updatedAt: now,
   })
 
-  const config = useRuntimeConfig()
-  const secret = config.smile?.tursoAuthToken || config.smile?.devPassword || 'smile-local-dev-key'
-  const signedToken = signParticipantToken(id, secret)
+  const signedToken = signParticipantToken(id, getAuthSecret())
 
   setCookie(event, 'smile_participant', signedToken, {
     httpOnly: true,

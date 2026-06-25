@@ -4,9 +4,16 @@ import { ref, onMounted } from 'vue'
 
 const isLoggedIn = ref(false)
 
+// Match the route we're on so we check the right session (dev vs presentation).
+function currentScope() {
+  return typeof window !== 'undefined' && window.location.pathname.startsWith('/presentation')
+    ? 'presentation'
+    : 'dev'
+}
+
 onMounted(async () => {
   try {
-    const result = await $fetch('/api/auth/session')
+    const result = await $fetch('/api/auth/session', { query: { scope: currentScope() } })
     isLoggedIn.value = result?.authenticated === true
   }
   catch {

@@ -1,27 +1,45 @@
-# Deploy to Vercel with codename-based URL
+# Deploy to Vercel with codename-based URLs
 #
-# This workflow deploys your SMILE experiment to Vercel on every push,
-# using the deterministic SMILE codename as the project name.
-# This gives your experiment two stable URLs:
-#   <codename>.vercel.app
-#   <owner>-<repo>-<branch>.vercel.app
+# Branch = experiment: every push to any branch deploys that branch and
+# aliases it to two stable URLs derived from owner/repo/branch:
+#   <codename>.vercel.app              e.g. tiger-brave-castle.vercel.app
+#   <owner>-<repo>-<branch>.vercel.app e.g. nyuccl-myexp-pilot.vercel.app
+#
+# `main` is published as the Vercel *production* deployment; every other
+# branch is a *preview* deployment. Set your app env vars (TURSO_DATABASE_URL,
+# TURSO_AUTH_TOKEN, SMILE_DEV_PASSWORD, ...) for BOTH Production and Preview in
+# the Vercel dashboard so preview branches can reach the database too.
 #
 # Required GitHub repo secrets (Settings > Secrets and variables > Actions):
 #   VERCEL_TOKEN      - Vercel personal access token (vercel.com/account/tokens)
-#   VERCEL_ORG_ID     - Your Vercel team/org ID (from .vercel/project.json or dashboard)
-#   VERCEL_PROJECT_ID - Your Vercel project ID (created on first deploy)
+#   VERCEL_ORG_ID     - from .vercel/project.json (after `vercel link`) or dashboard
+#   VERCEL_PROJECT_ID - from .vercel/project.json (after `vercel link`) or dashboard
 #
-# App secrets (TURSO_DATABASE_URL, TURSO_AUTH_TOKEN, SMILE_DEV_PASSWORD, etc.)
-# go in the Vercel dashboard (Settings > Environment Variables), NOT here.
-# `vercel pull` below downloads them into the build at deploy time.
+# Optional notification secrets (see the "Notify deploy URL" step):
+#   SLACK_WEBHOOK_URL                          - post the deploy URL to Slack
+#   MAIL_USERNAME / MAIL_PASSWORD / MAIL_TO    - email the deploy URL (SMTP)
+#   MAIL_SERVER / MAIL_PORT                    - override SMTP host/port (non-Gmail)
+#
+# App secrets go in the Vercel dashboard (Settings > Environment Variables),
+# NOT here. `vercel pull` below downloads them into the build at deploy time.
+#
+# To deploy a specific past commit by hand (e.g. for a reviewer), use the
+# manual trigger:
+#   gh workflow run deploy.yml -f github_sha=<full-commit-sha>
 
 name: Deploy
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    # Branches reserved for non-deploy work. Pushes here never deploy.
+    branches-ignore: [analysis, models, docs]
+    # Doc-only pushes don't change the experiment, so skip them.
+    paths-ignore: ['docs/**']
+  workflow_dispatch:
+    inputs:
+      github_sha:
+        description: 'Commit SHA to deploy (defaults to the branch tip)'
+        required: false
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -30,60 +48,169 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Make the real owner/repo/branch available to EVERY step. The checkout is a
+    # detached HEAD, so `git` reports the branch as "head"; without these, the
+    # nuxt build (which re-runs generate_git_env.sh) would embed branch "head"
+    # and mis-namespace participant data. generate_git_env.sh lowercases these.
+    env:
+      SMILE_GIT_OWNER: ${{ github.repository_owner }}
+      SMILE_GIT_REPO: ${{ github.event.repository.name }}
+      SMILE_GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.github_sha || github.sha }}
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install
 
+      # Compute the codename + project_ref for the Vercel aliases from the same
+      # lowercased owner/repo/branch the app embeds (job-level SMILE_GIT_*), so
+      # the URL a branch is aliased to matches the codename baked into the app.
+      - name: Compute deploy identifiers
+        id: ids
+        run: |
+          OWNER=$(echo "$SMILE_GIT_OWNER" | tr '[:upper:]' '[:lower:]')
+          REPO=$(echo "$SMILE_GIT_REPO" | tr '[:upper:]' '[:lower:]')
+          BRANCH=$(echo "$SMILE_GIT_BRANCH" | tr '[:upper:]' '[:lower:]')
+          CODENAME=$(node scripts/codenamize.cjs "/${OWNER}/${REPO}/${BRANCH}")
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "codename=$CODENAME" >> "$GITHUB_OUTPUT"
+          echo "project_ref=${OWNER}-${REPO}-${BRANCH}" >> "$GITHUB_OUTPUT"
+          echo "Codename:    $CODENAME"
+          echo "Project ref: ${OWNER}-${REPO}-${BRANCH}"
+
+      # Pre-generate .env.git.local so a value exists before the build. The
+      # build's own nuxt.config re-runs this too, picking up the same job-level
+      # SMILE_GIT_* overrides.
       - name: Generate git env
         run: bash scripts/generate_git_env.sh
-
-      - name: Compute aliases
-        id: aliases
-        run: |
-          OWNER=$(git remote get-url origin | sed -E 's#.*/([^/]+)/[^/]+\.git$#\1#' | tr '[:upper:]' '[:lower:]')
-          REPO=$(basename $(git remote get-url origin) .git | tr '[:upper:]' '[:lower:]')
-          BRANCH=$(git rev-parse --abbrev-ref HEAD | tr '[:upper:]' '[:lower:]')
-          CODENAME=$(node scripts/codenamize.cjs "/${OWNER}/${REPO}/${BRANCH}")
-          PROJECT_REF="${OWNER}-${REPO}-${BRANCH}"
-          echo "codename=$CODENAME" >> "$GITHUB_OUTPUT"
-          echo "project_ref=$PROJECT_REF" >> "$GITHUB_OUTPUT"
-          echo "Codename: $CODENAME"
-          echo "Project ref: $PROJECT_REF"
 
       - name: Install Vercel CLI
         run: pnpm add -g vercel
 
-      # Production deploy (push to main)
-      - name: Deploy to Vercel (production)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Deploy to Vercel
+        env:
+          TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          CODENAME: ${{ steps.ids.outputs.codename }}
+          PROJECT_REF: ${{ steps.ids.outputs.project_ref }}
+          IS_MAIN: ${{ steps.ids.outputs.branch == 'main' }}
+          # Force Nitro's Vercel preset so the build emits the Build Output API
+          # directory (.vercel/output). Without this, Vercel's framework
+          # detection mistakes the Nuxt 4 app for a static build and looks for a
+          # nonexistent `dist/` directory, failing the deploy.
+          NITRO_PRESET: vercel
         run: |
-          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-          DEPLOY_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
-          echo "Deploy URL: $DEPLOY_URL"
-          # Alias to codename (e.g. tiger-brave-castle.vercel.app)
-          vercel alias set "$DEPLOY_URL" "${{ steps.aliases.outputs.codename }}.vercel.app" --token=${{ secrets.VERCEL_TOKEN }}
-          echo "Aliased: ${{ steps.aliases.outputs.codename }}.vercel.app"
-          # Alias to owner-repo-branch (e.g. nyuccl-myexp-main.vercel.app)
-          vercel alias set "$DEPLOY_URL" "${{ steps.aliases.outputs.project_ref }}.vercel.app" --token=${{ secrets.VERCEL_TOKEN }}
-          echo "Aliased: ${{ steps.aliases.outputs.project_ref }}.vercel.app"
+          if [ "$IS_MAIN" = "true" ]; then
+            vercel pull --yes --environment=production --token="$TOKEN"
+            vercel build --prod --token="$TOKEN"
+            URL=$(vercel deploy --prebuilt --prod --token="$TOKEN")
+          else
+            vercel pull --yes --environment=preview --token="$TOKEN"
+            vercel build --token="$TOKEN"
+            URL=$(vercel deploy --prebuilt --token="$TOKEN")
+          fi
+          echo "Deployed: $URL"
+          # Stable, shareable aliases for this branch/experiment.
+          vercel alias set "$URL" "${CODENAME}.vercel.app" --token="$TOKEN"
+          vercel alias set "$URL" "${PROJECT_REF}.vercel.app" --token="$TOKEN"
+          echo "Aliased: ${CODENAME}.vercel.app"
+          echo "Aliased: ${PROJECT_REF}.vercel.app"
 
-      # Preview deploy (pull requests)
-      - name: Deploy to Vercel (preview)
-        if: github.event_name == 'pull_request'
+      # Tell you where the experiment went live. Three channels, mix and match:
+      #   1. The GitHub Actions run summary — always, no setup.
+      #   2. Slack — only if you add a SLACK_WEBHOOK_URL repo secret (create an
+      #      Incoming Webhook at https://api.slack.com/messaging/webhooks).
+      #   3. Email — only if you add the MAIL_* repo secrets (SMTP; a Gmail
+      #      account + app password works: MAIL_USERNAME, MAIL_PASSWORD, MAIL_TO).
+      # All report the *codename* URL — the link you share with participants —
+      # which a generic Vercel/GitHub integration can't, since the codename
+      # alias is created by the step above.
+      - name: Notify deploy URL
+        if: always()
+        env:
+          STATUS: ${{ job.status }}
+          CODENAME: ${{ steps.ids.outputs.codename }}
+          PROJECT_REF: ${{ steps.ids.outputs.project_ref }}
+          BRANCH: ${{ steps.ids.outputs.branch }}
+          REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_SERVER: ${{ secrets.MAIL_SERVER }}
+          MAIL_PORT: ${{ secrets.MAIL_PORT }}
         run: |
-          vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-          vercel build --token=${{ secrets.VERCEL_TOKEN }}
-          URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
-          echo "Preview URL: $URL"
+          CODE_URL="https://${CODENAME}.vercel.app"
+          REF_URL="https://${PROJECT_REF}.vercel.app"
+          QR_URL="${CODE_URL}/api/qr"
+
+          # 1) GitHub run summary (always)
+          {
+            if [ "$STATUS" = "success" ]; then
+              echo "### ✅ Deployed \`${BRANCH}\`"
+              echo ""
+              echo "| | |"
+              echo "|---|---|"
+              echo "| **Share with participants** | <${CODE_URL}> |"
+              echo "| Alternate URL | <${REF_URL}> |"
+              echo "| QR code | <${QR_URL}> |"
+            else
+              echo "### ❌ Deploy failed (\`${BRANCH}\`)"
+              echo ""
+              echo "See the [run logs](${RUN_URL})."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # 2) Slack (only if a webhook is configured)
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            NL=$'\n'
+            if [ "$STATUS" = "success" ]; then
+              MSG="✅ *${REPO}* (\`${BRANCH}\`) is live${NL}• Share: ${CODE_URL}${NL}• Alt: ${REF_URL}${NL}• QR: ${QR_URL}"
+            else
+              MSG="❌ *${REPO}* (\`${BRANCH}\`) deploy failed${NL}• Logs: ${RUN_URL}"
+            fi
+            # jq builds valid JSON and escapes the message safely.
+            jq -n --arg t "$MSG" '{text: $t}' \
+              | curl -s -X POST -H 'Content-type: application/json' -d @- "$SLACK_WEBHOOK_URL" >/dev/null \
+              || echo "Slack notification failed (non-fatal)"
+          fi
+
+          # 3) Email via SMTP (only if MAIL_* secrets are configured).
+          # Gmail: MAIL_USERNAME=you@gmail.com, MAIL_PASSWORD=<app password>,
+          # MAIL_TO=lab@example.com. Defaults target Gmail's SMTPS endpoint.
+          if [ -n "$MAIL_TO" ] && [ -n "$MAIL_USERNAME" ] && [ -n "$MAIL_PASSWORD" ]; then
+            SERVER="${MAIL_SERVER:-smtp.gmail.com}"
+            PORT="${MAIL_PORT:-465}"
+            {
+              echo "From: SMILE Deploy <${MAIL_USERNAME}>"
+              echo "To: ${MAIL_TO}"
+              echo "Subject: [SMILE] ${STATUS}: ${REPO} (${BRANCH})"
+              echo "Content-Type: text/plain; charset=UTF-8"
+              echo
+              if [ "$STATUS" = "success" ]; then
+                echo "Your experiment is live."
+                echo
+                echo "Share with participants: ${CODE_URL}"
+                echo "Alternate URL:           ${REF_URL}"
+                echo "QR code:                 ${QR_URL}"
+              else
+                echo "Deploy failed. Logs: ${RUN_URL}"
+              fi
+            } > /tmp/smile-mail.txt
+            curl -s --url "smtps://${SERVER}:${PORT}" --ssl-reqd \
+              --mail-from "${MAIL_USERNAME}" --mail-rcpt "${MAIL_TO}" \
+              --user "${MAIL_USERNAME}:${MAIL_PASSWORD}" \
+              --upload-file /tmp/smile-mail.txt >/dev/null \
+              || echo "Email notification failed (non-fatal)"
+          fi

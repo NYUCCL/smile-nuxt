@@ -89,13 +89,17 @@ of truth.
 
 ## Environment variables you might edit
 
-Two prefixes exist:
+Two prefixes exist, and the key difference is *when* each is read — which
+matters a lot once you deploy:
 
-- **`SMILE_*`** and **`TURSO_*`** — server-only. Read in `src/module.ts`,
-  exposed only to Nitro server routes via `useRuntimeConfig().smile`. Never
-  bundled into the browser.
-- **`VITE_*`** — read at build time and embedded in the client bundle.
-  Visible to participants via the source code, so don't put secrets here.
+- **`SMILE_*`** and **`TURSO_*`** — server-only secrets, read directly from
+  `process.env` at **runtime** inside Nitro server routes (the same way the
+  database reads `TURSO_DATABASE_URL`). Never bundled into the browser.
+  Because they're read per request, changing one in your host's dashboard takes
+  effect on the next request — **no rebuild needed**.
+- **`VITE_*`** — read at **build time** and embedded in the client bundle.
+  Visible to participants via the source, so don't put secrets here. Changing
+  one means rebuilding and redeploying.
 
 For local development, put values in `.env.local` (gitignored). The starter
 ships with `.env.local.example` — copy it to `.env.local` and fill in your
@@ -103,20 +107,32 @@ values. For production, set the same variables in your hosting provider's
 dashboard (e.g., Vercel: Project Settings → Environment Variables).
 
 ::: tip Restart after editing env files
-Nuxt reads `.env` files once at startup. If you change a value, stop and
-restart the dev server (`pnpm dev`) to pick it up.
+Nuxt reads `.env` files once at startup. If you change a value locally, stop
+and restart the dev server (`pnpm dev`) to pick it up.
+:::
+
+::: info Build-time vs runtime on a deployed site
+The same split applies after you deploy: `VITE_*` values are frozen into the
+build, so changing one requires a fresh deploy. The server secrets (`TURSO_*`,
+`SMILE_DEV_ACCESS` / `SMILE_DEV_PASSWORD`, `SMILE_PRESENTATION_ACCESS` /
+`SMILE_PRESENTATION_PASSWORD`) are read at request time, so updating them in the
+host dashboard takes effect on the next request without rebuilding.
 :::
 
 ### Server secrets
 
 | Variable                    | What it does                                                                                                                  |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `TURSO_DATABASE_URL`        | libSQL/Turso database URL for production. If unset, falls back to local SQLite at `.data/experiment.db`.                      |
-| `TURSO_AUTH_TOKEN`          | Auth token for the Turso database.                                                                                            |
-| `SMILE_DEV_PASSWORD`        | Password that gates `/dev/` and `/presentation/` on deployed sites. Unset in local dev means those routes are open.           |
-| `SMILE_PUBLIC_PRESENTATION` | Set to `true` to leave `/presentation/` open without the dev password (useful for unlisted demo links).                       |
+| `TURSO_DATABASE_URL`         | libSQL/Turso database URL for production. If unset, falls back to local SQLite at `.data/experiment.db`.                      |
+| `TURSO_AUTH_TOKEN`           | Auth token for the Turso database.                                                                                            |
+| `SMILE_DEV_ACCESS`           | `/dev/` access on deployed sites: `disabled` (default) \| `password` \| `open`. Local dev is always open.                     |
+| `SMILE_DEV_PASSWORD`         | Password for `/dev/` in `password` mode. Setting it also opts `/dev/` into `password` mode.                                   |
+| `SMILE_PRESENTATION_ACCESS`  | `/presentation/` access: `disabled` (default) \| `password` \| `open`.                                                       |
+| `SMILE_PRESENTATION_PASSWORD`| Password for `/presentation/` in `password` mode (separate from the dev password).                                           |
 
-See [Cloud Hosting](/recruit/deploying) for the full Vercel + Turso wiring.
+On a deployed site, `/dev/` and `/presentation/` default to **disabled** (they
+404). See [Cloud Hosting → Dev & presentation route access](/recruit/deploying#dev-password)
+for the full model, and [Vercel + Turso wiring](/recruit/deploying).
 
 ### Client-visible defaults (UI, branding, data saving)
 
@@ -215,10 +231,26 @@ genuinely differs by environment (dev vs. staging vs. prod).
 For credentials and other values that **must not** reach the browser.
 
 1. Add `MY_SECRET` to `.env.local` (and to your hosting provider's env vars
-   for production).
-2. Wire it into `src/module.ts`'s `runtimeConfig.smile` block.
-3. Read it in a Nitro server route via
-   `useRuntimeConfig().smile.mySecret`.
+   for production — set it for every environment you deploy).
+2. Read it directly from `process.env` at **runtime**, inside a server route
+   you add under `server/` in your project:
+
+   ```ts
+   // server/api/my-thing.ts
+   export default defineEventHandler(() => {
+     const secret = process.env.MY_SECRET || ''
+     // ...use the secret server-side only
+   })
+   ```
+
+::: warning Read secrets from `process.env`, not `runtimeConfig`
+Always reach for `process.env` at request time rather than Nuxt's build-time
+`runtimeConfig`. On serverless hosts (e.g. Vercel) env vars are only reliably
+present at runtime, so a value read while *building* comes back empty in
+production — the trap that can silently disable a security check. This is why
+<SmileText/> reads `SMILE_DEV_PASSWORD` and the Turso credentials straight from
+`process.env`.
+:::
 
 Never reference a server secret from a Vue component — it isn't bundled.
 
@@ -231,5 +263,5 @@ Never reference a server secret from a Vue component — it isn't bundled.
 | `.env.local`                                                      | Gitignored secrets and machine-specific overrides. Copy from `.env.local.example`. |
 | `.env.git.local`                                                  | Auto-generated git metadata. Don't edit, don't commit.                           |
 | `src/runtime/core/config.js`                                      | The runtime config map consumed by the app. Add new `VITE_*` surfaces here.      |
-| `src/module.ts`                                                   | Where server secrets are wired into `runtimeConfig.smile`.                       |
+| `server/` routes in your project                                  | Where to read your own server secrets — from `process.env` at runtime, never build-time `runtimeConfig`. |
 | Hosting provider dashboard (e.g., Vercel Project → Env Variables) | Where the same env vars go for production deployment.                            |

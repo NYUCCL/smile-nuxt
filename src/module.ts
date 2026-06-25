@@ -79,14 +79,17 @@ export default defineNuxtModule<ModuleOptions>({
     addServerScanDir(resolver.resolve('./runtime/server'))
     addServerImportsDir(resolver.resolve('./runtime/server/utils'))
 
-    // Runtime config: server-only secrets + public experiment config
+    // Server-only secrets (dev password, Turso credentials, the participant
+    // auth secret) are deliberately NOT put in runtimeConfig. runtimeConfig is
+    // baked at *build* time, but on serverless hosts (e.g. Vercel) these env
+    // vars are only reliably present at *request* time — a build-time read sees
+    // empty strings, silently disabling the dev-route password and weakening
+    // the auth secret. They are read directly from process.env at runtime
+    // instead; see runtime/server/utils/db.ts and runtime/server/utils/dev-auth.ts.
     _nuxt.options.runtimeConfig = _nuxt.options.runtimeConfig || {}
-    _nuxt.options.runtimeConfig.smile = {
-      devPassword: process.env.SMILE_DEV_PASSWORD || '',
-      publicPresentation: process.env.SMILE_PUBLIC_PRESENTATION === 'true',
-      tursoUrl: process.env.TURSO_DATABASE_URL || '',
-      tursoAuthToken: process.env.TURSO_AUTH_TOKEN || '',
-    }
+
+    // Public experiment identity is safe to bake at build time: it is derived
+    // from the build's git context (VITE_* vars) and is exposed to the client.
     _nuxt.options.runtimeConfig.public = _nuxt.options.runtimeConfig.public || {}
     _nuxt.options.runtimeConfig.public.smile = {
       codeName: process.env.VITE_CODE_NAME || 'unnamed-experiment',

@@ -2,12 +2,17 @@
   "private": true,
   "name": "my-smile-experiment",
   "type": "module",
+  "engines": {
+    "node": ">=24.13.0"
+  },
   "scripts": {
     "dev": "nuxt dev",
     "build": "nuxt build",
     "preview": "nuxt preview",
     "dev:prepare": "nuxt prepare",
     "postinstall": "bash scripts/generate_git_env.sh || true",
+    "smile:hash-password": "node scripts/hash-password.js",
+    "smile:setup-deploy": "bash scripts/setup-deploy.sh",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },
@@ -15,6 +20,7 @@
     "@codenamize/codenamize": "1.1.1",
     "@nyuccl/smile-nuxt": "^0.2.0-beta.4",
     "@pinia/nuxt": "^0.11.3",
+    "bcryptjs": "^3.0.3",
     "nuxt": "4.4.6",
     "vue": "^3.5.0"
   },

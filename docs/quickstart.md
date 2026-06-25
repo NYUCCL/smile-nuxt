@@ -8,13 +8,17 @@ for the first time or starting a new project.
 
 Before you start, install:
 
-- **Node.js** (≥ 22). Check with `node -v`. Download from
-  [nodejs.org](https://nodejs.org/) if you don't have it.
+- **Node.js 24.13 or newer.** <SmileText/> requires Node ≥ 24.13 — older
+  versions will fail to install or build. Check your version with `node -v`,
+  and download a current release from [nodejs.org](https://nodejs.org/) (pick
+  the LTS line that is 24 or higher). If you juggle multiple Node versions,
+  [nvm](https://github.com/nvm-sh/nvm) (`nvm install 24 && nvm use 24`) is the
+  easiest way to switch.
 - **pnpm** (the package manager <SmileText/> recommends). Install with:
   ```bash
   npm install -g pnpm
   ```
-  Check with `pnpm -v`.
+  Check with `pnpm -v` — you want pnpm 10 or newer.
 
 ## 1. Scaffold a new project
 

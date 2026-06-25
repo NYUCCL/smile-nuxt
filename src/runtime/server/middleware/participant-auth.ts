@@ -1,9 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
-import { eq } from 'drizzle-orm'
 import { defineEventHandler, getCookie, deleteCookie, getRequestURL, createError } from 'h3'
-import { useRuntimeConfig } from 'nitropack/runtime'
-import { useDB } from '../utils/db'
-import { devSessions } from '../database/schema'
+import { getAuthSecret, hasValidSession } from '../utils/dev-auth'
 
 const TOKEN_MAX_AGE_SECONDS = 7 * 24 * 60 * 60 // 7 days
 
@@ -41,8 +38,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const pathId = match[1]!
-  const config = useRuntimeConfig()
-  const secret = (config.smile?.tursoAuthToken || config.smile?.devPassword || 'smile-local-dev-key') as string
+  const secret = getAuthSecret()
 
   // Check signed participant cookie (fast path, no DB query)
   const participantToken = getCookie(event, 'smile_participant')
@@ -50,18 +46,9 @@ export default defineEventHandler(async (event) => {
     return
   }
 
-  // Check dev session (allows dev tools to access any participant)
-  const devToken = getCookie(event, 'smile_dev_session')
-  if (devToken) {
-    const db = useDB()
-    const session = await db
-      .select()
-      .from(devSessions)
-      .where(eq(devSessions.id, devToken))
-      .get()
-    if (session && session.expiresAt >= new Date()) {
-      return
-    }
+  // A valid dev session may access any participant (dev tools / dashboard).
+  if (await hasValidSession(event, 'dev')) {
+    return
   }
 
   // Clear the stale/invalid participant cookie

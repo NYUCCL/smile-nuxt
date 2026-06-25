@@ -1,8 +1,8 @@
 <template>
   <div class="dev-login">
     <div class="login-card">
-      <h2>Developer Access</h2>
-      <p>Enter the dev password to access dev/presentation mode.</p>
+      <h2>{{ scope === 'presentation' ? 'Presentation Access' : 'Developer Access' }}</h2>
+      <p>Enter the {{ scope }} password to continue.</p>
       <form @submit.prevent="login">
         <input
           v-model="password"
@@ -40,13 +40,20 @@ const loading = ref(false)
 // Remember where the user was trying to go (passed as ?redirect= query param)
 const redirectTo = route.query.redirect || '/dev/'
 
+// Which password to ask for. The middleware passes ?scope=; fall back to the
+// redirect path so a bookmarked /dev-login still picks the right one.
+const scope
+  = route.query.scope === 'presentation' || String(redirectTo).startsWith('/presentation')
+    ? 'presentation'
+    : 'dev'
+
 async function login() {
   error.value = ''
   loading.value = true
   try {
     await $fetch('/api/auth/login', {
       method: 'POST',
-      body: { password: password.value },
+      body: { password: password.value, scope },
     })
     await navigateTo(redirectTo, { replace: true, external: true })
   }

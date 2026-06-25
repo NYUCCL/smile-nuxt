@@ -1,410 +1,552 @@
 # Cloud Hosting
 
-To put your experiment in front of participants, you'll host it on the cloud —
-that means signing up for a couple of services, configuring your project to
-talk to them, and pushing your code so the experiment goes live at a public
-URL.
+To put your experiment in front of participants, you host it on the cloud —
+sign up for a couple of free services, point your project at them, and push
+your code so the experiment goes live at a public URL.
 
-Local development needs none of this; if you only need to develop and test
-locally, [Quick Start](/quickstart) is all you need. Come back here when
-you're ready to recruit real participants.
+Local development needs none of this. If you only need to build and test
+locally, [Quick Start](/quickstart) is all you need; come back here when you're
+ready to recruit real participants.
 
-## Account setup
+::: info What you get
+Every branch of your repo is treated as a separate **experiment** and deploys
+to its own stable, shareable URLs:
 
-You'll need two free accounts. This is one-time setup — once you've done
-it, every new experiment uses the same accounts.
+- a friendly **codename** URL — e.g. `tiger-brave-castle.vercel.app`
+- an explicit **owner-repo-branch** URL — e.g. `nyuccl-myexp-pilot.vercel.app`
 
-### 1. Vercel (hosting + HTTPS)
-
-[Vercel](https://vercel.com) runs your experiment on a public URL with
-automatic HTTPS. The free **Hobby** tier is enough for most lab work.
-
-1. Sign up at [vercel.com](https://vercel.com) — connecting it to your
-   GitHub account makes one-click deploys possible later.
-2. If your lab will share infrastructure, create a Vercel **Team** and
-   invite labmates. Otherwise a personal account is fine.
-
-You'll add the actual project to Vercel after pushing your experiment
-repo to GitHub — see [Setting up your deploy](#setting-up-your-deploy)
-below.
-
-### 2. Turso (production database)
-
-[Turso](https://turso.tech) provides a managed [libSQL](https://github.com/tursodatabase/libsql)
-database — same SQL dialect as the local SQLite file <SmileText/> uses
-in dev, so your code works in both environments unchanged. The free
-tier handles a lot of experiments.
-
-1. Sign up at [turso.tech](https://turso.tech).
-2. Create a new database via the dashboard.
-3. From the database's "Connect" tab, copy:
-   - The **database URL** (`libsql://your-db.turso.io`)
-   - An **auth token**
-4. Paste both into your Vercel project's environment variables
-   (Project Settings → Environment Variables):
-   - `TURSO_DATABASE_URL`
-   - `TURSO_AUTH_TOKEN`
-5. Also set `SMILE_DEV_PASSWORD` in the same Vercel env-vars page —
-   this gates `/dev/` and `/presentation/` on the deployed site.
-
-::: tip One Turso DB or many?
-You can use one Turso database per experiment (cleanest separation) or
-share one database across several experiments (cheaper). <SmileText/>'s
-schema namespaces records by `project_ref`, so sharing is safe — but
-exports are simpler with one DB per experiment.
+Push to `main` and it deploys as your *production* experiment; push any other
+branch and it deploys as a *preview*. See
+[Branch = experiment](#branch-experiment) below.
 :::
 
-### 3. GitHub (optional but recommended)
+## How it fits together
 
-You don't strictly need GitHub to deploy — you can use the
-[Vercel CLI](https://vercel.com/docs/cli) to push directly from your
-laptop. But putting your code on GitHub gives you:
+Three services do the work, and the
+[GitHub Action](https://github.com/) in the starter
+(`.github/workflows/deploy.yml`) ties them together on every push:
 
-- Version control and backups
-- Auto-deploy to Vercel on every push (via the GitHub Action in the
-  starter, or via Vercel's GitHub integration)
-- Collaboration with labmates
+| Service                          | Role                                                        |
+| -------------------------------- | ----------------------------------------------------------- |
+| [**GitHub**](https://github.com) | Stores your code and runs the deploy workflow on every push |
+| [**Vercel**](https://vercel.com) | Hosts the live site on a public URL with automatic HTTPS    |
+| [**Turso**](https://turso.tech)  | Managed libSQL database that stores your participant data   |
 
-If your lab will have multiple researchers, create a GitHub
-[organization](https://docs.github.com/en/organizations/collaborating-with-groups-in-organizations/creating-a-new-organization-from-scratch)
-so experiment repos live under one shared account. Researchers can apply
-for a free [GitHub Education for Teachers](https://education.github.com/teachers)
-upgrade to unlock team features at no cost.
+On each push, the workflow builds your experiment, deploys the build to Vercel,
+and aliases it to the codename URLs above. Your database migrations run
+**automatically** the first time the deployed server starts — there is no
+manual migration step.
 
-## Setting up your deploy
+## One-time setup
 
-The starter ships with a GitHub Action at `.github/workflows/deploy.yml`
-that auto-deploys to Vercel on every push to `main`. To wire it up:
+You do this section once. After that, every new experiment reuses the same
+accounts and tools.
 
-1. Push your experiment repo to GitHub.
-2. In Vercel, click **Add New Project** → import your GitHub repo.
-3. Vercel will create the project; copy the **Project ID** and **Org ID**
-   from Project Settings → General.
-4. In your **GitHub repo** → Settings → Secrets and variables → Actions,
-   add three repo secrets:
-   - `VERCEL_TOKEN` — from [vercel.com/account/tokens](https://vercel.com/account/tokens)
-   - `VERCEL_ORG_ID`
-   - `VERCEL_PROJECT_ID`
-5. Push a commit. The GitHub Action runs, builds, and deploys.
+### 1. Install the command-line tools
 
-App-level secrets (`TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`,
-`SMILE_DEV_PASSWORD`) go in the **Vercel dashboard**, not GitHub —
-`vercel pull` downloads them at deploy time.
+You'll drive the whole flow from your terminal. Install and sign in to each
+tool:
 
----
+| Tool       | Install                                                    | Sign in            |
+| ---------- | --------------------------------------------------------- | ------------------ |
+| Node ≥24.13 | [nodejs.org](https://nodejs.org/) (or `nvm install 24`)  | —                  |
+| pnpm ≥10   | `npm install -g pnpm`                                      | —                  |
+| git        | [git-scm.com](https://git-scm.com/)                       | —                  |
+| GitHub CLI | [cli.github.com](https://cli.github.com/) (`brew install gh`) | `gh auth login` |
+| Vercel CLI | `pnpm add -g vercel`                                       | `vercel login`     |
+| Turso CLI  | [docs.turso.tech/cli](https://docs.turso.tech/cli/installation) (`brew install tursodatabase/tap/turso`) | `turso auth login` |
 
+::: tip
+You can do almost everything below in the Vercel, Turso, and GitHub **web
+dashboards** instead of the CLIs if you prefer — the CLI steps are just faster
+and copy-pasteable. Wherever a CLI command appears, the equivalent dashboard
+location is noted.
+:::
 
-The steps to deploy are...
+### 2. Create your accounts
 
-1. **Use `git` to push changes to a branch of the repo for your project**
+1. **Vercel** — sign up at [vercel.com](https://vercel.com); connecting it to
+   your GitHub account makes deploys smoother. The free **Hobby** tier is
+   enough for most lab work. If your lab shares infrastructure, create a Vercel
+   **Team** and invite labmates.
+2. **Turso** — sign up at [turso.tech](https://turso.tech). The free tier
+   handles a lot of experiments.
+3. **GitHub** — you need a repo for each project. If your lab has multiple
+   researchers, create a GitHub
+   [organization](https://docs.github.com/en/organizations/collaborating-with-groups-in-organizations/creating-a-new-organization-from-scratch)
+   so experiment repos live under one shared account.
 
-In response, GitHub will automatically
+## Deploying an experiment
 
-1. **Build your project**
-1. **Upload your files** to the [configured](/coding/configuration) server
-   location
-1. **Notify a bot** in your lab slack (e.g., `#smile-deploy`) about the final
-   URL of your project (or if there is an error)
+The walkthrough below takes a freshly
+[scaffolded project](/quickstart) all the way to a live, publicly reachable
+URL. Run these from inside your project directory.
 
-![steps for building](/images/deploy-steps.png)
+### Step 1 — Create a Turso database
 
-This process provides you with nearly instant feedback on putting your code in
-the cloud.
+Create a database and grab its URL and an auth token:
 
-**That's it!** :sweat_smile:
+```sh
+turso db create my-experiment          # pick any name
+turso db show my-experiment --url      # -> libsql://my-experiment-<org>.turso.io
+turso db tokens create my-experiment   # -> a long auth token (keep it secret)
+```
 
-For most people this is all you need to do. But there is more:
+::: tip One Turso DB or many?
+You can use one Turso database per experiment (cleanest separation) or share
+one database across several. <SmileText/> namespaces every record by
+`project_ref` (`owner-repo-branch`), so sharing is safe — but exports are
+simpler with one DB per experiment.
+:::
 
-- If you have a more complex project with multiple experiments read the section
-  on
-  [organizing multiple versions of your experiment](#organizing-versions-of-your-experiment).
-- If you run into problems try
-  [debugging deployment issues](#debugging-deployment-issues).
-- If you want to go back in your development history and deploy some older
-  version of your code check out
-  [this section](#deploying-a-specific-version-of-your-experiment).
-- If you just want to understand how this magic works jump to
-  [understanding the deployment steps](#understanding-the-deployment-steps).
+### Step 2 — Test the database locally (recommended)
 
-## What type of commits trigger an automatic deployment?
+Before deploying, confirm your app can reach Turso. Copy the example secrets
+file and fill in the two Turso values:
 
-By default, any commit on any branch that modifies a file in your project will
-generate a deployment. The concept here is
-"[continuous deployment](https://en.wikipedia.org/wiki/Continuous_deployment)"
-where things just are always synced with the online website. The exceptions are:
+```sh
+cp .env.local.example .env.local
+```
 
-- Changes that only affect files in the `docs/` directory do not generate a
-  deployment.
-- Additionally, pushes to branches name either `analysis`, `models`, or `docs`
-  will not generate a deployment with the assumption is this is where you can
-  track code for these purposes and are not relevant to the deployment logic.
+In `.env.local` (which is gitignored — it never gets committed), set:
 
-If you would like the deployment workflow to ignore additional files, folders,
-or branches see the starting section of `.github/workflows/deploy.yml`.
+```sh
+TURSO_DATABASE_URL = libsql://my-experiment-<org>.turso.io
+TURSO_AUTH_TOKEN   = <the token from step 1>
+```
 
-## Organizing versions of your experiment
+Then start the dev server:
 
-Once you start committing changes to your project, one key challenge becomes
-dealing with multiple versions of the same experiment:
+```sh
+pnpm dev
+```
 
-> Consider this typical research project evolution: First you develop an
-> experiment and maybe collect some pilot data. Next, you refine the experiment
-> based on the pilot and run a full pre-registered design. Next, you have
-> followup questions and run several subsequent versions. The key question is
-> which versions should we keep around on the deployment server?
+Watch the startup log. With Turso configured you'll see a line like:
 
-The idea in <SmileText/> is to use the structure of GitHub repos to help
-organize the versions of your files as well as keep the data linked to the code
-that generated it. To do this we use an adapation of
-[semantic versioning](https://semver.org). You've probably seen software with
-versions like 1.0.1 or 2.3.12. This is known as semantic versioning and has the
-general format `MAJOR.MINOR.PATCH`. Major versions make incompatible API
-changes. Minor versions are incremented when you add functionality/features in a
-backward-compatible manner. And patches increment when you make
-backward-compatible bug features.
+```
+[SMILE] Database initialized (Turso: libsql://my-experiment-<org>.turso.io) — applied N new migration(s)
+```
 
-The sequential, number-based system makes sense for simple software projects
-where there is one "product". However, in behavioral research, we often have
-multiple development paths (experiments) and they have conceptual meanings that
-are not well served by a numbering system.
+If instead it says `Local SQLite`, your `.env.local` values aren't being
+picked up — double-check the variable names and restart. You can confirm the
+tables landed in Turso with `turso db shell my-experiment ".tables"`.
+
+::: info
+The local SQLite file at `.data/experiment.db` is the default when no Turso URL
+is set. Remove the two Turso lines (or comment them out) to switch back to the
+local file for everyday development.
+:::
+
+### Step 3 — Create the Vercel project
+
+Link the project to Vercel. This creates the project on Vercel **without
+deploying yet**, and writes the two IDs the deploy workflow needs:
+
+```sh
+vercel link
+```
+
+Answer the prompts (scope = your account or team; "link to existing project?"
+→ **no**; project name → your choice). When it finishes, the IDs are in
+`.vercel/project.json`:
+
+```sh
+cat .vercel/project.json
+# { "projectId": "prj_…", "orgId": "team_…" or "…", "projectName": "…" }
+```
+
+Keep these — `orgId` and `projectId` become GitHub secrets in Step 6.
+
+::: warning vercel link edits your project
+`vercel link` appends a `VERCEL_OIDC_TOKEN` to `.env.local` and adds `.env*`
+and `.vercel` to `.gitignore`. That's harmless — your tracked `.env` stays
+tracked because it's already committed.
+:::
+
+### Step 4 — Add your app secrets to Vercel {#step-4-secrets}
+
+Your app reads three environment variables in production. Set each for **both
+Production and Preview** so that `main` *and* your other experiment branches can
+reach the database:
+
+| Variable             | Value                                              |
+| -------------------- | -------------------------------------------------- |
+| `TURSO_DATABASE_URL` | the `libsql://…` URL from Step 1                   |
+| `TURSO_AUTH_TOKEN`   | the auth token from Step 1                         |
+| `SMILE_DEV_PASSWORD` | a password for `/dev/` — setting it also turns `/dev/` on; see [Dev & presentation access](#dev-password) |
+
+With the CLI (it prompts for the value, then the environment):
+
+```sh
+vercel env add TURSO_DATABASE_URL production
+vercel env add TURSO_DATABASE_URL preview
+vercel env add TURSO_AUTH_TOKEN production
+vercel env add TURSO_AUTH_TOKEN preview
+vercel env add SMILE_DEV_PASSWORD production
+vercel env add SMILE_DEV_PASSWORD preview
+vercel env ls                # verify all six entries
+```
+
+Or in the dashboard: **Project → Settings → Environment Variables**, adding each
+variable with both the **Production** and **Preview** boxes checked.
+
+::: tip Hash the dev password
+`SMILE_DEV_PASSWORD` accepts a plaintext value or a bcrypt hash. To avoid
+storing the password in the clear, generate a hash and use that as the value
+instead:
+
+```sh
+pnpm smile:hash-password      # prompts for the password, prints SMILE_DEV_PASSWORD=$2b$...
+```
+
+The login handler detects the `$2…` prefix and verifies with bcrypt
+automatically.
+:::
+
+::: warning Preview matters for branch = experiment
+If you only set these for *Production*, every non-`main` branch will deploy but
+fail to reach the database (it falls back to an empty, ephemeral local file).
+Set them for **Preview** too.
+:::
+
+### Step 5 — Make the site public (disable Deployment Protection) {#deployment-protection}
+
+::: danger Do not skip this
+By default — especially on Vercel **Team** projects — new projects enable
+**Deployment Protection**, which forces every visitor to log in with a Vercel
+account. Your own browser is logged in, so the site looks fine **to you**, but
+participants get a Vercel login wall and can't take your experiment.
+:::
+
+In the Vercel dashboard: **Project → Settings → Deployment Protection →
+Vercel Authentication → set to Disabled → Save.**
+
+To verify, open your live URL in a **private/incognito window** (so you're
+logged out of Vercel). The experiment — not a login screen — should load.
+
+::: details Automating it (optional)
+The Vercel CLI has no command for this. If you want to script it, you can
+`PATCH` the project via the
+[Vercel REST API](https://vercel.com/docs/rest-api/reference/endpoints/projects/update-an-existing-project)
+with `{"ssoProtection": null}` using a token. Most people just use the
+dashboard once per project.
+:::
+
+### Step 6 — Push to GitHub and add the deploy secrets {#step-6-secrets}
+
+Create the repo and push your project:
+
+```sh
+gh repo create <owner>/my-experiment --private --source . --remote origin --push
+```
+
+The deploy workflow needs three **repository secrets**. Add them under
+**GitHub repo → Settings → Secrets and variables → Actions**, or with the CLI:
+
+```sh
+# orgId and projectId come from .vercel/project.json (Step 3)
+gh secret set VERCEL_ORG_ID     -R <owner>/my-experiment -b "team_…"
+gh secret set VERCEL_PROJECT_ID -R <owner>/my-experiment -b "prj_…"
+# Create a token at https://vercel.com/account/tokens — scope it to the
+# Vercel account/team that owns the project. This prompts you to paste it:
+gh secret set VERCEL_TOKEN      -R <owner>/my-experiment
+gh secret list -R <owner>/my-experiment        # verify all three
+```
+
+::: tip Token scope
+When you create the `VERCEL_TOKEN` at
+[vercel.com/account/tokens](https://vercel.com/account/tokens), set its
+**scope to the team** that owns the project if you linked under a team — a
+personal-scoped token can't deploy a team project.
+:::
+
+App secrets (`TURSO_*`, `SMILE_DEV_PASSWORD`) live in **Vercel**, not GitHub —
+`vercel pull` downloads them into the build. Only the three `VERCEL_*` secrets
+go in GitHub.
+
+### Step 7 — Deploy
+
+If you pushed in Step 6, the deploy already started. Otherwise push any commit:
+
+```sh
+git push
+```
+
+Watch it run under your **GitHub repo → Actions** tab (or
+`gh run watch -R <owner>/my-experiment`). On success the log prints the live
+URLs:
+
+```
+Deployed: https://my-experiment-….vercel.app
+Aliased: tiger-brave-castle.vercel.app
+Aliased: owner-my-experiment-main.vercel.app
+```
+
+Open the codename URL (in incognito, to be sure) — **that's the link you send
+participants.**
+
+## Reusing deploy settings across experiments {#reuse-deploy-config}
+
+You only do the account setup once. For each *new* experiment you still need the
+GitHub deploy secrets and a Vercel project — but you shouldn't re-enter the
+shared values by hand every time. There are two ways to avoid that, depending on
+whether your repos live in a GitHub organization.
+
+### If your repos live in a GitHub organization (lab setup)
+
+Use **inheritance** — set the shared values once and every repo sees them:
+
+- **GitHub → your org → Settings → Secrets and variables → Actions → New
+  organization secret:** add `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and (if you use
+  them) `SLACK_WEBHOOK_URL` / `MAIL_*`, scoped to all repositories.
+- **Vercel → your team → Settings → Environment Variables:** add the app config
+  (`TURSO_*`, `SMILE_DEV_PASSWORD`, …) as **shared** team variables.
+
+New experiment repos then inherit all of it. The **only** per-repo secret left is
+`VERCEL_PROJECT_ID` (each project is unique), which the helper below sets for you.
+
+### If you're a single user (no organization)
+
+GitHub doesn't offer account-wide Actions secrets — only organizations inherit —
+so each repo needs its own secrets. Keep the reusable values once in a local,
+gitignored file and let the helper push them. This replaces the old
+`upload_config` command.
+
+1. Create `~/.smile/deploy.env` (outside any repo, so it's never committed):
+
+   ```sh
+   VERCEL_TOKEN=your-vercel-token
+   # optional notification channels
+   SLACK_WEBHOOK_URL=https://hooks.slack.com/services/T000/B000/XXXX
+   MAIL_USERNAME=you@gmail.com
+   MAIL_PASSWORD=your-app-password
+   MAIL_TO=lab@example.com
+   ```
+
+2. In each new experiment (after pushing it to GitHub), run:
+
+   ```sh
+   pnpm smile:setup-deploy
+   ```
+
+   It runs `vercel link` (creating the project), then sets `VERCEL_PROJECT_ID`
+   and `VERCEL_ORG_ID` from the link plus `VERCEL_TOKEN` and any
+   `SLACK_WEBHOOK_URL` / `MAIL_*` from your file — the whole of
+   [Step 6](#step-6-secrets) in one command.
+
+::: tip A free org is also an option
+Even solo, you can create a free GitHub organization (and a Vercel team) just to
+get the inheritance above — worth it once you're juggling several experiments.
+:::
+
+App config (`TURSO_*`, the dev/presentation passwords) always lives in **Vercel**,
+not GitHub — set it per project with `vercel env add`, or once as Vercel team
+shared variables.
+
+## Getting notified of your deploy URL {#notifications}
+
+Because a new commit can change the codename, you'll want the live URL pushed to
+you rather than hunting for it. The workflow reports it three ways — the first
+needs no setup, the other two are opt-in:
+
+1. **GitHub run summary (always on).** Every deploy writes the shareable
+   codename URL (plus a QR-code link) to the run's summary page — open the run
+   under your repo's **Actions** tab and it's right at the top.
+2. **Slack (optional).** Create an
+   [Incoming Webhook](https://api.slack.com/messaging/webhooks) for the channel
+   you want (e.g. `#smile-deploy`), then add its URL as a repo secret named
+   `SLACK_WEBHOOK_URL`. Each deploy posts the codename URL, alternate URL, and
+   QR link — and pings on failures too.
+3. **Email (optional).** Add SMTP secrets and each deploy emails you the URL. A
+   Gmail account with an [app password](https://support.google.com/accounts/answer/185833)
+   works — set repo secrets `MAIL_USERNAME` (the address), `MAIL_PASSWORD` (the
+   app password), and `MAIL_TO` (recipient). Override `MAIL_SERVER` / `MAIL_PORT`
+   for a non-Gmail provider (defaults: `smtp.gmail.com` / `465`).
+
+```sh
+# Slack
+gh secret set SLACK_WEBHOOK_URL -R <owner>/my-experiment
+
+# Email (Gmail app password)
+gh secret set MAIL_USERNAME -R <owner>/my-experiment   # you@gmail.com
+gh secret set MAIL_PASSWORD -R <owner>/my-experiment   # 16-char app password
+gh secret set MAIL_TO       -R <owner>/my-experiment   # where to send it
+```
+
+::: tip Why not the Vercel GitHub app?
+Vercel's GitHub integration can comment deploy URLs, but it only knows Vercel's
+own generated URLs — **not** the `<codename>.vercel.app` link, which this
+workflow creates with `vercel alias`. It would also start its own auto-deploys,
+conflicting with the per-branch deploys here. So the notifications above come
+from the workflow itself, which knows the real codename URL.
+:::
+
+## Dev & presentation route access {#dev-password}
+
+Your site has two sets of tools that are **for you, not for participants**:
+
+- `/dev/` — the developer bar, data console, route jumper, autofill, and the
+  participant-**data dashboard** (plus the API endpoints that read collected
+  data).
+- `/presentation/` — presentation mode for screenshots and demos.
+
+Each route has its own three-state access setting. **On a deployed site both
+default to `disabled`** — they return a 404, as if they don't exist. You opt in
+per route:
+
+| Mode | What participants/visitors get | How to set |
+| --- | --- | --- |
+| `disabled` *(default)* | **404** — the route doesn't exist | leave unset |
+| `password` | a login page; access needs the password | set the route's password (or `…_ACCESS = password`) |
+| `open` | public, no password — the **extreme case** | set `…_ACCESS = open` |
+
+The two routes use **separate passwords**, so you can hand someone the
+presentation password without giving them the dev dashboard:
+
+| Variable | Purpose |
+| --- | --- |
+| `SMILE_DEV_ACCESS` | `disabled` \| `password` \| `open` for `/dev/` |
+| `SMILE_DEV_PASSWORD` | password for `/dev/` when in `password` mode |
+| `SMILE_PRESENTATION_ACCESS` | `disabled` \| `password` \| `open` for `/presentation/` |
+| `SMILE_PRESENTATION_PASSWORD` | password for `/presentation/` when in `password` mode |
+
+::: tip The quick way to opt in
+Just **setting a route's password** puts it in `password` mode — you don't also
+need the `…_ACCESS` var. You only set `…_ACCESS` to choose `open`, or to be
+explicit. Hash the password rather than storing plaintext with
+`pnpm smile:hash-password`.
+:::
+
+How it behaves:
+
+- **Locally** (`pnpm dev`) both routes are always open with no password — you
+  never log in while developing.
+- **Deployed**, a `password` route redirects to `/dev-login`; enter that route's
+  password and you get a session cookie (7 days). A dev login does **not** grant
+  presentation, and vice versa.
+
+::: warning Disabled by default is the safe default
+Because the default is `disabled`, a deploy that collects real data never
+accidentally exposes the dashboard. Turn on only what you need: typically
+`SMILE_DEV_PASSWORD` (which opts `/dev/` into password mode) set for Production
+and Preview in [Step 4](#step-4-secrets). Reserve `open` for the rare case you
+truly want a public dev/presentation view.
+:::
+
+## Branch = experiment {#branch-experiment}
+
+A research project rarely has just one version. You pilot, then run a
+pre-registered design, then follow-ups:
 
 ![branching nature of experiments](../images/branchingexps.png)
 
-Instead, <SmileText/> uses GitHub as a project organizing tool.
-
-### Using GitHub as a project organizing tool
-
-At the top level of GitHub is the **user account**. For example, my username is
-`gureckis`.
-
-Within my user account, there are several repositories for different projects.
-The idea in <SmileText/> is each new research project gets its own
-**repository** (repo).
-
-Within each repo, there is any number of **branches**. Branches are offshoots of
-an original code base that can be used for parallel development on a project.
-Branches can be merged into one another and shuffled around. However, we will
-primarily use them as parallel pipelines capturing different **experiments**. So
-conceptually, branches = experiments.
+<SmileText/> maps this onto git: **one repository per project, one branch per
+experiment.** Every branch deploys to its own pair of URLs.
 
 ```
-gureckis                 <--- github username
-├── another_project      <--- repository
-│   └── exp1
-    └── pilot
-└── my_cool_project      <--- repository
-    ├── exp1             <--- branches for experiments
-    ├── exp2
-    ├── exp2b
-    └── pilot
+gureckis/                    <- GitHub owner
+└── my_cool_project/         <- repository (one research project)
+    ├── main                 <- production experiment
+    ├── pilot                <- an experiment branch (preview deploy)
+    ├── exp1
+    └── exp2b
 ```
 
-For each branch, a unique "deploy path" is created which is more or less a URL
-path to your code. Example are: `gureckis/another_project/pilot/` or
-`gureckis/my_cool_project/exp2b/` which when uploaded to a website turn into
-something like `http://exps.gureckislab.org/gureckis/another_project/pilot/`.
+To start a new experiment, just branch and push:
 
-So, the steps to make a project are to follow the steps to start a new project
-and then use new branches to manage different experiments.
-
-Each time you need a new branch the following commands will help. For example,
-to create a new branch call `pilot` we make the branch locally and push it to
-the GitHub repo.
-
-```
-git branch -m pilot
-git push origin -u pilot
+```sh
+git switch -c pilot
+git push -u origin pilot
 ```
 
-This generates a deployment which means you'll get a new URL for your project
-immediately.
+That triggers a deploy and gives you a fresh codename URL immediately — e.g.
+`disaster-skillful-advertising.vercel.app` and
+`owner-my_cool_project-pilot.vercel.app`. Don't be shy about branches; `pilot`,
+`exp1`, `exp1b`, and `exp1-prepilot` are all fine.
 
-For hand reference if you ever want to delete a branch (e.g., `pilot`) you have
-to do this both locally and remotely:
+To remove a branch later (locally and on GitHub):
 
-```
+```sh
 git branch -d pilot
 git push origin --delete pilot
 ```
 
-You shouldn't fear making branches for your projects. So `pilot` and `exp1` and
-`exp1-pre-pilot` or `exp1b` are all fine.
+### What triggers a deploy?
 
-## What URL do you send participants to?
+Every push deploys, **except**:
 
-The default deploy which combines your github username, project, and branch
-(e.g., `gureckis/my_cool_project/exp2b/`) turns into something like
-`http://exps.gureckislab.org/gureckis/another_project/pilot/` on your website.
-One issue is this includes information about yourself and even the location of
-your code! As a result <SmileText/> automatically creates a "code name" for your
-project. This is a deterministic hash of your project deployment into a string
-of readable words (e.g., `hike-shark-kite`). A symbolic link is made to your
-normal deploy path on your server automatically. As a results you get a second
-URL like `http://exps.gureckislab.org/e/hike-shark-kite`. This code name URL can
-be shared publically without exposing information. See configuration options for
-more information.
+- pushes that change **only** files under `docs/` (documentation doesn't affect
+  the experiment), and
+- pushes to branches named `analysis`, `models`, or `docs` — reserved for work
+  that shouldn't deploy.
 
-## Deploying a specific version of your experiment
+To change these rules, edit the `on:` block at the top of
+`.github/workflows/deploy.yml`.
 
-Sometimes it can be helpful to re-deploy an older version of the code (e.g.,
-sharing with a reviewer or collaborator). Using GitHub hashes (which index
-individual commits) this is possible. Go to your repository on github:
-`https://github.com/user/repo/commits/main` (replacing user/repo with your
-username and the name of your project repo). This will present you with a list
-of past commits you can navigate which looks like this:
+### Why codename URLs?
 
-![github commit history](../images/githubcommithistory.png)
+The `owner-repo-branch` URL leaks your username and project structure. The
+**codename** (a deterministic hash like `tiger-brave-castle`) gives you a clean
+link you can share publicly — in a paper, a flyer, or a recruitment post —
+without exposing where your code lives. Both URLs always point at the same
+deployment.
 
-Find the commit you want to deploy publically and click the button with two
-boxes to copy the full hash value for that commit to your clickboard. Then run
-the following command:
+## Deploying a specific past commit
 
-```
-gh workflow run deploy.yml -f github_sha=XXXXX
+Sometimes you want to share an exact older version (e.g. with a reviewer)
+without changing what's live on the branch. Find the commit's full SHA on
+GitHub, then trigger the workflow by hand:
+
+```sh
+gh workflow run deploy.yml -f github_sha=<full-commit-sha>
 ```
 
-replacing `XXXXX` with the hash you have in your clipboard (it is a long
-sequence of letters and numbers). This will deploy that version of the code to a
-special deploy path `hashes/user/project/SHORTHASH/` where `SHORTHASH` is
-replaced with the first 7 characters of that hash value you requested. This way
-you can share a live link to any arbitrary and specific version of the code with
-people.
+It builds and deploys that exact commit.
 
 ## Debugging deployment issues
 
-Sometimes a deployment can fail due to an error in your code or your setup. When
-possible an error message will be posted to `#smile-deploy` by the slack bot.
-However, sometimes even this fails. In any case, if you don't get a notification
-that your app deployed here are some useful hints for fixing things.
+If a deploy fails or the live site misbehaves, work through these in order:
 
-First, check the `#smile-deploy` slack channel and see if there are any relevant
-messages.
+1. **Check the Actions tab.** Open **GitHub repo → Actions**, click the failed
+   run (red ✗), and read the failing step's log. The error is almost always
+   right there.
 
-Second, make sure the required environment variables are set in your Vercel
-project. Open Project Settings → Environment Variables and confirm that
-`TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, and `SMILE_DEV_PASSWORD` are all
-present for the environment you're deploying to (Production / Preview /
-Development). Missing or misnamed env vars are the most common cause of a
-broken first deploy.
+   ![debugging github actions](../images/githubactions.png)
 
-Third, run `pnpm build` (and optionally `pnpm preview`) locally and verify the
-build completes without error. If it errors locally, the same error will fail
-the GitHub Action — fix it locally and push the fix.
+2. **"I see a Vercel login page, not my experiment."** Deployment Protection is
+   still on — revisit [Step 5](#deployment-protection).
 
-Finally, go to the GitHub repo for your project on the github.com website and
-click the "Actions" tab. This will show a history of recent "workflow" runs.
-Runs that fail will have a red :x: next to them. Clicking on this will lead to a
-"transcript" of the run which can provide some debugging hints.
+3. **Build fails / "No Output Directory named dist".** Make sure you're using
+   the starter's `deploy.yml` unmodified — it sets `NITRO_PRESET=vercel` so the
+   build emits the format Vercel expects.
 
-![debugging github actions](../images/githubactions.png)
+4. **Missing or misnamed env vars.** In **Vercel → Settings → Environment
+   Variables**, confirm `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, and
+   `SMILE_DEV_PASSWORD` are present for the environment you're deploying to
+   (Production for `main`, **Preview** for other branches). This is the most
+   common cause of a site that loads but can't save data.
 
-## Understanding the deployment steps
+5. **Reproduce the build locally.** Run `pnpm build` (and `pnpm preview`). If it
+   fails on your machine, it'll fail in CI — fix it locally and push.
 
-Deployment is **continuous and automatic** by design. The purpose of continuous
-deployment is so that new changes to the code are always placed into a live
-server environment (which is then helpful for
-[integration testing](/coding/testing)). The purpose of automating deployment is
-to make it one less thing you need to think about. However, if something goes
-wrong, or you need to customize things, it can be helpful to understand the
-steps.
-
-Deploying a website involves several steps: triggering the GitHub Actions
-deployment process, configuring the site, building the site, and uploading the
-files to a suitable internet-accessible server.
-
-### The Github Actions deployment trigger
-
-GitHub Actions are a feature of GitHub that allows customizable scripts to run
-on a cloud computer instance whenever certain events happen on a repository.
-Examples include running a script when someone leaves a comment on a repo or
-opens a pull request. Scripts can also run automatically anytime a push is made
-to the repository. In the case of Smile the deployment script is triggered with
-any push to the repository excluding the documentation folder (`docs/`). This
-runs the action located at `.github/workflows/deploy.yml`. Even without a lot of
-knowledge about GitHub action you can read this script and understand the basic
-logic.
-
-### Building the site
-
-The first step of the GitHub action runs a sequence of shell commands on a Linux
-cloud instance hosted by GitHub (`runs-on: ubuntu-latest`). Next, the current
-version of the code (after the commit) is checked out using git.
-
-Next, several scripts run to optimize the environment for the app and configure
-it. Then relevant software is installed such as Node.js. The node dependencies
-are then run using `npm install`. Then the website is built `npm run build`. The
-completed website is located at `dist/`.
-
-You can run most of the steps up to this point locally by just typing
-`npm run build`.
-
-### Uploading files to an Internet-accessible server
-
-Next, the GitHub action uploads the files to the server using rsync. The
-remote host, folder, and other options are set using GitHub Secrets —
-encrypted environment variables that you configure under the repository's
-Settings → Secrets. See [Configuration](/coding/configuration) for the
-full list of options you can customize.
-
-### Notifying the Slack bot
-
-If you set up the Slac connection, the final step is to send a notification
-about the deployment to a Slack
-[Workflow Builder](https://slack.com/help/articles/360035692513-Guide-to-Workflow-Builder)
-bot. This lets you verify the code was deployed and provides you with an
-up-to-date URL to share with participants. This includes a QR code which can be
-used to recruit anonymous participants to the task via a physical flye/poster.
-
-If the deployment fails, GitHub Actions will show the failed run with a red
-:x: in the repo's Actions tab. The absence of a Slack notification on its own
-isn't proof things worked — always check Actions for the actual deploy status.
+6. **Wrong codename / data in the wrong place.** The codename and `project_ref`
+   are derived from `owner/repo/branch`. If a deploy's codename looks wrong,
+   check that the repo's `origin` remote and branch name are what you expect.
 
 ## Blocking web crawlers
 
-It usually makes sense not to have Google and other search engines index your
-experiment deployments. For this we recommend installing a
-[robots.txt](http://www.robotstxt.org) file at the root folder of your web
-server containing the following:
+You usually don't want search engines indexing your experiment. Add a
+`robots.txt` to `public/` so it's served at the site root:
 
 ```
 User-agent: *
 Disallow: /
 ```
 
-In addition, the `index.html` of your project should include the `noindex` meta
-field:
-
-```
-<meta name="robots" content="noindex">
-```
-
-Google offers a
-[robots.text testing tool](https://www.google.com/webmasters/tools/robots-testing-tool)
-which can verify that your settings will be respected by at least Google.
-
-## Deploying in development mode
-
-In some cases it might be helpful to deploy a live version of your project in
-[developer mode](/coding/developing). This will allow you to share a version of
-your experiment with other people with the
-[developer bar](/coding/developing.html#smile-developer-bar) enabled. To do this
-create a new branch for public sharing. Then edit `src/runtime/core/config.js` so that
-the line the by default reads
-
-```
-    mode: import.meta.env.MODE,
-```
-
-says instead
-
-```
-    mode: "development",
-```
-
 ## Anonymous deployment
 
-You can deploy your experiment in anonymous mode. In this mode, all
-<SmileText/>-default references to the organization conducting the study are
-removed. You can then attach an anonymous link to a paper submisison, either by
-registering another domain or by using an easy hosting solution such as
-[netlify](https://www.netlify.com/) or [vercel](https://vercel.com/).
+For double-blind submissions you can deploy without lab branding. Set
+`VITE_ANONYMOUS_MODE = true` (in `.env`, `.env.local`, or as a Vercel
+environment variable) to strip <SmileText/>'s default references to the
+organization running the study, then share the codename URL — it already hides
+your identity. See [Configuration](/coding/configuration) for related options.
