@@ -217,7 +217,7 @@ These components ship inside the `@nyuccl/smile-nuxt` module and are
 reference them by **string name** (e.g., `component: 'InformedConsentView'`)
 — no `import` statement required. To override a built-in, drop a
 same-named `.vue` file in your project's `components/` folder and yours
-wins (see [Overrides & Resolution](/coding/organization#overrides-resolution)).
+wins (see [Overrides & Resolution](/coding/overrides)).
 
 ## Built-in Views
 
@@ -701,7 +701,7 @@ issue.
 All these components are auto-registered by `@nyuccl/smile-nuxt`. To
 customize one, drop a same-named `.vue` file in your project's
 `components/` folder — yours wins via priority (see
-[Overrides & Resolution](/coding/organization#overrides-resolution)).
+[Overrides & Resolution](/coding/overrides)).
 
 ### Status Bar
 

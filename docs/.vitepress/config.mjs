@@ -118,6 +118,7 @@ export default defineConfig({
         items: [
           { text: 'Overview', link: '/coding/overview' },
           { text: 'Project Organization', link: '/coding/organization' },
+          { text: 'Overrides & Resolution', link: '/coding/overrides' },
           { text: 'Developing', link: '/coding/developing' },
           { text: 'Configuring', link: '/coding/configuration' },
           { text: 'Components', link: '/coding/components' },

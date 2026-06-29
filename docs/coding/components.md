@@ -594,4 +594,4 @@ references in `design.js`. This makes it easy to swap a built-in view for
 a custom one without changing your timeline code.
 
 For the precedence rules and resolution chain in detail, see
-[Overrides & Resolution](/coding/organization#overrides-resolution).
+[Overrides & Resolution](/coding/overrides).
