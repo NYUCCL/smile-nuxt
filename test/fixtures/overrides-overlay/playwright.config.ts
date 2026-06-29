@@ -6,7 +6,11 @@ export default defineConfig({
   testDir: './test/e2e',
   fullyParallel: false,
   workers: 1,
-  timeout: 60_000,
+  timeout: 90_000,
+  // The dev server compiles routes on first request, so the very first
+  // navigation can take well over the default 5s assertion timeout on a cold
+  // CI runner. Give assertions room for that first on-demand compile.
+  expect: { timeout: 30_000 },
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: 'http://localhost:3000',
