@@ -43,3 +43,6 @@ jobs:
 
       - name: Run tests
         run: pnpm run test
+
+      - name: Override / inheritance regression test (real consumer install)
+        run: pnpm run test:overrides

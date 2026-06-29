@@ -1,0 +1,11 @@
+/* Override probes: a theme token + an equal-specificity rule. Per
+   organization.md, app.css loads AFTER the module's main.css, so these win. */
+
+:root,
+.light {
+  --primary: oklch(0.55 0.2 250);
+}
+
+.ad-override {
+  outline: 3px solid rgb(7, 113, 200);
+}

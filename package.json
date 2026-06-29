@@ -41,6 +41,7 @@
     "test:watch": "vitest watch",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "test:overrides": "node scripts/test-overrides.mjs",
     "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit",
     "generate-env": "bash scripts/generate_git_env.sh",
     "db:generate": "drizzle-kit generate && node scripts/bundle-migrations.js",

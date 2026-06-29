@@ -197,7 +197,7 @@ The short version:
 | Layer                                 | Project wins?             | Mechanism                                                                 |
 | ------------------------------------- | ------------------------- | ------------------------------------------------------------------------- |
 | Built-in views (string-referenced)    | ✅ Yes                    | Local `components/` has higher priority than module dirs (`priority: -1`) |
-| UI primitives & layouts (`Button`, …) | ⚠️ Only in your own files | Module views are pre-compiled — their `<Button>` references are baked in  |
+| UI primitives & layouts (`Button`, …) | ⚠️ Yes, everywhere — discouraged | Module ships source, so a local `Button.vue` also replaces `<Button>` *inside* built-in views and can break them; SMILE prints a build warning |
 | Public assets                         | N/A                       | No collision — different URL namespaces (`/` vs `/_smile/`)               |
 | CSS rules                             | ✅ Yes                    | Module's `main.css` loads first; your `app.css` wins at equal specificity |
 | CSS variables (theme tokens)          | ✅ Yes                    | Same as above — redefine `--primary` etc. in your `app.css`               |
@@ -222,32 +222,43 @@ But there's an important wrinkle: **where the lookup happens matters**.
   replaces the built-in everywhere — including in the string-reference in
   `design.js`.
 
-- **Compile-time references (UI/layout inside module views)** — _not_
-  overridable. The module's built-in views like `InformedConsentView`
-  reference UI primitives like `<Button>` and layout helpers like
-  `<CenteredContent>` directly in their templates. Those `.vue` files
-  were already compiled when the module was published to npm; the
-  `<Button>` inside `InformedConsentView` is baked in to the module's
-  version. Dropping `components/Button.vue` into your project will change
-  your own `.vue` files, but not what `<Button>` looks like inside the
-  module's `InformedConsentView`.
+- **UI primitives & layouts (e.g. `<Button>`, `<CenteredContent>`)** —
+  overridable, but **everywhere at once**, which is usually not what you
+  want. The module ships its runtime `.vue` files as _source_, compiled
+  inside your app — so a local `components/Button.vue` becomes _the_
+  `Button` in the shared registry and replaces `<Button>` **inside SMILE's
+  own built-in views too** (e.g. `InformedConsentView`). Because your
+  version rarely matches the props those views pass (`variant`, `size`, …),
+  this typically **breaks them**. SMILE prints a build warning when it
+  detects a local file shadowing a built-in primitive.
 
-If you need to change a UI primitive's look inside a built-in view, the
-workaround is to override the **entire** view (using the timeline's
-[two-approach override pattern](/coding/timeline#overriding-a-built-in-view))
-and use your custom `Button` inside that override.
+::: warning Don't accidentally shadow a built-in primitive
+There are ~150 built-in UI/form/layout components (`Button`, `Checkbox`,
+`Input`, `Card`, `Select`, …). Naming one of your own components the same
+silently replaces it everywhere, including inside SMILE's built-in views.
+Prefer a unique name (`MyButton`, `MyCheckbox`) for your own components.
+:::
+
+If you genuinely want to change a UI primitive's look:
+
+- **inside a built-in view** — override the **entire** view (using the
+  timeline's [two-approach override pattern](/coding/timeline#overriding-a-built-in-view))
+  and use your custom component inside that override; or
+- **globally** — restyle via CSS theme tokens in `assets/css/app.css`
+  (see [CSS](#css) below) rather than replacing the component.
 
 The module registers four directories at `priority: -1`:
 
 - `components/ui/` — shadcn-vue primitives (`Button`, `Card`, `Input`, …)
-  — overrideable only in your own templates
-- `components/forms/` — form pieces — overrideable only in your own templates
+  — a same-named local file overrides these **everywhere** (built-in views
+  included); discouraged, and SMILE warns you
+- `components/forms/` — form pieces — same caveat as `ui/`
 - `components/layouts/` — `ConstrainedTaskWindow`, `TwoCol`, etc. —
-  overrideable only in your own templates
+  same caveat as `ui/`
 - `components/builtins/` — full views (`InformedConsentView`,
   `DemographicSurveyView`, `WindowSizerView`, `DebriefView`, …) —
   **fully overrideable** everywhere, because the timeline references them
-  by string at runtime
+  by string at runtime (this is the intended override path)
 
 ::: info Why string references still work after an override
 When Nuxt detects that your local component shadows a global module
@@ -280,12 +291,12 @@ completely separate URLs.
 
 | What                  | URL prefix          | How to reference                    |
 | --------------------- | ------------------- | ----------------------------------- |
-| Your `public/cat.png` | `/cat.png`          | `api.getPublicUrl('cat.png')`       |
-| Module's `smile.svg`  | `/_smile/smile.svg` | `api.getCoreStaticUrl('smile.svg')` |
+| Your `public/cat.png` | `/cat.png`                 | `api.getPublicUrl('cat.png')`              |
+| Module's `smile.svg`  | `/_smile/images/smile.svg` | `api.getCoreStaticUrl('images/smile.svg')` |
 
 If you put `public/smile.svg` in your project, it does **not** replace the
-module's `/_smile/smile.svg`. It just becomes a separate file available at
-`/smile.svg`.
+module's `/_smile/images/smile.svg`. It just becomes a separate file available
+at `/smile.svg`.
 
 To swap the university logo shown by the welcome page, set
 `VITE_BRAND_LOGO_FN` in `.env` and put your image in `public/`:
@@ -396,6 +407,9 @@ user path       components/          public/             assets/css/app.css
 shadowing       drop same-named      no override —       redefine the
                 file in              they coexist        rule / variable
                 components/                              in app.css
+                (views: intended;
+                 primitives: warns,
+                 affects built-ins)
 ```
 
 ## Next steps

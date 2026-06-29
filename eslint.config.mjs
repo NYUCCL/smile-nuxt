@@ -20,6 +20,9 @@ export default createConfigForNuxt({
       'docs/**',
       'plans/**',
       'start/**',
+      // Override regression overlay (its own auto-imports / consumer conventions);
+      // it's overlaid onto start/ and exercised by scripts/test-overrides.mjs, not linted here.
+      'test/fixtures/overrides-overlay/**',
       'src/runtime/server/database/migrations.ts',
     ],
   })

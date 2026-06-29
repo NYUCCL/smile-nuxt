@@ -239,36 +239,65 @@ export default defineNuxtModule<ModuleOptions>({
     //
     // Scan module component dirs at setup time to build a known set of global component names,
     // then in components:extend, promote any user override that shadows a module global.
+    //
+    // We also track UI *primitives* (ui/forms/layouts) separately. The module ships its
+    // runtime .vue files as source (transpiled in the consumer build), so a user's local
+    // same-named primitive (e.g. components/Checkbox.vue) overrides it EVERYWHERE — including
+    // inside SMILE's own built-in views — which usually breaks them. We don't block this
+    // (full-view overrides rely on the same mechanism and are intentional), but we warn so a
+    // user who didn't realize they were shadowing a built-in finds out. See docs/coding/organization.md.
     const moduleGlobalNames = new Set<string>()
-    const moduleComponentDirs = [
+    const modulePrimitiveNames = new Set<string>()
+    const runtimeComponentsRoot = resolver.resolve('./runtime/components')
+    const primitiveComponentDirs = [
       resolver.resolve('./runtime/components/ui'),
       resolver.resolve('./runtime/components/forms'),
       resolver.resolve('./runtime/components/layouts'),
+    ]
+    const viewComponentDirs = [
       resolver.resolve('./runtime/components/builtins'),
     ]
-    function scanDir(dir: string) {
+    function scanDir(dir: string, into: Set<string>) {
       try {
         for (const entry of readdirSync(dir)) {
           const full = join(dir, entry)
           if (statSync(full).isDirectory()) {
-            scanDir(full)
+            scanDir(full, into)
           }
           else if (extname(entry) === '.vue') {
             // Convert filename to PascalCase component name
-            moduleGlobalNames.add(basename(entry, '.vue'))
+            into.add(basename(entry, '.vue'))
           }
         }
       }
       catch { /* ignore unreadable directories */ }
     }
-    for (const dir of moduleComponentDirs) {
-      scanDir(dir)
+    for (const dir of primitiveComponentDirs) {
+      scanDir(dir, modulePrimitiveNames)
+    }
+    for (const name of modulePrimitiveNames) {
+      moduleGlobalNames.add(name)
+    }
+    for (const dir of viewComponentDirs) {
+      scanDir(dir, moduleGlobalNames)
     }
 
+    const componentsLogger = useLogger('smile')
     _nuxt.hook('components:extend', (components) => {
       for (const c of components) {
         if (!c.global && moduleGlobalNames.has(c.pascalName)) {
           c.global = true
+        }
+        // Warn (don't block) when a user component shadows a built-in UI primitive.
+        const isUserComponent = !!c.filePath && !c.filePath.startsWith(runtimeComponentsRoot)
+        if (isUserComponent && modulePrimitiveNames.has(c.pascalName)) {
+          componentsLogger.warn(
+            `components/${basename(c.filePath)} overrides the built-in SMILE UI component `
+            + `<${c.pascalName}>. Because SMILE's built-in views use <${c.pascalName}> too, your `
+            + `version replaces it inside those views as well and may break them. If that's `
+            + `intended, ignore this; otherwise rename your component (e.g. My${c.pascalName}) `
+            + `or restyle via CSS theme tokens in assets/css/app.css.`,
+          )
         }
       }
     })
