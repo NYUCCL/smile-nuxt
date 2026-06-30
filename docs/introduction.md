@@ -27,7 +27,7 @@ programmers (or AI-assisted programmers) accomplish more in less time.
   [hot-reload](/coding/developing#hot-module-replacement) your code without
   restarting the entire experiment, and more!
 - 🧩 Built-in support for
-  [common experiment elements](/coding/views#built-in-views) like consent forms,
+  [common experiment elements](/coding/builtin-views) like consent forms,
   instructions, and surveys. Just add your custom experiment logic and start
   collecting data.
 - 🤖 Code writing is greatly accelerated using AI tools, as LLMs are trained on

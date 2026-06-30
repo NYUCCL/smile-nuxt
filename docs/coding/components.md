@@ -46,7 +46,7 @@ debugging much easier.
 
 Typically in <SmileText/>, components are used to define
 [phases of an experiment](/coding/views) (e.g., consent, instructions, etc.),
-Smile provides several [built-in components](/coding/views#built-in-views)
+Smile provides several [built-in components](/coding/builtin-views)
 (which we refer to as "Views") that implement nicely designed components that
 collect informed consent or show instructions. Components are also used to
 define the individual trials of an experiment (i.e., the logic and flow of what
@@ -594,4 +594,4 @@ references in `design.js`. This makes it easy to swap a built-in view for
 a custom one without changing your timeline code.
 
 For the precedence rules and resolution chain in detail, see
-[Overrides & Resolution](/coding/overrides).
+[Overriding Builtins](/coding/overrides).

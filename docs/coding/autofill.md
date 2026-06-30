@@ -17,7 +17,7 @@ To autofill a form with fake data we register a function with the [API](/api)
 that will be called when the autofill button is clicked. This function should
 set the values of the form fields to the desired values. The function is pure
 JavaScript and can be as simple or complex as needed. For example in the
-[demographic survey View](/coding/views#demographic-survey) we might want to
+[demographic survey View](/coding/builtin-views#demographic-survey) we might want to
 autofill the form with some common values:
 
 ```js

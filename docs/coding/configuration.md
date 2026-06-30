@@ -8,13 +8,15 @@ them. This page describes the system end-to-end.
 ## Quick start
 
 The starter ships with sensible defaults. For local development you usually
-don't have to configure anything — `pnpm dev` just works. To deploy, you'll
-need to set two secrets:
+don't have to configure anything — `pnpm dev` just works. To deploy, the one
+thing you need is your **Turso database credentials** (`TURSO_DATABASE_URL` +
+`TURSO_AUTH_TOKEN`) — see [Cloud Hosting](/recruit/deploying) for the full setup.
 
-1. **Turso database credentials** (`TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN`) —
-   see [Cloud Hosting](/recruit/deploying) for the full setup.
-2. **A dev-mode password** (`SMILE_DEV_PASSWORD`) that gates `/dev/` and
-   `/presentation/` on the deployed site.
+On a deployed site, `/dev/` and `/presentation/` default to **disabled** (they
+404). If you want them on the live site, opt in per route — each has its own
+password and access mode (`SMILE_DEV_PASSWORD` / `SMILE_DEV_ACCESS` and
+`SMILE_PRESENTATION_PASSWORD` / `SMILE_PRESENTATION_ACCESS`); see the
+[server secrets](#server-secrets) table below.
 
 Everything else in this guide is optional — read it when you want to tune
 the experiment's behavior, branding, or data limits.

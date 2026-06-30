@@ -60,7 +60,7 @@ of an experiment is associated with its own Vue component. Learn about views
 
 <img src="/images/viewstimeline.png" width="600" alt="timeline example" style="margin: auto;">
 
-Smile comes with several [built-in views](/coding/views#built-in-views) for
+Smile comes with several [built-in views](/coding/builtin-views) for
 common phases of an experiment. This includes things like obtaining informed
 consent, presenting instructions, and presenting a thank you page. We describe
 these default built-in views and provide an overview of how to customize them

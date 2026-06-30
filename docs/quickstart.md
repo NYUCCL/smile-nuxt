@@ -11,9 +11,7 @@ Before you start, install:
 - **Node.js 24.13 or newer.** <SmileText/> requires Node ≥ 24.13 — older
   versions will fail to install or build. Check your version with `node -v`,
   and download a current release from [nodejs.org](https://nodejs.org/) (pick
-  the LTS line that is 24 or higher). If you juggle multiple Node versions,
-  [nvm](https://github.com/nvm-sh/nvm) (`nvm install 24 && nvm use 24`) is the
-  easiest way to switch.
+  the LTS line that is 24 or higher).
 - **pnpm** (the package manager <SmileText/> recommends). Install with:
   ```bash
   npm install -g pnpm
@@ -82,12 +80,10 @@ You should see Nuxt boot up and log a URL — usually
 you should see the welcome page of a working experiment. (The first load can be
 slow as it pre-bundles dependencies.)
 
-::: info What just happened?
 On first run, <SmileText/> creates a local SQLite database at
 `.data/experiment.db` and runs migrations against it. Participant records,
 trial data, and route history will be written there as you walk through the
 experiment.
-:::
 
 ## 3. Explore the three modes
 

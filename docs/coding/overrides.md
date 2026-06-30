@@ -1,4 +1,4 @@
-# Overrides & Resolution
+# Overriding Builtins
 
 Your code and the `@nyuccl/smile-nuxt` module both contribute components,
 assets, and styles to the same Nuxt application. This page explains the

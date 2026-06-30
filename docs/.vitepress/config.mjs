@@ -118,15 +118,15 @@ export default defineConfig({
         items: [
           { text: 'Overview', link: '/coding/overview' },
           { text: 'Project Organization', link: '/coding/organization' },
-          { text: 'Overrides & Resolution', link: '/coding/overrides' },
           { text: 'Developing', link: '/coding/developing' },
           { text: 'Configuring', link: '/coding/configuration' },
           { text: 'Components', link: '/coding/components' },
           { text: 'Views', link: '/coding/views' },
+          { text: 'Built-in Views', link: '/coding/builtin-views' },
+          { text: 'Overriding Builtins', link: '/coding/overrides' },
           { text: 'Timeline and Design File', link: '/coding/timeline' },
           { text: 'Stepping Views', link: '/coding/steps' },
           { text: 'Autofill', link: '/coding/autofill' },
-
           { text: 'Randomization', link: '/coding/randomization' },
           { text: 'Persistence', link: '/coding/persistence' },
           { text: 'Data storage', link: '/coding/datastorage' },
@@ -149,6 +149,7 @@ export default defineConfig({
           { text: 'Icons', link: '/styling/icons' },
           { text: 'Forms and Quizzes', link: '/styling/forms' },
           { text: 'Images and Videos', link: '/styling/imagesvideo.md' },
+          { text: 'Presentation mode', link: '/presentation' },
           //{ text: 'Animations', link: '/styling/animations' },
         ],
       },
@@ -157,7 +158,6 @@ export default defineConfig({
         items: [
           { text: 'Cloud Hosting', link: '/recruit/deploying' },
           { text: 'Recruitment Services', link: '/recruit/recruitment' },
-          //{ text: '📈 Dashboard', link: '/dashboard' },
           //{ text: '😇 Ethical considerations', link: '/ethics' },
         ],
       },
@@ -166,7 +166,7 @@ export default defineConfig({
         items: [
           { text: 'Analyzing data', link: '/analysis' },
           //{ text: '🤖 Quality control', link: '/qualitycontrol' },
-          { text: 'Presentation mode', link: '/presentation' },
+          //{ text: '📈 Dashboard', link: '/dashboard' },
         ],
       },
       {

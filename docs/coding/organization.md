@@ -2,15 +2,8 @@
 
 When you scaffold a new experiment with
 `pnpm create @nyuccl/smile-nuxt my-experiment`, you get a Nuxt project
-pre-wired for SMILE. This page walks through each file and folder so you know
+pre-wired with all the Smile feature. This page walks through each file and folder so you know
 what is yours to edit, what is yours to leave alone, and what is generated.
-
-::: tip Overriding built-ins
-Your project and the module share one Nuxt app, so your files can override the
-module's components, assets, and styles by name. The precedence rules — and one
-important footgun (accidentally shadowing a built-in UI primitive like `Button`
-or `Checkbox`) — have their own page: **[Overrides & Resolution](/coding/overrides)**.
-:::
 
 ## At a glance
 
@@ -45,8 +38,15 @@ my-experiment/
 
 ### `design.js` — your experiment timeline
 
-The single most important file. It exports `createTimeline(api)`, which builds
+Perhaps single most important file and one that you will likely want to
+customize, it determines the overall flow of the experiment and runtime configuration
+options. It exports `createTimeline(api)`, which builds
 the ordered list of pages (called **views**) that participants see.
+
+Built-in views like `InformedConsentView`, `DemographicSurveyView`,
+`WindowSizerView`, and `DebriefView` are referenced by string name and resolved
+by the module. Your own views are imported from `components/` and wrapped in
+`markRaw()` like this:
 
 ```js
 timeline.pushSeqView({
@@ -55,16 +55,11 @@ timeline.pushSeqView({
 })
 ```
 
-Built-in views like `InformedConsentView`, `DemographicSurveyView`,
-`WindowSizerView`, and `DebriefView` are referenced by string name and resolved
-by the module. Your own views are imported from `components/` and wrapped in
-`markRaw()`.
-
 See [Timeline and Design File](/coding/timeline) for the full reference.
 
 ### `components/` — your custom views and UI
 
-Anything you build lives here. The starter ships with five examples:
+This is where you put the logic and UI for your task. The starter ships with five examples:
 
 - **`MyTaskView.vue`** — placeholder for your experiment task. Replace this
   with your own logic.
@@ -83,7 +78,7 @@ directly in templates without `import` statements. In plain `.js` files like
 
 You can also override any built-in view by creating a component with the same
 name (e.g., `components/AdvertisementView.vue`) — see
-[Overrides & Resolution](/coding/overrides) for the precedence rules and caveats.
+[Overriding Builtins](/coding/overrides) for the precedence rules and caveats.
 
 ### `public/` — static assets
 
@@ -196,7 +191,7 @@ all in `.gitignore` — never commit them.
 
 ## Next steps
 
-- [Overrides & Resolution](/coding/overrides) — precedence rules for components, assets, and CSS.
+- [Overriding Builtins](/coding/overrides) — precedence rules for components, assets, and CSS.
 - The [Timeline](/coding/timeline) doc explains `design.js` in depth.
 - [Components](/coding/components) walks through building custom views.
 - [Configuration](/coding/configuration) is the env-var reference.
