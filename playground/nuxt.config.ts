@@ -27,7 +27,8 @@ const env = {
 // Inject non-VITE env vars into process.env for server-side use
 // (Nuxt only auto-loads .env from rootDir, which is playground/)
 const serverEnvKeys = [
-  'SMILE_DEV_PASSWORD', 'SMILE_PUBLIC_PRESENTATION', 'TURSO_DATABASE_URL', 'TURSO_AUTH_TOKEN',
+  'SMILE_DEV_ACCESS', 'SMILE_DEV_PASSWORD', 'SMILE_PRESENTATION_ACCESS', 'SMILE_PRESENTATION_PASSWORD',
+  'SMILE_PUBLIC_PRESENTATION', 'TURSO_DATABASE_URL', 'TURSO_AUTH_TOKEN',
   'VITE_GIT_OWNER', 'VITE_GIT_REPO_NAME', 'VITE_GIT_BRANCH_NAME', 'VITE_CODE_NAME', 'VITE_PROJECT_REF',
 ]
 for (const key of serverEnvKeys) {
