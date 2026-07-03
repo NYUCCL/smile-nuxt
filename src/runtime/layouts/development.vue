@@ -9,6 +9,8 @@ import DevConsole from '#smile-dev/console/SmileDevConsole.vue'
 import DevSideBar from '#smile-dev/sidebar/SmileDevSideBar.vue'
 import ResponsiveDeviceContainer from '#smile-dev/ResponsiveDeviceContainer.vue'
 import SmileDevPresentationView from '#smile-dev/SmileDevPresentationView.vue'
+// Dashboard is hidden until the feature is complete
+// import SmileDevDashboardView from '#smile-dev/dashboard/SmileDevDashboardView.vue'
 import useWindowSizer from '#smile-composables/useWindowSizer'
 
 const api = useAPI()
@@ -58,6 +60,12 @@ const isRouteNotFound = computed(() => {
           <SmileDevPresentationView
             v-if="api.store.dev.mainView === 'presentation'"
           />
+
+          <!-- Dashboard Mode - browse past data from the linked database (hidden until the feature is complete)
+          <SmileDevDashboardView
+            v-else-if="api.store.dev.mainView === 'dashboard'"
+          />
+          -->
 
           <!-- Docs Mode - Clean full-screen documentation -->
           <div

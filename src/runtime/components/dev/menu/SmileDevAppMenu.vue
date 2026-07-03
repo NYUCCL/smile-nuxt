@@ -1,6 +1,6 @@
 <script setup>
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { BookMarked, BugPlay, Moon, Presentation, Settings, Smile, Sun } from 'lucide-vue-next'
+import { BookMarked, BugPlay, Database, Moon, Presentation, Settings, Smile, Sun } from 'lucide-vue-next'
 import { useSmileColorMode } from '../../../composables/useColorMode'
 /**
  * @fileoverview Sidebar component for the Smile application with navigation and configuration options
@@ -155,18 +155,18 @@ const isDarkMode = computed({
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <!-- Analyze
+            <!-- Data Dashboard (hidden until the feature is complete)
             <SidebarMenuItem>
               <SidebarMenuButton
                 class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
                 :class="{
                   'bg-chart-4 hover:!bg-chart-4/80': api.store.dev.mainView === 'dashboard',
-                  'hover:!bg-sidebar-border': api.store.dev.mainView !== 'dashboard'
+                  'hover:!bg-sidebar-border': api.store.dev.mainView !== 'dashboard',
                 }"
-                tooltip="Analyze Data"
-                @click="api.store.dev.mainView = 'dashboard'"
+                tooltip="Data Dashboard"
+                @click="api.store.dev.mainView = api.store.dev.mainView === 'dashboard' ? 'devmode' : 'dashboard'"
               >
-                <i-ix-analyze class="!size-5" />
+                <Database class="!size-5" />
               </SidebarMenuButton>
             </SidebarMenuItem>
             -->
