@@ -1,6 +1,22 @@
 # Changelog
 
 
+## v0.2.0-beta.7
+
+[compare changes](https://github.com/nyuccl/smile/compare/v0.2.0-beta.6...v0.2.0-beta.7)
+
+### 🚀 Enhancements
+
+- **dev:** Add WIP data dashboard, hidden until feature complete ([06a5ac8](https://github.com/nyuccl/smile/commit/06a5ac8))
+
+### 🩹 Fixes
+
+- **playground:** Forward access-mode env vars to the dev server ([26729f9](https://github.com/nyuccl/smile/commit/26729f9))
+
+### ❤️ Contributors
+
+- Todd Gureckis <gureckis@mac.com>
+
 ## v0.2.0-beta.6
 
 [compare changes](https://github.com/nyuccl/smile/compare/v0.2.0-beta.5...v0.2.0-beta.6)
