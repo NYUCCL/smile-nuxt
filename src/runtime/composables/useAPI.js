@@ -17,7 +17,7 @@
 
 import { reactive } from 'vue'
 import { useRoute, useRouter, useRuntimeConfig, useNuxtApp } from '#imports'
-import useSmileStore from '../stores/smilestore'
+import useSmileStore, { dataBackupKey } from '../stores/smilestore'
 import useLog from '../stores/log'
 import useTimeline from './useTimeline'
 import seedrandom from 'seedrandom'
@@ -292,6 +292,7 @@ export class SmileAPI {
     // and localStorage, undoing our cleanup.
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem(this.config.localStorageKey)
+      localStorage.removeItem(dataBackupKey)
     }
     if (typeof document !== 'undefined') {
       const prefix = `smile_${this.config.codeName}_`

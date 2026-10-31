@@ -99,12 +99,16 @@ async function finishView(page: Page) {
   await page.locator('#finish').click()
 }
 
-/** Wait for the save that Continue triggers, then return the saved trials. */
+/**
+ * Wait until all N_TRIALS trials are in the participant's DB row (across all
+ * visits to the view), then return them. Waits on the count itself because
+ * earlier saves (e.g. the one after a reload) can write a partial set first.
+ */
 async function savedStroopTrials(db: ReturnType<typeof createClient>, id: string): Promise<any[]> {
-  await expect.poll(async () => (await getParticipant(db, id))?.pageData_stroop !== undefined, {
-    message: 'pageData_stroop should be saved to the participant row after Continue',
+  await expect.poll(async () => stroopTrials(await getParticipant(db, id)).length, {
+    message: `all ${N_TRIALS} Stroop trials should be saved to the participant row after Continue`,
     timeout: 10_000,
-  }).toBe(true)
+  }).toBe(N_TRIALS)
   return stroopTrials(await getParticipant(db, id))
 }
 
@@ -142,13 +146,10 @@ test.describe('Stepper data reaches the database (#42)', () => {
   })
 
   test('trials completed before a reload are still saved after the view finishes', async ({ page }) => {
-    // Known bug #42: fails today. Reloading mid-view makes loadData() replace
-    // store.data with the DB copy saved when the view was entered, so the
-    // trials recorded before the reload (never saved) are dropped, while the
-    // stepper position is restored from localStorage. Observed: 5 of 9 trials
-    // saved (only the post-reload ones). Remove test.fail() once #42 is fixed;
-    // until then, Playwright flags it if it starts passing.
-    test.fail()
+    // Regression test for #42: reloading mid-view used to replace store.data
+    // with the DB copy saved when the view was entered, dropping the trials
+    // recorded before the reload (only 5 of 9 were saved). The local data
+    // backup now restores them, and loadData() saves them right away.
     test.setTimeout(90_000)
     participantId = await consent(page, db)
     await openStroop(page)

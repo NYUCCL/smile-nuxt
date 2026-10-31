@@ -9,7 +9,7 @@
 import seedrandom from 'seedrandom'
 import { v4 as uuidv4 } from 'uuid'
 import { defineNuxtRouteMiddleware, useNuxtApp, navigateTo } from '#imports'
-import useSmileStore from '../stores/smilestore'
+import useSmileStore, { dataBackupKey } from '../stores/smilestore'
 import useLog from '../stores/log'
 import { getQueryParams, processQuery, initService } from '../utils/utils'
 
@@ -377,6 +377,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       // watchers would re-write defaults back to storage before navigation.
       if (typeof localStorage !== 'undefined') {
         localStorage.removeItem(store.config.localStorageKey)
+        localStorage.removeItem(dataBackupKey)
       }
       if (typeof document !== 'undefined') {
         const prefix = `smile_${store.config.codeName}_`

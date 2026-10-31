@@ -69,4 +69,20 @@ export default defineNuxtPlugin((nuxtApp) => {
     },
     { deep: true },
   )
+
+  // --- 5. Watch store.data → local data backup (#42) ---
+  // Anything recorded since the last DB save survives a reload: loadData()
+  // restores it from this backup. The same object means it was changed in
+  // place (a new, unsaved revision); a different object means loadData()
+  // replaced it with a loaded copy.
+  watch(
+    () => store.data,
+    (val, old) => {
+      store.noteDataChanged({ replaced: val !== old })
+    },
+    { deep: true },
+  )
+
+  // --- 6. Best-effort save when the page closes ---
+  window.addEventListener('pagehide', () => store.saveOnClose())
 })

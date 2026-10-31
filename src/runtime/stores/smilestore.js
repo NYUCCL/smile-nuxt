@@ -24,6 +24,36 @@ import useLog from './log.js'
 const COOKIE_MAX_AGE = 86400 * 30
 
 /**
+ * localStorage key for the local backup of store.data (#42).
+ *
+ * store.data only reaches the database when saveData() runs (on navigation
+ * between views, or explicitly). Without a local copy, anything recorded since
+ * the last save (e.g. stepper trials) was lost on reload: loadData() replaced
+ * it with the older DB copy. The backup is { participantId, rev, savedRev, data }:
+ * every change to store.data bumps rev, a successful save records the rev it
+ * sent as savedRev, and on load a backup with rev > savedRev (unsaved changes)
+ * for the same participant wins over the DB copy and is saved immediately.
+ */
+const dataBackupKey = `${appconfig.localStorageKey}-data`
+
+// Browsers cap the body of keepalive requests (the close-time save) at 64 KiB.
+const KEEPALIVE_MAX_BYTES = 60_000
+
+// A save deferred by minWriteInterval (at most one pending at a time).
+let deferredSaveTimer = null
+
+function readDataBackup() {
+  if (typeof localStorage === 'undefined') return null
+  try {
+    const raw = localStorage.getItem(dataBackupKey)
+    return raw ? JSON.parse(raw) : null
+  }
+  catch {
+    return null
+  }
+}
+
+/**
  * Returns the current local time as an ISO-like string in the user's timezone
  * @returns {string} Local time string (e.g., "2024-12-03T16:04:00.000-05:00")
  */
@@ -117,6 +147,10 @@ const initBrowserEphemeral = {
   steppers: {},
   dataLoaded: false,
   unsavedChanges: true,
+  // Revision counters for the local data backup (see dataBackupKey):
+  // dataRev counts changes to store.data; savedRev is the last rev saved to the DB.
+  dataRev: 0,
+  savedRev: 0,
   urls: {
     prolific: '/welcome/prolific?PROLIFIC_PID=XXXX&STUDY_ID=XXXX&SESSION_ID=XXXXX',
     cloudresearch:
@@ -134,7 +168,7 @@ const initBrowserEphemeral = {
 }
 
 // Export initial values so plugins can reference them
-export { initCookieState, initLocalState, initDev, COOKIE_MAX_AGE }
+export { initCookieState, initLocalState, initDev, COOKIE_MAX_AGE, dataBackupKey }
 
 /**
  * @module smilestore
@@ -466,9 +500,32 @@ export default defineStore('smilestore', {
         try {
           const result = await $fetch(`/api/participants/${this.cookieState.participantId}`)
           if (result?.data) {
-            this.data = result.data
-            this.localState.approxDataSize = JSON.stringify(result.data).length
+            // Prefer the local backup if it holds changes the DB never got
+            // (e.g. trials recorded before a reload). This browser is the only
+            // writer for this participant, so an unsaved backup is newer (#42).
+            const backup = readDataBackup()
+            const restore = backup
+              && backup.participantId === this.cookieState.participantId
+              && backup.rev > backup.savedRev
+              && backup.data
+            if (restore) {
+              useLog().warn(
+                `SMILESTORE: restoring unsaved data from local backup (rev ${backup.rev}, last saved ${backup.savedRev})`,
+              )
+              this.browserEphemeral.dataRev = backup.rev
+              this.browserEphemeral.savedRev = backup.savedRev
+              this.data = backup.data
+            }
+            else {
+              const rev = backup?.participantId === this.cookieState.participantId ? backup.rev : 0
+              this.browserEphemeral.dataRev = rev
+              this.browserEphemeral.savedRev = rev
+              this.data = result.data
+            }
+            this.localState.approxDataSize = JSON.stringify(this.data).length
             this.setDataLoaded()
+            this.writeDataBackup()
+            if (restore) await this.saveData()
           }
           else {
             // Record exists but has no data — treat as orphaned
@@ -505,6 +562,7 @@ export default defineStore('smilestore', {
       if (typeof localStorage !== 'undefined') {
         localStorage.removeItem(appconfig.localStorageKey)
       }
+      this.clearDataBackup()
 
       // Reset local state to defaults
       Object.assign(this.localState, { ...initLocalState })
@@ -553,17 +611,34 @@ export default defineStore('smilestore', {
           && this.localState.lastWrite
           && Date.now() - this.localState.lastWrite < appconfig.minWriteInterval
         ) {
-          log.error(
-            `SMILESTORE: write interval too short (${appconfig.minWriteInterval}ms). Data NOT saved.`,
-          )
+          // Too soon after the last write: save once the interval has passed
+          // instead of dropping it. The data stays in memory (and the local
+          // backup) meanwhile, and one pending save covers any number of calls.
+          if (!deferredSaveTimer) {
+            const wait = appconfig.minWriteInterval - (Date.now() - this.localState.lastWrite)
+            log.log(`SMILESTORE: write interval too short, deferring save by ${wait}ms`)
+            deferredSaveTimer = setTimeout(() => {
+              deferredSaveTimer = null
+              this.saveData()
+            }, wait)
+          }
           return
         }
 
+        if (deferredSaveTimer) {
+          clearTimeout(deferredSaveTimer) // this save covers the pending one
+          deferredSaveTimer = null
+        }
+
+        // Changes made while the request is in flight stay unsaved (rev > sentRev).
+        const sentRev = this.browserEphemeral.dataRev
         try {
           await $fetch(`/api/participants/${this.cookieState.participantId}`, {
             method: 'PATCH',
             body: { data: this.data },
           })
+          this.browserEphemeral.savedRev = Math.max(this.browserEphemeral.savedRev, sentRev)
+          this.writeDataBackup()
           if (this.localState.privateDataId) {
             await $fetch(`/api/participants/${this.cookieState.participantId}/private`, {
               method: 'PATCH',
@@ -573,7 +648,7 @@ export default defineStore('smilestore', {
           this.localState.approxDataSize = JSON.stringify(this.data).length
           this.localState.totalWrites += 1
           this.localState.lastWrite = Date.now()
-          this.browserEphemeral.unsavedChanges = false
+          this.browserEphemeral.unsavedChanges = this.browserEphemeral.dataRev > this.browserEphemeral.savedRev
           log.success('SMILESTORE: saveData() successful (force = ' + force + ')')
         }
         catch (err) {
@@ -595,6 +670,73 @@ export default defineStore('smilestore', {
     },
 
     /**
+     * Called (by the store-sync plugin) whenever store.data changes.
+     * An in-place change is a new, unsaved revision; a replaced object (from
+     * loadData) is not. Either way the local backup is refreshed.
+     * @param {object} opts
+     * @param {boolean} opts.replaced - store.data was swapped for a new object
+     */
+    noteDataChanged({ replaced }) {
+      if (!replaced) {
+        this.browserEphemeral.dataRev += 1
+        this.browserEphemeral.unsavedChanges = true
+      }
+      this.writeDataBackup()
+    },
+
+    /**
+     * Writes store.data and its save state to the local backup (#42).
+     * Only for a participant with a DB record; before consent there is
+     * nothing to restore into.
+     */
+    writeDataBackup() {
+      if (typeof localStorage === 'undefined' || !this.cookieState.participantId) return
+      try {
+        localStorage.setItem(dataBackupKey, JSON.stringify({
+          participantId: this.cookieState.participantId,
+          rev: this.browserEphemeral.dataRev,
+          savedRev: this.browserEphemeral.savedRev,
+          data: this.data,
+        }))
+      }
+      catch (err) {
+        // e.g. quota exceeded: the DB save path still works, only reload safety is lost
+        useLog().warn('SMILESTORE: could not write local data backup: ' + err)
+      }
+    },
+
+    /** Removes the local data backup (on reset or when the participant is cleared). */
+    clearDataBackup() {
+      if (typeof localStorage === 'undefined') return
+      localStorage.removeItem(dataBackupKey)
+    },
+
+    /**
+     * Best-effort save when the page is closing (pagehide). Uses a keepalive
+     * request so it can outlive the page. Browsers cap keepalive bodies at
+     * 64 KiB, so larger records are skipped; the local backup still restores
+     * them if the participant comes back in this browser. Mobile browsers may
+     * not fire pagehide at all, so this is never the only safeguard.
+     */
+    saveOnClose() {
+      if (!this.isDataLoaded || !this.cookieState.participantId) return
+      if (this.browserEphemeral.dataRev <= this.browserEphemeral.savedRev) return
+      const body = JSON.stringify({ data: this.data })
+      if (new TextEncoder().encode(body).length > KEEPALIVE_MAX_BYTES) return
+      try {
+        fetch(`/api/participants/${this.cookieState.participantId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body,
+          keepalive: true,
+        })
+      }
+      catch {
+        // nothing to do: the page is going away
+      }
+    },
+
+    /**
      * Clears all smile cookies by resetting cookieState to defaults
      */
     clearSmileCookies() {
@@ -609,6 +751,7 @@ export default defineStore('smilestore', {
      */
     resetLocal() {
       this.clearSmileCookies()
+      this.clearDataBackup()
       this.$reset()
     },
 
