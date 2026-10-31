@@ -1,7 +1,9 @@
 import { defineConfig } from 'vitest/config'
 import { resolve } from 'node:path'
+import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
+  plugins: [vue()],
   resolve: {
     alias: {
       // Map legacy @/core/... import paths to new locations
@@ -22,5 +24,11 @@ export default defineConfig({
     include: ['test/**/*.test.{js,ts}'],
     exclude: ['test/basic.test.ts'],
     setupFiles: ['./test/setup/mocks.js'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{js,ts,vue}'],
+      exclude: ['src/**/*.d.ts'],
+      reporter: ['text-summary', 'html', 'json-summary'],
+    },
   },
 })
