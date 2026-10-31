@@ -244,7 +244,10 @@ test.describe('Database persistence', () => {
     await expect(page2).toHaveURL(/\/demograph/)
     await expect.poll(() => countParticipants(db), { timeout: 10_000 }).toBe(countBefore + 2)
 
-    const second = await getLatestParticipant(db)
+    // created_at has 1-second resolution, so both rows can tie on "latest";
+    // find the second participant as the newest row that isn't the first.
+    const second = (await getAllParticipants(db)).find(p => p.id !== first!.id)
+    expect(second).toBeTruthy()
     createdIds.push(second!.id)
     expect(first!.id).not.toBe(second!.id)
 

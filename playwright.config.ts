@@ -6,11 +6,13 @@ const PORT = Number(process.env.SMILE_E2E_PORT ?? 3100)
 
 export default defineConfig({
   testDir: './test/e2e',
+  globalSetup: './test/e2e/global-setup.ts', // warm the dev server first (#54)
   fullyParallel: false, // experiment flow tests are sequential
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1, // single worker — tests share browser state
-  reporter: process.env.CI ? 'github' : 'list',
+  // CI: inline annotations on the PR, plus an HTML report uploaded on failure
+  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   timeout: 60_000,
 
   use: {

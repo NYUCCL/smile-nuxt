@@ -9,6 +9,8 @@ type DB = ReturnType<typeof useDB>
 export default defineNitroPlugin(async () => {
   const db = useDB()
 
+  await configureLocalSqlite(db)
+
   // Legacy: rename participants.project_ref → project_id for databases that
   // pre-date the rename (created before commit d9f3d58). New DBs skip this.
   await applyLegacyRename(db)
@@ -23,6 +25,23 @@ export default defineNitroPlugin(async () => {
 
   logDatabaseInfo(applied)
 })
+
+/**
+ * Local file databases only (not Turso): WAL lets readers (a DB viewer, the
+ * e2e tests) and the server's writes proceed without "database is locked",
+ * and busy_timeout makes the server wait briefly for a lock instead of failing.
+ */
+async function configureLocalSqlite(db: DB) {
+  const url = process.env.TURSO_DATABASE_URL || 'file:.data/experiment.db'
+  if (!url.startsWith('file:')) return
+  try {
+    await db.run(sql`PRAGMA journal_mode = WAL`)
+    await db.run(sql`PRAGMA busy_timeout = 5000`)
+  }
+  catch (err) {
+    console.warn('[SMILE] Could not enable WAL mode for the local database:', err)
+  }
+}
 
 async function applyLegacyRename(db: DB) {
   try {
