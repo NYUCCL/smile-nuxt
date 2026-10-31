@@ -11,7 +11,7 @@ import { ArrowRight, ClipboardCopy, SquareCheckBig } from 'lucide-vue-next'
 // External library imports
 import Clipboard from 'clipboard'
 // Vue imports
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import useAPI from '../../composables/useAPI'
 
 /**
@@ -38,6 +38,10 @@ const uploadProgress = ref(alreadyCompleted ? 100 : 0)
  */
 const completionCode = ref(
   alreadyCompleted ? api.store.cookieState.completionCode : api.computeCompletionCode(),
+)
+
+const prolificCompleteUrl = computed(
+  () => `https://app.prolific.co/submissions/complete?cc=${completionCode.value}`,
 )
 
 /**
@@ -152,7 +156,7 @@ onMounted(() => {
               <Button
                 variant="default"
                 as="a"
-                :href="`https://app.prolific.co/submissions/complete?cc=${completionCode}`"
+                :href="prolificCompleteUrl"
               >
                 Submit my work to Prolific
                 <ArrowRight />

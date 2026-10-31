@@ -2,3 +2,11 @@ packages:
   - 'playground'
   - 'docs'
   - 'create-smile-nuxt'
+
+# Security floors for transitive dev-only dependencies (#62). These affect this
+# repo's installs only, not projects that use the published module.
+overrides:
+  # vitepress 1.x → @vueuse/integrations auto-installs an old axios peer
+  axios: ^1.20.0
+  # vite → stylus → css → source-map-resolve
+  decode-uri-component: ^0.5.1
