@@ -17,6 +17,7 @@
  */
 import { execFileSync, spawn } from 'node:child_process'
 import { cpSync, mkdtempSync, openSync, readFileSync, writeFileSync, readdirSync, rmSync } from 'node:fs'
+import { connect } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -26,6 +27,37 @@ const startDir = join(repoRoot, 'start')
 const overlayDir = join(repoRoot, 'test/fixtures/overrides-overlay')
 const log = msg => console.log(`\n▸ [test:overrides] ${msg}`)
 
+// Dedicated port, same default as the other e2e suites. If it's taken, fail
+// fast: otherwise nuxt dev silently picks another port and the run either
+// hangs waiting or tests whatever else is listening.
+const PORT = Number(process.env.SMILE_E2E_PORT ?? 3100)
+const BASE_URL = `http://localhost:${PORT}`
+
+// Something answering on either loopback address means the port is taken.
+// (A bind test isn't enough: on macOS, binding the wildcard address succeeds
+// even while another server listens on [::1] only, as `nuxt dev` does.)
+function answersOn(host, port) {
+  return new Promise((resolve) => {
+    const socket = connect({ host, port })
+    socket.setTimeout(1000)
+    const done = (answered) => {
+      socket.destroy()
+      resolve(answered)
+    }
+    socket.once('connect', () => done(true))
+    socket.once('timeout', () => done(false))
+    socket.once('error', () => resolve(false))
+  })
+}
+
+async function assertPortFree(port) {
+  for (const host of ['127.0.0.1', '::1']) {
+    if (await answersOn(host, port)) {
+      throw new Error(`Port ${port} is already in use (${host}). Stop that server or set SMILE_E2E_PORT to a free port.`)
+    }
+  }
+}
+
 let consumerDir
 let server
 
@@ -34,6 +66,8 @@ function run(cmd, args, opts = {}) {
 }
 
 try {
+  await assertPortFree(PORT) // before the slow pack/install steps
+
   // 1. Pack the module (prepack builds dist/).
   log('Packing @nyuccl/smile-nuxt …')
   const packDir = mkdtempSync(join(tmpdir(), 'smile-pack-'))
@@ -69,7 +103,7 @@ try {
   // 6. Start `nuxt dev`, logging to a FILE (not an in-memory stream handler):
   // step 7 below calls execFileSync, which blocks Node's event loop, so 'data'
   // events wouldn't fire during the Playwright run. Reading the file sidesteps that.
-  log('Starting nuxt dev …')
+  log(`Starting nuxt dev on port ${PORT} …`)
   const logPath = join(consumerDir, 'dev.log')
   const logFd = openSync(logPath, 'a')
   const readLog = () => {
@@ -80,18 +114,27 @@ try {
       return ''
     }
   }
-  server = spawn('pnpm', ['dev'], { cwd: consumerDir, detached: true, stdio: ['ignore', logFd, logFd] })
+  server = spawn('pnpm', ['dev'], {
+    cwd: consumerDir,
+    detached: true,
+    stdio: ['ignore', logFd, logFd],
+    env: { ...process.env, PORT: String(PORT) },
+  })
 
+  // Ready when the server answers HTTP (any status) on our port.
   const ready = await new Promise((resolve) => {
     const deadline = Date.now() + 180_000
-    const timer = setInterval(() => {
-      if (/localhost:3000/.test(readLog())) {
+    const timer = setInterval(async () => {
+      try {
+        await fetch(BASE_URL, { redirect: 'manual' })
         clearInterval(timer)
         resolve(true)
       }
-      else if (Date.now() > deadline) {
-        clearInterval(timer)
-        resolve(false)
+      catch {
+        if (Date.now() > deadline) {
+          clearInterval(timer)
+          resolve(false)
+        }
       }
     }, 500)
   })
@@ -102,7 +145,10 @@ try {
 
   // 7. Run the Playwright assertions against the running server.
   log('Running Playwright spec …')
-  run('pnpm', ['exec', 'playwright', 'test', 'test/e2e/overrides.spec.ts'], { cwd: consumerDir })
+  run('pnpm', ['exec', 'playwright', 'test', 'test/e2e/overrides.spec.ts'], {
+    cwd: consumerDir,
+    env: { ...process.env, SMILE_E2E_PORT: String(PORT) },
+  })
 
   // 8. Assert the primitive-shadow build warning fired for both shadows.
   log('Checking for primitive-shadow build warning …')

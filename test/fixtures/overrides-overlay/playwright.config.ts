@@ -13,7 +13,8 @@ export default defineConfig({
   expect: { timeout: 30_000 },
   reporter: process.env.CI ? 'github' : 'list',
   use: {
-    baseURL: 'http://localhost:3000',
+    // scripts/test-overrides.mjs starts the server on this port and passes it in.
+    baseURL: `http://localhost:${process.env.SMILE_E2E_PORT ?? 3100}`,
     screenshot: 'only-on-failure',
     viewport: { width: 1200, height: 900 },
   },
