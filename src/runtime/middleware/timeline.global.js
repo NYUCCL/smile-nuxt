@@ -27,13 +27,21 @@ import { getQueryParams, processQuery, initService } from '../utils/utils'
  * @returns {undefined | object} undefined = allow, navigateTo() result = redirect
  */
 export async function executeGuards(to, from, { timeline, store, log, api, skipBlockingGuards = false }) {
+  // Whether this participant was already in the study before this navigation
+  // (the consent guard can make them known during it).
+  const wasKnownUser = store.isKnownUser
   const result = await _runGuards(to, from, { timeline, store, log, api, skipBlockingGuards })
 
   // If navigation is allowed (result is undefined), run post-guard logic
   if (result === undefined) {
     const toConfig = timeline.getViewForPath(to.path)
     const toName = toConfig?.name || to.name
-    _postGuard({ timeline, store, log, api, toName, toPath: to.path })
+    // allowAlways pages (e.g. the MTurk preview) sit outside the sequence: a
+    // participant already in the study may view one, but it must not become
+    // their place (lastRoute) or enter their routeOrder, or every later
+    // navigation would send them back to it (#60).
+    const trackRoute = !(toConfig?.meta?.allowAlways && wasKnownUser)
+    _postGuard({ timeline, store, log, api, toName, toPath: to.path, trackRoute })
   }
 
   return result
@@ -144,16 +152,12 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
   // --- Guard 8: Allow-always routes ---
   if (toMeta.allowAlways) {
     log.log(`ROUTER GUARD: Requested navigation (${toName}) is always allowed, so allowing it.`)
-    store.setLastRoute(toName)
-    store.recordRoute(toName)
     return // allow
   }
 
   // --- Guard 9: Withdraw route access ---
   if (toMeta.requiresWithdraw && store.isWithdrawn) {
     log.warn('ROUTER GUARD: Requested withdraw route and is withdrawn so allowing it')
-    store.setLastRoute(toName)
-    store.recordRoute(toName)
     return // allow
   }
 
@@ -173,8 +177,6 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
       + toName
       + '.  This is allowed in development mode but not in production.',
     )
-    store.setLastRoute(toName)
-    store.recordRoute(toName)
     return // allow
   }
 
@@ -185,8 +187,6 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
       + toName
       + '.  This is being forced by api.goToView().',
     )
-    store.setLastRoute(toName)
-    store.recordRoute(toName)
     return // allow
   }
 
@@ -208,6 +208,20 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
     return navigateTo(resolveNameToPath(store.lastRoute), { replace: true })
   }
 
+  // --- Guard 17: Same route as lastRoute ---
+  // Checked before the next-route guards (15/16): going to where the
+  // participant already is must never be redirected. Otherwise a redirect to
+  // lastRoute whose `from` is lastRoute's unfinished predecessor trips Guard 16,
+  // which redirects to lastRoute again, looping until the router gives up (#59).
+  if (store.lastRoute === toName) {
+    log.log(
+      'ROUTER GUARD: You\'re trying to go to the same route as lastRoute ('
+      + store.lastRoute
+      + '), so allowing it.',
+    )
+    return // allow
+  }
+
   // --- Guard 15: Next route with currentViewDone=true ---
   if (fromMeta.next === toName && store.browserEphemeral.currentViewDone) {
     log.log(
@@ -217,8 +231,6 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
       + toName
       + ' and the current page is done so allowing it.',
     )
-    store.setLastRoute(toName)
-    store.recordRoute(toName)
     return // allow
   }
 
@@ -234,15 +246,7 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
     return navigateTo(resolveNameToPath(store.lastRoute), { replace: true })
   }
 
-  // --- Guard 17: Same route as lastRoute ---
-  if (store.lastRoute === toName) {
-    log.log(
-      'ROUTER GUARD: You\'re trying to go to the same route as lastRoute ('
-      + store.lastRoute
-      + '), so allowing it.',
-    )
-    return // allow
-  }
+  // (Guard 17, "same route as lastRoute", runs before Guard 15; see there.)
 
   // --- Guard 18: Known user not going to next route ---
   if (fromMeta.next !== toName && store.isKnownUser) {
@@ -286,9 +290,14 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
  * Runs only when navigation is allowed (guard returned undefined).
  */
 // eslint-disable-next-line no-unused-vars
-function _postGuard({ timeline: _timeline, store, log, api, toName, toPath }) {
-  store.setLastRoute(toName)
-  store.recordRoute(toName)
+function _postGuard({ timeline: _timeline, store, log, api, toName, toPath, trackRoute = true }) {
+  // The single place an allowed navigation is recorded. Guards only decide;
+  // recording here as well as in a guard duplicated routeOrder entries, which
+  // shifted recordPageData's visit_N keys by one.
+  if (trackRoute) {
+    store.setLastRoute(toName)
+    store.recordRoute(toName)
+  }
 
   // --- Recruitment service detection ---
   // Extract service name from /welcome/:service paths and call processQuery

@@ -87,14 +87,8 @@ test.describe('Route guards for a consented participant mid-study', () => {
   })
 
   test('typing the immediately previous route cannot go back', async ({ page }) => {
-    // Known bug: fails today, the participant is left on /windowsizer.
-    // Guard 18 redirects to lastRoute (instructions), but during that redirect
-    // `from` is windowsizer, whose meta.next is instructions and which isn't
-    // done, so Guard 16 redirects to instructions again, looping ~30 times
-    // until the router gives up. Guard 16 runs before Guard 17 ("going to
-    // lastRoute is always allowed"). Earlier routes are unaffected because
-    // their `next` isn't the current page. Remove test.fail() when fixed.
-    test.fail()
+    // Regression test for #59 (a redirect loop between Guards 16 and 18 left
+    // the participant on the previous route).
     await page.goto('/windowsizer')
     await expectOnInstructions(page, 'typed /windowsizer')
   })
@@ -106,12 +100,9 @@ test.describe('Route guards for a consented participant mid-study', () => {
   })
 
   test('opening an allowAlways page (/mturk) does not take over their place', async ({ page }) => {
-    // Known bug: fails today, and the participant is locked out of the study.
-    // Guard 8 lets anyone onto an allowAlways route, and the post-guard then
-    // sets lastRoute = 'mturk'. Afterwards every study route (and /) redirects
-    // to /mturk. Whether a mid-study participant may *view* /mturk is a design
-    // choice; losing their place is not. Remove test.fail() when fixed.
-    test.fail()
+    // Regression test for #60 (an allowAlways route overwrote lastRoute, after
+    // which every route redirected there). Viewing /mturk is fine; losing
+    // their place is not.
     await page.goto('/mturk')
     // Stay on the page briefly, like a real visitor; the lastRoute cookie is
     // written by the client after navigation, not synchronously.

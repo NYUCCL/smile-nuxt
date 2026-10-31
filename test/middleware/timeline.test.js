@@ -656,6 +656,101 @@ describe('Timeline middleware guards', () => {
     })
   })
 
+  describe('Route recording: each allowed navigation is recorded once', () => {
+    // routeOrder drives recordPageData's visit_N keys, so a duplicate entry
+    // shifts a page's first visit to visit_1.
+    it('records a normal forward navigation once', async () => {
+      store.cookieState.knownUser = true
+      store.cookieState.consented = true
+      store.cookieState.lastRoute = 'demograph'
+      store.browserEphemeral.currentViewDone = true
+
+      const result = await executeGuards(
+        mockRoute('/instructions'),
+        mockRoute('/demograph'),
+        { timeline, store, log, api },
+      )
+      expect(result).toBeUndefined()
+      expect(store.recordRoute).toHaveBeenCalledTimes(1)
+      expect(store.setLastRoute).toHaveBeenCalledTimes(1)
+      expect(store.lastRoute).toBe('instructions')
+    })
+
+    it('records an allowAlways navigation by an unknown user once', async () => {
+      await executeGuards(mockRoute('/welcome'), mockRoute('/'), { timeline, store, log, api })
+      expect(store.recordRoute).toHaveBeenCalledTimes(1)
+      expect(store.recordRoute).toHaveBeenCalledWith('welcome_anonymous')
+    })
+
+    it('records a forced navigation once', async () => {
+      store.browserEphemeral.forceNavigate = true
+      await executeGuards(mockRoute('/demograph'), mockRoute('/welcome'), { timeline, store, log, api })
+      expect(store.recordRoute).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('Redirecting to lastRoute from the route before it (#59)', () => {
+    it('allows going to lastRoute even when `from` is its unfinished predecessor', async () => {
+      // A participant on /instructions types /demograph (instructions' predecessor
+      // here). Guard 18 redirects to /instructions; during that redirect `from` is
+      // demograph, whose meta.next is instructions and which isn't done. That
+      // redirect must be allowed, or Guard 16 redirects to instructions forever.
+      store.cookieState.knownUser = true
+      store.cookieState.consented = true
+      store.cookieState.lastRoute = 'instructions'
+      store.browserEphemeral.currentViewDone = false
+
+      const result = await executeGuards(
+        mockRoute('/instructions'),
+        mockRoute('/demograph'),
+        { timeline, store, log, api },
+      )
+      expect(result).toBeUndefined()
+    })
+  })
+
+  describe('allowAlways routes and a known participant\'s place (#60)', () => {
+    beforeEach(() => {
+      store.cookieState.knownUser = true
+      store.cookieState.consented = true
+      store.cookieState.lastRoute = 'quiz'
+    })
+
+    it('lets a known participant view an allowAlways route', async () => {
+      const result = await executeGuards(
+        mockRoute('/always_allow'),
+        mockRoute('/quiz'),
+        { timeline, store, log, api },
+      )
+      expect(result).toBeUndefined()
+    })
+
+    it('does not change lastRoute or routeOrder for a known participant', async () => {
+      await executeGuards(mockRoute('/always_allow'), mockRoute('/quiz'), { timeline, store, log, api })
+      expect(store.setLastRoute).not.toHaveBeenCalled()
+      expect(store.recordRoute).not.toHaveBeenCalled()
+      expect(store.lastRoute).toBe('quiz')
+    })
+
+    it('still returns them to their place afterwards', async () => {
+      await executeGuards(mockRoute('/always_allow'), mockRoute('/quiz'), { timeline, store, log, api })
+      const result = await executeGuards(
+        mockRoute('/quiz'),
+        mockRoute('/always_allow'),
+        { timeline, store, log, api },
+      )
+      expect(result).toBeUndefined() // quiz is still their lastRoute
+    })
+
+    it('still sets lastRoute for an unknown visitor (entry pages)', async () => {
+      store.cookieState.knownUser = false
+      store.cookieState.consented = false
+      store.cookieState.lastRoute = 'landing'
+      await executeGuards(mockRoute('/always_allow'), mockRoute('/'), { timeline, store, log, api })
+      expect(store.setLastRoute).toHaveBeenCalledWith('always_allow')
+    })
+  })
+
   describe('Full sequential flow', () => {
     it('should allow complete happy-path navigation through the experiment', async () => {
       // Simulate: welcome → consent → demograph → instructions → quiz → exp → debrief → feedback → thanks
