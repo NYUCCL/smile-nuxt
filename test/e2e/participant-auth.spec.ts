@@ -56,7 +56,7 @@ test.describe('Participant API auth', () => {
 
   test('GET /api/participants/:id returns 403 without cookie', async ({ playwright }) => {
     // Create a participant first
-    const authedContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const authedContext = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL })
     const createRes = await authedContext.post('/api/participants', {
       data: { data: { test: true } },
     })
@@ -64,7 +64,7 @@ test.describe('Participant API auth', () => {
     createdIds.push(id)
 
     // Try to GET with a fresh context (no cookies)
-    const anonContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const anonContext = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL })
     const res = await anonContext.get(`/api/participants/${id}`)
     expect(res.status()).toBe(403)
     await authedContext.dispose()
@@ -85,14 +85,14 @@ test.describe('Participant API auth', () => {
   })
 
   test('PATCH /api/participants/:id returns 403 without cookie', async ({ playwright }) => {
-    const authedContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const authedContext = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL })
     const createRes = await authedContext.post('/api/participants', {
       data: { data: { test: true } },
     })
     const { id } = await createRes.json()
     createdIds.push(id)
 
-    const anonContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const anonContext = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL })
     const res = await anonContext.patch(`/api/participants/${id}`, {
       data: { data: { modified: true } },
     })
@@ -102,14 +102,14 @@ test.describe('Participant API auth', () => {
   })
 
   test('POST /api/participants/:id/private returns 403 without cookie', async ({ playwright }) => {
-    const authedContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const authedContext = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL })
     const createRes = await authedContext.post('/api/participants', {
       data: { data: { test: true } },
     })
     const { id } = await createRes.json()
     createdIds.push(id)
 
-    const anonContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const anonContext = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL })
     const res = await anonContext.post(`/api/participants/${id}/private`, {
       data: { data: { secret: 'value' } },
     })
@@ -120,7 +120,7 @@ test.describe('Participant API auth', () => {
 
   test('PATCH /api/participants/:id/private returns 403 without cookie', async ({ playwright }) => {
     // Create participant and private data with valid cookie
-    const authedContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const authedContext = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL })
     const createRes = await authedContext.post('/api/participants', {
       data: { data: { test: true } },
     })
@@ -131,7 +131,7 @@ test.describe('Participant API auth', () => {
     })
 
     // Try to PATCH without cookie
-    const anonContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const anonContext = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL })
     const res = await anonContext.patch(`/api/participants/${id}/private`, {
       data: { data: { secret: 'hacked' } },
     })
@@ -142,7 +142,7 @@ test.describe('Participant API auth', () => {
 
   test('cannot access another participant with wrong cookie', async ({ playwright }) => {
     // Create participant A
-    const contextA = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const contextA = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL })
     const resA = await contextA.post('/api/participants', {
       data: { data: { user: 'A' } },
     })
@@ -150,7 +150,7 @@ test.describe('Participant API auth', () => {
     createdIds.push(idA)
 
     // Create participant B in a new context
-    const contextB = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const contextB = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL })
     const resB = await contextB.post('/api/participants', {
       data: { data: { user: 'B' } },
     })
@@ -166,7 +166,7 @@ test.describe('Participant API auth', () => {
   })
 
   test('forged cookie with raw UUID is rejected', async ({ playwright }) => {
-    const authedContext = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const authedContext = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL })
     const createRes = await authedContext.post('/api/participants', {
       data: { data: { test: true } },
     })
@@ -175,7 +175,7 @@ test.describe('Participant API auth', () => {
 
     // Try with a forged cookie (just the UUID, no HMAC signature)
     const forgedContext = await playwright.request.newContext({
-      baseURL: 'http://localhost:3000',
+      baseURL: test.info().project.use.baseURL,
       extraHTTPHeaders: {
         Cookie: `smile_participant=${id}`,
       },
