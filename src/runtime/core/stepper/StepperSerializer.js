@@ -183,12 +183,12 @@ export class StepperSerializer {
           return state
         }
         catch (error) {
-          throw new Error(`Error deserializing child state: ${error.message}`)
+          throw new Error(`Error deserializing child state: ${error.message}`, { cause: error })
         }
       })
     }
     catch (error) {
-      throw new Error(`Failed to deserialize stepper: ${error.message}`)
+      throw new Error(`Failed to deserialize stepper: ${error.message}`, { cause: error })
     }
   }
 

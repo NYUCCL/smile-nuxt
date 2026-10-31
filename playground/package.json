@@ -9,6 +9,6 @@
   },
   "dependencies": {
     "@nyuccl/smile-nuxt": "workspace:*",
-    "nuxt": "^4.3.0"
+    "nuxt": "^4.6.3"
   }
 }

@@ -7,15 +7,15 @@ export default defineConfig({
   resolve: {
     alias: {
       // Map legacy @/core/... import paths to new locations
-      '@/core/timeline': resolve(__dirname, 'src/runtime/core/timeline'),
-      '@/core/stepper': resolve(__dirname, 'src/runtime/core/stepper'),
-      '@/core/utils': resolve(__dirname, 'src/runtime/utils'),
-      '@/core/stores': resolve(__dirname, 'src/runtime/stores'),
-      '@/core/composables': resolve(__dirname, 'src/runtime/composables'),
-      '@/core/config': resolve(__dirname, 'src/runtime/core/config'),
-      '@/core/plugins': resolve(__dirname, 'src/runtime/plugins'),
+      '@/core/timeline': resolve(import.meta.dirname, 'src/runtime/core/timeline'),
+      '@/core/stepper': resolve(import.meta.dirname, 'src/runtime/core/stepper'),
+      '@/core/utils': resolve(import.meta.dirname, 'src/runtime/utils'),
+      '@/core/stores': resolve(import.meta.dirname, 'src/runtime/stores'),
+      '@/core/composables': resolve(import.meta.dirname, 'src/runtime/composables'),
+      '@/core/config': resolve(import.meta.dirname, 'src/runtime/core/config'),
+      '@/core/plugins': resolve(import.meta.dirname, 'src/runtime/plugins'),
       // Stub #imports so vi.mock('#imports') can intercept it
-      '#imports': resolve(__dirname, 'test/setup/nuxt-imports-stub.js'),
+      '#imports': resolve(import.meta.dirname, 'test/setup/nuxt-imports-stub.js'),
     },
   },
   test: {

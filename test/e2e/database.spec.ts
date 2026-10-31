@@ -221,7 +221,8 @@ test.describe('Database persistence', () => {
     await page.getByRole('switch').click()
     await page.getByRole('button', { name: /Let's start/i }).click()
     await expect(page).toHaveURL(/\/demograph/)
-    await page.waitForTimeout(1000)
+    // setKnown() creates the row asynchronously; wait for it rather than a fixed delay
+    await expect.poll(() => countParticipants(db), { timeout: 10_000 }).toBe(countBefore + 1)
 
     const first = await getLatestParticipant(db)
     expect(first).not.toBeNull()
@@ -238,9 +239,7 @@ test.describe('Database persistence', () => {
     await page2.getByRole('switch').click()
     await page2.getByRole('button', { name: /Let's start/i }).click()
     await expect(page2).toHaveURL(/\/demograph/)
-    await page2.waitForTimeout(1000)
-
-    expect(await countParticipants(db)).toBe(countBefore + 2)
+    await expect.poll(() => countParticipants(db), { timeout: 10_000 }).toBe(countBefore + 2)
 
     const second = await getLatestParticipant(db)
     createdIds.push(second!.id)
