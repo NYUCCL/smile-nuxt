@@ -8,6 +8,7 @@ import { watch } from 'vue'
 import useSmileStore from '../stores/smilestore'
 import appconfig from '../core/config.js'
 
+/** @type {import('#app').Plugin} */
 export default defineNuxtPlugin(() => {
   const store = useSmileStore()
   const cookieName = `smile_${appconfig.codeName}_dev`

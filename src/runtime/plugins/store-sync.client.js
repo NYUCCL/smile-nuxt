@@ -14,6 +14,7 @@ import { watch } from 'vue'
 import useSmileStore, { initLocalState, initDev, COOKIE_MAX_AGE } from '../stores/smilestore'
 import appconfig from '../core/config.js'
 
+/** @type {import('#app').Plugin} */
 export default defineNuxtPlugin((nuxtApp) => {
   // Prevent Pinia SSR hydration from overwriting our store state.
   // The server-rendered state has stale/default values; the client

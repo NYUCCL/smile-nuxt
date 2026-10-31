@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from 'uuid'
 import seedrandom from 'seedrandom'
 import useSmileStore from '../stores/smilestore'
 
+/** @type {import('#app').Plugin} */
 export default defineNuxtPlugin(() => {
   const store = useSmileStore()
 

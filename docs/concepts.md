@@ -489,7 +489,7 @@ to start the development server. This will show you something like this:
 
   ➜  Regenerating local environment file based on git info .env.git.local
 │
-●  Nuxt 4.4.6 (with Nitro 2.13.4, Vite 7.3.5 and Vue 3.5.35)
+●  Nuxt 4.6.3 (with Nitro 2.13.5, Vite 8.3.5 and Vue 3.5.44)
 
   ➜ Local:    http://localhost:3000/
   ➜ Network:  use --host to expose

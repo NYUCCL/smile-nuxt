@@ -328,6 +328,7 @@ function _postGuard({ timeline: _timeline, store, log, api, toName, toPath, trac
   log.log('ROUTER GUARD: Router navigated to /' + toName)
 }
 
+/** @type {import('#app').RouteMiddleware} */
 export default defineNuxtRouteMiddleware(async (to, from) => {
   // Skip on server — timeline plugin is client-only
   if (import.meta.server) return
