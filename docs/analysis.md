@@ -302,6 +302,27 @@ first_visit = participant.get_form("experiment", visit=0)
 all_visits = participant.get_form("experiment", all_visits=True)
 ```
 
+::: warning Reloading the page starts a new visit
+If a participant reloads the page partway through a view, they continue where
+they left off (the stepper restores their position), but everything they record
+after the reload goes into the next visit. A Stroop task with 9 trials,
+reloaded after trial 4, is saved as:
+
+```python
+# {
+#   "visit_0": {"data": [trials 1–4], "timestamps": [...]},
+#   "visit_1": {"data": [trials 5–9], "timestamps": [...]}
+# }
+```
+
+No data is lost, but one sitting of the task can span several visits. When you
+analyze a task that participants complete once, combine all of its visits
+(for example with `get_page_data_entries()` or the `visit` column of
+`to_page_data_df()`) rather than reading only `visit_0`. More than one visit to
+such a view usually means the participant was interrupted, which can be
+useful for quality control.
+:::
+
 ### Organizing Data for DataFrame Extraction
 
 ::: warning Important

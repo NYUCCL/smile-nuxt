@@ -334,6 +334,11 @@ references) must be converted to Firestore-safe formats before saving.
   `recordPageData()` appends one timestamp and one data object to the current
   visit.
 
+  A page reload also starts a new visit: data recorded after a participant
+  reloads mid-view goes into the next `visit_N`, even though the stepper resumes
+  where they left off. See
+  [Understanding the Visit Structure](/analysis#understanding-the-visit-structure).
+
 - `recordProperty(name, FirestoreSafeObject)`: Saves a Firestore-safe object at
   the top level of the data object. This does not save the data to the database,
   but it does record it in the local state. The next call to `saveData()` will
