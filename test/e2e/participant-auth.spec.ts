@@ -30,8 +30,9 @@ test.describe('Participant API auth', () => {
   let db: ReturnType<typeof createClient>
   const createdIds: string[] = []
 
-  test.beforeAll(() => {
+  test.beforeAll(async () => {
     db = getDB()
+    await db.execute('PRAGMA busy_timeout = 5000')
   })
 
   test.afterAll(async () => {
@@ -196,8 +197,9 @@ test.describe('Participant auth in experiment flow', () => {
   let db: ReturnType<typeof createClient>
   const createdIds: string[] = []
 
-  test.beforeAll(() => {
+  test.beforeAll(async () => {
     db = getDB()
+    await db.execute('PRAGMA busy_timeout = 5000')
   })
 
   test.beforeEach(async ({ page }) => {

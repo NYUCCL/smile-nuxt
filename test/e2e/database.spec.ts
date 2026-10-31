@@ -64,6 +64,9 @@ test.describe('Database persistence', () => {
 
   test.beforeAll(async () => {
     db = getDB()
+    // The dev server writes to the same SQLite file; wait for its lock
+    // instead of failing with "database is locked".
+    await db.execute('PRAGMA busy_timeout = 5000')
   })
 
   test.beforeEach(async ({ page }) => {

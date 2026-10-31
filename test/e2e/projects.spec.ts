@@ -32,8 +32,9 @@ test.describe('Project creation on participant consent', () => {
   const createdParticipantIds: string[] = []
   const createdProjectIds: string[] = []
 
-  test.beforeAll(() => {
+  test.beforeAll(async () => {
     db = getDB()
+    await db.execute('PRAGMA busy_timeout = 5000')
   })
 
   test.beforeEach(async ({ page }) => {
@@ -198,8 +199,9 @@ test.describe('Project API auth and scoping', () => {
   const createdParticipantIds: string[] = []
   const createdProjectIds: string[] = []
 
-  test.beforeAll(() => {
+  test.beforeAll(async () => {
     db = getDB()
+    await db.execute('PRAGMA busy_timeout = 5000')
   })
 
   test.afterAll(async () => {
