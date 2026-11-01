@@ -192,7 +192,14 @@ test.describe('Database persistence', () => {
       return []
     })
 
-    // The DB should have the participant (created at consent)
+    // The DB should have the participant (created at consent). saveData() is
+    // throttled by minWriteInterval and the deferred save lands a moment later,
+    // so wait for the row to include the demograph visit before reading it.
+    await expect.poll(async () => {
+      const p = await getLatestParticipant(db)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return p?.data.routeOrder.map((r: any) => r.route) ?? []
+    }, { timeout: 10_000 }).toContain('demograph')
     const participant = await getLatestParticipant(db)
     expect(participant).not.toBeNull()
     createdIds.push(participant!.id)
@@ -218,7 +225,7 @@ test.describe('Database persistence', () => {
     expect(cookieVal).toBe(participant!.id)
   })
 
-  test('each new participant gets a unique ID', async ({ page, context }) => {
+  test('each new participant gets a unique ID', async ({ page, browser }) => {
     // First participant
     await readyButton(page).click()
     await page.getByRole('switch').click()
@@ -231,10 +238,11 @@ test.describe('Database persistence', () => {
     expect(first).not.toBeNull()
     createdIds.push(first!.id)
 
-    // Second participant in a new page (simulates a different user)
-    const page2 = await context.newPage()
-    await page2.goto('/welcome')
-    await clearState(page2)
+    // Second participant in a separate browser context (a different user). A
+    // page in the same context would share cookies and localStorage with the
+    // first page, whose store keeps writing them back while it's open.
+    const context2 = await browser.newContext()
+    const page2 = await context2.newPage()
     await page2.goto('/welcome')
     await expect(readyButton(page2)).toBeVisible({ timeout: 10_000 })
 
@@ -251,6 +259,6 @@ test.describe('Database persistence', () => {
     createdIds.push(second!.id)
     expect(first!.id).not.toBe(second!.id)
 
-    await page2.close()
+    await context2.close()
   })
 })
