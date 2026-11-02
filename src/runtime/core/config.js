@@ -12,6 +12,27 @@
  * @property {number} width - The parsed width value
  * @property {number} height - The parsed height value
  */
+/**
+ * Parses a numeric env setting. import.meta.env values are strings, and an
+ * unset one is undefined; without a fallback the write throttle and limits
+ * would silently turn off (comparisons with NaN/undefined are always false).
+ * @param {string|undefined} value - The env value
+ * @param {number} fallback - Used when the value is unset or not a number
+ * @returns {number} The parsed number
+ */
+function envNumber(value, fallback) {
+  const n = Number(value)
+  return value === undefined || value === '' || Number.isNaN(n) ? fallback : n
+}
+
+/**
+ * Reference size for the dev tools' data meter, in characters of JSON
+ * (~bytes). Every save sends the participant's whole data object, and Vercel
+ * Functions reject request bodies over 4.5 MB, so that's the practical limit
+ * on the default deploy target. Display only; nothing enforces it.
+ */
+export const DATA_SIZE_REFERENCE = 4_500_000
+
 function parseWidthHeight(value) {
   // receives configuration option as WIDTHxHEIGHT
   // split based on 'x' and assign to objects
@@ -42,6 +63,7 @@ function parseWidthHeight(value) {
  * @property {number} maxWrites - Maximum number of writes allowed
  * @property {number} minWriteInterval - Minimum interval between writes
  * @property {number} maxSteps - Maximum rows in stepper tables
+ * @property {number} dataSizeReference - Reference size for the dev tools' data meter (see DATA_SIZE_REFERENCE)
  * @property {string} randomSeed - Seed for random number generation
  * @property {string} deployURL - URL where app is deployed
  * @property {string} labURL - URL of the lab website
@@ -77,10 +99,13 @@ export default {
   },
   // browser_exclude: import.meta.env.VITE_BROWSER_EXCLUDE,
   allowRepeats: import.meta.env.VITE_ALLOW_REPEATS === 'true',
-  autoSave: import.meta.env.VITE_AUTO_SAVE_DATA,
-  maxWrites: import.meta.env.VITE_MAX_WRITES,
-  minWriteInterval: import.meta.env.VITE_MIN_WRITE_INTERVAL,
-  maxSteps: import.meta.env.VITE_MAX_STEPS,
+  // On unless set to 'false'. (The raw string 'false' is truthy, so setting
+  // VITE_AUTO_SAVE_DATA=false used to leave auto-save on.)
+  autoSave: import.meta.env.VITE_AUTO_SAVE_DATA !== 'false',
+  maxWrites: envNumber(import.meta.env.VITE_MAX_WRITES, 1000),
+  minWriteInterval: envNumber(import.meta.env.VITE_MIN_WRITE_INTERVAL, 2000),
+  maxSteps: envNumber(import.meta.env.VITE_MAX_STEPS, 5000),
+  dataSizeReference: DATA_SIZE_REFERENCE,
   randomSeed: import.meta.env.VITE_RANDOM_SEED,
   deployURL: import.meta.env.VITE_DEPLOY_URL, // auto compute this
   labURL: import.meta.env.VITE_LAB_URL,

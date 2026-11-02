@@ -345,62 +345,68 @@ be used to detect odd behaviors such as using another window to search for
 answers or dual-tasking. The data is tracked in `smilestore.data.browserData` in
 a easy to parse JSON structure.
 
-## Automatic saving/persistance
+## When data is saved
 
-You can configure automatic saving whenever a view/page change happens using
-using `env/.env` using option `VITE_AUTO_SAVE_DATA`.
+With `VITE_AUTO_SAVE_DATA` on (the default), <SmileText/> saves the
+participant's data every time they move to the next view. You can also save
+yourself with `api.saveData()`, for example in the middle of a long task.
 
 :::warning
 
-This only works if you use the `useViewAPI` to move between pages. If you
-advance to new pages on your own you need to call `api.saveData()` manually.
+Auto-save happens in `useViewAPI`'s navigation (`api.goNextView()` and
+friends). If you move between pages some other way, call `api.saveData()`
+yourself.
 
 :::
 
-## Google Firebase/Firestore
+Each save sends the participant's whole `data` object (and, separately, their
+private data) to the server, which writes it to their row in the database:
+SQLite at `.data/experiment.db` locally, Turso when deployed.
 
-Fully explaining Google Firebase/Firestore is beyond the scope of this document
-but there are many helpful videos and documentation websites:
+Data recorded between saves isn't lost if the page reloads: <SmileText/> keeps
+a copy in the browser's local storage and sends anything the database didn't
+get as soon as the participant's data is loaded again.
 
-- Video introduction to
-  [Google Cloud Firestore](https://www.youtube.com/watch?v=QcsAb2RR52c&list=PLl-K7zZEsYLmOF_07IayrTntevxtbUxDL)
-- The [Cloud Firestore Console](https://console.firebase.google.com/u/0/)
+## Save throttling and limits
 
-If you haven't set up your lab yet, please refer to the documentation which can
-walk you through creating a Google Firestore database.
+Three settings in `.env` keep a bug in your code from flooding the database:
 
-## Limitations
+| Setting                   | Default | What it does                                                                                                                                                                                     |
+| ------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VITE_AUTO_SAVE_DATA`     | `true`  | Save on every view change. Set it to `false` to save only when you call `api.saveData()`.                                                                                                     |
+| `VITE_MIN_WRITE_INTERVAL` | `2000`  | Minimum milliseconds between saves. A save requested sooner is **delayed, not dropped**: it runs once the interval has passed, and one delayed save covers any number of calls in between. |
+| `VITE_MAX_WRITES`         | `1000`  | Maximum saves per page load. After that, saves are skipped and an error is logged, to stop a loop that saves endlessly. `api.saveData(true)` (forced) ignores both this and the interval.     |
 
-One thing to be aware of is that Firebase has some limits on writing to
-documents. In particular, documents cannot be larger than 1MB. In addition, each
-write costs some money. Finally, you can only write to a document once per
-second. To prevent problems with this, the smilestore object has a few
-configuration options (configured in `env/.env`).
+Because of the interval, data can reach the database up to
+`VITE_MIN_WRITE_INTERVAL` milliseconds after the participant does something.
+Keep that in mind when you check the database by hand or in a test (see
+[Testing](/coding/testing#tips)).
 
-These include `VITE_MAX_WRITES` which configures the maximum number of writes
-allowed for any run of your experiment (meaning a single load of your experiment
-by a participant). By default, this is set to 1000 and is meant to prevent an
-accident where your code runs in a loop writing data endlessly. After 1000
-writes, subsequent writes will be ignored. Second, there is
-`VITE_MIN_WRITE_INTERVAL` which configures how many milliseconds need to pass
-between writes. By default this is set to 2000 which is roughly double the rate
-limiting of the Firebase. This works pretty well though with the Automatic
-Saving described earlier since each step on the timeline typically will take a
-while (e.g., filling out a form or reading some instructions). However, during
-testing if you click through things quickly several of your writes might be
-skipped by this throttling.
+### How much data a participant can have
+
+The database itself has no practical size limit for one participant. The limit
+that matters is your host's maximum request size, because every save sends the
+whole `data` object. On Vercel, the default deploy target, a request body can be
+at most **4.5 MB**; a save larger than that fails.
+
+The dev tools show the participant's current data size against this 4.5 MB
+reference: in the database button's tooltip and progress ring, and in the
+sidebar's Database panel. The number is the length of the data as JSON, which
+is close to its size in bytes. Nothing enforces it; it's there so you notice a
+task that records far more than you expected (for example, every mouse
+movement) before you run it.
 
 ## Local storage
 
-In addition to the persistence of data from the application state in Firebase,
-Smile makes use of persisted data in the browser as well using a feature known
+In addition to saving data to the database, Smile makes use of persisted data
+in the browser as well using a feature known
 as Local Storage which is similar to "browser cookies". Basically, local storage
 is a way for a website to write small amounts of data to the users computer and
 access it at a later time. In <SmileText/> this is used to track things across
 page reloads. For example, if a subject reloads the page in the middle of an
 experiment, we'd like them to pick up where they left off. In addition, that
-subject needs to "reconnect" to the Firebase database document that they were
-currently working from. To persist data like this, which is specific to the
+subject needs to "reconnect" to the database record that they were currently
+working from. To persist data like this, which is specific to the
 user, across page reloads or restarts of the browser we sync a few key values
 with the browser's local storage. The data which is synced to local storage is
 in `smilestore.browserPersisted` (see `smilestore.js`).
@@ -617,20 +623,23 @@ The store provides several computed getters for accessing state:
 
 ### Important Notes
 
-1. **Firestore Limitations**: The store respects Firestore limitations including
-   1MB document size, write rate limits, and data type restrictions.
+1. **Size**: Each save sends the whole `data` object, so keep it under your
+   host's request size limit (4.5 MB on Vercel). See
+   [How much data a participant can have](#how-much-data-a-participant-can-have).
 
-2. **Rate Limiting**: The store implements rate limiting to prevent excessive
-   database writes. Use `saveData(true)` to force writes when necessary.
+2. **Rate Limiting**: Saves are throttled by `VITE_MIN_WRITE_INTERVAL` and
+   capped by `VITE_MAX_WRITES`. Use `saveData(true)` to force a write when
+   necessary.
 
 3. **Data Persistence**: Browser persisted state automatically syncs with
-   localStorage, while public data syncs with Firestore.
+   localStorage, while `data` and `private` are saved to the database.
 
 4. **Development Mode**: Development state is only active in development mode
    and provides additional debugging capabilities.
 
-5. **Security**: Private data is never synced to the database and remains local
-   to the browser session.
+5. **Private data**: `private` (for example recruitment IDs) is saved to a
+   separate `private_data` table, not with the participant's `data`, so it can
+   be kept out of shared datasets.
 
 6. **Reactivity**: The store is fully reactive, so changes to state will
    automatically update components that depend on it.

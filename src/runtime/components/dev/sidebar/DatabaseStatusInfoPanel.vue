@@ -168,8 +168,8 @@ onBeforeUnmount(() => {
           <b>Size:</b>
         </td>
         <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
-          {{ api.store.localState.approxDataSize }} / 20,971,520 max ({{
-            Math.round((api.store.localState.approxDataSize / 20971520) * 1000) / 10
+          {{ api.store.localState.approxDataSize.toLocaleString() }} / {{ api.config.dataSizeReference.toLocaleString() }} ({{
+            Math.round((api.store.localState.approxDataSize / api.config.dataSizeReference) * 1000) / 10
           }}%)
         </td>
       </tr>

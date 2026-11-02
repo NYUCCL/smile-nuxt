@@ -12,6 +12,11 @@ import useAPI from '../../../composables/useAPI'
  */
 const api = useAPI()
 
+/** Data size as a percentage of config.dataSizeReference, one decimal */
+const dataPercent = computed(() =>
+  Math.round((api.store.localState.approxDataSize / api.config.dataSizeReference) * 1000) / 10,
+)
+
 /**
  * Computed tooltip text showing database status and data usage
  *
@@ -33,7 +38,7 @@ const database_tooltip = computed(() => {
   }
   if (api.store.browserEphemeral.dataLoaded) {
     msg += '| '
-    msg += Math.round((api.store.localState.approxDataSize / 20971520) * 1000) / 1000 + '% data used'
+    msg += dataPercent.value + '% data used'
   }
   return msg
 })
@@ -70,7 +75,7 @@ const database_tooltip = computed(() => {
           <template v-if="!api.store.browserEphemeral.dataLoaded">
             <div class="mt-1">
               <CircleProgress
-                :percentage="Math.round(api.store.localState.approxDataSize / 20971520) * 100"
+                :percentage="dataPercent"
                 :size="12"
                 :stroke-width="40"
                 slicecolor="var(--muted-foreground)"
@@ -81,7 +86,7 @@ const database_tooltip = computed(() => {
           <template v-else>
             <div class="mt-1">
               <CircleProgress
-                :percentage="Math.round(api.store.localState.approxDataSize / 20971520) * 100"
+                :percentage="dataPercent"
                 :size="12"
                 :stroke-width="40"
                 slicecolor="var(--primary-button)"
