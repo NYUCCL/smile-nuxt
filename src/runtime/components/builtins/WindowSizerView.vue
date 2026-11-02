@@ -11,7 +11,10 @@ import { ArrowRight, Move } from 'lucide-vue-next'
 import useViewAPI from '../../composables/useViewAPI'
 
 const api = useViewAPI()
-const props = defineProps(['triggered'])
+// Boolean, so the bare `triggered` attribute the layouts pass reads as true.
+// With an untyped prop it arrived as '' (falsy), and the overlay showed the
+// first-visit version, whose button advances to the next view (#33).
+const props = defineProps({ triggered: { type: Boolean, default: false } })
 
 /**
  * Completes the window sizing process by verifying visibility and advancing to the next view

@@ -53,6 +53,10 @@ import {
  * @property {object} urls - Global URL configurations
  * @property {object} log - Logging methods interface
  */
+// Space WindowSizerView leaves around its box (classes m-2 mt-5), in px.
+const WINDOWSIZER_MARGIN_X = 16 // 8 left + 8 right
+const WINDOWSIZER_MARGIN_Y = 28 // 20 top + 8 bottom
+
 export class SmileAPI {
   /**
    * Creates a new SmileAPI instance
@@ -636,9 +640,9 @@ export class SmileAPI {
 
   // Browser checks
   /**
-   * Checks if the browser window dimensions are smaller than the required dimensions
-   * @param {number} width - The current width to check against minimum requirements
-   * @param {number} height - The current height to check against minimum requirements
+   * Checks if the space available to the experiment is smaller than the required dimensions
+   * @param {number} width - Available width (the window, or the dev device container)
+   * @param {number} height - Available height below the status bar
    * @returns {boolean} True if browser window is too small, false otherwise
    */
   isBrowserTooSmall(width, height) {
@@ -648,9 +652,11 @@ export class SmileAPI {
       && this.store.data.verifiedVisibility === true
       && !this.store.cookieState.withdrawn
     ) {
+      // width/height are the space available below the status bar; the
+      // margins are WindowSizerView's around the box (m-2 mt-5).
       val
-        = width < this.store.config.windowsizerRequest.width + 10
-          || height < this.store.config.windowsizerRequest.height + 85 // margin for status bar
+        = width < this.store.config.windowsizerRequest.width + WINDOWSIZER_MARGIN_X
+          || height < this.store.config.windowsizerRequest.height + WINDOWSIZER_MARGIN_Y
     }
     return val
   }
