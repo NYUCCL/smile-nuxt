@@ -41,6 +41,8 @@ try {
     { stdio: 'inherit' },
   )
   console.log(`  ✔  Created GitHub release ${tag}`)
+  console.log(`\n  Next: check that a fresh scaffold works with what you just published (#55):`)
+  console.log(`     pnpm test:starter --published ${tag.replace(/^v/, '')}`)
 }
 finally {
   rmSync(tmp, { force: true })

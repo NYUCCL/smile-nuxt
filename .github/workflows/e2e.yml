@@ -79,3 +79,34 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 14
+
+  # A fresh project scaffolded by the CLI from start/, with the packed module
+  # installed outside the workspace, must build and pass its own e2e suite (#55).
+  starter:
+    runs-on: ubuntu-24.04 # pinned; ubuntu-latest is moving to 26
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: '.node_version'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Prepare module
+        run: pnpm run dev:prepare
+
+      - name: Install Chromium system dependencies
+        run: pnpm exec playwright install-deps chromium
+
+      - name: Scaffold, build and test a starter project
+        run: pnpm test:starter

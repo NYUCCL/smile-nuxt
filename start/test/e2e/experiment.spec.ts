@@ -48,8 +48,22 @@ test.describe('Experiment flow', () => {
   let db: ReturnType<typeof createClient>
   let createdIds: string[] = []
 
-  test.beforeAll(() => {
+  test.beforeAll(async ({}, testInfo) => {
+    // The dev server creates .data/experiment.db and its tables once it has
+    // finished starting. Until then it answers 503 (Nuxt's loading screen), so
+    // in a fresh project wait for a real response before opening the database.
+    const url = new URL('/welcome', testInfo.project.use.baseURL)
+    const deadline = Date.now() + 90_000
+    for (;;) {
+      const status = await fetch(url).then(r => r.status, () => 0) // 0 = not answering yet
+      if (status > 0 && status < 500) break
+      if (Date.now() > deadline) throw new Error(`Dev server at ${url} did not become ready (last status ${status})`)
+      await new Promise(resolve => setTimeout(resolve, 500))
+    }
     db = getDB()
+    // The dev server writes to the same file; wait for its lock instead of
+    // failing with "database is locked".
+    await db.execute('PRAGMA busy_timeout = 5000')
   })
 
   test.beforeEach(async ({ page }) => {
@@ -67,7 +81,7 @@ test.describe('Experiment flow', () => {
   })
 
   test.afterAll(() => {
-    db.close()
+    db?.close()
   })
 
   // -------------------------------------------------------------------------

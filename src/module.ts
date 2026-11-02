@@ -1,4 +1,4 @@
-import { defineNuxtModule, addPlugin, addImports, addLayout, addRouteMiddleware, createResolver, extendPages, addComponentsDir, addServerScanDir, addServerImportsDir, useLogger } from '@nuxt/kit'
+import { defineNuxtModule, addPlugin, addImports, addRouteMiddleware, createResolver, extendPages, addComponentsDir, addServerScanDir, addServerImportsDir, useLogger } from '@nuxt/kit'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 import { basename, dirname, extname, join } from 'node:path'
@@ -196,10 +196,22 @@ export default defineNuxtModule<ModuleOptions>({
       global: true,
     })
 
-    // Register layouts
-    addLayout({ src: resolver.resolve('./runtime/layouts/experiment.vue'), filename: 'experiment.vue' })
-    addLayout({ src: resolver.resolve('./runtime/layouts/development.vue'), filename: 'development.vue' })
-    addLayout({ src: resolver.resolve('./runtime/layouts/presentation.vue'), filename: 'presentation.vue' })
+    // Register layouts. Not with addLayout(): its app:templates hook runs again
+    // each time nuxt dev regenerates the app, finds the layout it added last
+    // time, and logs NUXT_B4014 ("already provided") over and over. This hook
+    // is idempotent and still yields to a project's own layouts/<name>.vue.
+    const smileLayouts: Record<string, string> = {
+      experiment: resolver.resolve('./runtime/layouts/experiment.vue'),
+      development: resolver.resolve('./runtime/layouts/development.vue'),
+      presentation: resolver.resolve('./runtime/layouts/presentation.vue'),
+    }
+    _nuxt.hook('app:templates', (app) => {
+      for (const [name, file] of Object.entries(smileLayouts)) {
+        if (!app.layouts[name] || app.layouts[name].file === file) {
+          app.layouts[name] = { name, file }
+        }
+      }
+    })
 
     // Register catch-all page for experiment routes + dev/presentation mode pages
     extendPages((pages) => {

@@ -1,11 +1,25 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { cpSync, existsSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { basename, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import * as p from '@clack/prompts'
 import { downloadTemplate } from 'giget'
 
 const TEMPLATE_SOURCE = 'gh:nyuccl/smile-nuxt/start#main'
+
+// For the repo's own smoke tests: copy the template from a local directory
+// (a checkout's start/) instead of downloading it. Not a user-facing option.
+const LOCAL_TEMPLATE_DIR = process.env.SMILE_TEMPLATE_DIR
+const LOCAL_TEMPLATE_SKIP = new Set(['node_modules', '.nuxt', '.output', '.data', 'test-results', 'playwright-report'])
+
+function copyLocalTemplate(from, to, clean) {
+  if (clean) rmSync(to, { recursive: true, force: true })
+  cpSync(resolve(from), to, {
+    recursive: true,
+    force: true,
+    filter: src => !LOCAL_TEMPLATE_SKIP.has(basename(src)),
+  })
+}
 
 function detectPackageManager() {
   const ua = process.env.npm_config_user_agent || ''
@@ -108,11 +122,16 @@ async function run() {
   const spinner = p.spinner()
   spinner.start(`Downloading template into ${projectName}`)
   try {
-    await downloadTemplate(TEMPLATE_SOURCE, {
-      dir: targetDir,
-      force: true,
-      forceClean: args.force,
-    })
+    if (LOCAL_TEMPLATE_DIR) {
+      copyLocalTemplate(LOCAL_TEMPLATE_DIR, targetDir, args.force)
+    }
+    else {
+      await downloadTemplate(TEMPLATE_SOURCE, {
+        dir: targetDir,
+        force: true,
+        forceClean: args.force,
+      })
+    }
     spinner.stop('Template downloaded')
   }
   catch (err) {
