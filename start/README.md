@@ -64,7 +64,7 @@ This template includes a GitHub Action (`.github/workflows/deploy.yml`) that aut
 4. Add your database secrets in the Vercel dashboard (`Settings > Environment Variables`):
    - `TURSO_DATABASE_URL` — your Turso database URL
    - `TURSO_AUTH_TOKEN` — your Turso auth token
-   - `SMILE_DEV_PASSWORD` — password for `/dev` and `/presentation` modes
+   - Optional, to deploy the dev tools (e.g. on Preview only): `SMILE_DEV_TOOLS=include` and `SMILE_DEV_PASSWORD`, the password for `/dev`
 
 Push to `main` and your experiment will be live.
 

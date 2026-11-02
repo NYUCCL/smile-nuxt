@@ -67,7 +67,19 @@ function resolveAccess(explicit: string | undefined, hasPassword: boolean, legac
   return 'disabled'
 }
 
+// Replaced at build time by the module (nitro `replace`): whether this build
+// includes the developer tools. Undefined outside a Nitro build (unit tests).
+declare const __SMILE_DEV_TOOLS__: boolean | undefined
+
+/** False when the dev tools were left out of this build (SMILE_DEV_TOOLS, #38). */
+export function devToolsBuilt(): boolean {
+  return typeof __SMILE_DEV_TOOLS__ === 'undefined' ? true : __SMILE_DEV_TOOLS__
+}
+
 export function getDevAccess(): AccessMode {
+  // A build without the dev tools has no /dev to grant access to, whatever the
+  // runtime env says.
+  if (!devToolsBuilt()) return 'disabled'
   return resolveAccess(process.env.SMILE_DEV_ACCESS, !!getDevPassword())
 }
 

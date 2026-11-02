@@ -165,15 +165,15 @@ tracked because it's already committed.
 
 ### Step 4 — Add your app secrets to Vercel {#step-4-secrets}
 
-Your app reads three environment variables in production. Set each for **both
+Your app reads two environment variables in production. Set each for **both
 Production and Preview** so that `main` *and* your other experiment branches can
-reach the database:
+reach the database (the dev tools are optional, see the last row):
 
 | Variable             | Value                                              |
 | -------------------- | -------------------------------------------------- |
 | `TURSO_DATABASE_URL` | the `libsql://…` URL from Step 1                   |
 | `TURSO_AUTH_TOKEN`   | the auth token from Step 1                         |
-| `SMILE_DEV_PASSWORD` | a password for `/dev/` — setting it also turns `/dev/` on; see [Dev & presentation access](#dev-password) |
+| `SMILE_DEV_PASSWORD` | *optional:* a password for `/dev/`. Only used if the build includes the dev tools (`SMILE_DEV_TOOLS = include`); see [Dev & presentation access](#dev-password) |
 
 With the CLI (it prompts for the value, then the environment):
 
@@ -182,9 +182,11 @@ vercel env add TURSO_DATABASE_URL production
 vercel env add TURSO_DATABASE_URL preview
 vercel env add TURSO_AUTH_TOKEN production
 vercel env add TURSO_AUTH_TOKEN preview
-vercel env add SMILE_DEV_PASSWORD production
+vercel env ls                # verify all four entries
+
+# Optional: dev tools on Preview deploys only (your test branches)
+vercel env add SMILE_DEV_TOOLS preview       # value: include
 vercel env add SMILE_DEV_PASSWORD preview
-vercel env ls                # verify all six entries
 ```
 
 Or in the dashboard: **Project → Settings → Environment Variables**, adding each
@@ -403,9 +405,32 @@ Your site has two sets of tools that are **for you, not for participants**:
   data).
 - `/presentation/` — presentation mode for screenshots and demos.
 
+### Including the dev tools in a deploy {#dev-tools-build}
+
+**By default a production build leaves the dev tools out entirely.** `/dev/`,
+its data endpoints and its login aren't in the build at all, so they return 404
+whatever the access settings below say, and participants don't download any of
+that code. To deploy them, opt in when you build:
+
+| Variable | Purpose |
+| --- | --- |
+| `SMILE_DEV_TOOLS` | `include` to build `/dev/` into this deploy; `exclude` (the default) to leave it out |
+
+Because it's read when the site is built, you can set it per environment: for
+example `include` for **Preview** deploys (your experiment branches, where you
+test) and leave it unset for **Production**, where participants are. You can
+also set it in `nuxt.config.ts` with `smile: { devTools: true }`; the env var
+wins. If a build leaves the tools out while `SMILE_DEV_PASSWORD` or
+`SMILE_DEV_ACCESS` is set, the build log says so. Locally (`pnpm dev`) the
+tools are always there.
+
+`/presentation/` is always built in; its access setting alone controls it.
+
+### Who can open them
+
 Each route has its own three-state access setting. **On a deployed site both
 default to `disabled`** — they return a 404, as if they don't exist. You opt in
-per route:
+per route (for `/dev/`, only in a build that includes the dev tools):
 
 | Mode | What participants/visitors get | How to set |
 | --- | --- | --- |
@@ -439,10 +464,10 @@ How it behaves:
   presentation, and vice versa.
 
 ::: warning Disabled by default is the safe default
-Because the default is `disabled`, a deploy that collects real data never
+Because the dev tools are left out of a build unless you include them, and
+access is `disabled` unless you set it, a deploy that collects real data never
 accidentally exposes the dashboard. Turn on only what you need: typically
-`SMILE_DEV_PASSWORD` (which opts `/dev/` into password mode) set for Production
-and Preview in [Step 4](#step-4-secrets). Reserve `open` for the rare case you
+`SMILE_DEV_TOOLS = include` plus `SMILE_DEV_PASSWORD` for Preview deploys. Reserve `open` for the rare case you
 truly want a public dev/presentation view.
 :::
 

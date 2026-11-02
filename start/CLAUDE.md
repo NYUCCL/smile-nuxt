@@ -188,10 +188,9 @@ The dev server must be running (`pnpm dev`) or Playwright must be configured to 
 ```bash
 pnpm dev          # Start dev server
 pnpm lint         # Run ESLint
-pnpm test         # Run unit tests (vitest)
 pnpm test:e2e     # Run end-to-end tests (playwright)
 ```
 
 ## Dev Mode
 
-Navigate to `/dev/` to access developer tools: recruitment testing, data inspection, route jumping, randomization controls, and the dev console.
+Navigate to `/dev/` to access developer tools: recruitment testing, data inspection, route jumping, randomization controls, and the dev console. They're always there under `pnpm dev`; production builds leave them out unless `SMILE_DEV_TOOLS=include` is set at build time.

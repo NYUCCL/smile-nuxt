@@ -18,6 +18,13 @@ export interface ModuleOptions {
    * when api.preloadAllVideos() is called.
    */
   preloadVideos?: string[]
+  /**
+   * Include the developer tools (/dev and its data endpoints) in a production
+   * build. Off by default: participant-facing deploys ship without them. The
+   * SMILE_DEV_TOOLS env var (include | exclude) overrides this, so production
+   * and preview deploys can differ. `nuxt dev` always has them.
+   */
+  devTools?: boolean
 }
 
 export default defineNuxtModule<ModuleOptions>({
@@ -28,9 +35,11 @@ export default defineNuxtModule<ModuleOptions>({
   defaults: {
     preloadImages: [],
     preloadVideos: [],
+    devTools: false,
   },
   setup(_options, _nuxt) {
     const resolver = createResolver(import.meta.url)
+    const includeDevTools = resolveDevToolsBuild(_options.devTools, _nuxt.options.dev)
     const runtimeDir = fileURLToPath(new URL('./runtime', import.meta.url))
     const _require = createRequire(import.meta.url)
 
@@ -77,6 +86,12 @@ export default defineNuxtModule<ModuleOptions>({
 
     // Register server routes, middleware, and utilities from runtime/server/
     addServerScanDir(resolver.resolve('./runtime/server'))
+    // Bake whether this build has the dev tools into the server bundle, so the
+    // dev data endpoints and dev login 404 when it doesn't (#38).
+    _nuxt.options.nitro.replace = {
+      ..._nuxt.options.nitro.replace,
+      __SMILE_DEV_TOOLS__: JSON.stringify(includeDevTools),
+    }
     addServerImportsDir(resolver.resolve('./runtime/server/utils'))
 
     // Server-only secrets (dev password, Turso credentials, the participant
@@ -202,9 +217,9 @@ export default defineNuxtModule<ModuleOptions>({
     // is idempotent and still yields to a project's own layouts/<name>.vue.
     const smileLayouts: Record<string, string> = {
       experiment: resolver.resolve('./runtime/layouts/experiment.vue'),
-      development: resolver.resolve('./runtime/layouts/development.vue'),
       presentation: resolver.resolve('./runtime/layouts/presentation.vue'),
     }
+    if (includeDevTools) smileLayouts.development = resolver.resolve('./runtime/layouts/development.vue')
     _nuxt.hook('app:templates', (app) => {
       for (const [name, file] of Object.entries(smileLayouts)) {
         if (!app.layouts[name] || app.layouts[name].file === file) {
@@ -220,11 +235,13 @@ export default defineNuxtModule<ModuleOptions>({
         path: '/:slug(.*)*',
         file: resolver.resolve('./runtime/pages/[...slug].vue'),
       })
-      pages.push({
-        name: 'dev-slug',
-        path: '/dev/:slug(.*)*',
-        file: resolver.resolve('./runtime/pages/dev/[...slug].vue'),
-      })
+      if (includeDevTools) {
+        pages.push({
+          name: 'dev-slug',
+          path: '/dev/:slug(.*)*',
+          file: resolver.resolve('./runtime/pages/dev/[...slug].vue'),
+        })
+      }
       pages.push({
         name: 'presentation-slug',
         path: '/presentation/:slug(.*)*',
@@ -350,3 +367,34 @@ export default defineNuxtModule<ModuleOptions>({
     }
   },
 })
+
+/**
+ * Whether this build ships the developer tools (#38). Always in `nuxt dev`.
+ * For a production build: SMILE_DEV_TOOLS (include | exclude, also
+ * true/false/1/0) if set, else the `devTools` module option (default false).
+ */
+function resolveDevToolsBuild(option: boolean | undefined, isDev: boolean): boolean {
+  if (isDev) return true
+  const env = (process.env.SMILE_DEV_TOOLS || '').trim().toLowerCase()
+  const fromEnv = ['include', 'true', '1', 'yes', 'on'].includes(env)
+    ? true
+    : ['exclude', 'false', '0', 'no', 'off'].includes(env) ? false : undefined
+  const include = fromEnv ?? !!option
+  const logger = useLogger('smile')
+  if (include) {
+    logger.info('Developer tools: included in this build (/dev, behind SMILE_DEV_ACCESS / SMILE_DEV_PASSWORD).')
+  }
+  else {
+    const access = (process.env.SMILE_DEV_ACCESS || '').trim().toLowerCase()
+    if (process.env.SMILE_DEV_PASSWORD || access === 'password' || access === 'open') {
+      logger.warn(
+        'Developer tools are not included in this build, so /dev will 404 even though '
+        + 'SMILE_DEV_ACCESS / SMILE_DEV_PASSWORD is set. Set SMILE_DEV_TOOLS=include to deploy them.',
+      )
+    }
+    else {
+      logger.info('Developer tools: not included in this build (set SMILE_DEV_TOOLS=include to deploy them).')
+    }
+  }
+  return include
+}

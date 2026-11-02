@@ -128,6 +128,7 @@ host dashboard takes effect on the next request without rebuilding.
 | `TURSO_DATABASE_URL`         | libSQL/Turso database URL for production. If unset, falls back to local SQLite at `.data/experiment.db`.                      |
 | `TURSO_AUTH_TOKEN`           | Auth token for the Turso database.                                                                                            |
 | `SMILE_AUTH_SECRET`          | Secret that signs participant tokens. Optional but recommended on a deploy: without it the Turso token (or the dev password) is used, so rotating that one logs every in-progress participant out of saving. With none of the three, a built-in development key is used and the server logs a warning. |
+| `SMILE_DEV_TOOLS`            | Build-time: `include` to ship `/dev/` in a production build; `exclude` (default) leaves it out (404). `pnpm dev` always has it. See [Cloud Hosting](/recruit/deploying#dev-tools-build). |
 | `SMILE_DEV_ACCESS`           | `/dev/` access on deployed sites: `disabled` (default) \| `password` \| `open`. Local dev is always open.                     |
 | `SMILE_DEV_PASSWORD`         | Password for `/dev/` in `password` mode. Setting it also opts `/dev/` into `password` mode.                                   |
 | `SMILE_PRESENTATION_ACCESS`  | `/presentation/` access: `disabled` (default) \| `password` \| `open`.                                                       |
