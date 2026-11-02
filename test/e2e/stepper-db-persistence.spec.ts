@@ -15,12 +15,10 @@ import { clearState } from './helpers'
  * then open /stroop as a returning participant whose last route is the Stroop
  * view, and run its 9 trials (playground/components/StroopExpView.vue).
  *
- * Why not /dev/stroop: dev mode skips the router guard that reconnects a
- * returning participant to their DB row (loadData), so after any full page
- * load under /dev/ every save fails ("can't save data, not connected to
- * server"). Setting the lastRoute cookie stands in for "has progressed to
- * Stroop"; the guards allow a participant onto their own last route, which is
- * exactly the path a real participant's reload takes.
+ * Setting the lastRoute cookie stands in for "has progressed to Stroop"; the
+ * guards allow a participant onto their own last route, which is exactly the
+ * path a real participant's reload takes. The dev-mode block below covers the
+ * same flow under /dev/ (#58).
  */
 
 const N_TRIALS = 9
@@ -163,6 +161,65 @@ test.describe('Stepper data reaches the database (#42)', () => {
     const trials = await savedStroopTrials(db, participantId)
     // Each of the 9 trials (distinct ids a–i) should be present exactly once.
     expect(trials).toHaveLength(N_TRIALS)
+    expect(new Set(trials.map(t => t.id)).size).toBe(N_TRIALS)
+  })
+})
+
+test.describe('Dev mode saves reach the database after a page load (#58)', () => {
+  // Dev mode used to skip the guard that reconnects a returning participant to
+  // their DB row, so after any full page load under /dev/ every save failed
+  // with "can't save data, not connected to server".
+  let db: ReturnType<typeof createClient>
+  let participantId: string | null = null
+
+  test.beforeAll(async () => {
+    db = getDB()
+    await db.execute('PRAGMA busy_timeout = 5000')
+  })
+
+  test.afterEach(async () => {
+    if (participantId) await cleanupParticipant(db, participantId)
+    participantId = null
+  })
+
+  test.afterAll(() => {
+    db.close()
+  })
+
+  async function openDevStroop(page: Page) {
+    await page.goto('/dev/stroop')
+    await expect(page.locator('#prompt')).toBeVisible({ timeout: 15_000 })
+  }
+
+  test('opening /dev/stroop directly after consent saves its trials', async ({ page }) => {
+    test.setTimeout(90_000)
+    const errors: string[] = []
+    page.on('console', (m) => {
+      if (m.text().includes('not connected to server')) errors.push(m.text())
+    })
+    participantId = await consent(page, db)
+    await openDevStroop(page)
+
+    await answerTrials(page, N_TRIALS)
+    await finishView(page)
+
+    const trials = await savedStroopTrials(db, participantId)
+    expect(new Set(trials.map(t => t.id)).size).toBe(N_TRIALS)
+    expect(errors).toEqual([])
+  })
+
+  test('reloading on a /dev/ route keeps saving', async ({ page }) => {
+    test.setTimeout(90_000)
+    participantId = await consent(page, db)
+    await openDevStroop(page)
+
+    await answerTrials(page, 4)
+    await page.reload()
+    await expect(page.locator('#prompt')).toBeVisible({ timeout: 15_000 })
+    await answerTrials(page, N_TRIALS - 4)
+    await finishView(page)
+
+    const trials = await savedStroopTrials(db, participantId)
     expect(new Set(trials.map(t => t.id)).size).toBe(N_TRIALS)
   })
 })

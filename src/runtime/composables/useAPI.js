@@ -424,6 +424,10 @@ export class SmileAPI {
       await this.store.setKnown()
       this.store.setConsented()
     }
+    else if (!this.store.isDataLoaded) {
+      // Known user after a page load: reconnect to their existing row (#58)
+      await this.store.loadData()
+    }
   }
 
   /**

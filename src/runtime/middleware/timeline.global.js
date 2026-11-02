@@ -111,6 +111,14 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
     api.resetApp()
   }
 
+  // --- Guard 7: Load data for known user ---
+  // Not a blocking guard, so it runs before the pinned-route and dev/presentation
+  // early returns: otherwise a reload on a /dev/ route never reconnects the
+  // participant to their row and every later save fails (#58).
+  if (store.isKnownUser && !store.isDataLoaded) {
+    await store.loadData()
+  }
+
   // --- Guard 5: Dev mode pinned route ---
   // Runs before skipBlockingGuards so pinning works in dev mode
   if (store.dev?.pinnedRoute) {
@@ -131,7 +139,7 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
   }
 
   // In dev/presentation mode, skip blocking guards (free navigation)
-  // but state-setting guards (1-4), pin guard (5), and _postGuard still run.
+  // but state-setting guards (1-4), data load (7), pin guard (5), and _postGuard still run.
   if (skipBlockingGuards) {
     return // allow — postGuard runs via executeGuards
   }
@@ -144,10 +152,7 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
   }
   to.query = newQueries
 
-  // --- Guard 7: Load data for known user ---
-  if (store.isKnownUser && !store.isDataLoaded) {
-    await store.loadData()
-  }
+  // --- Guard 7: Load data for known user --- (runs earlier, before Guard 5; see there)
 
   // --- Guard 8: Allow-always routes ---
   if (toMeta.allowAlways) {
