@@ -14,7 +14,7 @@ The documentation lives in the `docs/` folder of the repo.
 
 ## Development
 
-To develop the docs in real time type `npm run docs:dev` in the top level
+To develop the docs in real time type `pnpm docs:dev` in the top level
 project folder. You should see something like this:
 
 ```
@@ -62,6 +62,31 @@ fast thanks to Vite.
 When you are finished making changes to the docs just use git commands to stage
 the files, commit them and (when you are ready) push them to the github repo.
 There are several useful tutorials available online for using git and GitHub.
+
+## Testing the module
+
+Changes to the <SmileText/> module itself (`src/`) are covered by several
+suites. Run them from the repo root:
+
+| Command               | What it runs                                                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `pnpm test`           | Unit tests (Vitest, happy-dom): stepper, timeline guards, store, composables.                                     |
+| `pnpm test:coverage`  | The unit tests with a coverage report.                                                                             |
+| `pnpm test:types`     | `vue-tsc` over the module and the playground.                                                                      |
+| `pnpm lint`           | ESLint.                                                                                                            |
+| `pnpm test:e2e`       | Playwright against the `playground/` dev server (port 3100, or `SMILE_E2E_PORT`). Reuses a dev server already on that port. |
+| `pnpm test:overrides` | Packs the module, installs it in a copy of `start/` outside the workspace, and checks component overrides.        |
+| `pnpm test:starter`   | Scaffolds a project with the local CLI and template, installs the packed module, runs `nuxt build` and the starter's own e2e suite. |
+
+`test:overrides` and `test:starter` install the module the way a researcher's
+project does (a separate `node_modules`, pnpm's strict isolation), which
+catches packaging and peer-dependency problems the workspace hides. Both need
+network access. After a release, `pnpm test:starter --published <version>`
+does the same with the published CLI, the template on GitHub and the version
+on npm: exactly what a new user gets.
+
+CI runs lint, unit, types and `test:overrides` (`ci.yml`), and the e2e suite and
+`test:starter` (`e2e.yml`) on every push and pull request to `main`.
 
 ## Technical Figures
 

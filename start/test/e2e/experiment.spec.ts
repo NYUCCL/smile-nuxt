@@ -200,13 +200,64 @@ test.describe('Experiment flow', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Add your own tests below!
+// Your task
 // ---------------------------------------------------------------------------
 //
-// Example: testing your custom task view
+// An example test for components/MyTaskView.vue. When you change that view,
+// change this test to match: drive your task the way a participant would, then
+// check what it recorded. Data from api.recordPageData() is saved under
+// pageData_<route name>, one entry per visit to the view:
 //
-// test('my task records data correctly', async ({ page }) => {
-//   // ... navigate to /task ...
-//   // ... interact with your task UI ...
-//   // ... check that data was recorded ...
-// })
+//   pageData_task: { visit_0: { timestamps: [...], data: [{ response, rt, ... }] } }
+//
+// Saves are throttled (VITE_MIN_WRITE_INTERVAL), so poll the database rather
+// than reading it once.
+
+test.describe('Your task', () => {
+  let db: ReturnType<typeof createClient>
+  let participantId: string | null = null
+
+  test.beforeAll(async () => {
+    db = getDB()
+    await db.execute('PRAGMA busy_timeout = 5000')
+  })
+
+  test.afterEach(async () => {
+    if (participantId) await cleanupParticipant(db, participantId)
+    participantId = null
+  })
+
+  test.afterAll(() => {
+    db?.close()
+  })
+
+  test('records the response on the task page', async ({ page }) => {
+    test.setTimeout(90_000)
+
+    // Get to the task the way a participant does
+    await page.goto('/welcome')
+    await clearState(page)
+    await page.goto('/welcome')
+    await page.getByRole('button', { name: /I'm ready/i }).click()
+    await page.getByRole('switch').click()
+    await page.getByRole('button', { name: /Let's start/i }).click()
+    await fillDemographicsPage1(page)
+    await fillDemographicsPage2(page)
+    await fillDemographicsPage3(page)
+    await page.getByRole('button', { name: /visible now.*ready/i }).click()
+    await expect(page).toHaveURL(/\/task/)
+
+    const participant = await getLatestParticipant(db)
+    participantId = participant!.id
+
+    // Do the task: MyTaskView records { response, rt, timestamp } and moves on
+    await page.getByRole('button', { name: 'Left' }).click()
+    await expect(page).not.toHaveURL(/\/task/)
+
+    await expect.poll(async () => {
+      const row = await db.execute({ sql: 'SELECT data FROM participants WHERE id = ?', args: [participantId] })
+      const data = JSON.parse(row.rows[0]!.data as string)
+      return data.pageData_task?.visit_0?.data?.[0]?.response
+    }, { timeout: 10_000 }).toBe('left')
+  })
+})

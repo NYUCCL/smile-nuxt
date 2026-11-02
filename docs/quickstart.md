@@ -116,5 +116,7 @@ place in the experiment.
 
 - Read [Key Concepts](/concepts) for the mental model behind <SmileText/>.
 - Skim the [Developing](/coding/developing) guide for the dev-mode tools.
+- Run `pnpm test:e2e` and read [Testing your experiment](/coding/testing) to
+  keep your task's tests up to date as you build it.
 - When you're ready to put your experiment online
   in a publicly available spot see [Cloud Hosting](/recruit/deploying).

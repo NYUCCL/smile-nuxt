@@ -131,10 +131,10 @@ export default defineConfig({
           { text: 'Persistence', link: '/coding/persistence' },
           { text: 'Data storage', link: '/coding/datastorage' },
           { text: 'Server-side logic', link: '/coding/serverside' },
+          { text: 'Testing', link: '/coding/testing' },
 
           //{ text: '💰 Computing bonuses', link: '/bonuses' },
           //{ text: '🆘 Dealing with Errors', link: '/problems' },
-          //{ text: 'Automated Testing', link: '/coding/testing' },
           //{ text: '🔌 Server-side Computations', link: '/server' },
         ],
       },

@@ -1,112 +1,149 @@
 # :lady_beetle: Testing your experiment
 
-Testing refers to writing automated scripts that verify the logic and operation
-of your code. Testing your code is critical to avoid bugs that cost you money
-and add to participant frustration.
+Automated tests click through your experiment the way a participant would and
+check that each page works and that the data you expect ends up in the
+database. They catch the bugs that cost you money and participants' patience:
+a page that can be skipped, a task that stops recording after a reload, a
+response saved under the wrong name.
 
-Helping to integrate testing the code for your experiments into your project is
-one of the key features of <SmileText/>.
+Every project made with `create-smile-nuxt` comes with a working test suite.
+It uses [Playwright](https://playwright.dev), which drives a real browser
+against your dev server.
 
-In
-[test driven development](https://en.wikipedia.org/wiki/Test-driven_development)
-you first write tests that describe how you want your software to behave, which
-initially will all fail. Then as you implement your code you will begin passing
-the test. Later, as your project matures, old tests help make sure that new
-changes do not break existing code.
+## What ships with your project
 
-Testing is perhaps a less familiar concept to scientific researchers but one
-that can be especially useful in experiment design and development.
+| File                          | What it is                                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------------------------- |
+| `playwright.config.ts`        | Starts `pnpm dev` on a dedicated port, runs the tests in Chromium, one at a time.           |
+| `test/e2e/experiment.spec.ts` | Tests for the built-in flow (welcome → consent → demographics → your task) and for your task. |
+| `test/e2e/helpers.ts`         | `clearState()` and helpers that fill in the demographics form.                               |
 
-## Types of tests
+The suite starts with these tests:
 
-Within the software development community, there are multiple "kinds" of tests.
-In <SmileText/>, we will consider **unit/component tests** and **integration
-tests**.
+- the welcome page shows, and welcome → consent → demographics works
+- a participant can't skip ahead without consenting
+- consenting creates a participant record in the database
+- the route history is saved
+- a refresh resumes on the same page
+- **your task** records its response (an example for `components/MyTaskView.vue`)
 
-### Unit/Component tests
+## Running the tests
 
-Unit tests apply to a particular piece of code in isolation. For example, a test
-might be written to verify a function or component. Testing for the web is
-complicated by the fact that your code runs and interacts with several other
-programs such as the browser or possible databases. In the unit testing approach
-we will consider, we will use tools that are called "headless" in the sense that
-the run the code in a "virtual browser" that doesn't directly open a browser
-window. This can be useful for bits of logic that are not directly displayed as
-well as generally testing smaller pieces of code.
-
-There is one downside to unit tests for web applications which is that the test
-doesn't render a "visible" version of your user interface, nor does it often
-embed the unit in an overall application structure. As a result, even if a set
-of unit/component tests passes, the overall application (e.g., database, etc...)
-might still have bugs.
-
-### Integration/End-to-end (E2E) tests
-
-Integration/E2E tests refer to tests that run against the full application. They
-are called integration tests because they test the integration of various
-software pieces together. These are often much more complicated to test because
-you have to actually interact with the browser and possibly make network
-requests, etc...
-
-For unit/component tests, <SmileText/> user [Vitest](https://vitest.dev) and
-[cypress](https://www.cypress.io) and for integration tests it uses only
-[cypress](https://www.cypress.io). An important helping library for tests is
-[Vue Test Utils](https://test-utils.vuejs.org)
-
-```
-npm run test
+```sh
+pnpm test:e2e        # run the suite in the terminal
+pnpm test:e2e:ui     # Playwright's UI: pick tests, watch them run, step through
 ```
 
-```
-npm run test:ui
-```
+The first run downloads a browser (`pnpm exec playwright install chromium` if
+it asks). Playwright starts the dev server itself on port **3100** and stops it
+afterward. If you already have `pnpm dev` running on 3100, it reuses it. Use
+another port with `SMILE_E2E_PORT`:
 
-## Testing coverage
-
-In an ideal world 100% of your code is covered by test (meaning that when your
-test harness runs every line of your application gets tested). Coverage refers
-to the percentage of code covered by test. The ideal goal is to increase this
-value. You can obtain the unit test coverage for <SmileText/> using this
-command:
-
-```
-npm run coverage
+```sh
+SMILE_E2E_PORT=3200 pnpm test:e2e
 ```
 
-## Types of E2E tests
+To run one file or one test:
 
-### Completion tests
-
-### Mischief agent tests
-
-### Data integrity tests
-
-Data integrity tests verify that the data input by the user is accurately
-reflected in the Firebase database.
-
-### Checklist tests
-
-Checklist tests run and verify that key elements of your experiment are properly
-configured and do not still have default values set by the <SmileText /> project
-template. This can be helpful to run before you first deploy your project to
-make sure you didn't miss anything . If this test passes successfully it means
-that your experiment it not caught by common misconfigurations.
-
-Testing individual files (this will only run tests that contain `timeline` in
-their paths):
-
-```
-npx vitest timeline
+```sh
+pnpm test:e2e test/e2e/experiment.spec.ts
+pnpm test:e2e -g "records the response"
 ```
 
-For more information about the vitest command line options
-[see these documents](https://vitest.dev/guide/cli.html).
+A failed test leaves a screenshot and an `error-context.md` (what the page
+looked like when it failed) in `test-results/`. To watch a failing test step by
+step, open it in `pnpm test:e2e:ui`.
 
-### Testing the database layer
+## Writing tests for your task
 
-Local development uses a SQLite file at `.data/experiment.db`, which is the
-same libSQL dialect used by Turso in production — so tests that exercise the
-database layer don't need a separate emulator. The end-to-end suite runs against
-this local file. See [Data Storage](/coding/datastorage) for the full data
-layer story, and [Configuration](/coding/configuration) for how to point at a
-remote Turso instance instead.
+When you build your own task in place of `MyTaskView`, update the
+`Your task` test at the bottom of `experiment.spec.ts` to match. A task test
+does three things:
+
+1. **Get to the task** the way a participant does: consent, demographics, the
+   window sizer.
+2. **Do the task**: click buttons, press keys, wait for the next trial.
+3. **Check the data** in the local database.
+
+```ts
+test('records the response on the task page', async ({ page }) => {
+  // 1. Get to the task (see the full flow in experiment.spec.ts)
+  await expect(page).toHaveURL(/\/task/)
+  const participant = await getLatestParticipant(db)
+
+  // 2. Do the task
+  await page.getByRole('button', { name: 'Left' }).click()
+
+  // 3. Check what was recorded
+  await expect.poll(async () => {
+    const row = await db.execute({
+      sql: 'SELECT data FROM participants WHERE id = ?',
+      args: [participant!.id],
+    })
+    const data = JSON.parse(row.rows[0]!.data as string)
+    return data.pageData_task?.visit_0?.data?.[0]?.response
+  }).toBe('left')
+})
+```
+
+### Where the data is
+
+In development, data is saved to a SQLite file, `.data/experiment.db`, in your
+project. The tests read it directly with `@libsql/client`. Each participant is
+a row in the `participants` table, and its `data` column holds the same object
+you see in the dev tools. Data from `api.recordPageData()` is stored under
+`pageData_<route name>`, with one entry per visit to the page:
+
+```js
+pageData_task: {
+  visit_0: { timestamps: [...], data: [{ response: 'left', rt: 812, ... }] },
+}
+```
+
+A reload starts a new visit (`visit_1`, and so on); see
+[Understanding the visit structure](/analysis#understanding-the-visit-structure).
+
+### Tips
+
+- **Poll, don't read once.** Saves are throttled by `VITE_MIN_WRITE_INTERVAL`
+  (2 seconds by default), so data reaches the database a moment after the click.
+  `expect.poll()` retries until the value appears.
+- **Multi-trial tasks:** press keys with `page.keyboard.press('f')` and wait for
+  each trial to change (for example `await expect(page.locator('#prompt')).toHaveText(...)`)
+  before the next press, so every keypress lands on its own trial.
+- **Reloads:** call `page.reload()` partway through and check that the task
+  resumes where it was and that the trials before the reload are still saved.
+- **Clean up:** delete the participant rows your test created (`cleanupParticipant()`
+  in the spec) so your local database doesn't fill up with test data.
+- **Start fresh:** call `clearState(page)` before each test so cookies and local
+  storage from the last test don't make the browser look like a returning
+  participant.
+
+## Before you deploy
+
+Run through this list before you recruit real participants:
+
+- [ ] `pnpm test:e2e` passes, including a test for your own task.
+- [ ] You've completed the whole experiment yourself in a normal browser window
+      (not just in `/dev/`), start to finish.
+- [ ] You reloaded partway through your task and it resumed correctly.
+- [ ] The data in `.data/experiment.db` (or the dev tools' data view) has every
+      field you plan to analyze, under the names you expect.
+- [ ] The consent form, debrief text and study details are yours, not the
+      template's placeholders.
+- [ ] `VITE_WINDOWSIZER_REQUEST` and the other settings in `.env` are set for
+      your study; see [Configuration](/coding/configuration).
+- [ ] Your deploy has `SMILE_AUTH_SECRET` and its database variables set; see
+      [Cloud Hosting](/recruit/deploying).
+
+## Testing the database layer
+
+Local development uses the same libSQL dialect as Turso in production, so tests
+don't need a separate database emulator. See [Data Storage](/coding/datastorage)
+for how data is stored, and [Configuration](/coding/configuration) for pointing
+at a remote Turso database instead.
+
+---
+
+Working on <SmileText/> itself rather than an experiment? The module's own
+tests are described in [Contributing](/contributing#testing-the-module).
