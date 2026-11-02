@@ -916,6 +916,24 @@ describe('Timeline middleware guards', () => {
       )
       expect(result).toEqual({ __navigateTo: true, path: '/demograph', opts: { replace: true } })
     })
+
+    it('ignores a pinned route on participant routes in a production build (#31)', async () => {
+      // store.dev comes from a client-writable cookie. On a deployed
+      // participant route, a pinned route must not let an unconsented visitor
+      // jump ahead or get marked consented by connectDB().
+      // (import.meta.dev is undefined under vitest, as in a production build.)
+      store.dev.pinnedRoute = 'instructions'
+      store.cookieState.lastRoute = 'welcome_anonymous'
+
+      const result = await executeGuards(
+        mockRoute('/instructions'),
+        mockRoute('/welcome'),
+        { timeline, store, log, api },
+      )
+      expect(result).toEqual({ __navigateTo: true, path: '/welcome', opts: { replace: true } })
+      expect(api.connectDB).not.toHaveBeenCalled()
+      expect(store.cookieState.consented).toBe(false)
+    })
   })
 
   describe('Parameterized route matching (getViewForPath)', () => {

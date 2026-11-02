@@ -120,8 +120,11 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
   }
 
   // --- Guard 5: Dev mode pinned route ---
-  // Runs before skipBlockingGuards so pinning works in dev mode
-  if (store.dev?.pinnedRoute) {
+  // Runs before skipBlockingGuards so pinning works in dev mode. Only honored
+  // on dev/presentation routes or in local development: store.dev comes from a
+  // client-writable cookie, so on a deployed participant route a pinned route
+  // would let anyone jump anywhere and be marked consented (#31).
+  if (store.dev?.pinnedRoute && (skipBlockingGuards || import.meta.dev)) {
     // If pinned route doesn't exist in timeline, clear it
     if (!timeline.getRouteByName(store.dev.pinnedRoute)) {
       store.dev.pinnedRoute = null

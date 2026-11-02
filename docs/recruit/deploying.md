@@ -190,6 +190,19 @@ vercel env ls                # verify all six entries
 Or in the dashboard: **Project → Settings → Environment Variables**, adding each
 variable with both the **Production** and **Preview** boxes checked.
 
+::: tip Recommended: a dedicated signing secret
+Participant tokens are signed with `TURSO_AUTH_TOKEN` unless you set
+`SMILE_AUTH_SECRET`. That works, but rotating the Turso token then stops every
+participant who is partway through from saving. Set your own secret (for
+example `openssl rand -hex 32`) for Production and Preview so the two are
+independent:
+
+```sh
+vercel env add SMILE_AUTH_SECRET production
+vercel env add SMILE_AUTH_SECRET preview
+```
+:::
+
 ::: tip Hash the dev password
 `SMILE_DEV_PASSWORD` accepts a plaintext value or a bcrypt hash. To avoid
 storing the password in the clear, generate a hash and use that as the value

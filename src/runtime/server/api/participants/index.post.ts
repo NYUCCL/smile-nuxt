@@ -1,5 +1,5 @@
 import { randomUUID, createHmac } from 'node:crypto'
-import { defineEventHandler, readBody, setCookie } from 'h3'
+import { defineEventHandler, readBody, setCookie, getRequestProtocol } from 'h3'
 import { useDB } from '../../utils/db'
 import { getAuthSecret } from '../../utils/dev-auth'
 import { participants, projects } from '../../database/schema'
@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
 
   setCookie(event, 'smile_participant', signedToken, {
     httpOnly: true,
-    secure: false,
+    secure: getRequestProtocol(event, { xForwardedProto: true }) === 'https', // HTTPS-only on deploys; plain HTTP still works locally
     sameSite: 'lax',
     path: '/',
     maxAge: 86400 * 7,

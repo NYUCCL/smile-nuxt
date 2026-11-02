@@ -26,9 +26,30 @@ export function getPresentationPassword(): string {
   return process.env.SMILE_PRESENTATION_PASSWORD || ''
 }
 
-/** Secret used to sign/verify session + participant tokens, read at runtime. */
+const BUILTIN_DEV_SECRET = 'smile-local-dev-key'
+let warnedBuiltinSecret = false
+
+/**
+ * Secret used to sign/verify session + participant tokens, read at runtime.
+ *
+ * SMILE_AUTH_SECRET is the dedicated one. Without it the Turso token or the
+ * dev password stands in, so rotating either one invalidates every
+ * participant's token mid-study (their saves then fail with 403). With none
+ * of them, tokens are signed with a key published in this package, so anyone
+ * who knows a participant's id could read or change their data; that's fine
+ * locally but a deploy should set SMILE_AUTH_SECRET (#31).
+ */
 export function getAuthSecret(): string {
-  return process.env.TURSO_AUTH_TOKEN || process.env.SMILE_DEV_PASSWORD || 'smile-local-dev-key'
+  const secret = process.env.SMILE_AUTH_SECRET || process.env.TURSO_AUTH_TOKEN || process.env.SMILE_DEV_PASSWORD
+  if (secret) return secret
+  if (!import.meta.dev && !warnedBuiltinSecret) {
+    warnedBuiltinSecret = true
+    console.warn(
+      '[smile] No SMILE_AUTH_SECRET (or TURSO_AUTH_TOKEN / SMILE_DEV_PASSWORD) is set, so participant '
+      + 'tokens are signed with the built-in development key. Set SMILE_AUTH_SECRET on this deploy.',
+    )
+  }
+  return BUILTIN_DEV_SECRET
 }
 
 // --- Access mode resolution (default: disabled / not deployed at all) ---

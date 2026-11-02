@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { defineEventHandler, readBody, createError, setCookie } from 'h3'
+import { defineEventHandler, readBody, createError, setCookie, getRequestProtocol } from 'h3'
 import bcrypt from 'bcryptjs'
 import { useDB } from '../../utils/db'
 import {
@@ -55,7 +55,7 @@ export default defineEventHandler(async (event) => {
 
   setCookie(event, cookieNameForScope(scope), signSessionToken(id, scope), {
     httpOnly: true,
-    secure: false, // allow HTTP for local preview; deployed behind HTTPS proxy
+    secure: getRequestProtocol(event, { xForwardedProto: true }) === 'https', // HTTPS-only on deploys; plain HTTP still works locally
     sameSite: 'lax',
     path: '/',
     maxAge: 7 * 24 * 60 * 60,
