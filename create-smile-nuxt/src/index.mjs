@@ -8,6 +8,9 @@ import { downloadTemplate } from 'giget'
 // The template is start/ at the release tag of the module version on npm
 // (e.g. start#v0.2.0-beta.8), so a new project gets the template that was
 // released with the module it installs, not whatever is on main.
+// NOTE for releases: this reads the `latest` dist-tag, but `pnpm release`
+// publishes with `--tag beta`. Keep `latest` in step with `beta` after each
+// release or new projects get an old template (see .claude/CLAUDE.md).
 const TEMPLATE_REPO = 'gh:nyuccl/smile-nuxt/start'
 const MODULE_PACKAGE = '@nyuccl/smile-nuxt'
 const FALLBACK_REF = 'main'
