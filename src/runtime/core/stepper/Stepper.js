@@ -48,6 +48,7 @@ export class Stepper extends StepState {
     this._store = store
     this._log = log
     this._shuffled = false // Add shuffled property
+    this._lastAdded = null // Children named by the latest append/outer/zip call (scopes a chained forEach; not serialized)
     this._onModify = null // Add callback property
     this._needsWrite = false // Track if we need to write
     this._componentRegistry = new Map() // Registry for Vue components encountered in step data
@@ -174,6 +175,47 @@ export class Stepper extends StepState {
   }
 
   /**
+   * Adds rows as child states, skipping any that would duplicate an existing
+   * path, and records the children those rows name (newly added or already
+   * there) in `_lastAdded`, so a chained forEach() runs over the same rows on
+   * every mount (#41).
+   * @private
+   * @param {Array<object>} rows - Rows to add
+   * @param {string} what - Noun for the duplicate warning ('item' or 'combination')
+   * @param {Function} [beforeCheck] - Called with each row before the duplicate check
+   */
+  _addRows(rows, what, beforeCheck = null) {
+    const { isDuplicate } = this._buildDuplicateChecker()
+    const named = []
+    rows.forEach((row) => {
+      if (beforeCheck) beforeCheck(row)
+      if (isDuplicate(row)) {
+        this._log.warn(`Warning: Skipping ${what} that would create duplicate path`)
+        const existing = this._findExisting(row)
+        if (existing && !named.includes(existing)) named.push(existing)
+      }
+      else {
+        const state = this._addState(row)
+        if (state) named.push(state)
+      }
+    })
+    this._lastAdded = named
+  }
+
+  /**
+   * Finds the existing child a duplicate row refers to: by id if it has one,
+   * otherwise by identical data.
+   * @private
+   * @param {object} row - The row that was skipped as a duplicate
+   * @returns {Stepper|undefined} The matching child state
+   */
+  _findExisting(row) {
+    if (row.id !== undefined) return this._states.find(state => state.id === row.id)
+    const dataStr = JSON.stringify(row)
+    return this._states.find(state => JSON.stringify(state.data) === dataStr)
+  }
+
+  /**
    * Appends one or more objects as new states to the current node
    * @param {object | Array<object>} items - Single object or array of objects to append as new states
    * @returns {Stepper} Returns this instance for method chaining
@@ -190,24 +232,10 @@ export class Stepper extends StepState {
       throw new Error(`Cannot append ${itemsToAdd.length} rows as it exceeds the safety limit of ${config.maxSteps}`)
     }
 
-    // Build duplicate checker once for the entire batch
-    const { isDuplicate } = this._buildDuplicateChecker()
-
-    // Try to add each item individually
-    itemsToAdd.forEach((item) => {
-      // Register any Vue component references from the item data so they
-      // can be resolved after deserialization (even if the item is skipped
-      // as a duplicate — the component objects are still needed for rendering)
-      this._registerComponentsFromData(item)
-
-      // Check if this specific item would create a duplicate path
-      if (isDuplicate(item)) {
-        this._log.warn(`Warning: Skipping item that would create duplicate path`)
-      }
-      else {
-        this._addState(item)
-      }
-    })
+    // Register any Vue component references from the item data so they can be
+    // resolved after deserialization (even if the item is skipped as a
+    // duplicate — the component objects are still needed for rendering)
+    this._addRows(itemsToAdd, 'item', item => this._registerComponentsFromData(item))
 
     this._markForWrite()
     return this
@@ -266,22 +294,10 @@ export class Stepper extends StepState {
 
     const outerRows = generateCombinations(processedColumns)
 
-    // Build duplicate checker once for the entire batch
-    const { isDuplicate } = this._buildDuplicateChecker()
-
-    // Try to add each combination individually
-    outerRows.forEach((row) => {
-      // If an idGenerator function is provided, use it to generate the ID
+    // If an idGenerator function is provided, use it to generate each row's ID
+    this._addRows(outerRows, 'combination', (row) => {
       if (typeof idGenerator === 'function') {
         row.id = idGenerator(row)
-      }
-
-      // Check if this specific combination would create a duplicate path
-      if (isDuplicate(row)) {
-        this._log.warn(`Warning: Skipping combination that would create duplicate path`)
-      }
-      else {
-        this._addState(row)
       }
     })
 
@@ -394,22 +410,10 @@ export class Stepper extends StepState {
         return row
       })
 
-    // Build duplicate checker once for the entire batch
-    const { isDuplicate } = this._buildDuplicateChecker()
-
-    // Try to add each combination individually
-    zippedRows.forEach((row) => {
-      // If an idGenerator function is provided, use it to generate the ID
+    // If an idGenerator function is provided, use it to generate each row's ID
+    this._addRows(zippedRows, 'combination', (row) => {
       if (typeof idGenerator === 'function') {
         row.id = idGenerator(row)
-      }
-
-      // Check if this specific combination would create a duplicate path
-      if (isDuplicate(row)) {
-        this._log.warn(`Warning: Skipping combination that would create duplicate path`)
-      }
-      else {
-        this._addState(row)
       }
     })
 
@@ -469,6 +473,11 @@ export class Stepper extends StepState {
    * Executes a function once for each item in the table.
    * Returns the table for chaining.
    *
+   * Chained after append(), outer() or zip(), it runs over the rows that call
+   * added (or matched, when they already existed). Otherwise it runs over all
+   * children of this node. That keeps view code that builds steps idempotent
+   * when the view mounts again (#41).
+   *
    * Note: While the 'id' field can be modified through forEach, doing so will throw an error
    * if it would create duplicate paths. IDs should generally be set during node creation
    * (via append, outer, or zip) to avoid potential conflicts.
@@ -482,7 +491,15 @@ export class Stepper extends StepState {
     // Build duplicate checker once for the entire forEach pass
     const { isDuplicate } = this._buildDuplicateChecker()
 
-    this._states.forEach((item, index) => {
+    // Chained after append/outer/zip, run over the rows that call named (in
+    // their current order), not every child: a view's build code re-runs on
+    // each mount, and children appended later in the chain on an earlier
+    // mount must not be visited (#41).
+    const scope = this._lastAdded
+    this._lastAdded = null
+    const items = scope ? this._states.filter(state => scope.includes(state)) : this._states
+
+    items.forEach((item, index) => {
       // Call the callback and check if it returns a new value
       const result = callback(item, index)
       if (result !== undefined) {

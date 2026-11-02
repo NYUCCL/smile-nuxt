@@ -265,7 +265,7 @@ describe('StepperSerializer', () => {
 
     it('should throw error for invalid field types', () => {
       const invalidData = {
-        id: 123, // Should be string
+        id: true, // Should be string or number
         currentIndex: '0', // Should be number
         depth: '1', // Should be number
         states: {}, // Should be array
@@ -275,8 +275,24 @@ describe('StepperSerializer', () => {
 
       const newStepper = new Stepper({ id: 'test', parent: root, store })
       expect(() => StepperSerializer.deserialize(invalidData, newStepper, root)).toThrow(
-        'Invalid id: Expected string but received number',
+        'Invalid id: Expected string or number but received boolean',
       )
+    })
+
+    it('round-trips numeric ids (auto-assigned or explicit)', () => {
+      // Auto-assigned ids are numbers. Rejecting them on load made useStepper
+      // fall back to a fresh stepper, so a reload restarted the view at step 1.
+      const original = new Stepper({ id: '/', store })
+      original.append([{ v: 1 }, { v: 2 }])
+      original.states[0].append([{ id: 0, w: 'a' }, { id: 1, w: 'b' }])
+      original.next()
+      original.next()
+
+      const restored = new Stepper({ id: '/', serializedState: original.json, store })
+      expect(restored.states.map(s => s.id)).toEqual([0, 1])
+      expect(restored.states[0].states.map(s => s.id)).toEqual([0, 1])
+      expect(restored.currentPath).toEqual(original.currentPath)
+      expect(original.currentPath).not.toEqual([0, 0]) // moved past the first step
     })
   })
 })

@@ -447,6 +447,54 @@ describe('Stepper test', () => {
   })
 
   describe('forEach Operations', () => {
+    describe('re-running build code on remount (#41)', () => {
+      // A view's build code runs again every time the view mounts, against the
+      // stepper restored from storage. It must not change the tree.
+      function build(steps) {
+        steps
+          .append({ id: 'game' })
+          .forEach((row) => {
+            for (let i = 0; i < 3; i++) row.append({ id: i })
+          })
+          .append({ id: 'nextGame' })
+      }
+
+      function paths(node) {
+        return node.states.flatMap(s => [s.path.join('-'), ...paths(s)])
+      }
+
+      it('does not append nested rows to later siblings when the view mounts again', () => {
+        build(stepper)
+        const firstPaths = paths(stepper)
+        expect(firstPaths).toEqual(['game', 'game-0', 'game-1', 'game-2', 'nextGame'])
+
+        // Same stepper instance (navigating back within one page load)
+        build(stepper)
+        expect(paths(stepper)).toEqual(firstPaths)
+
+        // Restored from storage (a full page load), then built again
+        const restored = new Stepper({ id: '/', serializedState: stepper.json })
+        build(restored)
+        expect(paths(restored)).toEqual(firstPaths)
+        expect(restored.countLeafNodes).toBe(4)
+      })
+
+      it('runs over every child when not chained after an add', () => {
+        stepper.append([{ id: 'a' }, { id: 'b' }])
+        stepper.forEach(() => {}) // consumes the chained scope
+        const seen = []
+        stepper.forEach(row => seen.push(row.id))
+        expect(seen).toEqual(['a', 'b'])
+      })
+
+      it('runs over rows matched as duplicates, in their current order', () => {
+        stepper.append([{ id: 'a' }, { id: 'b' }, { id: 'c' }])
+        const seen = []
+        stepper.append([{ id: 'c' }, { id: 'a' }]).forEach((row, index) => seen.push([row.id, index]))
+        expect(seen).toEqual([['a', 0], ['c', 1]])
+      })
+    })
+
     it('should execute callback for each item', () => {
       stepper.append([{ value: 1 }, { value: 2 }, { value: 3 }])
 

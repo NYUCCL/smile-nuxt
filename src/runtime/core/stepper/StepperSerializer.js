@@ -142,8 +142,9 @@ export class StepperSerializer {
     }
 
     // Validate field types
-    if (typeof data.id !== 'string') {
-      throw new TypeError('Invalid id: Expected string but received ' + typeof data.id)
+    // Auto-assigned ids (and ids like { id: i }) are numbers; both survive JSON.
+    if (typeof data.id !== 'string' && typeof data.id !== 'number') {
+      throw new TypeError('Invalid id: Expected string or number but received ' + typeof data.id)
     }
     if (typeof data.currentIndex !== 'number') {
       throw new TypeError('Invalid currentIndex: Expected number but received ' + typeof data.currentIndex)

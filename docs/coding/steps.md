@@ -577,6 +577,23 @@ const trials = api.steps
 // ]
 ```
 
+Chained after `append()`, `outer()` or `zip()`, `forEach()` runs over the rows
+that call added. Called on its own, it runs over every child of the node. This
+matters because a view's code runs again each time the view mounts: the
+stepper keeps the tree from the earlier visit, so rows appended later in the
+chain already exist. Scoping `forEach()` to the rows it's chained to means the
+same code builds the same tree every time:
+
+```js
+api.steps
+  .append({ id: 'game' })
+  .forEach((row) => {
+    // only 'game' — never 'nextGame', even when the view mounts again
+    for (let i = 0; i < 10; i++) row.append({ id: i })
+  })
+  .append({ id: 'nextGame' })
+```
+
 ## The `id` Field
 
 When building trial tables, you can use a special `id` field in your trial data
