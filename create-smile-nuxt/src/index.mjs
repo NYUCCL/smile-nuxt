@@ -5,7 +5,34 @@ import { spawnSync } from 'node:child_process'
 import * as p from '@clack/prompts'
 import { downloadTemplate } from 'giget'
 
-const TEMPLATE_SOURCE = 'gh:nyuccl/smile-nuxt/start#main'
+// The template is start/ at the release tag of the module version on npm
+// (e.g. start#v0.2.0-beta.8), so a new project gets the template that was
+// released with the module it installs, not whatever is on main.
+const TEMPLATE_REPO = 'gh:nyuccl/smile-nuxt/start'
+const MODULE_PACKAGE = '@nyuccl/smile-nuxt'
+const FALLBACK_REF = 'main'
+
+/**
+ * The git ref to download the template from: --template-ref if given, else
+ * the tag of the module's `latest` version on npm. Falls back to main (with a
+ * warning) if npm can't be reached.
+ */
+async function resolveTemplateRef(explicit) {
+  if (explicit) return { ref: explicit }
+  try {
+    const res = await fetch(`https://registry.npmjs.org/${MODULE_PACKAGE.replace('/', '%2F')}`, {
+      headers: { accept: 'application/vnd.npm.install-v1+json' },
+      signal: AbortSignal.timeout(10_000),
+    })
+    if (!res.ok) throw new Error(`npm registry answered ${res.status}`)
+    const version = (await res.json())['dist-tags']?.latest
+    if (!version) throw new Error('no latest version on npm')
+    return { ref: `v${version}`, version }
+  }
+  catch (err) {
+    return { ref: FALLBACK_REF, warning: `Couldn't look up the latest ${MODULE_PACKAGE} release (${err?.message || err}); using the template from ${FALLBACK_REF}.` }
+  }
+}
 
 // For the repo's own smoke tests: copy the template from a local directory
 // (a checkout's start/) instead of downloading it. Not a user-facing option.
@@ -30,7 +57,7 @@ function detectPackageManager() {
 }
 
 function parseArgs(argv) {
-  const args = { name: undefined, install: undefined, git: undefined, force: false }
+  const args = { name: undefined, install: undefined, git: undefined, force: false, templateRef: undefined }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
     if (a === '--no-install') args.install = false
@@ -38,6 +65,8 @@ function parseArgs(argv) {
     else if (a === '--no-git') args.git = false
     else if (a === '--git') args.git = true
     else if (a === '--force' || a === '-f') args.force = true
+    else if (a === '--template-ref') args.templateRef = argv[++i]
+    else if (a.startsWith('--template-ref=')) args.templateRef = a.slice('--template-ref='.length)
     else if (a === '--help' || a === '-h') args.help = true
     else if (!a.startsWith('-') && !args.name) args.name = a
   }
@@ -56,6 +85,8 @@ Options:
   --no-git           Skip initializing a git repository
   --git              Initialize a git repository (skip the prompt)
   --force, -f        Overwrite an existing non-empty directory
+  --template-ref REF Use the template from this git ref (tag, branch or commit)
+                     instead of the latest release's tag, e.g. main
   --help, -h         Show this help
 `)
 }
@@ -119,14 +150,19 @@ async function run() {
     }
   }
 
+  const template = LOCAL_TEMPLATE_DIR ? null : await resolveTemplateRef(args.templateRef)
+  if (template?.warning) p.log.warn(template.warning)
+
   const spinner = p.spinner()
-  spinner.start(`Downloading template into ${projectName}`)
+  spinner.start(template
+    ? `Downloading template (${template.ref}) into ${projectName}`
+    : `Copying template from ${LOCAL_TEMPLATE_DIR} into ${projectName}`)
   try {
     if (LOCAL_TEMPLATE_DIR) {
       copyLocalTemplate(LOCAL_TEMPLATE_DIR, targetDir, args.force)
     }
     else {
-      await downloadTemplate(TEMPLATE_SOURCE, {
+      await downloadTemplate(`${TEMPLATE_REPO}#${template.ref}`, {
         dir: targetDir,
         force: true,
         forceClean: args.force,

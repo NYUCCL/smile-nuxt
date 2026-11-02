@@ -13,8 +13,8 @@
  *
  *   pnpm test:starter --published [version]
  *                                   After a release. Runs the published CLI
- *                                   (pnpm dlx @nyuccl/create-smile-nuxt@latest),
- *                                   which downloads the template from GitHub main,
+ *                                   (pnpm dlx @nyuccl/create-smile-nuxt@latest)
+ *                                   with the template from the v<version> tag,
  *                                   and installs @nyuccl/smile-nuxt@<version>
  *                                   (default: this checkout's version) from npm.
  *                                   This is exactly what a new user gets.
@@ -98,7 +98,9 @@ try {
       }
     }
     log(`Scaffolding with the published CLI into ${projectDir} …`)
-    run('pnpm', ['dlx', '@nyuccl/create-smile-nuxt@latest', PROJECT, '--no-install', '--no-git'], { cwd: workDir, env })
+    // The template from this version's release tag (what the CLI picks by default
+    // once this version is npm's latest).
+    run('pnpm', ['dlx', '@nyuccl/create-smile-nuxt@latest', PROJECT, '--no-install', '--no-git', '--template-ref', `v${moduleVersion}`], { cwd: workDir, env })
     moduleSpec = moduleVersion
   }
   else {
