@@ -1,4 +1,7 @@
 <script setup>
+// Explicit, not auto-imported: auto-imports don't reach the module's runtime
+// files once it's installed in a project (node_modules).
+import { useHead } from '#imports'
 import useWindowSizer from '#smile-composables/useWindowSizer'
 import { useParticipantColorMode } from '#smile-composables/useColorMode'
 
