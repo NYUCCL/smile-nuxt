@@ -58,7 +58,7 @@ class Participant:
 
     @property
     def recruitment_service(self) -> str:
-        """Recruitment service used (e.g., 'prolific', 'mturk')."""
+        """Recruitment service used (e.g., 'prolific', 'cloudresearch')."""
         return self._data.get("recruitmentService", "")
 
     @property

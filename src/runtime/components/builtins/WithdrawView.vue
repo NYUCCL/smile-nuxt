@@ -26,11 +26,6 @@ const cardContent = {
     message:
       'You have indicated that you withdrew from the study. Please return the task and we will contact you for partial payment if you are eligible.',
   },
-  mturk: {
-    title: 'Notice about withdraw from our Mechanical Turk study',
-    message:
-      'You have indicated that you withdrew from the study. Please return the task and we will contact you for partial payment if you are eligible.',
-  },
   sona: {
     title: 'Notice about withdraw from our SONA study',
     message:

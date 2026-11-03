@@ -36,10 +36,10 @@ export async function executeGuards(to, from, { timeline, store, log, api, skipB
   if (result === undefined) {
     const toConfig = timeline.getViewForPath(to.path)
     const toName = toConfig?.name || to.name
-    // allowAlways pages (e.g. the MTurk preview) sit outside the sequence: a
-    // participant already in the study may view one, but it must not become
-    // their place (lastRoute) or enter their routeOrder, or every later
-    // navigation would send them back to it (#60).
+    // allowAlways pages sit outside the sequence: a participant already in
+    // the study may view one, but it must not become their place (lastRoute)
+    // or enter their routeOrder, or every later navigation would send them
+    // back to it (#60).
     const trackRoute = !(toConfig?.meta?.allowAlways && wasKnownUser)
     _postGuard({ timeline, store, log, api, toName, toPath: to.path, trackRoute })
   }

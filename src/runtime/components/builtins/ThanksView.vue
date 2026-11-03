@@ -178,8 +178,8 @@ onMounted(() => {
               <SquareCheckBig class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
             </h1>
             <p class="text-lg mb-8">
-              Please copy the code displayed below (or click the button) and paste it into the Mechanical Turk window to
-              begin the process of payment. Your work will be approved within several hours and any performance related
+              Please copy the code displayed below (or click the button) and paste it into the CloudResearch study
+              window to begin the process of payment. Your work will be approved within several hours and any performance related
               bonuses will be assigned at that time. We really appreciate your time.
             </p>
           </template>
@@ -189,7 +189,7 @@ onMounted(() => {
                 Completion Code
               </h3>
               <p class="text-sm text-muted-foreground">
-                Copy this unique code and paste it into the Mechanical Turk submission form.
+                Copy this unique code and paste it into the CloudResearch submission form.
               </p>
             </div>
           </template>
@@ -207,58 +207,6 @@ onMounted(() => {
                 <Button
                   variant="default"
                   data-clipboard-target=".completioncode-cloudresearch"
-                >
-                  Copy Code
-                  <ClipboardCopy />
-                </Button>
-              </div>
-            </div>
-          </template>
-        </TitleTwoCol>
-      </div>
-
-      <!-- MTurk recruitment service completion -->
-      <div v-if="api.getRecruitmentService() == 'mturk'">
-        <TitleTwoCol
-          left-first
-          left-width="w-1/3"
-          :responsive-u-i="api.config.responsiveUI"
-        >
-          <template #title>
-            <h1 class="text-3xl font-bold mb-4">
-              <SquareCheckBig class="inline mr-2" />&nbsp;Thanks, let's begin the payment process!
-            </h1>
-            <p class="text-lg mb-8">
-              Please verify the code displayed below is visible in the form on the Mechanical Turk website. If it is not
-              click the button to copy it to your clipboard and paste it into the Mechanical Turk window to begin the
-              process of payment. Your work will be approved within several hours and any performance related bonuses
-              will be assigned at that time. We really appreciate your time.
-            </p>
-          </template>
-          <template #left>
-            <div class="text-left text-muted-foreground">
-              <h3 class="text-lg font-bold mb-2">
-                Completion Code
-              </h3>
-              <p class="text-sm text-muted-foreground">
-                Verify this code appears in your Mechanical Turk submission form, or copy it manually.
-              </p>
-            </div>
-          </template>
-          <template #right>
-            <div class="border border-border text-left bg-muted p-6 rounded-lg">
-              <h3 class="text-lg font-semibold mb-4 text-foreground">
-                Unique completion code:
-              </h3>
-              <div class="flex items-center gap-4 mb-4">
-                <Input
-                  v-model="completionCode"
-                  readonly
-                  class="text-2xl completioncode-mturk"
-                />
-                <Button
-                  variant="default"
-                  data-clipboard-target=".completioncode-mturk"
                 >
                   Copy Code
                   <ClipboardCopy />

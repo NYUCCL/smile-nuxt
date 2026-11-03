@@ -87,9 +87,9 @@ const services = {
     name: 'CloudResearch',
     buttonLabel: 'CR',
     buttonClass: 'is-pink',
-    description: 'CloudResearch recruits from several sources, including Mechanical Turk but includes some screening for bots and server farms.',
+    description: 'CloudResearch recruits from several participant panels and screens for bots and server farms.',
     link: 'https://www.cloudresearch.com/',
-    urlNote: 'CloudResearch appends <code>assignmentId</code>, <code>hitId</code>, <code>turkSubmitTo</code>, and <code>workerId</code> as query parameters.',
+    urlNote: 'CloudResearch appends <code>assignmentId</code>, <code>hitId</code>, and <code>workerId</code> as query parameters.',
     studyUrl: computed(() => `${baseUrl.value}/welcome/cloudresearch`),
     setupSteps: [
       'Go to <a href="https://app.cloudresearch.com" target="_blank" class="underline font-medium">app.cloudresearch.com</a> and create a new study.',
@@ -99,24 +99,6 @@ const services = {
       'Configure your <strong>participant requirements</strong> (approval rate, location, etc.).',
       'Set <strong>payment</strong> and <strong>number of participants</strong>.',
       'Use the <strong>Preview</strong> button to verify the link works, then <strong>Launch</strong>.',
-    ],
-  },
-  mturk: {
-    name: 'Mechanical Turk',
-    buttonLabel: 'AMT',
-    buttonClass: 'is-yellow',
-    extraButtons: true, // has AMT Preview Mode button
-    description: 'Amazon Mechanical Turk is the original wild-west of online crowd labor markets.',
-    link: 'https://mturk.com',
-    urlNote: 'MTurk uses an ExternalQuestion HIT type. The URL must be HTTPS. MTurk appends <code>assignmentId</code>, <code>hitId</code>, <code>turkSubmitTo</code>, and <code>workerId</code>.',
-    studyUrl: computed(() => `${baseUrl.value}/mturk`),
-    setupSteps: [
-      'You\'ll need the <strong>AWS CLI</strong> or a tool like <a href="https://github.com/Mechanical-Turk-Requester" target="_blank" class="underline font-medium">Boto3 (Python)</a> to create ExternalQuestion HITs.',
-      'Create an ExternalQuestion XML pointing to the MTurk URL shown below: <pre class="mt-1 p-2 bg-muted rounded text-xs overflow-x-auto">&lt;ExternalQuestion xmlns="..."&gt;\n  &lt;ExternalURL&gt;YOUR_MTURK_URL&lt;/ExternalURL&gt;\n  &lt;FrameHeight&gt;800&lt;/FrameHeight&gt;\n&lt;/ExternalQuestion&gt;</pre>',
-      'Create the HIT using <code>create_hit_type</code> and <code>create_hit_with_hit_type</code> (or equivalent).',
-      'SMILE handles the MTurk form submission automatically — when participants finish, the Thanks page posts their completion to <code>turkSubmitTo</code>.',
-      'For testing, use the <strong>MTurk Sandbox</strong> (<code>https://workersandbox.mturk.com</code>) before publishing to production.',
-      'Monitor HITs via the <a href="https://requester.mturk.com" target="_blank" class="underline font-medium">Requester dashboard</a>.',
     ],
   },
   citizensci: {
@@ -540,19 +522,6 @@ const currentService = computed(() => services[selectedService.value])
           </CardHeader>
           <CardContent class="flex justify-end flex-1 items-end gap-2">
             <div class="flex items-end gap-2">
-              <template v-if="key === 'mturk'">
-                <Button
-                  as-child
-                  variant="secondary"
-                  size="xs"
-                  class="is-light-yellow"
-                >
-                  <a href="/dev/mturk?assignmentId=ASSIGNMENT_ID_NOT_AVAILABLE&hitId=123RVWYBAZW00EXAMPLE&turkSubmitTo=https://www.mturk.com/&workerId=AZ3456EXAMPLE">
-                    Preview
-                    <ArrowRight class="inline-block ml-1 w-4 h-4" />
-                  </a>
-                </Button>
-              </template>
               <Button
                 as-child
                 variant="default"
@@ -587,16 +556,6 @@ const currentService = computed(() => services[selectedService.value])
 
 .is-red {
   background-color: var(--recruit-red);
-  color: var(--recruit-text);
-}
-
-.is-light-yellow {
-  background-color: var(--recruit-yellow-light);
-  color: var(--recruit-text);
-}
-
-.is-yellow {
-  background-color: var(--recruit-yellow);
   color: var(--recruit-text);
 }
 

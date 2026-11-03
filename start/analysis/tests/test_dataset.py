@@ -81,8 +81,8 @@ class TestDatasetFiltering:
         assert len(prolific) == 5
 
     def test_by_recruitment_no_match(self, sample_dataset):
-        mturk = sample_dataset.by_recruitment("mturk")
-        assert len(mturk) == 0
+        sona = sample_dataset.by_recruitment("sona")
+        assert len(sona) == 0
 
     def test_filter_chain(self, sample_dataset):
         """Test chaining multiple filters."""
