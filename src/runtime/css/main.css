@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import './smile.css';
+@import './dev-theme.css'; /* dev tools colors (--sd-*) */
 
 /* Ensure Tailwind scans the module's runtime files for class detection */
 @source "../components/**/*.vue";
@@ -83,7 +83,6 @@
   --color-window-sizer-bg: var(--window-sizer-bg);
   --color-window-sizer-text: var(--window-sizer-text);
   --color-window-sizer-border: var(--window-sizer-border);
-  --color-window-sizer-input: var(--window-sizer-input);
   --color-window-sizer-ring: var(--window-sizer-ring);
 
   --color-withdraw-bg: var(--withdraw-bg);
@@ -96,21 +95,9 @@
   --color-warning-border: var(--warning-border);
   --color-warning-ring: var(--warning-ring);
 
-  --dev-bar-bg: var(--dev-bg);
-  --dev-bar-text: var(--dev-text);
-  --dev-bar-lines: var(--dev-lines);
-  --color-dev-lines: var(--dev-lines);
-  --color-dev-text: var(--dev-text);
-  --color-dev-bg: var(--dev-bg);
-  --color-dev-bg-contrast: var(--dev-bg-contrast);
 
-  --color-status-green-bg: var(--status-green-bg);
-  --color-status-green-text: var(--status-green-text);
-  --color-status-green-fill: var(--status-green-fill);
-  --color-status-yellow-bg: var(--status-yellow-bg);
-  --color-status-yellow-text: var(--status-yellow-text);
-  --color-status-yellow-fill: var(--status-yellow-fill);
-  --color-status-red-text: var(--status-red-text);
+
+  --color-task-game-bg: var(--task-game-bg);
 
   --page-bg-color: var(--background);
   --page-text-color: var(--foreground);
@@ -203,79 +190,18 @@
   --warning-border: #ffeeba;
   --warning-ring: #ffe8a1;
 
-  --dev-bg: var(--sidebar);
-  --dev-bg-contrast: var(--sidebar-2);
-  --dev-text: #141414;
-  --dev-lines: var(--border);
-  --dev-contrast-text: #4d4d4d;
-  --pinned-route: rgb(255, 208, 80);
-  --hover-table-row: var(--muted);
-
-  /* Spinner colors */
-  --spinner-track: oklch(0.95 0 0);
-  --spinner-active: var(--primary-button);
-
   /* Dev banner (local dev server stripe) */
   --dev-banner-stripe-1: oklch(0.87 0.17 85);
   --dev-banner-stripe-2: oklch(0.84 0.16 85);
   --dev-banner-text: oklch(0.15 0 0);
 
-  /* Dev brand button (sidebar logo) */
-  --dev-brand-bg: oklch(0.85 0.06 210);
-  --dev-brand-text: var(--foreground);
-
-  /* Status indicator colors */
-  --status-green-bg: oklch(0.93 0.06 175);
-  --status-green-text: oklch(0.55 0.12 175);
-  --status-green-fill: oklch(0.65 0.12 175);
-  --status-yellow-bg: oklch(0.93 0.08 85);
-  --status-yellow-text: oklch(0.65 0.18 70);
-  --status-yellow-fill: oklch(0.72 0.2 70);
-  --status-red-text: var(--destructive);
-
-  /* Resize handle colors */
-  --resize-handle: oklch(0.6 0 0);
-  --resize-handle-hover: oklch(0.65 0.1 230);
-
-  /* Data browser colors (DatabaseList, ConfigList) */
-  --data-key-color: oklch(0.6 0.15 200);
-  --data-value-color: oklch(0.65 0.15 80);
-
-  /* Step explorer colors */
-  --step-path-color: oklch(0.45 0.1 175);
-  --step-selected-bg: oklch(0.94 0.06 170);
-  --step-selected-bg-hover: oklch(0.9 0.05 170);
-  --step-index-color: oklch(0.65 0.15 70);
-  --step-label-color: oklch(0.55 0.12 175);
-  --step-leaf-color: oklch(0.75 0.18 142);
-  --step-home-color: oklch(0.6 0.15 200);
-
-  /* Error notification colors */
-  --error-notif-bg: oklch(0.97 0.02 25);
-  --error-notif-bg-end: oklch(0.94 0.04 25);
-  --error-notif-border: oklch(0.88 0.08 25);
-  --error-notif-text: oklch(0.577 0.245 27.325);
-
-  /* Log colors */
-  --log-yellow: oklch(0.97 0.04 85);
-  --log-red: oklch(0.96 0.03 25);
-  --log-green: oklch(0.96 0.03 175);
-
-  /* Recruitment service palette */
-  --recruit-blue: oklch(0.78 0.1 220);
-  --recruit-red: oklch(0.68 0.18 15);
-  --recruit-pink: oklch(0.82 0.08 350);
-  --recruit-green: oklch(0.8 0.14 160);
-  --recruit-orange: oklch(0.8 0.12 60);
-  --recruit-teal: oklch(0.8 0.1 185);
-  --recruit-coral: oklch(0.75 0.12 25);
-  --recruit-purple: oklch(0.82 0.12 310);
-  --recruit-text: oklch(0.25 0 0);
-
-  /* Scrollbar colors for light mode */
+  /* Page scrollbars */
   --scrollbar-track: #f1f1f1;
   --scrollbar-thumb: #c1c1c1;
   --scrollbar-thumb-hover: #a8a8a8;
+
+  /* ConstrainedTaskWindow variant="game" */
+  --task-game-bg: oklch(0.93 0.06 175);
 }
 
 .dark {
@@ -358,79 +284,18 @@
   --warning-border: #6e5615;
   --warning-ring: #8a6d1c;
 
-  --dev-bg: var(--sidebar);
-  --dev-bg-contrast: var(--sidebar-2);
-  --dev-text: #cecece;
-  --dev-lines: oklch(0.32 0.005 286);
-  --dev-contrast-text: #4d4d4d;
-  --pinned-route: rgb(255, 208, 80);
-  --hover-table-row: var(--muted);
-
-  /* Spinner colors */
-  --spinner-track: oklch(0.3 0 0);
-  --spinner-active: var(--primary-button);
-
   /* Dev banner (local dev server stripe) */
   --dev-banner-stripe-1: oklch(0.38 0 0);
   --dev-banner-stripe-2: oklch(0.33 0 0);
   --dev-banner-text: oklch(0.82 0 0);
 
-  /* Dev brand button (sidebar logo) */
-  --dev-brand-bg: oklch(0.7 0.1 142);
-  --dev-brand-text: oklch(0.15 0 0);
-
-  /* Status indicator colors */
-  --status-green-bg: oklch(0.3 0.08 175);
-  --status-green-text: oklch(0.7 0.12 175);
-  --status-green-fill: oklch(0.65 0.12 175);
-  --status-yellow-bg: oklch(0.35 0.1 70);
-  --status-yellow-text: oklch(0.8 0.2 70);
-  --status-yellow-fill: oklch(0.75 0.2 70);
-  --status-red-text: var(--destructive-foreground);
-
-  /* Resize handle colors */
-  --resize-handle: oklch(0.5 0 0);
-  --resize-handle-hover: oklch(0.6 0.1 230);
-
-  /* Data browser colors (DatabaseList, ConfigList) */
-  --data-key-color: oklch(0.7 0.15 200);
-  --data-value-color: oklch(0.75 0.15 80);
-
-  /* Step explorer colors */
-  --step-path-color: oklch(0.65 0.1 175);
-  --step-selected-bg: oklch(0.35 0.1 170);
-  --step-selected-bg-hover: oklch(0.3 0.08 170);
-  --step-index-color: oklch(0.75 0.15 70);
-  --step-label-color: oklch(0.65 0.12 175);
-  --step-leaf-color: oklch(0.7 0.18 142);
-  --step-home-color: oklch(0.7 0.15 200);
-
-  /* Error notification colors */
-  --error-notif-bg: oklch(0.25 0.06 25);
-  --error-notif-bg-end: oklch(0.22 0.08 25);
-  --error-notif-border: oklch(0.35 0.1 25);
-  --error-notif-text: oklch(0.637 0.237 25.331);
-
-  /* Log colors */
-  --log-yellow: oklch(0.25 0.04 85);
-  --log-red: oklch(0.25 0.04 25);
-  --log-green: oklch(0.22 0.03 175);
-
-  /* Recruitment service palette */
-  --recruit-blue: oklch(0.55 0.12 220);
-  --recruit-red: oklch(0.5 0.15 15);
-  --recruit-pink: oklch(0.55 0.1 350);
-  --recruit-green: oklch(0.55 0.12 160);
-  --recruit-orange: oklch(0.55 0.1 60);
-  --recruit-teal: oklch(0.55 0.1 185);
-  --recruit-coral: oklch(0.5 0.1 25);
-  --recruit-purple: oklch(0.55 0.1 310);
-  --recruit-text: oklch(0.95 0 0);
-
-  /* Scrollbar colors for dark mode */
+  /* Page scrollbars */
   --scrollbar-track: #2a2a2a;
   --scrollbar-thumb: #555555;
   --scrollbar-thumb-hover: #777777;
+
+  /* ConstrainedTaskWindow variant="game" */
+  --task-game-bg: oklch(0.3 0.08 175);
 }
 
 /* Default light theme */

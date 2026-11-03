@@ -238,7 +238,7 @@ onKeyDown((e) => {
 
 <template>
   <!-- Main navigation bar container -->
-  <nav class="flex items-center justify-between w-full border-b border-dev-lines min-h-[36px] max-h-[36px] text-sm px-2">
+  <nav class="flex items-center justify-between w-full border-b border-sd-line min-h-[36px] max-h-[36px] text-sm px-2">
     <!-- Left section - Developer mode indicator -->
     <div class="flex items-center flex-shrink-0 px-2 py-1 rounded">
       <div class="flex items-center">

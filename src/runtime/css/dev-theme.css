@@ -1,0 +1,227 @@
+/* Dev tools theme (plans/dev_tools_theming.md).
+
+   Every color the dev tools use comes from here, in two layers:
+
+   1. Palette primitives (--sd-p-*): neutrals and eight hues, set once per
+      mode. A palette's light and dark halves set the same keys; hues keep
+      their hue between modes and change only lightness, so blue stays blue.
+   2. Semantic tokens (--sd-*): what the dev tools mean (a line, the selected
+      tab, an ok status, a data key …), defined only in terms of primitives.
+      Components use these, never primitives, raw colors, or tokens meant for
+      something else (chart-*, *-button).
+
+   The semantic layer is declared on every element that sets primitives
+   (:root, .light, .dark): custom properties resolve where they're declared,
+   so a nested .light/.dark scope must re-run the mapping to pick up its own
+   primitives.
+
+   Only the dev tools use the --sd- names; participant pages and the
+   experiment preview never do. Prefix: sd = smile dev. */
+
+/* ---- Default palette: primitives ------------------------------------- */
+
+:root,
+.light {
+  --sd-p-bg: oklch(1 0 0);
+  --sd-p-surface: oklch(0.967 0.001 286.375);
+  --sd-p-surface-2: oklch(0.935 0.003 286.3);
+  --sd-p-border: oklch(0.905 0.004 286.32);
+  --sd-p-fg: oklch(0.141 0.005 285.823);
+  --sd-p-fg-muted: oklch(0.48 0.016 285.938);
+
+  /* Hues dark enough for text on the light surfaces */
+  --sd-p-blue: oklch(0.5 0.13 255);
+  --sd-p-teal: oklch(0.5 0.08 195);
+  --sd-p-green: oklch(0.5 0.11 150);
+  --sd-p-yellow: oklch(0.52 0.11 75);
+  --sd-p-orange: oklch(0.53 0.14 45);
+  --sd-p-red: oklch(0.52 0.18 25);
+  --sd-p-purple: oklch(0.5 0.15 300);
+  --sd-p-pink: oklch(0.52 0.15 355);
+
+  /* Filled controls (checked checkbox, switch): a quiet blue, white mark */
+  --sd-p-solid: oklch(0.55 0.09 255);
+  --sd-p-solid-fg: oklch(0.985 0 0);
+}
+
+.dark {
+  --sd-p-bg: oklch(0.141 0.005 285.823);
+  --sd-p-surface: oklch(0.21 0.006 285.885);
+  --sd-p-surface-2: oklch(0.26 0.006 286.033);
+  --sd-p-border: oklch(0.3 0.006 286.033);
+  --sd-p-fg: oklch(0.96 0 0);
+  --sd-p-fg-muted: oklch(0.71 0.015 286.067);
+
+  /* Same hues, lighter and a little less saturated */
+  --sd-p-blue: oklch(0.76 0.1 250);
+  --sd-p-teal: oklch(0.78 0.07 190);
+  --sd-p-green: oklch(0.78 0.1 150);
+  --sd-p-yellow: oklch(0.83 0.1 85);
+  --sd-p-orange: oklch(0.78 0.1 55);
+  --sd-p-red: oklch(0.72 0.14 22);
+  --sd-p-purple: oklch(0.76 0.1 300);
+  --sd-p-pink: oklch(0.78 0.1 355);
+
+  /* Lighter, muted fill with a dark mark, so checked controls don't glare */
+  --sd-p-solid: oklch(0.72 0.07 250);
+  --sd-p-solid-fg: oklch(0.141 0.005 285.823);
+}
+
+/* ---- Semantic tokens (palette- and mode-independent) ------------------ */
+
+:root,
+.light,
+.dark {
+  /* Chrome */
+  --sd-bg: var(--sd-p-bg);
+  --sd-panel: var(--sd-p-surface);
+  --sd-panel-2: var(--sd-p-surface-2);
+  --sd-line: var(--sd-p-border);
+  --sd-text: var(--sd-p-fg);
+  --sd-text-muted: var(--sd-p-fg-muted);
+  --sd-hover: var(--sd-p-surface-2);
+  --sd-link: var(--sd-p-blue);
+
+  /* Accent: the one hue for "this one" (selected tab, current step, focus) */
+  --sd-accent: var(--sd-p-blue);
+  --sd-solid: var(--sd-p-solid);
+  --sd-solid-fg: var(--sd-p-solid-fg);
+  --sd-selected: color-mix(in oklab, var(--sd-p-blue) 20%, var(--sd-p-bg));
+  --sd-selected-hover: color-mix(in oklab, var(--sd-p-blue) 28%, var(--sd-p-bg));
+  --sd-selected-fg: var(--sd-p-fg);
+
+  /* Brand button (smile logo) */
+  --sd-brand-bg: color-mix(in oklab, var(--sd-p-blue) 26%, var(--sd-p-bg));
+  --sd-brand-fg: var(--sd-p-fg);
+
+  /* Status: a hue for icons/text, a quiet tint for backgrounds */
+  --sd-ok: var(--sd-p-green);
+  --sd-ok-bg: color-mix(in oklab, var(--sd-p-green) 15%, var(--sd-p-bg));
+  --sd-warn: var(--sd-p-yellow);
+  --sd-warn-bg: color-mix(in oklab, var(--sd-p-yellow) 15%, var(--sd-p-bg));
+  --sd-error: var(--sd-p-red);
+  --sd-error-bg: color-mix(in oklab, var(--sd-p-red) 12%, var(--sd-p-bg));
+  --sd-error-line: color-mix(in oklab, var(--sd-p-red) 35%, var(--sd-p-bg));
+  --sd-info: var(--sd-p-blue);
+  --sd-info-bg: color-mix(in oklab, var(--sd-p-blue) 15%, var(--sd-p-bg));
+
+  /* Data viewers (step data, config, database browser) */
+  --sd-key: var(--sd-p-blue);
+  --sd-value: var(--sd-p-fg);
+  --sd-string: var(--sd-p-green);
+  --sd-number: var(--sd-p-orange);
+
+  /* Step explorer */
+  --sd-step-label: var(--sd-p-fg);
+  --sd-step-path: var(--sd-p-fg-muted);
+  --sd-step-index: var(--sd-p-fg-muted);
+  --sd-step-leaf: var(--sd-p-fg-muted);
+  --sd-step-home: var(--sd-p-blue);
+
+  /* Console log levels */
+  --sd-log-error: var(--sd-p-red);
+  --sd-log-warn: var(--sd-p-yellow);
+  --sd-log-info: var(--sd-p-green);
+
+  /* Pinned route */
+  --sd-pinned: color-mix(in oklab, var(--sd-p-yellow) 30%, var(--sd-p-bg));
+  --sd-pinned-fg: var(--sd-p-fg);
+
+  /* Recruitment chooser tiles: quiet tints of the hues, normal text */
+  --sd-tile-fg: var(--sd-p-fg);
+  --sd-tile-blue: color-mix(in oklab, var(--sd-p-blue) 22%, var(--sd-p-bg));
+  --sd-tile-teal: color-mix(in oklab, var(--sd-p-teal) 22%, var(--sd-p-bg));
+  --sd-tile-green: color-mix(in oklab, var(--sd-p-green) 22%, var(--sd-p-bg));
+  --sd-tile-yellow: color-mix(in oklab, var(--sd-p-yellow) 22%, var(--sd-p-bg));
+  --sd-tile-orange: color-mix(in oklab, var(--sd-p-orange) 22%, var(--sd-p-bg));
+  --sd-tile-red: color-mix(in oklab, var(--sd-p-red) 22%, var(--sd-p-bg));
+  --sd-tile-purple: color-mix(in oklab, var(--sd-p-purple) 22%, var(--sd-p-bg));
+  --sd-tile-pink: color-mix(in oklab, var(--sd-p-pink) 22%, var(--sd-p-bg));
+
+  /* Bits of chrome */
+  --sd-bar: var(--sd-p-surface);
+  --sd-handle: var(--sd-p-fg-muted);
+  --sd-handle-hover: var(--sd-p-blue);
+  --sd-spinner-track: var(--sd-p-surface-2);
+  --sd-spinner: var(--sd-p-blue);
+  --sd-scrollbar-track: var(--sd-p-surface);
+  --sd-scrollbar-thumb: color-mix(in oklab, var(--sd-p-fg) 22%, var(--sd-p-surface));
+  --sd-scrollbar-thumb-hover: color-mix(in oklab, var(--sd-p-fg) 38%, var(--sd-p-surface));
+}
+
+/* ---- The dev tools' chrome ------------------------------------------- */
+
+/* On the dev tools' own containers (app menu, toolbar, panels), not on the
+   experiment preview: the shadcn controls there (checkboxes, switches,
+   default buttons, focus rings) take the dev accent instead of the
+   participant theme's near-white/near-black primary. The preview resets
+   these with its own .light/.dark container. */
+.sd-root {
+  --primary: var(--sd-solid);
+  --primary-foreground: var(--sd-solid-fg);
+  --ring: var(--sd-solid); /* switches use it as their checked color */
+}
+
+/* Dev panel tables (config variables, database status) */
+.sd-table-cell-small {
+  font-size: 0.8em;
+}
+.sd-table-cell-base {
+  padding: 0.5rem 0.85rem;
+}
+.sd-table-cell-left {
+  text-align: left;
+}
+.sd-table-cell-center {
+  text-align: center;
+}
+.sd-table-cell-mono {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+.sd-table-row-base {
+  transition: background-color 0.2s;
+}
+.sd-table-row-base-bottom {
+  border-bottom: 1px solid var(--sd-line);
+}
+.sd-table-row-odd {
+  background-color: var(--sd-bg);
+}
+.sd-table-row-even {
+  background-color: var(--sd-panel);
+}
+.sd-table-row-odd:hover,
+.sd-table-row-even:hover {
+  background-color: var(--sd-hover);
+}
+.sd-table-border-top {
+  border-top: 1px solid var(--sd-line);
+}
+.sd-table-border-bottom {
+  border-bottom: 1px solid var(--sd-line);
+}
+
+/* Tailwind color utilities for the semantic tokens (bg-sd-line, text-sd-ok …) */
+@theme inline {
+  --color-sd-bg: var(--sd-bg);
+  --color-sd-panel: var(--sd-panel);
+  --color-sd-panel-2: var(--sd-panel-2);
+  --color-sd-line: var(--sd-line);
+  --color-sd-text: var(--sd-text);
+  --color-sd-text-muted: var(--sd-text-muted);
+  --color-sd-hover: var(--sd-hover);
+  --color-sd-link: var(--sd-link);
+  --color-sd-accent: var(--sd-accent);
+  --color-sd-selected: var(--sd-selected);
+  --color-sd-selected-hover: var(--sd-selected-hover);
+  --color-sd-selected-fg: var(--sd-selected-fg);
+  --color-sd-ok: var(--sd-ok);
+  --color-sd-ok-bg: var(--sd-ok-bg);
+  --color-sd-warn: var(--sd-warn);
+  --color-sd-warn-bg: var(--sd-warn-bg);
+  --color-sd-error: var(--sd-error);
+  --color-sd-error-bg: var(--sd-error-bg);
+  --color-sd-error-line: var(--sd-error-line);
+  --color-sd-info: var(--sd-info);
+  --color-sd-info-bg: var(--sd-info-bg);
+}

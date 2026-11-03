@@ -33,7 +33,7 @@ const containerClasses = computed(() => {
   const variantClasses = {
     default: '',
     ghost: 'bg-muted',
-    game: 'bg-status-green-bg',
+    game: 'bg-task-game-bg',
     outline: 'border-1 border-muted-foreground',
   }
 

@@ -150,7 +150,7 @@ function _resetDevState() {
   <!-- Configuration panel with breadcrumb navigation and three-panel layout -->
   <div class="h-full m-0 p-0 flex flex-col">
     <!-- Breadcrumb navigation bar -->
-    <Breadcrumb class="bg-muted border-b border-dev-lines px-3 py-2 font-mono">
+    <Breadcrumb class="bg-muted border-b border-sd-line px-3 py-2 font-mono">
       <BreadcrumbList>
         <template
           v-for="(option, index) in browse_panels.path"
@@ -180,19 +180,19 @@ function _resetDevState() {
     <!-- Main content area with sidebar and three-panel layout -->
     <div class="flex flex-row flex-1 overflow-hidden">
       <!-- Left sidebar with documentation link -->
-      <div class="flex flex-col w-1/6 min-w-[120px] border-r border-dev-lines bg-muted p-2 gap-2">
+      <div class="flex flex-col w-1/6 min-w-[120px] border-r border-sd-line bg-muted p-2 gap-2">
         <div class="text-xs text-left mb-2 font-mono">
           Read more about configuration options
           <a
             href="https://smile.gureckislab.org/configuration.html"
-            class="text-link-button-foreground underline ml-1"
+            class="text-sd-link underline ml-1"
           >in the docs</a>.
         </div>
       </div>
       <!-- Three-panel configuration browser -->
       <div class="flex-1 grid grid-cols-3 gap-0 bg-background overflow-hidden">
         <!-- Left panel -->
-        <div class="border-r border-dev-lines h-full overflow-hidden">
+        <div class="border-r border-sd-line h-full overflow-hidden">
           <ConfigList
             :data="panel_path(2)"
             :selected="browse_panels.path[browse_panels.path.length - 2]"
@@ -200,7 +200,7 @@ function _resetDevState() {
           />
         </div>
         <!-- Middle panel -->
-        <div class="border-r border-dev-lines h-full overflow-hidden">
+        <div class="border-r border-sd-line h-full overflow-hidden">
           <ConfigList
             :data="panel_path(1)"
             :selected="browse_panels.path[browse_panels.path.length - 1]"

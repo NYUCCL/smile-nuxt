@@ -48,9 +48,9 @@ const colorModeDisplayText = computed(() => {
     <table class="w-full">
       <tbody>
         <!-- Consent, Known, Done, Withdrew, Viz toggles -->
-        <tr class="table-row-base ">
+        <tr class="sd-table-row-base ">
           <td
-            class="table-cell-base table-cell-left table-cell-small font-mono"
+            class="sd-table-cell-base sd-table-cell-left sd-table-cell-small font-mono"
             colspan="4"
           >
             <div class="flex flex-wrap gap-4">
@@ -103,11 +103,11 @@ const colorModeDisplayText = computed(() => {
           </td>
         </tr>
         <!-- Window size and aggressive mode -->
-        <tr class="table-row-base table-row-base-bottom ">
+        <tr class="sd-table-row-base sd-table-row-base-bottom ">
           <td
-            class="table-cell-base table-cell-left table-cell-small font-mono"
+            class="sd-table-cell-base sd-table-cell-left sd-table-cell-small font-mono"
             :class="{
-              'bg-danger-button-light text-danger-button-light-foreground': api.store.browserEphemeral.tooSmall,
+              'bg-sd-error-bg text-sd-error': api.store.browserEphemeral.tooSmall,
             }"
             colspan="4"
           >
@@ -143,9 +143,9 @@ const colorModeDisplayText = computed(() => {
           </td>
         </tr>
         <!-- Responsive UI and color mode -->
-        <tr class="table-row-base table-row-base-bottom ">
+        <tr class="sd-table-row-base sd-table-row-base-bottom ">
           <td
-            class="table-cell-base table-cell-left table-cell-small font-mono"
+            class="sd-table-cell-base sd-table-cell-left sd-table-cell-small font-mono"
             colspan="4"
           >
             <div class="flex flex-wrap gap-4 items-center">
@@ -196,9 +196,9 @@ const colorModeDisplayText = computed(() => {
           </td>
         </tr>
         <!-- Recruitment service select -->
-        <tr class="table-row-base table-row-base-bottom">
+        <tr class="sd-table-row-base sd-table-row-base-bottom">
           <td
-            class="table-cell-base table-cell-left table-cell-small font-mono"
+            class="sd-table-cell-base sd-table-cell-left sd-table-cell-small font-mono"
             colspan="4"
           >
             <div class="flex flex-wrap gap-4 items-center">
@@ -234,7 +234,7 @@ const colorModeDisplayText = computed(() => {
 </template>
 
 <style scoped>
-.table-cell-small {
+.sd-table-cell-small {
   font-size: 0.6em;
 }
 
@@ -246,7 +246,7 @@ table {
 
 td {
   border: none;
-  border-bottom: 1px solid var(--dev-lines);
+  border-bottom: 1px solid var(--sd-line);
   padding: 0.5rem 0.85rem;
 }
 

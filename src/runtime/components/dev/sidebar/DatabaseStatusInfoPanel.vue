@@ -94,80 +94,80 @@ onBeforeUnmount(() => {
 
 <template>
   <!-- Database status info panel -->
-  <table class="w-full text-sm table-border-top">
+  <table class="w-full text-sm sd-table-border-top">
     <tbody>
       <!-- Database row -->
       <tr
         v-if="dbInfo"
-        class="table-row-base table-row-even hidden sm:table-row"
+        class="sd-table-row-base sd-table-row-even hidden sm:table-row"
       >
-        <td class="table-cell-base table-cell-left table-cell-small">
+        <td class="sd-table-cell-base sd-table-cell-left sd-table-cell-small">
           <b>Database:</b>
         </td>
-        <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
+        <td class="sd-table-cell-base sd-table-cell-left sd-table-cell-mono sd-table-cell-small">
           {{ dbInfo.type }} <span class="text-muted-foreground">{{ dbInfo.url }}</span>
         </td>
       </tr>
       <!-- Last route row -->
-      <tr class="table-row-base table-row-odd hidden sm:table-row">
-        <td class="table-cell-base table-cell-left table-cell-small">
+      <tr class="sd-table-row-base sd-table-row-odd hidden sm:table-row">
+        <td class="sd-table-cell-base sd-table-cell-left sd-table-cell-small">
           <b>Last route:</b>
         </td>
-        <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
+        <td class="sd-table-cell-base sd-table-cell-left sd-table-cell-mono sd-table-cell-small">
           {{ '/' + api.store.cookieState.lastRoute }}
         </td>
       </tr>
       <!-- Mode row -->
-      <tr class="table-row-base table-row-even hidden sm:table-row">
-        <td class="table-cell-base table-cell-left table-cell-small">
+      <tr class="sd-table-row-base sd-table-row-even hidden sm:table-row">
+        <td class="sd-table-cell-base sd-table-cell-left sd-table-cell-small">
           <b>Mode:</b>
         </td>
-        <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
+        <td class="sd-table-cell-base sd-table-cell-left sd-table-cell-mono sd-table-cell-small">
           {{ api.config.mode }}
         </td>
       </tr>
       <!-- DocRef row -->
-      <tr class="table-row-base table-row-odd">
-        <td class="table-cell-base table-cell-left table-cell-small">
+      <tr class="sd-table-row-base sd-table-row-odd">
+        <td class="sd-table-cell-base sd-table-cell-left sd-table-cell-small">
           <b>Participant ID:</b>
         </td>
-        <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
+        <td class="sd-table-cell-base sd-table-cell-left sd-table-cell-mono sd-table-cell-small">
           {{ api.store.cookieState.participantId || '(none)' }}
         </td>
       </tr>
       <!-- Writes row -->
-      <tr class="table-row-base table-row-even hidden sm:table-row">
-        <td class="table-cell-base table-cell-left table-cell-small">
+      <tr class="sd-table-row-base sd-table-row-even hidden sm:table-row">
+        <td class="sd-table-cell-base sd-table-cell-left sd-table-cell-small">
           <b>Writes:</b>
         </td>
-        <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
+        <td class="sd-table-cell-base sd-table-cell-left sd-table-cell-mono sd-table-cell-small">
           {{ api.store.localState.totalWrites }} out of {{ api.config.maxWrites }} max
         </td>
       </tr>
       <!-- Last write row -->
-      <tr class="table-row-base table-row-odd hidden sm:table-row">
-        <td class="table-cell-base table-cell-left table-cell-small">
+      <tr class="sd-table-row-base sd-table-row-odd hidden sm:table-row">
+        <td class="sd-table-cell-base sd-table-cell-left sd-table-cell-small">
           <b>Last save:</b>
         </td>
-        <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
+        <td class="sd-table-cell-base sd-table-cell-left sd-table-cell-mono sd-table-cell-small">
           {{ last_write_time_string }}
         </td>
       </tr>
       <!-- Auto save row -->
-      <tr class="table-row-base table-row-even hidden sm:table-row">
-        <td class="table-cell-base table-cell-left table-cell-small">
+      <tr class="sd-table-row-base sd-table-row-even hidden sm:table-row">
+        <td class="sd-table-cell-base sd-table-cell-left sd-table-cell-small">
           <b>Auto save:</b>
         </td>
-        <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
+        <td class="sd-table-cell-base sd-table-cell-left sd-table-cell-mono sd-table-cell-small">
           {{ api.config.autoSave }}
         </td>
       </tr>
       <!-- Size row -->
-      <tr class="table-row-base table-row-odd hidden sm:table-row table-border-bottom">
-        <td class="table-cell-base table-cell-left table-cell-small">
+      <tr class="sd-table-row-base sd-table-row-odd hidden sm:table-row sd-table-border-bottom">
+        <td class="sd-table-cell-base sd-table-cell-left sd-table-cell-small">
           <b>Size:</b>
         </td>
-        <td class="table-cell-base table-cell-left table-cell-mono table-cell-small">
+        <td class="sd-table-cell-base sd-table-cell-left sd-table-cell-mono sd-table-cell-small">
           {{ api.store.localState.approxDataSize.toLocaleString() }} / {{ api.config.dataSizeReference.toLocaleString() }} ({{
             Math.round((api.store.localState.approxDataSize / api.config.dataSizeReference) * 1000) / 10
           }}%)

@@ -82,7 +82,7 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
 <template>
   <!-- Main sidebar container with icon-only layout -->
   <Sidebar
-    class="w-[calc(var(--sidebar-width-icon)+1px)]! border-r border-dev-lines"
+    class="sd-root w-[calc(var(--sidebar-width-icon)+1px)]! border-r border-sd-line"
     v-bind="props"
   >
     <!-- Sidebar header with main logo button -->
@@ -114,8 +114,8 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
               <SidebarMenuButton
                 class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
                 :class="{
-                  'bg-chart-4 hover:!bg-chart-4/80': api.store.dev.mainView === 'devmode',
-                  'hover:!bg-sidebar-border': api.store.dev.mainView !== 'devmode',
+                  'bg-sd-selected text-sd-selected-fg hover:!bg-sd-selected-hover': api.store.dev.mainView === 'devmode',
+                  'hover:!bg-sd-hover': api.store.dev.mainView !== 'devmode',
                 }"
                 tooltip="Developer Mode"
                 @click="api.store.dev.mainView = 'devmode'"
@@ -129,8 +129,8 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
               <SidebarMenuButton
                 class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
                 :class="{
-                  'bg-chart-4 hover:!bg-chart-4/80': api.store.dev.mainView === 'dashboard',
-                  'hover:!bg-sidebar-border': api.store.dev.mainView !== 'dashboard',
+                  'bg-sd-selected text-sd-selected-fg hover:!bg-sd-selected-hover': api.store.dev.mainView === 'dashboard',
+                  'hover:!bg-sd-hover': api.store.dev.mainView !== 'dashboard',
                 }"
                 tooltip="Data Dashboard"
                 @click="api.store.dev.mainView = api.store.dev.mainView === 'dashboard' ? 'devmode' : 'dashboard'"
@@ -148,7 +148,7 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
                 :isActive="api.store.dev.mainView === 'recruit'"
                 @click="api.store.dev.mainView = 'recruit'"
               >
-                <i-bxs-megaphone class="!size-5" :class="{ 'text-chart-1': api.store.dev.mainView === 'recruit' }" />
+                <i-bxs-megaphone class="!size-5" :class="{ 'text-sd-accent': api.store.dev.mainView === 'recruit' }" />
               </SidebarMenuButton>
             </SidebarMenuItem>
             -->
@@ -158,8 +158,8 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
               <SidebarMenuButton
                 class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
                 :class="{
-                  'bg-chart-4 hover:!bg-chart-4/80': api.store.dev.mainView === 'presentation',
-                  'hover:!bg-sidebar-border': api.store.dev.mainView !== 'presentation',
+                  'bg-sd-selected text-sd-selected-fg hover:!bg-sd-selected-hover': api.store.dev.mainView === 'presentation',
+                  'hover:!bg-sd-hover': api.store.dev.mainView !== 'presentation',
                 }"
                 tooltip="Presentation Mode"
                 @click="api.store.dev.mainView = api.store.dev.mainView === 'presentation' ? 'devmode' : 'presentation'"
@@ -173,8 +173,8 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
               <SidebarMenuButton
                 class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
                 :class="{
-                  'bg-chart-4 hover:!bg-chart-4/80': api.store.dev.mainView === 'docs',
-                  'hover:!bg-sidebar-border': api.store.dev.mainView !== 'docs',
+                  'bg-sd-selected text-sd-selected-fg hover:!bg-sd-selected-hover': api.store.dev.mainView === 'docs',
+                  'hover:!bg-sd-hover': api.store.dev.mainView !== 'docs',
                 }"
                 tooltip="Documentation"
                 @click="api.store.dev.mainView = 'docs'"
@@ -251,7 +251,7 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
 <style scoped>
 /* Main button styling */
 .mainbutton {
-  background-color: var(--dev-brand-bg);
-  color: var(--dev-brand-text);
+  background-color: var(--sd-brand-bg);
+  color: var(--sd-brand-fg);
 }
 </style>

@@ -50,7 +50,7 @@ onMounted(() => {
   <div class="presentation-container bg-background">
     <LocalDevBanner />
     <!-- Top toolbar with presentation navigation -->
-    <div class="toolbar">
+    <div class="toolbar sd-root">
       <PresentationNavBar hide-dark-mode />
     </div>
 
@@ -104,7 +104,7 @@ onMounted(() => {
   margin-bottom: auto;
   height: 36px;
   width: full;
-  background-color: var(--dev-bar-bg);
+  background-color: var(--sd-bar);
 }
 
 .content-wrapper {
@@ -145,8 +145,8 @@ onMounted(() => {
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid var(--spinner-track);
-  border-top: 4px solid var(--spinner-active);
+  border: 4px solid var(--sd-spinner-track);
+  border-top: 4px solid var(--sd-spinner);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;

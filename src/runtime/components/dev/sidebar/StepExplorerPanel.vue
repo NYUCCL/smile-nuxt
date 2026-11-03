@@ -304,7 +304,7 @@ watch(
           <Tooltip>
             <TooltipTrigger
               class="ml-1"
-              style="color: var(--step-label-color)"
+              style="color: var(--sd-step-label)"
             >
               ({{ api.blockIndex }}/{{ api.blockLength }})
             </TooltipTrigger>
@@ -446,7 +446,7 @@ watch(
   align-items: center;
   height: 32px;
   flex-shrink: 0; /* Prevent shrinking */
-  border-top: 1px solid var(--dev-lines);
+  border-top: 1px solid var(--sd-line);
 }
 
 .path-info {
@@ -454,7 +454,7 @@ watch(
   align-items: baseline; /* Change from center to baseline */
   font-family: Arial, Helvetica, sans-serif;
   font-weight: 800;
-  color: var(--step-path-color);
+  color: var(--sd-step-path);
   font-size: 0.9rem;
   line-height: 1; /* Add line-height to control vertical spacing */
 }
@@ -464,7 +464,7 @@ watch(
   font-size: clamp(0.5rem, 0.8rem, 0.8rem); /* Shrink font size if needed but not larger than 0.9rem */
   font-family: monospace;
   font-weight: 500;
-  color: var(--step-path-color);
+  color: var(--sd-step-path);
   line-height: 1;
   white-space: nowrap; /* Prevent wrapping */
   overflow: hidden; /* Hide overflow */
@@ -479,11 +479,11 @@ watch(
 
 .nav-button {
   font-size: 0.6rem;
-  border-left: 1px solid var(--dev-lines);
+  border-left: 1px solid var(--sd-line);
 }
 .nav-button-small {
   font-size: 0.5rem;
-  border-left: 1px solid var(--dev-lines);
+  border-left: 1px solid var(--sd-line);
 }
 .smaller {
   padding-bottom: 11px;
@@ -494,7 +494,7 @@ watch(
   padding-left: 10px;
 }
 .topbar-border {
-  border-top: 1px solid var(--dev-lines);
+  border-top: 1px solid var(--sd-line);
   padding-top: 4px;
 }
 
@@ -504,7 +504,7 @@ watch(
   padding-top: 3px;
   font-family: monospace;
   font-weight: 500;
-  color: var(--step-index-color);
+  color: var(--sd-step-index);
   line-height: 1; /* Add line-height to match */
   text-align: right;
   position: absolute;
@@ -530,7 +530,7 @@ watch(
   flex: 0 1 auto; /* don't grow, can shrink, auto basis */
   overflow: auto;
   font-family: monospace;
-  border-top: 1px solid var(--dev-lines);
+  border-top: 1px solid var(--sd-line);
   position: relative;
   scroll-behavior: smooth;
   max-height: 300px;
@@ -616,7 +616,7 @@ watch(
   font-size: 0.7rem;
   font-weight: 500;
   font-family: monospace;
-  color: var(--step-label-color);
+  color: var(--sd-step-label);
   padding-right: 6px;
 }
 
@@ -628,8 +628,8 @@ watch(
   background-color: var(--muted);
   padding: 0.375rem 0.5rem;
   margin: 0;
-  border-top: 1px solid var(--dev-lines);
-  border-bottom: 1px solid var(--dev-lines);
+  border-top: 1px solid var(--sd-line);
+  border-bottom: 1px solid var(--sd-line);
   display: flex;
   justify-content: space-between;
   align-items: center;

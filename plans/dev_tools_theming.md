@@ -1,7 +1,15 @@
 # Dev tools theming: audit and plan
 
-Status: proposed (2026-11-03). Follows #32 / #44 (participant color mode and
-contrast), which are done.
+Status: phase 1 done on branch `dev-tools-theme` (2026-11-03); phases 2-4 to
+go. Follows #32 / #44 (participant color mode and contrast), which are done.
+
+Phase 1 as built: `src/runtime/css/dev-theme.css` holds the primitives and
+semantic tokens; `.sd-root` sits on the dev chrome (app menu, toolbar, side
+panel, console, device controls, presentation toolbar), not on the layouts,
+so participant views shown inline aren't touched; tints use
+`color-mix(in oklab, …)` (oklch mixing with white swings blue through pink);
+the `.table-*` helpers became `.sd-table-*` and `smile.css` is gone; tests:
+`test/css/contrast.test.js` (dev pairs too) and `test/css/dev-colors.test.js`.
 
 ## Goal
 

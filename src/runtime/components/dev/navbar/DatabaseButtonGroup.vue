@@ -89,8 +89,8 @@ const database_tooltip = computed(() => {
                 :percentage="dataPercent"
                 :size="12"
                 :stroke-width="40"
-                slicecolor="var(--primary-button)"
-                basecolor="var(--status-green)"
+                slicecolor="var(--sd-accent)"
+                basecolor="var(--sd-ok)"
               />
             </div>
           </template>
@@ -105,15 +105,15 @@ const database_tooltip = computed(() => {
 
 <style scoped>
 .disconnected {
-  color: var(--status-red);
+  color: var(--sd-error);
 }
 .connected {
-  color: var(--status-green);
+  color: var(--sd-ok);
 }
 .outofsync {
-  color: var(--status-yellow);
+  color: var(--sd-warn);
 }
 .insync {
-  color: var(--status-green);
+  color: var(--sd-ok);
 }
 </style>

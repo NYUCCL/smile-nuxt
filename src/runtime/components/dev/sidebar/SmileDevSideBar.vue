@@ -64,13 +64,13 @@ const api = useAPI()
 
     <!-- Footer panels -->
     <div class="sidebar-footer">
-      <div class="border-t border-dev-lines">
+      <div class="border-t border-sd-line">
         <ConfigurationVariablesPanel />
       </div>
       <div>
         <AppProgressPanel />
       </div>
-      <div class="border-t border-dev-lines">
+      <div class="border-t border-sd-line">
         <StudyInfoPanel />
       </div>
     </div>

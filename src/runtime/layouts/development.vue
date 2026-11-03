@@ -84,7 +84,7 @@ const isRouteNotFound = computed(() => {
           <template v-else>
             <LocalDevBanner />
             <!-- Top toolbar with navigation controls -->
-            <div class="toolbar">
+            <div class="toolbar sd-root">
               <DevNavBar />
             </div>
 
@@ -130,7 +130,7 @@ const isRouteNotFound = computed(() => {
                 <Transition name="console-slide">
                   <div
                     v-if="api.store.dev.showConsoleBar"
-                    class="console"
+                    class="console sd-root"
                   >
                     <DevConsole />
                   </div>
@@ -141,7 +141,7 @@ const isRouteNotFound = computed(() => {
               <Transition name="sidebar-slide">
                 <div
                   v-if="api.store.dev.showSideBar"
-                  class="sidebar"
+                  class="sidebar sd-root"
                 >
                   <DevSideBar />
                 </div>
@@ -204,7 +204,7 @@ const isRouteNotFound = computed(() => {
   margin-bottom: auto;
   height: 36px;
   width: full;
-  background-color: var(--dev-bar-bg);
+  background-color: var(--sd-bar);
 }
 
 .content-wrapper {
@@ -237,15 +237,15 @@ const isRouteNotFound = computed(() => {
   flex: 0 0 300px;
   height: 100%;
   overflow-y: auto;
-  border-left: 1px solid var(--dev-lines);
-  background-color: var(--dev-bg);
+  border-left: 1px solid var(--sd-line);
+  background-color: var(--sd-bg);
 }
 
 .console {
   height: v-bind(height_pct);
   width: 100%;
   background-color: var(--muted);
-  border-top: 1px solid var(--dev-lines);
+  border-top: 1px solid var(--sd-line);
   overflow: hidden;
   overflow-x: hidden;
   min-width: 0;
@@ -288,8 +288,8 @@ const isRouteNotFound = computed(() => {
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid var(--spinner-track);
-  border-top: 4px solid var(--spinner-active);
+  border: 4px solid var(--sd-spinner-track);
+  border-top: 4px solid var(--sd-spinner);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;

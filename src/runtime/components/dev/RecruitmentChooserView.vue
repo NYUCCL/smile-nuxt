@@ -403,7 +403,7 @@ const currentService = computed(() => services[selectedService.value])
                   <a
                     :href="`https://github.com/${config.github.owner}/${config.github.repoName}`"
                     target="_blank"
-                    class="text-[var(--link-button-foreground)] underline"
+                    class="text-sd-link underline"
                   >{{ config.github.owner }}/{{ config.github.repoName }}</a>
                   <span class="text-muted-foreground">({{ config.github.branch || '?' }})</span>
                   <button
@@ -428,7 +428,7 @@ const currentService = computed(() => services[selectedService.value])
                     v-if="config.github.lastCommitHash"
                     :href="config.github.commitURL"
                     target="_blank"
-                    class="text-[var(--link-button-foreground)] underline text-xs"
+                    class="text-sd-link underline text-xs"
                   >{{ config.github.lastCommitHash }}</a>
                   <span
                     v-if="config.github.lastCommitMsg"
@@ -544,49 +544,49 @@ const currentService = computed(() => services[selectedService.value])
 
 <style>
 .global-color-mode a:not([class*="is-"]) {
-  color: var(--link-button-foreground);
+  color: var(--sd-link);
 }
 </style>
 
 <style scoped>
 .is-blue {
-  background-color: var(--recruit-blue);
-  color: var(--recruit-text);
+  background-color: var(--sd-tile-blue);
+  color: var(--sd-tile-fg);
 }
 
 .is-red {
-  background-color: var(--recruit-red);
-  color: var(--recruit-text);
+  background-color: var(--sd-tile-red);
+  color: var(--sd-tile-fg);
 }
 
 .is-pink {
-  background-color: var(--recruit-pink);
-  color: var(--recruit-text);
+  background-color: var(--sd-tile-pink);
+  color: var(--sd-tile-fg);
 }
 
 .is-green {
-  background-color: var(--recruit-green);
-  color: var(--recruit-text);
+  background-color: var(--sd-tile-green);
+  color: var(--sd-tile-fg);
 }
 
 .is-orange {
-  background-color: var(--recruit-orange);
-  color: var(--recruit-text);
+  background-color: var(--sd-tile-orange);
+  color: var(--sd-tile-fg);
 }
 
 .is-teal {
-  background-color: var(--recruit-teal);
-  color: var(--recruit-text);
+  background-color: var(--sd-tile-teal);
+  color: var(--sd-tile-fg);
 }
 
 .is-coral {
-  background-color: var(--recruit-coral);
-  color: var(--recruit-text);
+  background-color: var(--sd-tile-orange);
+  color: var(--sd-tile-fg);
 }
 
 .is-purple {
-  background-color: var(--recruit-purple);
-  color: var(--recruit-text);
+  background-color: var(--sd-tile-purple);
+  color: var(--sd-tile-fg);
   border: none;
 }
 

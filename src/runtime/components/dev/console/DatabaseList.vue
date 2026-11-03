@@ -91,7 +91,7 @@ function option_selected(option) {
     <!-- Header section with navigation title -->
     <div
       v-if="header"
-      class="bg-background text-dev-text px-3 text-xs font-medium border-b border-dev-lines h-8 flex items-center"
+      class="bg-background text-sd-text px-3 text-xs font-medium border-b border-sd-line h-8 flex items-center"
     >
       <template v-if="header == '/'">
         <House class="size-3.5" />
@@ -136,7 +136,7 @@ function option_selected(option) {
               'w-full text-left px-2 py-1.5 text-xs font-mono rounded transition-colors duration-150 object-item',
               'hover:bg-accent hover:text-accent-foreground',
               'focus:outline-none focus:ring-1 focus:ring-ring',
-              key === props.selected ? 'bg-accent text-accent-foreground border border-dev-lines' : 'text-foreground',
+              key === props.selected ? 'bg-accent text-accent-foreground border border-sd-line' : 'text-foreground',
             ]"
             @click="option_selected(key)"
           >
@@ -158,37 +158,37 @@ function option_selected(option) {
 }
 
 .overflow-y-auto::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
+  background: var(--sd-scrollbar-track);
   border-radius: 3px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
+  background: var(--sd-scrollbar-thumb);
   border-radius: 3px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
+  background: var(--sd-scrollbar-thumb-hover);
 }
 
 /* Semantic styling for database list items */
 .item-key {
-  color: var(--data-key-color);
+  color: var(--sd-key);
   font-weight: 400;
 }
 
 .primitive-item .item-value {
-  color: var(--data-value-color);
+  color: var(--sd-value);
   font-weight: 400;
 }
 
 .object-item .item-key {
-  color: var(--data-key-color);
+  color: var(--sd-key);
   font-weight: 400;
 }
 
 .object-item .item-value {
-  color: var(--data-key-color);
+  color: var(--sd-key);
   font-weight: 400;
 }
 </style>

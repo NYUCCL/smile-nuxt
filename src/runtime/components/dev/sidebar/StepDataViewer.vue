@@ -140,7 +140,7 @@ const isSinglePrimitive = (value) => {
 }
 
 .key {
-  color: var(--data-key-color);
+  color: var(--sd-key);
   margin-right: 4px;
 }
 
@@ -150,7 +150,7 @@ const isSinglePrimitive = (value) => {
 }
 
 .primitive-value {
-  color: var(--data-value-color);
+  color: var(--sd-value);
 }
 
 .nested-content {

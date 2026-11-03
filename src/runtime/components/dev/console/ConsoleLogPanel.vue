@@ -84,7 +84,7 @@ function getBgClass(msg) {
   <!-- Console log panel with controls and log display -->
   <div class="h-full p-0 m-0 overflow-hidden">
     <!-- Control bar with filters and search -->
-    <div class="bg-muted border-b border-dev-lines px-3 py-2 font-mono">
+    <div class="bg-muted border-b border-sd-line px-3 py-2 font-mono">
       <div class="flex items-center justify-end gap-4 text-xs">
         <!-- Since last view toggle -->
         <div class="flex items-center gap-2">
@@ -186,7 +186,7 @@ function getBgClass(msg) {
               v-if="filter_log(msg)"
               :class="[
                 getBgClass(msg),
-                'text-xs font-mono p-2 pr-0 border-b border-dev-lines whitespace-pre-wrap break-words break-all min-w-0 w-full',
+                'text-xs font-mono p-2 pr-0 border-b border-sd-line whitespace-pre-wrap break-words break-all min-w-0 w-full',
               ]"
             >
               <div class="flex items-start gap-1 min-w-0">
@@ -247,7 +247,7 @@ function getBgClass(msg) {
               v-if="filter_log(msg)"
               :class="[
                 getBgClass(msg),
-                'text-xs font-mono p-2 pr-0 border-b border-dev-lines whitespace-pre-wrap break-words break-all min-w-0 w-full',
+                'text-xs font-mono p-2 pr-0 border-b border-sd-line whitespace-pre-wrap break-words break-all min-w-0 w-full',
               ]"
             >
               <div class="flex items-start gap-1 min-w-0">
@@ -307,17 +307,17 @@ function getBgClass(msg) {
 }
 
 .overflow-y-scroll::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
+  background: var(--sd-scrollbar-track);
   border-radius: 3px;
 }
 
 .overflow-y-scroll::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
+  background: var(--sd-scrollbar-thumb);
   border-radius: 3px;
 }
 
 .overflow-y-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
+  background: var(--sd-scrollbar-thumb-hover);
 }
 
 /* Theme-aware background colors for log messages */
@@ -333,20 +333,20 @@ function getBgClass(msg) {
   color: var(--muted-foreground);
 }
 
-.border-dev-lines {
-  border-color: var(--dev-lines);
+.border-sd-line {
+  border-color: var(--sd-line);
 }
 
 /* Semantic log type background colors */
 .log-bg-warn {
-  background-color: var(--log-yellow);
+  background-color: var(--sd-log-warn);
 }
 
 .log-bg-error {
-  background-color: var(--log-red);
+  background-color: var(--sd-log-error);
 }
 
 .log-bg-success {
-  background-color: var(--log-green);
+  background-color: var(--sd-log-info);
 }
 </style>

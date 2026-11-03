@@ -81,8 +81,8 @@ const _props = defineProps({
 }
 
 .error-notification {
-  background: var(--error-notif-bg);
-  border: 1px solid var(--error-notif-border);
+  background: var(--sd-error-bg);
+  border: 1px solid var(--sd-error-line);
 }
 
 .notification-content {
@@ -91,7 +91,7 @@ const _props = defineProps({
 }
 
 .error-content {
-  background: linear-gradient(135deg, var(--error-notif-bg) 0%, var(--error-notif-bg-end) 100%);
+  background: linear-gradient(135deg, var(--sd-error-bg) 0%, var(--sd-error-bg) 100%);
 }
 
 .command-badge {
@@ -114,9 +114,9 @@ const _props = defineProps({
 }
 
 .error-key {
-  background: var(--error-notif-text);
-  color: var(--error-notif-bg);
-  border: 1px solid var(--error-notif-text);
+  background: var(--sd-error);
+  color: var(--sd-error-bg);
+  border: 1px solid var(--sd-error);
 }
 
 .action-text {
@@ -127,7 +127,7 @@ const _props = defineProps({
 }
 
 .error-text {
-  color: var(--error-notif-text);
+  color: var(--sd-error);
 }
 
 .notification-arrow {
@@ -143,9 +143,9 @@ const _props = defineProps({
 }
 
 .error-arrow {
-  background: var(--error-notif-bg);
-  border-left: 1px solid var(--error-notif-border);
-  border-top: 1px solid var(--error-notif-border);
+  background: var(--sd-error-bg);
+  border-left: 1px solid var(--sd-error-line);
+  border-top: 1px solid var(--sd-error-line);
 }
 
 /* Animation */
@@ -164,13 +164,11 @@ const _props = defineProps({
   transform: translateX(-100%) translateY(-10px);
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .notification {
-    box-shadow:
-      0 4px 6px -1px rgba(0, 0, 0, 0.3),
-      0 2px 4px -1px rgba(0, 0, 0, 0.2),
-      0 0 0 1px rgba(255, 255, 255, 0.1);
-  }
+/* Stronger shadow when the dev tools are dark */
+.dark .notification {
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 2px 4px -1px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 </style>
