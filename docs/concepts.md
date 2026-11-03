@@ -1,3 +1,7 @@
+---
+description: "A worked first example of SMILE's key ideas: writing an experiment View component, adding it to the timeline in design.js, and developing and debugging it with the dev tools."
+---
+
 # Key Concepts
 
 Smile introduces a new way to build behavioral experiments which promotes

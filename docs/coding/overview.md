@@ -1,3 +1,7 @@
+---
+description: "Map of the coding guides: project organization, developer mode, configuration, components, views, the timeline, steps, autofill, randomization, persistence and data recording."
+---
+
 # Coding Overview
 
 The following sections describe how to design experiments using the <SmileText/>

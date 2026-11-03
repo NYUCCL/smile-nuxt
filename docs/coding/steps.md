@@ -1,3 +1,7 @@
+---
+description: "How to build multi-trial tasks with api.steps: appending trials, nested (hierarchical) steps and blocks, stepData, navigating between steps, recording each step, and building trial lists with zip(), outer() and shuffle()."
+---
+
 # Stepping Through Trials
 
 For some conditions in your experiment, you may want to repeat several trials of
@@ -33,7 +37,6 @@ method to get access to the stepper structure. A common pattern is to use
 
 ```vue
 <script setup>
-import useViewAPI from '@/core/composables/useViewAPI'
 const api = useViewAPI()
 
 // Add a series of steps to the experiment
@@ -56,7 +59,6 @@ feedback page like this:
 
 ```vue
 <script setup>
-import useViewAPI from '@/core/composables/useViewAPI'
 const api = useViewAPI()
 
 const trials = api.steps.append([{ id: 'stroop' }, { id: 'summary' }])
@@ -355,19 +357,18 @@ The ViewAPI object provides methods for controlling trial navigation:
 ## Recording data from a step
 
 There is one easy to use function for recording data from the current step into
-the firestore data store.
+the participant's data.
 
-- `api.recordStep()` - Record the current step data to the state machine
+- `api.recordStep()` - Record the current step's `stepData` (using
+  `recordPageData()`)
 
-When you record data using `api.recordStep()`, the data is immediately saved to
-the local browser storage and persisted across page reloads. However, the data
-is not immediately sent to Firestore - it's queued for synchronization until the
-next View navigation occurs. This design provides both immediate local
-persistence and efficient batch synchronization. Since step data is persisted
-locally and survives browser reloads, the data is effectively saved and ready
-for syncing to Firestore when the participant navigates to the next View. This
-approach ensures data integrity while optimizing network requests by batching
-multiple step recordings together.
+`api.recordStep()` adds the step's data to the participant's data in the
+browser, where it's also backed up to local storage, so it survives a page
+reload. It's sent to the database at the next save, which by default happens
+when the participant moves to the next View (see
+[When data is saved](/coding/datastorage#when-data-is-saved)). Recording many
+steps and saving them together keeps the number of requests down. For a long
+View, you can save along the way with `api.saveData()`.
 
 ## Persisting data for the view (not just a step)
 
@@ -474,15 +475,13 @@ const trials3 = api.steps.zip(
 // ]
 ```
 
-Non-Array Values
+#### Non-array values
 
 The `zip()` method can handle non-array values by treating them as
 single-element arrays:
 
 ```js
-const stepper = api.useHStepper()
-
-const trials = stepper.spec().zip(
+const trials = api.steps.zip(
   {
     shape: 'circle', // Treated as ['circle']
     color: ['red', 'green', 'blue'],
@@ -651,13 +650,7 @@ step they were on.
 <script setup>
 // An Incremental Test
 
-// import and initalize smile API
-import useViewAPI from '@/core/composables/useViewAPI'
 const api = useViewAPI()
-
-// import the constrained task window layout and a nice button
-import { ConstrainedTaskWindow } from '@/runtime/components/layouts'
-import { Button } from '@/runtime/components/ui/button'
 
 // initialize the persistent variables
 // these will persist across browser reloads

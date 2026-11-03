@@ -1,3 +1,7 @@
+---
+description: "Reference for the SMILE API from useViewAPI() and useAPI(): navigation, recording data, steps, keyboard and mouse events, timing, randomization, asset URLs and dev-mode helpers."
+---
+
 # Smile API
 
 Smile provides a common API which is accessed in user [Views](/coding/views) and
@@ -12,14 +16,16 @@ extends the base `useAPI` with additional functionality for interacting with the
 stepper and handling user input events:
 
 ```js
-// import and initialize view API (recommended)
-import useViewAPI from '@/core/composables/useViewAPI'
+// In a View (a page in your timeline): the full API (recommended)
 const api = useViewAPI()
 
-// or import and initialize base API only
-import useAPI from '@/core/composables/useAPI'
+// In any other component: the base API
 const api = useAPI()
 ```
+
+Both are auto-imported in your project's `.vue` and `.js` files, so no
+`import` line is needed. (Components are different: in a `.js` file such as
+`design.js`, import them explicitly.)
 
 The `useViewAPI` composable provides all the functionality of `useAPI` plus
 additional methods for:
@@ -235,19 +241,19 @@ api.goToStep('trial/block1/step2', false)
 - `setAutofill(autofill)`: Sets up view autofill (development mode only).
 - `removeAutofill()`: Removes view autofill (development mode only).
 - `getRecruitmentService()`: Retrieves the recruitment service information.
-- `getStepper(routeName)`: Gets the stepper for a specific route.
 - `hasAutofill()`: Checks if autofill is available.
 - `autofill()`: Performs autofill.
 - `currentRouteName()`: Returns the current route name.
 - `currentViewName()`: Returns the current view name.
 - `getBrowserFingerprint()`: Retrieves the browser fingerprint.
-- `preloadAllImages()`: Preloads all images for the experiment.
-- `preloadAllVideos()`: Preloads all videos for the experiment.
-- `getPublicUrl(path)`: Returns the public URL for a file.
-- `getStaticUrl(path)`: Returns the URL for a user static file in
-  `src/user/assets/`.
-- `getCoreStaticUrl(path)`: Returns the public URL for a static asset provided
-  by the smile library in `src/assets`.
+- `preloadAllImages()`: Preloads the images listed in the `smile.preloadImages`
+  option in `nuxt.config.ts` (see [Preloading](/styling/imagesvideo#preloading)).
+- `preloadAllVideos()`: Preloads the videos listed in `smile.preloadVideos`.
+- `getPublicUrl(path)`: Returns the URL of a file in your project's `public/`
+  folder, with the deploy base path added.
+- `getStaticUrl(path)`: Same as `getPublicUrl`, kept for older code.
+- `getCoreStaticUrl(path)`: Returns the URL of a file that ships with
+  <SmileText/> itself (served under `/_smile/`).
 - `scrollToTop()`: Scrolls the main content container to the top.
 - `currentRouteInfo()`: Returns the current route info object.
 
@@ -279,19 +285,18 @@ api.goToStep('trial/block1/step2', false)
 
 ## Data Recording and Saving
 
-The following methods are used to record and save data in the experiment. Note
-that Firestore has limitations on the types of data it can store directly. When
-using these methods, ensure your data objects are Firestore-safe:
+The following methods are used to record and save data in the experiment.
+Recorded data is checked before it's stored, and must follow these rules:
 
-- Only primitive types (string, number, boolean, null)
-- Arrays of primitive types
-- Objects containing only primitive types
-- Timestamps
-- References to other documents
-- GeoPoints
+- Values are strings, numbers, booleans, `null`, dates, or arrays and objects
+  of these
+- No arrays directly inside arrays (e.g., `[[1, 2], [3, 4]]`); put them in an
+  object instead (`[{ a: [1, 2] }, { a: [3, 4] }]`)
+- No functions or symbols
+- Keys can't contain `.`, `/`, `[`, `]`, or `*`
 
-Complex JavaScript objects (like functions, classes, or objects with circular
-references) must be converted to Firestore-safe formats before saving.
+Convert anything else (class instances, objects with circular references)
+to plain data before recording it.
 
 - `recordPageData(data, routeName?)`: **Recommended** - Records data organized
   by route/page name and visit number. Data is stored in `pageData_<routeName>`
@@ -299,13 +304,8 @@ references) must be converted to Firestore-safe formats before saving.
   `visit_0`, `visit_1`, etc.). Each visit contains `timestamps` and `data`
   arrays that grow with each call during that visit. If routeName is omitted,
   uses the current route name. Returns `true` on success, `false` on validation
-  failure. The data must be Firestore-safe and will be validated before
-  recording:
-  - Must be an object (not an array) - arrays would create nested arrays which
-    Firestore doesn't support
-  - Cannot contain nested arrays (e.g., `[[1,2], [3,4]]`)
-  - Cannot contain functions or symbols
-  - Keys cannot contain `.`, `/`, `[`, `]`, or `*`
+  failure. The data must follow the rules above, and must be an object, not an
+  array (wrap a list as `{ items: [...] }`).
 
   Example stored structure:
 
@@ -339,7 +339,7 @@ references) must be converted to Firestore-safe formats before saving.
   where they left off. See
   [Understanding the Visit Structure](/analysis#understanding-the-visit-structure).
 
-- `recordProperty(name, FirestoreSafeObject)`: Saves a Firestore-safe object at
+- `recordProperty(name, data)`: Saves `data` (following the rules above) at
   the top level of the data object. This does not save the data to the database,
   but it does record it in the local state. The next call to `saveData()` will
   save the data to the database.
@@ -347,9 +347,9 @@ references) must be converted to Firestore-safe formats before saving.
   does not save the data to the database, but it does record it in the local
   state. The next call to `saveData()` will save the data to the database.
 - `recordWindowEvent(type, event_data = null)`: Records a window event. The
-  event_data must be Firestore-safe if provided.
+  event_data must follow the rules above if provided.
 - `saveData(force)`: Saves the current data to the database (force save if
-  specified). All data must be Firestore-safe.
+  specified).
 - `computeCompletionCode()`: Generates a unique completion code by hashing all
   `pageData_*` fields (falls back to `studyData` for backward compatibility).
 

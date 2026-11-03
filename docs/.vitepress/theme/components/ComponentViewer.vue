@@ -54,24 +54,34 @@ const metadata = reactive({
   containerClass: null,
 })
 
+// The examples import SMILE's components by their path in this repo (@/runtime/...)
+// so the docs site can render them. In a project those components are
+// auto-imported, so drop those lines from the code readers copy, along with a
+// <script setup> block left empty.
+function forReaders(code) {
+  return code
+    .replace(/^import .* from '@\/runtime\/[^']*'\n/gm, '')
+    .replace(/<script setup>\s*<\/script>\n*/g, '')
+}
+
 const loadCode = async () => {
   if (props.rawCode) {
-    rawCode.value = props.rawCode
+    rawCode.value = forReaders(props.rawCode)
     if (highlighter.value) {
-      highlightedCode.value = highlighter.value.codeToHtml(props.rawCode, {
+      highlightedCode.value = highlighter.value.codeToHtml(rawCode.value, {
         lang: 'vue',
         defaultColor: false,
         theme: 'github-dark-default',
       })
     } else {
-      highlightedCode.value = props.rawCode
+      highlightedCode.value = rawCode.value
     }
   } else if (props.filePath) {
     try {
       const absolutePath = props.filePath.startsWith('../') ? props.filePath.replace('../', '/') : props.filePath
       const response = await fetch(absolutePath)
       if (response.ok) {
-        rawCode.value = await response.text()
+        rawCode.value = forReaders(await response.text())
         if (highlighter.value) {
           highlightedCode.value = highlighter.value.codeToHtml(rawCode.value, {
             lang: 'vue',

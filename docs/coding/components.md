@@ -1,3 +1,7 @@
+---
+description: "An introduction to Vue components for SMILE experiments: templates, reactivity and declarative rendering, writing your own components, and where to keep them."
+---
+
 <script setup>
 import SimpleButton from '/coding/components/SimpleButton.vue'
 import TextInput from '/coding/components/TextInput.vue'
@@ -39,7 +43,7 @@ like [JSPsych](https://www.jspsych.org/7.2/). However, JSPsych plugins often
 handle single trials of an experiment, whereas a Vue.js component might be as
 small as a button or as big as an entire webpage or even application. In
 addition, components leverage some other concepts in modern web design such as
-[reactivity and declarative rendering](/reactive) that make your development and
+[reactivity and declarative rendering](#declarative-rendering-and-reactivity) that make your development and
 debugging much easier.
 
 ### How are components used in <SmileText/>?

@@ -1,3 +1,7 @@
+---
+description: "Overview of styling a SMILE experiment: Tailwind CSS, dark mode, layouts, UI components, icons, forms, images and video."
+---
+
 # Style and Design Overview
 
 Styling the look and feel of your experiment elements is often a time-consuming

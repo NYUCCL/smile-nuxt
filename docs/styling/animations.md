@@ -1,3 +1,7 @@
+---
+description: "Animating experiment elements with the Motion library for Vue: basic usage, properties, transitions, interactive and staggered animations, and best practices."
+---
+
 # Animations
 
 This project uses the [Motion](https://motion.dev/) library for animations.

@@ -1,3 +1,7 @@
+---
+description: "Seeded random numbers that stay the same across reloads, random condition assignment with randomAssignCondition, the built-in randomization helpers (shuffle, randomInt, sampling, distributions), and overriding randomization while debugging."
+---
+
 # Randomization
 
 Most experiments make use of randomization: tasks are presented to participants
@@ -85,7 +89,6 @@ to between-subjects conditions. This requires a name for the condition (e.g.,
 and `BA`).
 
 ```js
-import useAPI from '@/core/composables/useAPI'
 const api = useAPI()
 
 api.randomAssignCondition({ taskOrder: ['AB', 'BA'] })
@@ -95,7 +98,6 @@ This function can also include weights. Say you want twice as many participants
 in variation condition C compared to variation condition D:
 
 ```js
-import useAPI from '@/core/composables/useAPI'
 const api = useAPI()
 
 api.randomAssignCondition({ variation: ['C', 'D'], weights: [2, 1] })
@@ -108,7 +110,6 @@ To access the value of the condition elsewhere (e.g., in the instructions
 component), you can do:
 
 ```js
-import useAPI from '@/core/composables/useAPI'
 const api = useAPI()
 
 api.getConditionByName('taskOrder')
@@ -137,7 +138,6 @@ functions for these situations:
 Generates a random integer between min and max (both inclusive).
 
 ```js
-import useAPI from '@/core/composables/useAPI'
 const api = useAPI()
 
 // generate a random integer: 1, 2, 3, 4, or 5
@@ -150,7 +150,6 @@ Randomly shuffles an array. For example, this can be used to present some fixed
 stimuli in a random order.
 
 ```js
-import useAPI from '@/core/composables/useAPI'
 const api = useAPI()
 
 const stimuli = [
@@ -171,7 +170,6 @@ Samples **without** replacement from an array. For example, this can be used to
 randomly present 3 stimuli from a larger set.
 
 ```js
-import useAPI from '@/core/composables/useAPI'
 const api = useAPI()
 
 const stimuli = [
@@ -193,7 +191,6 @@ randomly present 3 stimuli from a larger set (with the possibility of presenting
 the same stimulus twice).
 
 ```js
-import useAPI from '@/core/composables/useAPI'
 const api = useAPI()
 
 const stimuli = [
@@ -214,7 +211,6 @@ Computes the cartesian product of any number of arrays. For example, this can be
 used to get all permutations of three condition variables.
 
 ```js
-import useAPI from '@/core/composables/useAPI'
 const api = useAPI()
 
 const stimuli = [

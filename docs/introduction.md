@@ -1,5 +1,6 @@
 ---
 outline: none
+description: "What SMILE is: a Nuxt module for building online behavioral experiments with Vue, with built-in consent, recruitment, data storage, deployment and developer tools."
 ---
 
 <img src="/images/smile.svg" width="300">

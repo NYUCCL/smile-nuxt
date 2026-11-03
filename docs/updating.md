@@ -1,3 +1,7 @@
+---
+description: "How to update @nyuccl/smile-nuxt to a newer version, check which version you have, and pin a version for replicability."
+---
+
 # Updating Smile
 
 Smile ships as the `@nyuccl/smile-nuxt` npm package, so updating to a

@@ -1,3 +1,7 @@
+---
+description: "Writing server routes (Nuxt server/api endpoints) for code that must not run in the browser, such as keeping API keys secret or calling an LLM: request handling, secrets, calling them from the experiment, errors."
+---
+
 # Server-side logic
 
 Most of your experiment runs in the participant's browser. But sometimes

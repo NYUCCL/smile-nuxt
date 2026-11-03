@@ -1,3 +1,7 @@
+---
+description: "Deploying an experiment to the web with Vercel and Turso: one-time setup, step-by-step deploys, deploy notifications, access to the dev and presentation routes, and how each git branch becomes its own experiment."
+---
+
 # Cloud Hosting
 
 To put your experiment in front of participants, you host it on the cloud —

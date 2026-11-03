@@ -1,3 +1,7 @@
+---
+description: "Dark mode in SMILE experiments: setting it with VITE_COLOR_MODE or at runtime, things to consider for experiments, and the dev tools' theme controls."
+---
+
 # Dark Mode
 
 Smile supports dark mode in a highly configurable way. Sometimes dark mode is

@@ -1,3 +1,7 @@
+---
+description: "Testing your experiment with the Playwright end-to-end tests that ship with your project: running them, writing tests for your own task, a checklist before deploying, and checking the database."
+---
+
 # :lady_beetle: Testing your experiment
 
 Automated tests click through your experiment the way a participant would and

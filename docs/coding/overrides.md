@@ -1,3 +1,7 @@
+---
+description: "How your project's files take priority over SMILE's built-ins: overriding Vue components, public assets, CSS theme tokens and composables, and a cheat sheet of what wins when names collide."
+---
+
 # Overriding Builtins
 
 Your code and the `@nyuccl/smile-nuxt` module both contribute components,

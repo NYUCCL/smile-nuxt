@@ -84,18 +84,18 @@ export default defineConfig({
       provider: 'local',
     },
     editLink: {
-      pattern: 'https://github.com/nyuccl/smile/edit/main/docs/:path',
+      pattern: 'https://github.com/NYUCCL/smile-nuxt/edit/main/docs/:path',
       text: 'Suggest changes to this page on GitHub',
     },
     nav: [
       { text: 'gureckislab.org', link: 'https://gureckislab.org' },
       {
         text: `v${version}`,
-        items: [{ text: 'Release Notes', link: 'https://github.com/nyuccl/smile/releases' }],
+        items: [{ text: 'Release Notes', link: 'https://github.com/NYUCCL/smile-nuxt/releases' }],
       },
     ],
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/NYUCCL/smile' },
+      { icon: 'github', link: 'https://github.com/NYUCCL/smile-nuxt' },
       { icon: 'twitter', link: 'https://twitter.com/todd_gureckis' },
       {
         icon: 'youtube',
@@ -133,8 +133,6 @@ export default defineConfig({
           { text: 'Server-side logic', link: '/coding/serverside' },
           { text: 'Testing', link: '/coding/testing' },
 
-          //{ text: '💰 Computing bonuses', link: '/bonuses' },
-          //{ text: '🆘 Dealing with Errors', link: '/problems' },
           //{ text: '🔌 Server-side Computations', link: '/server' },
         ],
       },
@@ -158,15 +156,12 @@ export default defineConfig({
         items: [
           { text: 'Cloud Hosting', link: '/recruit/deploying' },
           { text: 'Recruitment Services', link: '/recruit/recruitment' },
-          //{ text: '😇 Ethical considerations', link: '/ethics' },
         ],
       },
       {
         text: 'Analyzing data',
         items: [
           { text: 'Analyzing data', link: '/analysis' },
-          //{ text: '🤖 Quality control', link: '/qualitycontrol' },
-          //{ text: '📈 Dashboard', link: '/dashboard' },
         ],
       },
       {

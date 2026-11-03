@@ -1,3 +1,7 @@
+---
+description: "How SMILE keeps the experiment's state across page reloads, so participants pick up where they left off, and how to reset it in the dev tools."
+---
+
 # Persistence
 
 A key concept in Smile is the idea of _persistence_. Persistence refers to the

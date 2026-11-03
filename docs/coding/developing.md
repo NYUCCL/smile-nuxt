@@ -1,3 +1,7 @@
+---
+description: "Developing locally: the SMILE developer tools at /dev/, building and previewing the production version (pnpm build, pnpm preview), hot module replacement, and bundling."
+---
+
 # Developing your experiments
 
 When developing and debugging your experiment, it is useful to interact with a

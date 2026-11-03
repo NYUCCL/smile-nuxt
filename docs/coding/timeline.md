@@ -1,3 +1,7 @@
+---
+description: "The design.js file and the experiment timeline: URLs and routes, adding Views with pushSeqView and registerView, navigation guards (meta), branching and randomized flows."
+---
+
 # Timeline and Design File
 
 Web experiments are often composed of several parts presented in sequence. For

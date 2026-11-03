@@ -1,3 +1,7 @@
+---
+description: "How SMILE is configured: experiment options in design.js, VITE_* settings in .env, server secrets (Turso, passwords), auto-generated git metadata, and adding your own options."
+---
+
 # Configuration
 
 Every experiment needs configuration — UI defaults, database credentials,
@@ -73,7 +77,7 @@ api.setRuntimeConfig(
 Then read it anywhere in your views:
 
 ```js
-const payrate = api.getRuntimeConfig('payrate')
+const payrate = api.getConfig('payrate')
 ```
 
 ::: info Where the value goes
@@ -212,7 +216,7 @@ You have three options, ordered from easiest to most involved.
 ```js
 api.setRuntimeConfig('myKey', value)
 // ...later, in a view:
-const myValue = api.getRuntimeConfig('myKey')
+const myValue = api.getConfig('myKey')
 ```
 
 Stored in the Pinia store, exported with the participant's `smileConfig`.
@@ -225,10 +229,14 @@ genuinely differs by environment (dev vs. staging vs. prod).
 
 1. Add `VITE_MY_OPTION` to `.env` (tracked default) or `.env.local`
    (machine-specific).
-2. Surface it on the global config map by adding a line to
-   `src/runtime/core/config.js`.
-3. Read it via the same `api.getRuntimeConfig('myOption')` call (the runtime
-   config layer reads from the global config map as its floor).
+2. Read it in your code as `import.meta.env.VITE_MY_OPTION`. It's always a
+   string (or `undefined` if unset), and it's fixed when the site is built.
+3. To have it recorded with each participant's `smileConfig`, pass it on in
+   `design.js`, then read it with `api.getConfig()` like any other option:
+
+   ```js
+   api.setRuntimeConfig('myOption', import.meta.env.VITE_MY_OPTION)
+   ```
 
 ### 3. A server-only secret
 
@@ -266,6 +274,6 @@ Never reference a server secret from a Vue component — it isn't bundled.
 | `.env`                                                            | Tracked defaults for `VITE_*` UI/branding/data-saving values.                    |
 | `.env.local`                                                      | Gitignored secrets and machine-specific overrides. Copy from `.env.local.example`. |
 | `.env.git.local`                                                  | Auto-generated git metadata. Don't edit, don't commit.                           |
-| `src/runtime/core/config.js`                                      | The runtime config map consumed by the app. Add new `VITE_*` surfaces here.      |
+| `node_modules/@nyuccl/smile-nuxt/dist/runtime/core/config.js`     | <SmileText/>'s built-in config map (read-only; shows every built-in option and its `VITE_*` variable). |
 | `server/` routes in your project                                  | Where to read your own server secrets — from `process.env` at runtime, never build-time `runtimeConfig`. |
 | Hosting provider dashboard (e.g., Vercel Project → Env Variables) | Where the same env vars go for production deployment.                            |

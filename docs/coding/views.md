@@ -1,3 +1,7 @@
+---
+description: "Views, the components that make up each page of the experiment's timeline: the View API (useViewAPI), persisting data for a View, timing, styling, and the built-in Views."
+---
+
 # Views
 
 [Components](/coding/components) are the basic building blocks of a <SmileText/>

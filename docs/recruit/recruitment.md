@@ -1,3 +1,7 @@
+---
+description: "How to recruit participants on Prolific, CloudResearch and other services with your experiment's URL, approve and pay them, and pay bonuses."
+---
+
 # Recruiting Participants
 
 The first step in recruiting participants is to get the public URL for your
@@ -95,6 +99,18 @@ participants who finished the entire study. If you don't want to approve all
 participants, you can approve individually by clicking the check mark next to
 each submission. You can also click "More," then "Approve in bulk" to provide a
 list of Prolific IDs to approve.
+
+### Paying bonuses
+
+<SmileText/> doesn't compute or pay bonuses for you. Work out each
+participant's bonus from their data (see [Downloading your data](/coding/datastorage#downloading-your-data)
+and [Analyzing data](/analysis)), then pay it on Prolific with the bulk bonus
+option on your study's submissions page, which takes a list of Prolific IDs
+and amounts.
+
+Prolific IDs are kept with the participant's private data (the `private_data`
+table, at `recruitmentInfo.prolific_id`), not in the data you export for
+analysis.
 
 <!-- - Set the URL for your experiment to the IP address of the server using the format `http://<hostname>:<port-number>/`. (T Make sure you include the forward slash, `/`, at the end, and make sure that you do not include the angle brackets.
 - Under 'How to record Prolific IDs’, select the option 'I’ll use URL parameters’.

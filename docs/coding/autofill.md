@@ -1,3 +1,7 @@
+---
+description: "Autofill for development: registering autofill functions with api.setAutofill so the dev tools can fill forms and complete trials with fake data, and the faker helpers for generating responses."
+---
+
 # Autofill
 
 When developing and debugging your experiment, it is useful to have a way to
