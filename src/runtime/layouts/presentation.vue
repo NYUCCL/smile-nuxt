@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue'
+import useAPI from '#smile-composables/useAPI'
 
 import PresentationNavBar from '#smile-dev/presentation/PresentationNavBar.vue'
 
