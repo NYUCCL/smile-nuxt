@@ -5,7 +5,7 @@
  * - All methods and properties from the core API
  * - All methods and properties from the stepper
  */
-import { ref, reactive, computed, watch, getCurrentInstance } from 'vue'
+import { ref, reactive, computed, watch, getCurrentInstance, effectScope } from 'vue'
 import { SmileAPI } from './useAPI'
 import useSmileStore from '../stores/smilestore'
 import { useStepper } from './useStepper'
@@ -941,7 +941,13 @@ export default function useViewAPI() {
     // eslint-disable-next-line no-undef
     const runtimeConfig = typeof useRuntimeConfig === 'function' ? useRuntimeConfig() : {}
     const timeline = { goNextView, goPrevView, goToView, nextView, prevView }
-    viewAPIInstance = new ViewAPI(store, logStore, route, router, timeline, runtimeConfig)
+    // A detached scope: the instance is shared by every view and the dev tools,
+    // so its computeds and watchers must outlive the component that happened to
+    // create it. Inside that component's scope they'd stop when it unmounts (and
+    // the dev tools' step panel would freeze on the old view's steps).
+    viewAPIInstance = effectScope(true).run(
+      () => new ViewAPI(store, logStore, route, router, timeline, runtimeConfig),
+    )
 
     // Add shortcuts for arrow keys
     if (config.mode == 'development') {
