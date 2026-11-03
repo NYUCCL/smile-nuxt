@@ -48,7 +48,6 @@ onMounted(() => {
 
 <template>
   <div class="presentation-container bg-background">
-    <LocalDevBanner />
     <!-- Top toolbar with presentation navigation -->
     <div class="toolbar sd-root">
       <PresentationNavBar hide-dark-mode />

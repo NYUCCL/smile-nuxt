@@ -13,11 +13,12 @@ test.describe('Dev mode', () => {
 
   // ─── Navbar / Basic Info ───────────────────────────────────────────
 
-  test('navbar shows DEVELOPER MODE label and version', async ({ page }) => {
+  test('navbar shows the developer mode label and version', async ({ page }) => {
     const nav = page.locator('nav')
-    await expect(nav.getByText('DEVELOPER MODE')).toBeVisible()
-    // Version string should appear in parentheses next to the label
-    await expect(nav.locator('text=DEVELOPER MODE').locator('..')).toContainText('(')
+    const label = nav.getByText('Developer mode', { exact: true })
+    await expect(label).toBeVisible()
+    // The version (x.y.z…) sits next to the label
+    await expect(label.locator('xpath=../..')).toContainText(/\d+\.\d+\.\d+/)
   })
 
   test('dev routes render with /dev prefix', async ({ page }) => {
@@ -143,8 +144,8 @@ test.describe('Dev mode', () => {
     await page.keyboard.press('Control+`')
     await expect(page.locator('.console')).toBeVisible()
 
-    // The console's left sidebar (w-9) has 3 tab buttons + 1 hide button
-    const sidebar = page.locator('.console .w-9')
+    // The console's rail has 3 tab buttons + 1 hide button
+    const sidebar = page.locator('.console .sd-rail')
     const buttons = sidebar.getByRole('button')
     await expect(buttons).toHaveCount(4) // browse, log, config, hide
   })
@@ -171,7 +172,7 @@ test.describe('Dev mode', () => {
     await expect(page.locator('.console')).toBeVisible()
 
     // The hide button is the bottom button in the console's left sidebar (ChevronDown icon)
-    const sidebar = page.locator('.console .w-9')
+    const sidebar = page.locator('.console .sd-rail')
     const buttons = sidebar.getByRole('button')
     await buttons.last().click()
     await expect(page.locator('.console')).not.toBeVisible()

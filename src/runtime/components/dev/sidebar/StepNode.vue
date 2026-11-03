@@ -168,11 +168,11 @@ const getChildVerticalLines = (verticalLines, index, total) => {
 }
 
 .vertical-lines {
-  font-family: monospace;
+  font-family: var(--font-mono), ui-monospace, monospace;
 }
 
 .tree-branch {
-  font-family: monospace;
+  font-family: var(--font-mono), ui-monospace, monospace;
 }
 
 .node-path {
@@ -183,7 +183,7 @@ const getChildVerticalLines = (verticalLines, index, total) => {
 .node-data {
   margin-left: 8px;
   color: var(--muted-foreground);
-  font-family: monospace;
+  font-family: var(--font-mono), ui-monospace, monospace;
 }
 
 .children {

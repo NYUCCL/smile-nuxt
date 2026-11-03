@@ -24,7 +24,7 @@ function goHome() {
       <TooltipTrigger as-child>
         <Button
           size="menu"
-          variant="outline"
+          variant="toolbar"
           @click="goHome"
         >
           <Home />

@@ -64,7 +64,7 @@ const togglePin = () => {
   <!-- View information button group with tooltips -->
   <TooltipProvider>
     <ButtonGroup
-      variant="outline"
+      variant="toolbar"
       size="menu"
     >
       <!-- Autofill button -->

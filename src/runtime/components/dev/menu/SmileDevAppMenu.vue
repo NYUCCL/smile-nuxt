@@ -1,63 +1,14 @@
 <script setup>
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { BookMarked, BugPlay, Database, Moon, Presentation, Settings, Smile, Sun, SunMoon } from 'lucide-vue-next'
+import { BugPlay, Moon, Presentation, Settings, Sun, SunMoon, UserRound } from 'lucide-vue-next'
 import { useSmileColorMode } from '../../../composables/useColorMode'
-/**
- * @fileoverview Sidebar component for the Smile application with navigation and configuration options
- */
-
-/**
- * Import sidebar UI components from shadcn-vue
- * @requires Sidebar Main sidebar container component
- * @requires SidebarContent Content area of the sidebar
- * @requires SidebarFooter Footer area of the sidebar
- * @requires SidebarGroup Group container for sidebar items
- * @requires SidebarGroupContent Content within a sidebar group
- * @requires SidebarHeader Header area of the sidebar
- * @requires SidebarMenu Menu container for sidebar items
- * @requires SidebarMenuButton Button component for sidebar menu items
- * @requires SidebarMenuItem Individual menu item in the sidebar
- */
-
-/**
- * Import popover components for configuration panel
- * @requires Popover Popover container component
- * @requires PopoverContent Content area of the popover
- * @requires PopoverTrigger Trigger element for the popover
- */
-
-/**
- * Import configuration panel component
- * @requires DevConfigPanel Developer configuration panel component
- */
 import DevConfigPanel from './DevConfigPanel.vue'
 import useAPI from '../../../composables/useAPI'
 
 /**
- * Import color mode composable
- * @requires useSmileColorMode Composable for managing color theme
- */
-
-/**
- * Import tooltip components for enhanced UX
- * @requires Tooltip Tooltip container component
- * @requires TooltipContent Content area of the tooltip
- * @requires TooltipProvider Provider for tooltip context
- * @requires TooltipTrigger Trigger element for the tooltip
- */
-
-/**
- * Import and initialize SMILE API
- * @requires useAPI SMILE API composable
- */
-
-/**
- * Component props for sidebar configuration
- * @typedef {object} Props
- * @property {string} [side] - Side of the sidebar ('left' or 'right')
- * @property {string} [variant] - Variant of the sidebar styling
- * @property {string} [collapsible] - Collapsible behavior ('icon' or 'none')
- * @property {string} [class] - Additional CSS classes
+ * The dev tools' app menu: a narrow rail on the left. The top holds the
+ * modes (developer, presentation, and a link out to the participant view);
+ * the bottom holds the dev tools' theme and settings. Every button is the same
+ * size and look; the current mode is the selected tint.
  */
 const props = defineProps({
   side: { type: String, required: false },
@@ -66,11 +17,19 @@ const props = defineProps({
   class: { type: null, required: false },
 })
 
-/**
- * Initialize SMILE API instance
- * @constant {object} api Global API instance
- */
 const api = useAPI()
+
+// Modes shown in the dev layout (store.dev.mainView). The dashboard ('dashboard',
+// Database icon) and docs ('docs', BookMarked) come back here when they're ready.
+const modes = [
+  { view: 'devmode', icon: BugPlay, label: 'Developer mode' },
+  { view: 'presentation', icon: Presentation, label: 'Presentation mode' },
+]
+
+function selectMode(view) {
+  // Clicking the open mode again returns to developer mode
+  api.store.dev.mainView = api.store.dev.mainView === view && view !== 'devmode' ? 'devmode' : view
+}
 
 /**
  * The dev tools' own theme (on the html element). Starts on the system setting;
@@ -80,136 +39,53 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
 </script>
 
 <template>
-  <!-- Main sidebar container with icon-only layout -->
   <Sidebar
     class="sd-root w-[calc(var(--sidebar-width-icon)+1px)]! border-r border-sd-line"
     v-bind="props"
   >
-    <!-- Sidebar header with main logo button -->
-    <SidebarHeader>
-      <SidebarMenu>
+    <SidebarContent class="pt-2">
+      <SidebarMenu class="sd-rail-group">
+        <SidebarMenuItem
+          v-for="mode in modes"
+          :key="mode.view"
+        >
+          <SidebarMenuButton
+            class="sd-rail-btn"
+            :class="api.store.dev.mainView === mode.view
+              ? 'bg-sd-selected text-sd-selected-fg hover:!bg-sd-selected-hover'
+              : 'hover:!bg-sd-hover'"
+            :tooltip="mode.label"
+            @click="selectMode(mode.view)"
+          >
+            <component :is="mode.icon" />
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        <!-- The study as participants see it: leaves the dev tools (the local
+             banner there links back) -->
         <SidebarMenuItem>
           <SidebarMenuButton
-            size="lg"
             as-child
-            class="md:h-8 md:p-0"
+            class="sd-rail-btn hover:!bg-sd-hover"
+            tooltip="Participant view (leaves the dev tools)"
           >
-            <a href="/">
-              <div class="mainbutton text-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                <Smile />
-              </div>
-            </a>
+            <a href="/"><UserRound /></a>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
-    </SidebarHeader>
-
-    <!-- Sidebar content with navigation menu -->
-    <SidebarContent>
-      <SidebarGroup>
-        <SidebarGroupContent class="px-1.5 md:px-0">
-          <SidebarMenu>
-            <!-- Developer Mode navigation item -->
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
-                :class="{
-                  'bg-sd-selected text-sd-selected-fg hover:!bg-sd-selected-hover': api.store.dev.mainView === 'devmode',
-                  'hover:!bg-sd-hover': api.store.dev.mainView !== 'devmode',
-                }"
-                tooltip="Developer Mode"
-                @click="api.store.dev.mainView = 'devmode'"
-              >
-                <BugPlay class="!size-5" />
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <!-- Data Dashboard (hidden until the feature is complete)
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
-                :class="{
-                  'bg-sd-selected text-sd-selected-fg hover:!bg-sd-selected-hover': api.store.dev.mainView === 'dashboard',
-                  'hover:!bg-sd-hover': api.store.dev.mainView !== 'dashboard',
-                }"
-                tooltip="Data Dashboard"
-                @click="api.store.dev.mainView = api.store.dev.mainView === 'dashboard' ? 'devmode' : 'dashboard'"
-              >
-                <Database class="!size-5" />
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            -->
-
-            <!-- Recruit
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
-                tooltip="Recruit Participants"
-                :isActive="api.store.dev.mainView === 'recruit'"
-                @click="api.store.dev.mainView = 'recruit'"
-              >
-                <i-bxs-megaphone class="!size-5" :class="{ 'text-sd-accent': api.store.dev.mainView === 'recruit' }" />
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            -->
-
-            <!-- Presentation Mode -->
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
-                :class="{
-                  'bg-sd-selected text-sd-selected-fg hover:!bg-sd-selected-hover': api.store.dev.mainView === 'presentation',
-                  'hover:!bg-sd-hover': api.store.dev.mainView !== 'presentation',
-                }"
-                tooltip="Presentation Mode"
-                @click="api.store.dev.mainView = api.store.dev.mainView === 'presentation' ? 'devmode' : 'presentation'"
-              >
-                <Presentation class="!size-5" />
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <!-- Docs (coming soon)
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
-                :class="{
-                  'bg-sd-selected text-sd-selected-fg hover:!bg-sd-selected-hover': api.store.dev.mainView === 'docs',
-                  'hover:!bg-sd-hover': api.store.dev.mainView !== 'docs',
-                }"
-                tooltip="Documentation"
-                @click="api.store.dev.mainView = 'docs'"
-              >
-                <BookMarked class="!size-5" />
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            -->
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
     </SidebarContent>
 
-    <!-- Sidebar footer with utility buttons -->
-    <SidebarFooter>
-      <!-- Color mode toggle button -->
+    <SidebarFooter class="sd-rail-group pb-2">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger as-child>
             <SidebarMenuButton
-              class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
+              class="sd-rail-btn hover:!bg-sd-hover"
               @click="toggleGlobalColorMode"
             >
-              <Moon
-                v-if="globalColorModeRaw === 'light'"
-                class="!size-5"
-              />
-              <SunMoon
-                v-else-if="globalColorModeRaw === 'dark'"
-                class="!size-5"
-              />
-              <Sun
-                v-else
-                class="!size-5"
-              />
+              <Moon v-if="globalColorModeRaw === 'light'" />
+              <SunMoon v-else-if="globalColorModeRaw === 'dark'" />
+              <Sun v-else />
             </SidebarMenuButton>
           </TooltipTrigger>
           <TooltipContent side="right">
@@ -226,20 +102,19 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
         </Tooltip>
       </TooltipProvider>
 
-      <!-- Developer configuration popover -->
       <Popover>
-        <PopoverTrigger>
+        <PopoverTrigger as-child>
           <SidebarMenuButton
-            class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
-            as-child
-            tooltip="Configuration"
+            class="sd-rail-btn hover:!bg-sd-hover"
+            tooltip="Settings"
           >
-            <Settings class="!size-5" />
+            <Settings />
           </SidebarMenuButton>
         </PopoverTrigger>
         <PopoverContent
           side="right"
           align="end"
+          class="sd-root w-auto p-0 overflow-hidden bg-sd-bg border-sd-line"
         >
           <DevConfigPanel />
         </PopoverContent>
@@ -249,9 +124,30 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
 </template>
 
 <style scoped>
-/* Main button styling */
-.mainbutton {
-  background-color: var(--sd-brand-bg);
-  color: var(--sd-brand-fg);
+/* One column of 32px buttons, 4px apart, centered in the rail */
+.sd-rail-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sd-rail-group > :deep(li) {
+  display: flex;
+  justify-content: center;
+}
+
+.sd-rail-btn {
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  justify-content: center;
+}
+
+.sd-rail-btn :deep(svg) {
+  width: 18px;
+  height: 18px;
 }
 </style>

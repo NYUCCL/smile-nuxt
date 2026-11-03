@@ -329,17 +329,6 @@ const colorMode = computed(() => {
   color: var(--muted-foreground);
 }
 
-.device-controls :deep(.select-small) {
-  height: 28px !important;
-  padding: 4px 8px !important;
-  font-size: 12px !important;
-}
-
-.device-controls :deep(.select-small svg) {
-  width: 12px !important;
-  height: 12px !important;
-}
-
 .device-wrapper {
   position: relative;
   display: flex;

@@ -150,7 +150,7 @@ function _resetDevState() {
   <!-- Configuration panel with breadcrumb navigation and three-panel layout -->
   <div class="h-full m-0 p-0 flex flex-col">
     <!-- Breadcrumb navigation bar -->
-    <Breadcrumb class="bg-muted border-b border-sd-line px-3 py-2 font-mono">
+    <Breadcrumb class="sd-controlbar sd-mono">
       <BreadcrumbList>
         <template
           v-for="(option, index) in browse_panels.path"
@@ -180,8 +180,8 @@ function _resetDevState() {
     <!-- Main content area with sidebar and three-panel layout -->
     <div class="flex flex-row flex-1 overflow-hidden">
       <!-- Left sidebar with documentation link -->
-      <div class="flex flex-col w-1/6 min-w-[120px] border-r border-sd-line bg-muted p-2 gap-2">
-        <div class="text-xs text-left mb-2 font-mono">
+      <div class="flex flex-col w-1/6 min-w-[120px] border-r border-sd-line p-3 gap-2">
+        <div class="sd-help text-left">
           Read more about configuration options
           <a
             href="https://smile.gureckislab.org/configuration.html"

@@ -36,7 +36,7 @@ async function logout() {
       <TooltipTrigger as-child>
         <Button
           size="menu"
-          variant="outline"
+          variant="toolbar"
           @click="logout"
         >
           <LogOut />

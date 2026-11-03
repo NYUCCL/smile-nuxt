@@ -24,7 +24,7 @@ const qrUrl = computed(() => {
     <DropdownMenuTrigger as-child>
       <Button
         size="menu"
-        variant="outline"
+        variant="toolbar"
       >
         <QrCode />
       </Button>
@@ -56,7 +56,7 @@ const qrUrl = computed(() => {
         <!-- Download button -->
         <div class="flex justify-end">
           <Button
-            variant="outline"
+            variant="toolbar"
             size="sm"
             as-child
           >

@@ -190,10 +190,6 @@
   --warning-border: #ffeeba;
   --warning-ring: #ffe8a1;
 
-  /* Dev banner (local dev server stripe) */
-  --dev-banner-stripe-1: oklch(0.87 0.17 85);
-  --dev-banner-stripe-2: oklch(0.84 0.16 85);
-  --dev-banner-text: oklch(0.15 0 0);
 
   /* Page scrollbars */
   --scrollbar-track: #f1f1f1;
@@ -284,10 +280,6 @@
   --warning-border: #6e5615;
   --warning-ring: #8a6d1c;
 
-  /* Dev banner (local dev server stripe) */
-  --dev-banner-stripe-1: oklch(0.38 0 0);
-  --dev-banner-stripe-2: oklch(0.33 0 0);
-  --dev-banner-text: oklch(0.82 0 0);
 
   /* Page scrollbars */
   --scrollbar-track: #2a2a2a;

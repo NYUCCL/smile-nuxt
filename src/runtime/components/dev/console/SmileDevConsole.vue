@@ -20,26 +20,23 @@ const api = useAPI()
   <!-- Main console container with left sidebar and right content area -->
   <div class="w-full h-full flex overflow-hidden border-t border-sd-line">
     <!-- Left sidebar - 36px wide with tab navigation -->
-    <div
-      class="w-9 h-full bg-muted border-sd-line border-r flex flex-col items-center justify-between pt-1 pb-1 flex-shrink-0"
-    >
+    <div class="sd-rail h-full">
       <!-- Top section with tab buttons -->
-      <div class="flex flex-col items-center">
+      <div>
         <!-- Magnifying glass button - Browse tab -->
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger as-child>
               <Button
-                variant="ghost"
+                variant="toolbar"
                 size="icon"
-                class="w-8 h-8 mb-2 mt-1"
+                class="sd-field w-6 px-0"
                 :class="{
-                  'bg-sd-selected text-sd-selected-fg hover:!bg-sd-selected-hover': api.store.dev.consoleBarTab === 'browse',
-                  'hover:!bg-sd-hover': api.store.dev.consoleBarTab !== 'browse',
+                  'bg-sd-selected text-sd-selected-fg hover:bg-sd-selected-hover': api.store.dev.consoleBarTab === 'browse',
                 }"
                 @click="api.store.dev.consoleBarTab = 'browse'"
               >
-                <Database class="w-4 h-4" />
+                <Database class="size-3.5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">
@@ -53,16 +50,15 @@ const api = useAPI()
           <Tooltip>
             <TooltipTrigger as-child>
               <Button
-                variant="ghost"
+                variant="toolbar"
                 size="icon"
-                class="w-8 h-8 mb-2"
+                class="sd-field w-6 px-0"
                 :class="{
-                  'bg-sd-selected text-sd-selected-fg hover:!bg-sd-selected-hover': api.store.dev.consoleBarTab === 'log',
-                  'hover:!bg-sd-hover': api.store.dev.consoleBarTab !== 'log',
+                  'bg-sd-selected text-sd-selected-fg hover:bg-sd-selected-hover': api.store.dev.consoleBarTab === 'log',
                 }"
                 @click="api.store.dev.consoleBarTab = 'log'"
               >
-                <Terminal class="w-4 h-4" />
+                <Terminal class="size-3.5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">
@@ -76,16 +72,15 @@ const api = useAPI()
           <Tooltip>
             <TooltipTrigger as-child>
               <Button
-                variant="ghost"
+                variant="toolbar"
                 size="icon"
-                class="w-8 h-8 mb-1"
+                class="sd-field w-6 px-0"
                 :class="{
-                  'bg-sd-selected text-sd-selected-fg hover:!bg-sd-selected-hover': api.store.dev.consoleBarTab === 'config',
-                  'hover:!bg-sd-hover': api.store.dev.consoleBarTab !== 'config',
+                  'bg-sd-selected text-sd-selected-fg hover:bg-sd-selected-hover': api.store.dev.consoleBarTab === 'config',
                 }"
                 @click="api.store.dev.consoleBarTab = 'config'"
               >
-                <Settings class="w-4 h-4" />
+                <Settings class="size-3.5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">
@@ -100,12 +95,12 @@ const api = useAPI()
         <Tooltip>
           <TooltipTrigger as-child>
             <Button
-              variant="ghost"
+              variant="toolbar"
               size="icon"
-              class="w-8 h-8 hover:!bg-sd-hover"
+              class="sd-field w-6 px-0"
               @click="api.store.dev.showConsoleBar = false"
             >
-              <ChevronDown class="w-4 h-4" />
+              <ChevronDown class="size-3.5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right">

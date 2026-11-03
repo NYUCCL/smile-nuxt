@@ -51,7 +51,7 @@ const database_tooltip = computed(() => {
       <TooltipTrigger as-child>
         <Button
           size="menu"
-          variant="outline"
+          variant="toolbar"
         >
           <!-- Database icon with status styling -->
           <Database

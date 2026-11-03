@@ -42,6 +42,12 @@
   /* Filled controls (checked checkbox, switch): a quiet blue, white mark */
   --sd-p-solid: oklch(0.55 0.09 255);
   --sd-p-solid-fg: oklch(0.985 0 0);
+
+  /* Hazard stripes (the "local" tag): a true caution yellow, which the
+     text-dark yellow above can't give by tinting */
+  --sd-p-stripe-1: oklch(0.9 0.13 92);
+  --sd-p-stripe-2: oklch(0.84 0.14 85);
+  --sd-p-stripe-edge: oklch(0.76 0.13 80);
 }
 
 .dark {
@@ -65,6 +71,10 @@
   /* Lighter, muted fill with a dark mark, so checked controls don't glare */
   --sd-p-solid: oklch(0.72 0.07 250);
   --sd-p-solid-fg: oklch(0.141 0.005 285.823);
+
+  --sd-p-stripe-1: oklch(0.46 0.08 88);
+  --sd-p-stripe-2: oklch(0.37 0.06 85);
+  --sd-p-stripe-edge: oklch(0.56 0.09 85);
 }
 
 /* ---- Semantic tokens (palette- and mode-independent) ------------------ */
@@ -72,7 +82,11 @@
 :root,
 .light,
 .dark {
-  /* Chrome */
+  /* Surfaces. Two roles, nothing else:
+     - chrome: what frames and drives the tools: the app menu rail, toolbars,
+       tab strips, section headers, control bars, footers
+     - bg: what you read: trees, data, logs, tables */
+  --sd-chrome: var(--sd-p-surface);
   --sd-bg: var(--sd-p-bg);
   --sd-panel: var(--sd-p-surface);
   --sd-panel-2: var(--sd-p-surface-2);
@@ -122,6 +136,16 @@
   --sd-log-error: var(--sd-p-red);
   --sd-log-warn: var(--sd-p-yellow);
   --sd-log-info: var(--sd-p-green);
+  /* Log rows: a quiet tint, plus the full hue as a thin mark at the left */
+  --sd-log-warn-bg: color-mix(in oklab, var(--sd-p-yellow) 10%, var(--sd-p-bg));
+  --sd-log-error-bg: color-mix(in oklab, var(--sd-p-red) 9%, var(--sd-p-bg));
+  --sd-log-info-bg: color-mix(in oklab, var(--sd-p-green) 8%, var(--sd-p-bg));
+
+  /* "Local" tag (local dev server): yellow stripes */
+  --sd-local-1: var(--sd-p-stripe-1);
+  --sd-local-2: var(--sd-p-stripe-2);
+  --sd-local-edge: var(--sd-p-stripe-edge);
+  --sd-local-fg: var(--sd-p-fg);
 
   /* Pinned route */
   --sd-pinned: color-mix(in oklab, var(--sd-p-yellow) 30%, var(--sd-p-bg));
@@ -139,7 +163,7 @@
   --sd-tile-pink: color-mix(in oklab, var(--sd-p-pink) 22%, var(--sd-p-bg));
 
   /* Bits of chrome */
-  --sd-bar: var(--sd-p-surface);
+  --sd-bar: var(--sd-chrome);
   --sd-handle: var(--sd-p-fg-muted);
   --sd-handle-hover: var(--sd-p-blue);
   --sd-spinner-track: var(--sd-p-surface-2);
@@ -157,17 +181,181 @@
    participant theme's near-white/near-black primary. The preview resets
    these with its own .light/.dark container. */
 .sd-root {
+  --sidebar: var(--sd-chrome); /* the app menu rail */
   --primary: var(--sd-solid);
   --primary-foreground: var(--sd-solid-fg);
   --ring: var(--sd-solid); /* switches use it as their checked color */
 }
 
+/* ---- Type and controls: one scale for the dev tools ------------------
+
+   Plain (unlayered) CSS on purpose: it wins over the Tailwind utilities the
+   shadcn controls carry (h-9, md:text-sm …), so a control marked .sd-field is
+   the compact dev size whatever its defaults.
+
+   - Text: 11px labels and section titles, 12px body and controls, 13px for
+     the odd heading. Sans for the interface; mono only for data (ids, paths,
+     variable names, values).
+   - Controls: 24px tall. Toolbar/tab buttons, inputs, selects alike. */
+
+:root {
+  --sd-font-xs: 11px;
+  --sd-font-sm: 12px;
+  --sd-font-md: 13px;
+  --sd-control-h: 24px;
+  --sd-radius: 6px;
+}
+
+/* Tabs: real tabs along the top of a panel. Icon + label; the open one is
+   underlined in the accent and joins the panel below (no separate fill). */
+.sd-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  width: 100%;
+  height: 36px;
+  padding: 0 4px;
+  justify-content: flex-start;
+  border-radius: 0;
+  background-color: var(--sd-chrome);
+  border-bottom: 1px solid var(--sd-line);
+}
+.sd-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: auto;
+  margin-bottom: -1px; /* sit on the strip's bottom line */
+  padding: 0 10px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+  flex: none;
+  font-size: var(--sd-font-sm);
+  font-weight: 500;
+  color: var(--sd-text-muted);
+  transition: color 0.15s, border-color 0.15s;
+}
+.sd-tab svg {
+  width: 14px;
+  height: 14px;
+}
+.sd-tab:hover {
+  color: var(--sd-text);
+}
+.sd-tab[data-state='active'] {
+  color: var(--sd-text);
+  border-bottom-color: var(--sd-accent);
+  background-color: var(--sd-bg);
+  box-shadow: inset 1px 0 var(--sd-line), inset -1px 0 var(--sd-line);
+}
+
+/* Section header: a quiet band with a small uppercase title and, at the
+   right, its actions */
+.sd-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 28px;
+  padding: 0 8px 0 12px;
+  background-color: var(--sd-chrome);
+  border-top: 1px solid var(--sd-line);
+  border-bottom: 1px solid var(--sd-line);
+  font-size: var(--sd-font-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sd-text-muted);
+}
+.sd-section:first-child {
+  border-top: 0; /* right under a tab strip or panel edge, which has its own line */
+}
+.sd-section code,
+.sd-section .sd-mono {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+/* A label over or beside a control; help text under a section title */
+.sd-label {
+  font-size: var(--sd-font-xs);
+  color: var(--sd-text-muted);
+}
+.sd-help {
+  font-size: var(--sd-font-sm);
+  line-height: 1.45;
+  color: var(--sd-text-muted);
+}
+
+/* Data: ids, paths, variable names, values */
+.sd-mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--sd-font-xs);
+}
+
+/* Compact controls: inputs, select triggers, panel buttons */
+.sd-field {
+  height: var(--sd-control-h);
+  min-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: var(--sd-font-sm);
+  border-radius: var(--sd-radius);
+  box-shadow: none;
+}
+.sd-field svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* A bar of controls over a panel (filters, search): chrome, one row */
+.sd-controlbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 32px;
+  padding: 4px 12px;
+  background-color: var(--sd-chrome);
+  border-bottom: 1px solid var(--sd-line);
+}
+
+/* A narrow vertical rail of icon buttons (the console's views) */
+.sd-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 33px;
+  padding: 4px 0;
+  flex-shrink: 0;
+  background-color: var(--sd-chrome);
+  border-right: 1px solid var(--sd-line);
+}
+.sd-rail > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* A thin vertical rule between groups of toolbar buttons */
+.sd-toolbar-rule {
+  width: 1px;
+  height: 16px;
+  margin: 0 4px;
+  background-color: var(--sd-line);
+}
+
 /* Dev panel tables (config variables, database status) */
 .sd-table-cell-small {
-  font-size: 0.8em;
+  font-size: var(--sd-font-xs);
 }
 .sd-table-cell-base {
-  padding: 0.5rem 0.85rem;
+  padding: 6px 12px;
+  vertical-align: baseline;
 }
 .sd-table-cell-left {
   text-align: left;
@@ -203,6 +391,7 @@
 
 /* Tailwind color utilities for the semantic tokens (bg-sd-line, text-sd-ok …) */
 @theme inline {
+  --color-sd-chrome: var(--sd-chrome);
   --color-sd-bg: var(--sd-bg);
   --color-sd-panel: var(--sd-panel);
   --color-sd-panel-2: var(--sd-panel-2);

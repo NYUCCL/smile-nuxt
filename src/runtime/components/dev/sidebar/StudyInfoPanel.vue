@@ -4,23 +4,41 @@ import useAPI from '../../../composables/useAPI'
 
 const api = useAPI()
 
-/**
- * Computed study info HTML string for display
- * @type {import('vue').ComputedRef<string>}
- */
-const studyinfo = computed(() => {
-  return `<b>Study:</b> ${api.store.config.codeName}<br /><b>Version:</b> ${api.store.config.github.lastCommitHash}${
-    import.meta.dev ? '-' + api.store.config.mode : ''
-  }<br />${api.store.getShortId != 'N/A' ? `<b>User ID:</b> ${api.store.getShortId}` : ''}`
+/** Rows: study code name, code version (plus the mode on the dev server), short user id */
+const rows = computed(() => {
+  const out = [
+    ['Study', api.store.config.codeName],
+    ['Version', api.store.config.github.lastCommitHash + (import.meta.dev ? `-${api.store.config.mode}` : '')],
+  ]
+  if (api.store.getShortId != 'N/A') out.push(['User', api.store.getShortId])
+  return out
 })
 </script>
 
 <template>
-  <!-- Study info panel -->
-  <div class="w-full bg-muted">
-    <p
-      class="text-xs font-mono py-2 px-3"
-      v-html="studyinfo"
-    />
-  </div>
+  <!-- Study info: which study, which build, which participant -->
+  <dl class="sd-study-info">
+    <template
+      v-for="[label, value] in rows"
+      :key="label"
+    >
+      <dt class="sd-label">
+        {{ label }}
+      </dt>
+      <dd class="sd-mono truncate">
+        {{ value }}
+      </dd>
+    </template>
+  </dl>
 </template>
+
+<style scoped>
+.sd-study-info {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 2px 10px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--sd-line);
+}
+</style>

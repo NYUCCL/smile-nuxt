@@ -61,6 +61,8 @@ const DEV_PAIRS = [
   ['sd-solid-fg', 'sd-solid'],
   ['sd-brand-fg', 'sd-brand-bg'],
   ['sd-pinned-fg', 'sd-pinned'],
+  ['sd-local-fg', 'sd-local-1'],
+  ['sd-local-fg', 'sd-local-2'],
   ...['blue', 'teal', 'green', 'yellow', 'orange', 'red', 'purple', 'pink'].map(h => ['sd-tile-fg', `sd-tile-${h}`]),
 ]
 

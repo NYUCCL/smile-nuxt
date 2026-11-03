@@ -18,7 +18,7 @@ const api = useAPI()
       <TooltipTrigger as-child>
         <Button
           size="menu"
-          variant="outline"
+          variant="toolbar"
           @click="api.reloadBrowser()"
         >
           <RotateCcw :stroke-width="2.5" />

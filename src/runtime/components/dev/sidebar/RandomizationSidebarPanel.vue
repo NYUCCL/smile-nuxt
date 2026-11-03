@@ -58,143 +58,117 @@ watch(
     })
   },
 )
-
-/**
- * Gets the appropriate branch type character for tree display
- * @param {number} index - The current index in the list
- * @param {number} total - The total number of items
- * @returns {string} The branch type character
- */
-const getBranchType = (index, total) => {
-  if (total === 1) {
-    return '── '
-  }
-  else if (index === 0) {
-    return '┌─ '
-  }
-  else if (index === total - 1) {
-    return '└─ '
-  }
-  else {
-    return '├─ '
-  }
-}
 </script>
 
 <template>
   <TooltipProvider>
-    <!-- Main container -->
-    <div class="h-fit p-0 m-0">
-      <!-- Random seed section header -->
-      <div
-        class="text-xs text-muted-foreground font-mono text-left bg-muted px-2 py-1.5 m-0 border-t border-b border-sd-line"
-      >
+    <div>
+      <!-- Random seed -->
+      <div class="sd-section">
         Random seed
       </div>
-
-      <!-- Random seed configuration section -->
-      <div class="bg-background pb-5 border-b border-sd-line">
-        <div class="text-xs m-2">
-          Toggle to use a fixed seed (off means uses the current time as seed). A specific seed can be set in the input
-          field. Press the arrow to reload the view with the new seed.
-        </div>
-
-        <div class="mt-0 p-0 z-50 mx-4">
-          <div class="grid grid-cols-2 gap-3">
-            <!-- Fixed seed toggle row -->
-            <div class="col-span-2 flex items-center gap-2">
-              <label class="text-xs font-mono">Fixed seed:</label>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Switch
-                    :model-value="smilestore.localState.useSeed"
-                    @update:model-value="smilestore.localState.useSeed = $event"
-                  />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Use fixed seed</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-
-            <!-- Seed input and update button row -->
-            <div class="flex-1">
-              <Input
-                v-model="seed"
-                type="text"
-                placeholder="Current seed"
-                :class="{ 'opacity-50 pointer-events-none': !smilestore.localState.useSeed }"
-              />
-            </div>
-            <Button
-              :disabled="!smilestore.localState.useSeed"
-              size="sm"
-              variant="outline"
-              class="font-mono text-xs"
-              @click="set_seed"
-            >
-              Update seed
-            </Button>
-          </div>
+      <div class="sd-random-body">
+        <p class="sd-help">
+          With a fixed seed, every reload draws the same random values. Off, the
+          seed comes from the current time. Change the seed and press Update to
+          reload with it.
+        </p>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <Switch
+            :model-value="smilestore.localState.useSeed"
+            @update:model-value="smilestore.localState.useSeed = $event"
+          />
+          <span class="sd-label">Fixed seed</span>
+        </label>
+        <div class="flex items-center gap-2">
+          <Input
+            v-model="seed"
+            type="text"
+            placeholder="Current seed"
+            class="sd-field sd-mono flex-1 min-w-0"
+            :disabled="!smilestore.localState.useSeed"
+          />
+          <Button
+            :disabled="!smilestore.localState.useSeed"
+            variant="panel"
+            class="sd-field px-2.5"
+            @click="set_seed"
+          >
+            Update
+          </Button>
         </div>
       </div>
 
-      <!-- Random variables section -->
-      <div
+      <!-- Random variables -->
+      <template
         v-if="
           smilestore.localState.possibleConditions
             && Object.keys(smilestore.localState.possibleConditions).length > 0
         "
-        class="subsection"
       >
-        <!-- Random variables header -->
-        <div
-          class="text-xs text-left font-mono bg-muted text-muted-foreground px-2 py-1.5 m-0 border-t border-b border-sd-line"
-        >
-          Random Variables
+        <div class="sd-section">
+          Random variables
         </div>
-
-        <!-- Random variables configuration -->
-        <div class="bg-background">
-          <div class="text-xs m-2">
-            Use these dropdowns to force specific values for each variable (see design.js). By default these are choosen
-            randomly based on the seed.
-          </div>
-
-          <!-- Variables list -->
-          <div class="relative m-0 p-0 pt-1.5 mb-3 mt-2">
-            <ul class="list-none p-0 m-0 text-left ml-1.5 pb-2">
-              <template
-                v-for="(value, key, index) in smilestore.localState.possibleConditions"
-                :key="key"
+        <div class="sd-random-body">
+          <p class="sd-help">
+            Force a value for any random variable (from design.js). Unset, each is
+            drawn from the seed.
+          </p>
+          <ul class="sd-random-vars">
+            <li
+              v-for="(value, key) in smilestore.localState.possibleConditions"
+              :key="key"
+            >
+              <span class="sd-mono sd-random-name">{{ key }}</span>
+              <Select
+                :model-value="selected[key]"
+                @update:model-value="(val) => changeCond(key, val)"
               >
-                <li class="flex items-center mb-0 ml-0.5 mt-1">
-                  <span class="font-mono text-sm text-muted-foreground whitespace-pre mr-0">{{
-                    getBranchType(index, Object.keys(smilestore.localState.possibleConditions).length)
-                  }}</span>
-                  <Select
-                    :model-value="selected[key]"
-                    @update:model-value="(val) => changeCond(key, val)"
+                <SelectTrigger class="sd-field sd-mono min-w-24">
+                  <SelectValue :placeholder="String(selected[key])" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="cond in value"
+                    :key="cond"
+                    :value="cond"
                   >
-                    <SelectTrigger class="h-7 text-[0.65rem] py-1 px-3 font-mono">
-                      <SelectValue :placeholder="`${key}: ${selected[key]}`" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem
-                        v-for="cond in value"
-                        :key="cond"
-                        :value="cond"
-                      >
-                        {{ key }}: {{ cond }}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </li>
-              </template>
-            </ul>
-          </div>
+                    {{ cond }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </li>
+          </ul>
         </div>
-      </div>
+      </template>
     </div>
   </TooltipProvider>
 </template>
+
+<style scoped>
+.sd-random-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px 14px;
+}
+
+.sd-random-vars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sd-random-vars li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sd-random-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+</style>

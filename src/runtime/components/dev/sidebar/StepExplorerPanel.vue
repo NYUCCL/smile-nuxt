@@ -216,7 +216,7 @@ watch(
       <div class="path-display-container">
         <!-- Current path display -->
         <div class="path-info">
-          <div class="path-display">
+          <div class="path-display sd-mono">
             {{ api.pathString }}
           </div>
         </div>
@@ -224,7 +224,7 @@ watch(
         <!-- Navigation buttons -->
         <TooltipProvider>
           <ButtonGroup
-            variant="outline"
+            variant="toolbar"
             size="menu"
           >
             <Tooltip>
@@ -355,13 +355,12 @@ watch(
       class="data-container-global"
       :class="{ disabled: Object.keys(api.persist).length === 0 }"
     >
-      <div class="section-title">
-        <span>Persisted Vars <span class="data-label">(.persist)</span></span>
+      <div class="sd-section">
+        <span>Persisted <code class="sd-mono">.persist</code></span>
         <Button
-          variant="outline"
+          variant="toolbar"
           size="menu"
-          class="has-tooltip-arrow has-tooltip-bottom"
-          data-tooltip="Delete Global Variables"
+          title="Clear persisted variables"
           @click="api.clearPersist()"
         >
           <Trash2 />
@@ -374,7 +373,7 @@ watch(
         />
         <div
           v-else
-          class="italic text-xs"
+          class="sd-help"
         >
           No variables persisted
         </div>
@@ -386,8 +385,8 @@ watch(
       class="data-container"
       :class="{ disabled: api.nSteps === 0 }"
     >
-      <div class="section-title">
-        <span>Step Data <span class="data-label">(.stepData)</span></span>
+      <div class="sd-section">
+        <span>Step data <code class="sd-mono">.stepData</code></span>
       </div>
       <div class="data-display">
         <!--
@@ -405,9 +404,9 @@ watch(
         />
         <div
           v-else
-          class="italic text-xs"
+          class="sd-help"
         >
-          Data defined on this step
+          No data on this step
         </div>
       </div>
     </div>
@@ -421,121 +420,57 @@ watch(
   height: 100%;
   min-height: 0; /* Important for nested flex containers */
   overflow: hidden;
-  background-color: var(--background);
+  background-color: var(--sd-bg);
 }
 
 .tree-viewer-container-empty {
-  flex: 1;
-  height: 100%;
-  padding-top: 5px;
-  padding-left: 10px;
-  padding-right: 10px;
-  font-size: 0.75rem;
-  font-family: monospace;
-  font-weight: 200;
-  color: var(--muted-foreground);
-  text-align: left;
-  font-style: italic;
+  padding: 8px 12px;
+  font-size: var(--sd-font-sm);
+  color: var(--sd-text-muted);
 }
 
 .path-display-container {
-  background-color: var(--background);
-  padding: 0px 5px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   height: 32px;
-  flex-shrink: 0; /* Prevent shrinking */
-  border-top: 1px solid var(--sd-line);
+  padding: 0 4px 0 12px;
+  flex-shrink: 0;
 }
 
 .path-info {
   display: flex;
-  align-items: baseline; /* Change from center to baseline */
-  font-family: Arial, Helvetica, sans-serif;
-  font-weight: 800;
-  color: var(--sd-step-path);
-  font-size: 0.9rem;
-  line-height: 1; /* Add line-height to control vertical spacing */
+  align-items: center;
+  min-width: 0;
 }
 
 .path-display {
-  margin-left: 5px;
-  font-size: clamp(0.5rem, 0.8rem, 0.8rem); /* Shrink font size if needed but not larger than 0.9rem */
-  font-family: monospace;
-  font-weight: 500;
   color: var(--sd-step-path);
-  line-height: 1;
-  white-space: nowrap; /* Prevent wrapping */
-  overflow: hidden; /* Hide overflow */
-  text-overflow: ellipsis; /* Show ellipsis for overflow */
-}
-
-.nav-buttons {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.nav-button {
-  font-size: 0.6rem;
-  border-left: 1px solid var(--sd-line);
-}
-.nav-button-small {
-  font-size: 0.5rem;
-  border-left: 1px solid var(--sd-line);
-}
-.smaller {
-  padding-bottom: 11px;
-  padding-top: 10px;
-}
-.topbar {
-  background-color: var(--muted);
-  padding-left: 10px;
-}
-.topbar-border {
-  border-top: 1px solid var(--sd-line);
-  padding-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .index-display {
-  font-size: 0.7rem;
-  padding-right: 4px;
-  padding-top: 3px;
-  font-family: monospace;
-  font-weight: 500;
-  color: var(--sd-step-index);
-  line-height: 1; /* Add line-height to match */
-  text-align: right;
   position: absolute;
-  right: 0;
-  top: 4px;
+  top: 6px;
+  right: 8px;
   z-index: 50;
-}
-.content-display {
-  font-size: 0.7rem;
-  line-height: 1.4;
-  font-family: monospace;
-  font-weight: 800;
-  color: var(--muted-foreground);
-  white-space: pre-wrap;
-}
-
-.state-tree-viewer {
-  font-family: monospace;
-  padding: 1rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--sd-font-xs);
+  color: var(--sd-step-index);
 }
 
 .tree-container {
   flex: 0 1 auto; /* don't grow, can shrink, auto basis */
   overflow: auto;
-  font-family: monospace;
   border-top: 1px solid var(--sd-line);
   position: relative;
   scroll-behavior: smooth;
   max-height: 300px;
   min-height: 50px;
-  background-color: var(--background);
+  background-color: var(--sd-bg);
 }
 
 .data-container-global {
@@ -544,7 +479,7 @@ watch(
   display: flex;
   flex-direction: column;
   min-height: 120px;
-  background-color: var(--background);
+  background-color: var(--sd-bg);
   text-align: left;
 }
 
@@ -553,7 +488,7 @@ watch(
   overflow: visible;
   display: flex;
   flex-direction: column;
-  background-color: var(--background);
+  background-color: var(--sd-bg);
   text-align: left;
 }
 
@@ -576,14 +511,13 @@ watch(
   list-style-type: none;
   padding-left: 0;
   margin: 0;
-  font-family: monospace;
 }
 
 .tree-node {
   margin: 3px 0;
   position: relative;
-  font-family: monospace;
-  font-size: 0.75rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--sd-font-xs);
 }
 
 /* First tree node has no padding */
@@ -594,44 +528,17 @@ watch(
 .global-data-display {
   flex: 1;
   overflow: auto;
-  padding: 10px;
-  font-size: 0.8rem;
-  font-weight: 200;
-  font-family: monospace;
-  color: var(--muted-foreground);
+  padding: 8px 12px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--sd-font-xs);
 }
 
 .data-display {
   flex: 1;
   overflow: auto;
-  padding: 10px;
+  padding: 8px 12px;
   min-height: 180px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  font-family: monospace;
-  color: var(--muted-foreground);
-}
-
-.data-label {
-  font-size: 0.7rem;
-  font-weight: 500;
-  font-family: monospace;
-  color: var(--sd-step-label);
-  padding-right: 6px;
-}
-
-.section-title {
-  font-size: 0.75rem;
-  color: var(--muted-foreground);
-  font-family: monospace;
-  text-align: left;
-  background-color: var(--muted);
-  padding: 0.375rem 0.5rem;
-  margin: 0;
-  border-top: 1px solid var(--sd-line);
-  border-bottom: 1px solid var(--sd-line);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--sd-font-xs);
 }
 </style>

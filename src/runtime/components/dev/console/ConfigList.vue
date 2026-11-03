@@ -88,7 +88,7 @@ function option_selected(option) {
     <!-- Header section with navigation title -->
     <div
       v-if="header"
-      class="bg-background text-sd-text px-3 text-xs font-medium border-b border-sd-line h-8 flex items-center"
+      class="bg-sd-chrome text-sd-text-muted px-3 text-xs border-b border-sd-line h-7 flex items-center"
     >
       <template v-if="header == '/'">
         <House class="mr-1 size-3.5" />
@@ -107,7 +107,7 @@ function option_selected(option) {
             (data_field === null || data_field === undefined || Object.keys(data_field).length == 0) && header !== null
           "
         >
-          <div class="px-2 py-1.5 text-foreground text-xs font-mono">
+          <div class="px-2 py-1.5 text-sd-text text-xs font-mono">
             Empty currently
           </div>
         </li>
@@ -122,8 +122,8 @@ function option_selected(option) {
             v-if="option === null || (typeof option != 'object' && !Array.isArray(option))"
             class="px-2 py-1.5 text-xs font-mono primitive-item"
           >
-            <span class="font-mono font-semibold text-foreground item-key">{{ truncateText(key) }}</span>
-            <span class="text-foreground item-value">: {{ option === null ? 'null' : truncateText(String(option)) }}</span>
+            <span class="font-mono font-medium text-sd-text item-key">{{ truncateText(key) }}</span>
+            <span class="text-sd-text item-value">: {{ option === null ? 'null' : truncateText(String(option)) }}</span>
           </div>
 
           <!-- Object values (clickable navigation) -->
@@ -133,13 +133,13 @@ function option_selected(option) {
               'w-full text-left px-2 py-1.5 text-xs font-mono rounded transition-colors duration-150 object-item',
               'hover:bg-accent hover:text-accent-foreground',
               'focus:outline-none focus:ring-1 focus:ring-ring',
-              key === props.selected ? 'bg-accent text-accent-foreground border border-sd-line' : 'text-foreground',
+              key === props.selected ? 'bg-accent text-accent-foreground border border-sd-line' : 'text-sd-text',
             ]"
             @click="option_selected(key)"
           >
             <div class="flex items-center justify-between">
-              <span class="font-semibold text-foreground item-key">{{ truncateText(key) }}</span>
-              <ChevronRight class="text-muted-foreground size-3.5" />
+              <span class="font-medium text-sd-text item-key">{{ truncateText(key) }}</span>
+              <ChevronRight class="text-sd-text-muted size-3.5" />
             </div>
           </button>
         </li>

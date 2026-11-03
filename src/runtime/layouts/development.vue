@@ -82,7 +82,6 @@ const isRouteNotFound = computed(() => {
 
           <!-- Developer Mode - Full interface with toolbar, sidebar, console -->
           <template v-else>
-            <LocalDevBanner />
             <!-- Top toolbar with navigation controls -->
             <div class="toolbar sd-root">
               <DevNavBar />
@@ -244,7 +243,7 @@ const isRouteNotFound = computed(() => {
 .console {
   height: v-bind(height_pct);
   width: 100%;
-  background-color: var(--muted);
+  background-color: var(--sd-bg);
   border-top: 1px solid var(--sd-line);
   overflow: hidden;
   overflow-x: hidden;

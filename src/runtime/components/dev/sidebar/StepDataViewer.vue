@@ -114,8 +114,8 @@ const isSinglePrimitive = (value) => {
 
 <style scoped>
 .data-path-viewer {
-  font-family: monospace;
-  font-size: 0.7rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--sd-font-xs);
   line-height: 1.4;
 }
 

@@ -17,7 +17,7 @@ const api = useViewAPI()
   <!-- Step navigation button group with tooltips -->
   <TooltipProvider>
     <ButtonGroup
-      variant="outline"
+      variant="toolbar"
       size="menu"
     >
       <!-- Step back button -->
