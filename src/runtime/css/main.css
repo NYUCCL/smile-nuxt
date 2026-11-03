@@ -264,8 +264,6 @@
   /* Recruitment service palette */
   --recruit-blue: oklch(0.78 0.1 220);
   --recruit-red: oklch(0.68 0.18 15);
-  --recruit-yellow: oklch(0.8 0.16 80);
-  --recruit-yellow-light: oklch(0.88 0.1 85);
   --recruit-pink: oklch(0.82 0.08 350);
   --recruit-green: oklch(0.8 0.14 160);
   --recruit-orange: oklch(0.8 0.12 60);
@@ -421,8 +419,6 @@
   /* Recruitment service palette */
   --recruit-blue: oklch(0.55 0.12 220);
   --recruit-red: oklch(0.5 0.15 15);
-  --recruit-yellow: oklch(0.6 0.14 80);
-  --recruit-yellow-light: oklch(0.45 0.08 85);
   --recruit-pink: oklch(0.55 0.1 350);
   --recruit-green: oklch(0.55 0.12 160);
   --recruit-orange: oklch(0.55 0.1 60);

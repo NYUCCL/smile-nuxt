@@ -733,7 +733,7 @@ export class SmileAPI {
   }
 
   /**
-   * Gets the recruitment service being used (e.g. Prolific, MTurk)
+   * Gets the recruitment service being used (e.g. Prolific, CloudResearch)
    * @returns {string} The name of the recruitment service
    */
   getRecruitmentService() {

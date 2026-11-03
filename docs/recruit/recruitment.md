@@ -113,31 +113,19 @@ The completion code doesn't have to be anything in particular but there is an  -
 ### Description
 
 [CloudResearch](https://www.cloudresearch.com)—previously known as TurkPrime—is
-a service that runs on top of Amazon Mechanical Turk that offers some additional
-screening and demographic information about workers. The most relevant service
-for psychologists is probably the
-[MTurk Toolkit](https://www.cloudresearch.com/products/turkprime-mturk-toolkit/).
-Essentially, CloudResearch pre-screens workers on Mechanical Turk to flag
-possible bots as well as reliably inattentive participants. The idea is that by
-using their technology you can get higher quality data than using the low-level
-MTurk API.
+a recruitment service that offers additional screening and demographic
+information about participants. Participants come from CloudResearch's own
+panels (Connect and Prime Panels). CloudResearch pre-screens participants to
+flag possible bots as well as reliably inattentive participants.
 
 Cloud Research takes several steps to improve the general data quality for
-surveys including presenting workers questions which they check for consistency
-(did the subject give the same answer last week as they did today?). They can
-also perform some demographic sampling/filters if you need samples from
+surveys including presenting participants questions which they check for
+consistency (did the subject give the same answer last week as they did today?).
+They can also perform some demographic sampling/filters if you need samples from
 particular population groups.
 
-They also provide GUI tools for posting HITs on Mechanical Turk that simplify
-recruitment.
-
 To get started you first need to create an account on
-[CloudResearch.com](https://account.cloudresearch.com/Account/Login)
-
-Next, you have to connect your Mechanical Turk account to Cloud Research,
-effectively granting them access to post and approve HITs on your behalf.
-CloudResearch provides instructions on doing this
-[here](https://cloudresearch-com.s3.amazonaws.com/files/Instructions+for+linking+MTurk+and+CloudResearch+Accounts.pdf).
+[CloudResearch.com](https://www.cloudresearch.com).
 
 <!-- To create studies you use the intuitive study builder.  There are many custom fields that you can use to configure your study including payment, demographic restrictions, privacy-enhancing features, etc... However, the most important is to post the correct link to the study.  Here is an example.  But basically it is
 
@@ -146,11 +134,9 @@ At the end of CloudResearch studies you display to the worker a completion code 
 
 ### Posting your study
 
-Once you have connected your MTurk account (see previous section), go to the
-CloudResearch dashboard and click "Create Study". You can choose to recruit
-participants from the Mechanical Turk pool or CloudResearch's own platform,
-Prime Panels. The steps below assume you have chosen MTurk, but the overall
-process is similar for both.
+Go to the CloudResearch dashboard and click "Create Study". The exact screens
+differ a little between CloudResearch's participant pools, but the overall
+process is the same.
 
 In the first section, give your study an internal name and, optionally, list an
 email address at which to be notified when the study starts and finishes.
@@ -194,49 +180,10 @@ When you're done setting up your study, click "Save" and return to the
 dashboard. From there, select "Launch Options" to either launch your study right
 away, or schedule a time for it to launch later.
 
-## Mechanical Turk
-
-You can also use <SmileText /> with "raw" Mechanical Turk. It is generally
-difficult to work with external surveys on Mechanical Turk so it is recommended
-to use the Amazon Web Services API to create and manage HITs. This usually
-requires some extra software such as [psiTurk](https://psiturk.org). However,
-for simply posting a link to your <SmileText /> experiment it is easy to use
-[Supersubmiterator](https://github.com/sebschu/Submiterator) which is a simple
-python tool for interfacing with the API.
-
-The instructions for installing and using Supersubmiterator are on that
-project's github page. The main thing is to replace the `experimentURL` field of
-the config file with the appropriate landing page. In this case it would be (as
-an example):
-
-```
-"experimentURL": "https://exps.gureckislab.org/e/note-useless-uncle#/welcome/mturk/"
-```
-
-where `note-useless-uncle` would be replaced with the unique URL for your
-project.
-
-To test your "raw" Mturk hit you can look at two different landuing urls. When
-the subjet is browsing for tasks on the Mturk website they see your page in
-"preview mode" which corresponds to this URL:
-
-```
-https://exps.gureckislab.org/e/note-useless-uncle#/welcome/mturk/?assignmentId=ASSIGNMENT_ID_NOT_AVAILABLE&hitId=123RVWYBAZW00EXAMPLE&turkSubmitTo=https://www.mturk.com/&workerId=AZ3456EXAMPLE
-```
-
-Mturk adds these parameters to your URL when a participant accepts the hit.
-
-```
-htt?ps://exps.gureckislab.org/e/note-useless-uncle#/welcome/mturk/assignmentId=123RVWYBAZW00EXAMPLE456RVWYBAZW00EXAMPLE&hitId=123RVWYBAZW00EXAMPLE&turkSubmitTo=https://www.mturk.com/&workerId=AZ3456EXAMPLE
-```
-
-which loads slightly different content. You can customize aspects of this via
-the `recruitment/MTurkRecruitPage.vue` component.
-
 ## Crowd-sourcing
 
 In the future the lab might make a citizen science recruitment portal. To
-support this we provides a similar API to prolific/AMT with the more generic
+support this we provides a similar API to Prolific/CloudResearch with the more generic
 CITIZEN_ID type identity variables:
 
 `/?CITIZEN_ID=XXXXX&CITIZEN_TASK_ID=123RVWYBAZW00EXAMPLE&CITIZEN_ASSIGN_ID=AZ3456EXAMPLE`

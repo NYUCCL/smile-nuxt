@@ -49,23 +49,15 @@ describe('processQuery tests', () => {
     expect(smilestore.private.recruitmentInfo).toStrictEqual(finalform)
   })
 
-  it('detects when referred from mechanical turk', () => {
+  it('no longer recognizes mechanical turk (removed)', () => {
     const smilestore = useSmileStore()
     const query = {
       assignmentId: '123',
       hitId: '456',
       workerId: '789',
     }
-    const finalform = {
-      assignment_id: query.assignmentId,
-      hit_id: query.hitId,
-      worker_id: query.workerId,
-    }
-    const service = 'mturk'
-    processQuery(query, service)
-    expect(smilestore.data.recruitmentService).toBe(service)
-    expect(smilestore.recruitmentService).toBe(service)
-    expect(smilestore.private.recruitmentInfo).toStrictEqual(finalform)
+    processQuery(query, 'mturk')
+    expect(smilestore.data.recruitmentService).toBe('web')
   })
 
   it('detects when referred from citizen science portal', () => {

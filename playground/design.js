@@ -115,17 +115,6 @@ export default function createTimeline(api) {
     },
   })
 
-  // MTurk recruit page (special page that loads in the iframe on mturk.com)
-  timeline.registerView({
-    name: 'mturk',
-    component: 'MTurkRecruitView',
-    props: {
-      estimated_time: api.getConfig('estimated_time'),
-      payrate: api.getConfig('payrate'),
-    },
-    meta: { allowAlways: true, requiresConsent: false },
-  })
-
   // Informed consent
   timeline.pushSeqView({
     name: 'consent',

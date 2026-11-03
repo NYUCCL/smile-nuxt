@@ -34,7 +34,7 @@ programmers (or AI-assisted programmers) accomplish more in less time.
   extensive codebases covering Vue, Tailwind, and other popular web standards
   used by the project.
 - 👫 Supports multiple [recruitment services](/recruit/recruitment) including
-  Prolific, MTurk, CloudResearch, and more.
+  Prolific, CloudResearch, SONA, and more.
 - 📝 [Data provenance features](/analysis#data-provenance) include an audit
   trail of which version of the code was used to create each data file.
 - 🐍 Easy-to-use [Python library](/analysis#python-analysis-library-smiledata)

@@ -28,7 +28,6 @@ and more information can be found
 | Name                                         | Props | Description                                                                                                                               |
 | -------------------------------------------- | :---- | :---------------------------------------------------------------------------------------------------------------------------------------- |
 | [Recruitment Ad](#recruitment-advertisement) | No    | Landing page for participants                                                                                                             |
-| [MTurk Ad](#mturk-recruitment)               | Yes   | Interacts with the MTurk system                                                                                                           |
 | [Informed Consent](#informed-consent) | Yes   | Collects informed consent using a simple checkbox                                                                                         |
 | [Window Sizer](#window-sizer)                | Yes   | Verifies a given area of the screen is visible (with a more aggressive option that hides page content if the window is resized too small) |
 | [Simple Instructions](#simple-instructions)  | No    | A simple sequence of pages for instructions                                                                                               |
@@ -83,50 +82,10 @@ timeline.pushSeqView({
 
 The optional `:service?` segment lets the same route handle both anonymous
 arrivals and participants referred from external services like Prolific,
-Amazon MTurk, or CloudResearch. When the URL includes a service segment
+CloudResearch, or SONA. When the URL includes a service segment
 (e.g., `/welcome/prolific?PROLIFIC_PID=...`), the built-in view extracts
 the relevant ID and saves it with the participant's data — no separate
 `beforeEnter` hook needed.
-
-## MTurk Recruitment
-
-**Component name**: `MTurkRecruitView` (auto-imported)  
-**Source**: [github](https://github.com/NYUCCL/smile-nuxt/blob/main/src/runtime/components/builtins/MTurkRecruitView.vue)  
-**Typical
-accessibility**: `{allowAlways: true}`
-
-On the Mechanical Turk, the platform lists possible HITs (Human Intelligence
-Tasks) and workers can choose to complete them. When browsing the listing
-participants see one "advertisement" view of the task in an `iframe`. When
-browsing in this listing the assignmentId is set to
-`ASSIGNMENT_ID_NOT_AVAILABLE`. If they accept the HIT, then the task begins and
-a new window opens with the actual task. At this point a valid assignmentId will
-be provided.
-
-This View provides the logic to handle these two versions of the recruitment
-text. When the assignmentId is not available the participant sees the
-"recruitment" text with some information about the study. When they accept the
-HIT, they then see a new page with a button which will launch the <SmileText/>
-experiment in a new browser window.
-
-- The template can be edited to change the text.
-- The logo image imports from `public/brain.svg`.
-
-```js
-timeline.registerView({
-  path: '/mturk',
-  name: 'mturk',
-  component: 'MTurkRecruitView',
-  props: {
-    estimated_time: api.getConfig('estimated_time'),
-    payrate: api.getConfig('payrate'),
-  },
-  meta: { allowAlways: true, requiresConsent: false },
-  beforeEnter: (to) => {
-    processQuery(to.query, 'mturk')
-  },
-})
-```
 
 ## Informed Consent
 

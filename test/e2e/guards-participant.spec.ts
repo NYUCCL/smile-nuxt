@@ -99,18 +99,6 @@ test.describe('Route guards for a consented participant mid-study', () => {
     }
   })
 
-  test('opening an allowAlways page (/mturk) does not take over their place', async ({ page }) => {
-    // Regression test for #60 (an allowAlways route overwrote lastRoute, after
-    // which every route redirected there). Viewing /mturk is fine; losing
-    // their place is not.
-    await page.goto('/mturk')
-    // Stay on the page briefly, like a real visitor; the lastRoute cookie is
-    // written by the client after navigation, not synchronously.
-    await page.waitForTimeout(2_000)
-    await page.goto('/')
-    await expectOnInstructions(page, 'visited /mturk, then /')
-  })
-
   test('an unknown path returns them to their current page', async ({ page }) => {
     await tryUrl(page, '/not-a-real-route')
   })
