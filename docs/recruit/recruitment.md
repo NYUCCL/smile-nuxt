@@ -105,7 +105,7 @@ http://128.100.100.100:9000/?PROLIFIC_PID=[[%PROLIFIC_PID%]]&STUDY_ID=[[%STUDY_I
 
 
 At the end you redirect the participant to
-https://app.prolific.co/submissions/complete?cc=HZCQS9MX
+https://app.prolific.com/submissions/complete?cc=HZCQS9MX
 The completion code doesn't have to be anything in particular but there is an  -->
 
 ## Cloud Research

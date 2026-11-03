@@ -41,7 +41,7 @@ const completionCode = ref(
 )
 
 const prolificCompleteUrl = computed(
-  () => `https://app.prolific.co/submissions/complete?cc=${completionCode.value}`,
+  () => `https://app.prolific.com/submissions/complete?cc=${completionCode.value}`,
 )
 
 /**

@@ -16,7 +16,7 @@ const isDev = import.meta.dev
 function prefill_email() {
   let emailval = ''
   if (smilestore.data.recruitmentService === 'prolific') {
-    emailval = `${smilestore.private.recruitmentInfo.prolific_id}@email.prolific.co`
+    emailval = `${smilestore.private.recruitmentInfo.prolific_id}@email.prolific.com`
   }
   return emailval
 }
