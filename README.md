@@ -39,7 +39,7 @@ Online docs: [https://smile.gureckislab.org](https://smile.gureckislab.org)
   trained on extensive codebases covering Vue, Tailwind, and other popular web
   standards used by the project.
 - 👫 Supports multiple [recruitment services](https://smile.gureckislab.org/recruit/recruitment.html)
-  including Prolific, MTurk, CloudResearch, and more.
+  including Prolific, CloudResearch, SONA, and more.
 - 📝 [Data provenance features](https://smile.gureckislab.org/analysis.html#data-provenance) include an audit trail
   of which version of the code was used to create each data file.
 - 🐍 Easy-to-use [Python library](https://smile.gureckislab.org/analysis.html#python-analysis-library-smiledata) for data analysis with Polars DataFrames, built-in plotting, and support for Jupyter and Marimo notebooks.
