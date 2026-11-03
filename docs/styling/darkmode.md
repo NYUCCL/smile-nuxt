@@ -11,21 +11,20 @@ to the user's "system" setting, which is usually passed through by the browser.
 
 ## Configuration
 
-You can configure dark mode for your experiment in two ways:
+The setting has three values:
 
-### Runtime Configuration
+| Value    | What participants see                                                         |
+| -------- | ----------------------------------------------------------------------------- |
+| `light`  | Always light, whatever their system prefers. **The default.**                 |
+| `dark`   | Always dark.                                                                  |
+| `system` | Their operating system / browser setting (`prefers-color-scheme`), live: if it changes mid-session, the page follows. `auto` means the same. |
 
-In your `src/user/design.js` file, you can set the color mode using:
-
-```js
-api.setRuntimeConfig('colorMode', 'light') // Always use light mode
-api.setRuntimeConfig('colorMode', 'dark') // Always use dark mode
-api.setRuntimeConfig('colorMode', 'system') // Use system preference
-```
+Anything else (or leaving it unset) is `light`, since dark mode changes how
+stimuli look and should be a deliberate choice.
 
 ### Environment Variable
 
-Alternatively, you can set the `VITE_COLOR_MODE` variable in your `.env` file:
+Set `VITE_COLOR_MODE` in your project's `.env`:
 
 ```
 VITE_COLOR_MODE = light    # Always use light mode
@@ -33,8 +32,20 @@ VITE_COLOR_MODE = dark     # Always use dark mode
 VITE_COLOR_MODE = system   # Use system preference
 ```
 
-The runtime configuration will override the environment variable if both are
-set.
+### Runtime Configuration
+
+Or set it in `design.js`, which overrides the environment variable:
+
+```js
+api.setRuntimeConfig('colorMode', 'light') // Always use light mode
+api.setRuntimeConfig('colorMode', 'dark') // Always use dark mode
+api.setRuntimeConfig('colorMode', 'system') // Use system preference
+```
+
+The mode is applied to the page's `<html>` element (the `dark` or `light`
+class), so dialogs, menus and tooltips match the rest of the page. Style your
+own components with Tailwind's `dark:` variant or the theme tokens
+(`bg-background`, `text-foreground`, …) and they follow along.
 
 ## Experimental Considerations
 
@@ -54,16 +65,20 @@ your specific use case:
 
 ## Developer Tools
 
-The developer mode tools have a separate dark mode configuration. You can toggle
+The developer mode tools have a separate dark mode configuration. The
+experiment preview starts in your experiment's own setting; picking a mode in
+the dev tools changes only the preview (and is remembered in your browser), not
+what participants get. You can toggle
 dark mode for the developer tools irrespective of what you choose for the
 experiment itself. This allows you to use dark mode for development while
 keeping your experiment in light mode, or vice versa.
 
-The dark mode button on the sidebar (lower left corner) will toggle the dark
-mode for the developer tools. The sidebar on the right has a dropdown for
+The dark mode button on the sidebar (lower left corner) sets the theme of the
+developer tools themselves. It starts on your system setting and cycles
+system → light → dark. The sidebar on the right has a dropdown for
 configuring the dark mode for the experiment. In addition, the developer tools
 have a dark mode button in the top toolbar (upper right corner).
 
 In presentation mode, the dark mode button in the top toolbar (upper right
-corner) will toggle the dark mode for the presentation mode. These buttons
-toggle between light, dark, and system preferences.
+corner) will toggle the dark mode for the presentation mode. Like the sidebar
+button, these cycle system → light → dark.

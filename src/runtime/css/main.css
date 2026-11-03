@@ -10,7 +10,12 @@
 @source "../lib/**/*.js";
 @source "../pages/**/*.vue";
 
-@custom-variant dark (&:is(.dark *));
+/* dark: follows the NEAREST .dark/.light ancestor, not any .dark ancestor. In
+   dev mode the dev tools' theme sits on <html> and the experiment preview has
+   its own .light/.dark container; with plain `.dark *`, a dark dev theme turned
+   on every dark: style inside a light experiment. Handles nesting three deep
+   (html > experiment container > a nested scope). */
+@custom-variant dark (&:is(:is(.dark *):not(.dark .light *), .dark .light .dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -121,6 +126,7 @@
 
 :root,
 .light {
+  color-scheme: light;
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
   --card: oklch(1 0 0);
@@ -168,19 +174,19 @@
   --info-button: oklch(0.5 0.2 220);
   --info-button-foreground: oklch(0.985 0 0);
   --info-button-light: oklch(0.85 0.08 220);
-  --info-button-light-foreground: oklch(0.5 0.2 220);
-  --success-button: oklch(0.7 0.18 142);
+  --info-button-light-foreground: oklch(0.42 0.16 220);
+  --success-button: oklch(0.5 0.15 142);
   --success-button-foreground: oklch(0.985 0 0);
   --success-button-light: oklch(0.85 0.07 142);
-  --success-button-light-foreground: oklch(0.5 0.18 142);
+  --success-button-light-foreground: oklch(0.42 0.13 142);
   --warning-button: oklch(0.7 0.2 70);
   --warning-button-foreground: oklch(0.141 0.005 285.823);
   --warning-button-light: oklch(0.9 0.08 70);
-  --warning-button-light-foreground: oklch(0.7 0.2 70);
+  --warning-button-light-foreground: oklch(0.45 0.11 70);
   --danger-button: oklch(0.577 0.245 27.325);
   --danger-button-foreground: oklch(0.985 0 0);
   --danger-button-light: oklch(0.85 0.1 27.325);
-  --danger-button-light-foreground: oklch(0.577 0.245 27.325);
+  --danger-button-light-foreground: oklch(0.45 0.18 27.325);
 
   --window-sizer-bg: #c2e9f4;
   --window-sizer-text: #025a72;
@@ -275,6 +281,8 @@
 }
 
 .dark {
+  /* Native controls (number spinners, scrollbars, date pickers) draw dark too */
+  color-scheme: dark;
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.261 0.005 285.823);
@@ -310,7 +318,7 @@
   --sidebar-ring: oklch(0.442 0.017 285.786);
 
   /* Button variant colors - Dark mode */
-  --primary-button: oklch(0.65 0.15 200);
+  --primary-button: oklch(0.5 0.1 200);
   --primary-button-foreground: oklch(0.985 0 0);
   --primary-button-light: oklch(0.3 0.1 200);
   --primary-button-light-foreground: oklch(0.8 0.15 200);
@@ -318,11 +326,11 @@
   --link-button-foreground: oklch(0.7 0.15 195);
   --link-button-light: oklch(0.3 0.1 264.376);
   --link-button-light-foreground: oklch(0.8 0.15 264.376);
-  --info-button: oklch(0.6 0.25 220);
+  --info-button: oklch(0.5 0.16 220);
   --info-button-foreground: oklch(0.985 0 0);
   --info-button-light: oklch(0.3 0.12 220);
   --info-button-light-foreground: oklch(0.75 0.2 220);
-  --success-button: oklch(0.7 0.22 142);
+  --success-button: oklch(0.5 0.15 142);
   --success-button-foreground: oklch(0.985 0 0);
   --success-button-light: oklch(0.3 0.1 142);
   --success-button-light-foreground: oklch(0.75 0.18 142);
@@ -330,25 +338,27 @@
   --warning-button-foreground: oklch(0.141 0.005 285.823);
   --warning-button-light: oklch(0.35 0.12 70);
   --warning-button-light-foreground: oklch(0.85 0.2 70);
-  --danger-button: oklch(0.6 0.25 27.325);
+  --danger-button: oklch(0.52 0.2 27.325);
   --danger-button-foreground: oklch(0.985 0 0);
   --danger-button-light: oklch(0.3 0.12 27.325);
   --danger-button-light-foreground: oklch(0.8 0.2 27.325);
 
-  --window-sizer-bg: #5c818c;
-  --window-sizer-text: #174957;
-  --window-sizer-border: #3c575f;
-  --window-sizer-ring: #0f96bb;
+  /* Dark teal box, light text (#44: the old values were teal on teal) */
+  --window-sizer-bg: #0b3440;
+  --window-sizer-text: #a8e4f3;
+  --window-sizer-border: #2aa3c4;
+  --window-sizer-ring: #2aa3c4;
 
-  --withdraw-bg: #f8d7da;
-  --withdraw-text: #721c24;
-  --withdraw-border: #f5c6cb;
-  --withdraw-ring: #f1aeb5;
+  /* Dark versions of the alert boxes (#44: these were the light colors) */
+  --withdraw-bg: #3a1418;
+  --withdraw-text: #f6c1c6;
+  --withdraw-border: #7a2c34;
+  --withdraw-ring: #9b3a44;
 
-  --warning-bg: #fff3cd;
-  --warning-text: #856404;
-  --warning-border: #ffeeba;
-  --warning-ring: #ffe8a1;
+  --warning-bg: #352a0b;
+  --warning-text: #f5d97e;
+  --warning-border: #6e5615;
+  --warning-ring: #8a6d1c;
 
   --dev-bg: var(--sidebar);
   --dev-bg-contrast: var(--sidebar-2);

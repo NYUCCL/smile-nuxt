@@ -63,7 +63,7 @@ const sizeClasses = {
       data-slot="switch-thumb"
       :class="
         cn(
-          'bg-background dark:bg-background dark:data-[state=unchecked]:bg-background dark:data-[state=checked]:bg-primary-foreground pointer-events-none block rounded-full ring-0 transition-transform data-[state=unchecked]:translate-x-0 shadow-sm',
+          'bg-background dark:data-[state=unchecked]:bg-muted-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block rounded-full ring-0 transition-transform data-[state=unchecked]:translate-x-0 shadow-sm',
           sizeClasses[size].thumb,
           sizeClasses[size].translate,
         )

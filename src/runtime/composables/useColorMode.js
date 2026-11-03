@@ -8,6 +8,31 @@
 import { computed, watch, nextTick } from 'vue'
 import { usePreferredDark } from '@vueuse/core'
 import useAPI from './useAPI'
+import { normalizeColorMode } from '../core/config'
+
+/**
+ * Resolve a color mode setting to the mode to show.
+ * @param {string|undefined} setting - 'light' | 'dark' | 'system' ('auto' = 'system')
+ * @param {boolean} prefersDark - whether the browser/OS prefers dark
+ * @returns {'light'|'dark'} The mode to show
+ */
+export function resolveColorMode(setting, prefersDark) {
+  const mode = normalizeColorMode(setting)
+  if (mode === 'system') return prefersDark ? 'dark' : 'light'
+  return mode
+}
+
+/**
+ * The mode participants see: the experiment's colorMode setting (VITE_COLOR_MODE,
+ * or api.setRuntimeConfig('colorMode', …)), with 'system' following the
+ * browser's prefers-color-scheme live (#32).
+ * @returns {import('vue').ComputedRef<'light'|'dark'>} The mode participants see
+ */
+export function useParticipantColorMode() {
+  const api = useAPI()
+  const preferredDark = usePreferredDark()
+  return computed(() => resolveColorMode(api.store.config.colorMode, preferredDark.value))
+}
 
 // Lazy initialization — useAPI() requires an active Pinia instance,
 // which isn't available at module scope during SSR. We defer init
@@ -26,7 +51,13 @@ function ensureInit() {
     },
   })
   experimentColorMode = computed({
-    get: () => api.store.dev.experimentColorMode,
+    // Until the dev tools pick a mode, preview the experiment's own setting.
+    get: () => {
+      const picked = api.store.dev.experimentColorMode
+      if (picked) return picked
+      const configured = normalizeColorMode(api.store.config.colorMode)
+      return configured === 'system' ? 'auto' : configured
+    },
     set: (value) => {
       api.store.dev.experimentColorMode = value
     },

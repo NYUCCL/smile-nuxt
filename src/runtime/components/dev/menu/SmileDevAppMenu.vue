@@ -1,16 +1,10 @@
 <script setup>
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { BookMarked, BugPlay, Database, Moon, Presentation, Settings, Smile, Sun } from 'lucide-vue-next'
+import { BookMarked, BugPlay, Database, Moon, Presentation, Settings, Smile, Sun, SunMoon } from 'lucide-vue-next'
 import { useSmileColorMode } from '../../../composables/useColorMode'
 /**
  * @fileoverview Sidebar component for the Smile application with navigation and configuration options
  */
-
-/**
- * Import Vue composition API functions
- * @requires computed Vue computed for derived state
- */
-import { computed } from 'vue'
 
 /**
  * Import sidebar UI components from shadcn-vue
@@ -79,35 +73,10 @@ const props = defineProps({
 const api = useAPI()
 
 /**
- * Initialize global color mode for the entire application (html element)
- * Uses global scope to apply color mode to the entire application
- * @type {object}
- * @property {import('vue').Ref<string>} globalColorMode Current global color mode state
- * @property {Function} setLight Function to set light mode
- * @property {Function} setDark Function to set dark mode
+ * The dev tools' own theme (on the html element). Starts on the system setting;
+ * the button cycles system -> light -> dark -> system, like the experiment's.
  */
-const { state: globalColorMode, setLight, setDark } = useSmileColorMode('global')
-
-/**
- * Computed property that provides two-way binding for dark mode toggle
- *
- * Provides a boolean interface for the color mode toggle switch.
- * When set to true, enables dark mode; when false, enables light mode.
- *
- * @type {import('vue').ComputedRef<boolean>}
- * @returns {boolean} True if dark mode is active, false for light mode
- */
-const isDarkMode = computed({
-  get: () => globalColorMode.value === 'dark',
-  set: (value) => {
-    if (value) {
-      setDark()
-    }
-    else {
-      setLight()
-    }
-  },
-})
+const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useSmileColorMode('global')
 </script>
 
 <template>
@@ -227,11 +196,14 @@ const isDarkMode = computed({
           <TooltipTrigger as-child>
             <SidebarMenuButton
               class="px-[0.05rem] group-data-[collapsible=icon]:!p-1.5 my-1"
-              tooltip="Toggle Dark Mode"
-              @click="isDarkMode = !isDarkMode"
+              @click="toggleGlobalColorMode"
             >
               <Moon
-                v-if="isDarkMode"
+                v-if="globalColorModeRaw === 'light'"
+                class="!size-5"
+              />
+              <SunMoon
+                v-else-if="globalColorModeRaw === 'dark'"
                 class="!size-5"
               />
               <Sun
@@ -241,7 +213,15 @@ const isDarkMode = computed({
             </SidebarMenuButton>
           </TooltipTrigger>
           <TooltipContent side="right">
-            <p>{{ isDarkMode ? 'Switch to Light Mode (Global)' : 'Switch to Dark Mode (Global)' }}</p>
+            <p v-if="globalColorModeRaw === 'light'">
+              Dev tools: light. Switch to dark
+            </p>
+            <p v-else-if="globalColorModeRaw === 'dark'">
+              Dev tools: dark. Switch to system ({{ system }})
+            </p>
+            <p v-else>
+              Dev tools: system ({{ system }}). Switch to light
+            </p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

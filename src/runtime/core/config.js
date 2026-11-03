@@ -20,6 +20,21 @@
  * @param {number} fallback - Used when the value is unset or not a number
  * @returns {number} The parsed number
  */
+/**
+ * The experiment's color mode setting: 'light', 'dark' or 'system' (follow the
+ * participant's OS/browser preference). 'auto' is accepted for 'system'.
+ * Anything else, or unset, is 'light': dark mode changes how stimuli look, so
+ * it is opt in.
+ * @param {string|undefined} value
+ * @returns {'light'|'dark'|'system'} The normalized setting
+ */
+export function normalizeColorMode(value) {
+  const v = String(value ?? '').trim().toLowerCase()
+  if (v === 'dark') return 'dark'
+  if (v === 'system' || v === 'auto') return 'system'
+  return 'light'
+}
+
 function envNumber(value, fallback) {
   const n = Number(value)
   return value === undefined || value === '' || Number.isNaN(n) ? fallback : n
@@ -112,7 +127,7 @@ export default {
   brandLogoFn: import.meta.env.VITE_BRAND_LOGO_FN,
   advertisementImageFn: '/_smile/images/helpus.png',
   advertisementImageInvertDark: false,
-  colorMode: import.meta.env.VITE_COLOR_MODE, // 'light' or 'dark' or 'system'
+  colorMode: normalizeColorMode(import.meta.env.VITE_COLOR_MODE), // 'light' | 'dark' | 'system'
   responsiveUI: import.meta.env.VITE_RESPONSIVE_UI === 'true',
   googleAnalyticsID: import.meta.env.VITE_GOOGLE_ANALYTICS,
   windowsizerRequest: parseWidthHeight(import.meta.env.VITE_WINDOWSIZER_REQUEST),

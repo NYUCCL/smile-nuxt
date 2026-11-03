@@ -98,8 +98,8 @@ const initDev = {
   isRotated: false,
   isFullscreen: false,
   routePanelVisible: false,
-  globalColorMode: 'auto',
-  experimentColorMode: 'auto',
+  globalColorMode: 'auto', // the dev tools' own theme; 'auto' = follow the system
+  experimentColorMode: null, // null = follow config.colorMode
 }
 
 /**

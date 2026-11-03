@@ -1,7 +1,13 @@
 <script setup>
 import useWindowSizer from '#smile-composables/useWindowSizer'
+import { useParticipantColorMode } from '#smile-composables/useColorMode'
 
 const { showAggressiveOverlay } = useWindowSizer()
+
+// Light, dark, or the participant's system setting, per VITE_COLOR_MODE (#32).
+// On <html> so dialogs and menus (rendered at the end of <body>) match.
+const colorMode = useParticipantColorMode()
+useHead({ htmlAttrs: { class: colorMode } })
 </script>
 
 <template>

@@ -51,3 +51,34 @@ describe('config: data saving settings (#35)', () => {
     expect(config.dataSizeReference).toBe(4_500_000)
   })
 })
+
+describe('config: color mode (#32)', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it.each([
+    ['light', 'light'],
+    ['dark', 'dark'],
+    ['system', 'system'],
+    ['auto', 'system'],
+    [' Dark ', 'dark'],
+    ['', 'light'],
+    ['purple', 'light'],
+  ])('VITE_COLOR_MODE=%j gives %s', async (value, expected) => {
+    const config = await loadConfig({ VITE_COLOR_MODE: value })
+    expect(config.colorMode).toBe(expected)
+  })
+
+  it('resolves system against the browser preference', async () => {
+    vi.resetModules()
+    vi.doMock('../../src/runtime/composables/useAPI', () => ({ default: () => ({}) }))
+    const { resolveColorMode } = await import('../../src/runtime/composables/useColorMode.js')
+    expect(resolveColorMode('system', true)).toBe('dark')
+    expect(resolveColorMode('system', false)).toBe('light')
+    expect(resolveColorMode('auto', true)).toBe('dark')
+    expect(resolveColorMode('light', true)).toBe('light')
+    expect(resolveColorMode('dark', false)).toBe('dark')
+    expect(resolveColorMode(undefined, true)).toBe('light')
+  })
+})
