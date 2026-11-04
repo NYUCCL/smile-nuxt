@@ -9,6 +9,7 @@ import DevConsole from '#smile-dev/console/SmileDevConsole.vue'
 import DevSideBar from '#smile-dev/sidebar/SmileDevSideBar.vue'
 import ResponsiveDeviceContainer from '#smile-dev/ResponsiveDeviceContainer.vue'
 import SmileDevPresentationView from '#smile-dev/SmileDevPresentationView.vue'
+import BuildConfigView from '#smile-dev/buildconfig/BuildConfigView.vue'
 // Dashboard is hidden until the feature is complete
 // import SmileDevDashboardView from '#smile-dev/dashboard/SmileDevDashboardView.vue'
 import useWindowSizer from '#smile-composables/useWindowSizer'
@@ -59,6 +60,11 @@ const isRouteNotFound = computed(() => {
           <!-- Presentation Mode - inline (shares DOM and store for dark mode sync) -->
           <SmileDevPresentationView
             v-if="api.store.dev.mainView === 'presentation'"
+          />
+
+          <!-- Build & deploy settings - read-only view of the project's env settings -->
+          <BuildConfigView
+            v-else-if="api.store.dev.mainView === 'config'"
           />
 
           <!-- Dashboard Mode - browse past data from the linked database (hidden until the feature is complete)

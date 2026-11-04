@@ -1,5 +1,5 @@
 <script setup>
-import { BugPlay, Moon, Presentation, Settings, Sun, SunMoon, UserRound } from 'lucide-vue-next'
+import { BugPlay, Moon, Presentation, Settings, SlidersHorizontal, Sun, SunMoon, UserRound } from 'lucide-vue-next'
 import { useSmileColorMode } from '../../../composables/useColorMode'
 import DevConfigPanel from './DevConfigPanel.vue'
 import useAPI from '../../../composables/useAPI'
@@ -24,6 +24,7 @@ const api = useAPI()
 const modes = [
   { view: 'devmode', icon: BugPlay, label: 'Developer mode' },
   { view: 'presentation', icon: Presentation, label: 'Presentation mode' },
+  { view: 'config', icon: SlidersHorizontal, label: 'Build & deploy settings' },
 ]
 
 function selectMode(view) {
@@ -55,6 +56,7 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
               ? 'bg-sd-selected text-sd-selected-fg hover:!bg-sd-selected-hover'
               : 'hover:!bg-sd-hover'"
             :tooltip="mode.label"
+            :aria-label="mode.label"
             @click="selectMode(mode.view)"
           >
             <component :is="mode.icon" />

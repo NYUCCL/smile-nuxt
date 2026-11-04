@@ -1,6 +1,6 @@
 # Build & deploy settings page in the dev tools
 
-Status: plan agreed, building (2026-11-03). Branch `dev-build-config` (from 227ba79).
+Status: built, read-only (2026-11-03). See "As built" at the end. Branch `dev-build-config` (from 227ba79).
 Related: #38 (SMILE_DEV_TOOLS), #31 (auth secret), #65 (`pnpm smile:check`).
 
 ## Goal
@@ -234,3 +234,34 @@ with its source; the route answers 403 to a non-localhost Host.
 
 Also `pnpm lint`, `pnpm exec vitest run`, and the existing dev-mode specs (the
 rail gained a button).
+
+## As built (2026-11-03)
+
+- `src/runtime/shared/config-schema.js` (settings list) and `config-rules.js`
+  (`deploySummary`, `checkConfig`, helpers): plain JS for #65 to reuse.
+  `test/devconfig/parity.test.ts` keeps `resolveAccess` in step with
+  `server/utils/dev-auth.ts`.
+- `src/devconfig/`: `envparse.ts` (dotenv-compatible scanner), `read.ts`
+  (layers, sources, redaction), `handler.ts` (`GET /_smile/dev-config`),
+  registered in `module.ts` with `addDevServerHandler` only in dev.
+- Env files are read from Vite's `envDir` (the playground's is the repo root),
+  not always `rootDir`.
+- Host check changed from "localhost only" to "localhost or a name in
+  `vite.server.allowedHosts`" (Todd opens the dev server as `m4mini`). The
+  remote-address check was dropped: anyone who can reach the dev server can
+  already use /dev with no password.
+- Four settings are read into `api.config` but nothing in SMILE uses them
+  (`VITE_RANDOM_SEED`, `VITE_UNPAID_STUDY`, `VITE_CODE_NAME_DEPLOY_URL`,
+  `VITE_GOOGLE_ANALYTICS`); the page tags them "not used by SMILE".
+- A deployed build with `SMILE_DEV_TOOLS=include` ships the page but not the
+  route; the page says it works only in `pnpm dev`. Checked: production
+  builds, with and without the dev tools, contain none of the route's code,
+  and a preview answers 404.
+- UI: `components/dev/buildconfig/BuildConfigView.vue` and
+  `BuildConfigSetting.vue`; rail mode `config`; `aria-label` on the rail's mode
+  buttons. Uses the committed `.sd-section` / `.sd-help` / `.sd-mono`.
+- Found on this repo: the root `.env` (tracked) has a plaintext
+  `SMILE_DEV_PASSWORD` and `SMILE_PUBLIC_PRESENTATION=false`. Left as is.
+
+Next, if wanted: editing (the write routes in the original plan), and the
+`pnpm smile:check` CLI on the same rules (#65).

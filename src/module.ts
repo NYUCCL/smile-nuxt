@@ -1,9 +1,10 @@
-import { defineNuxtModule, addPlugin, addImports, addRouteMiddleware, createResolver, extendPages, addComponentsDir, addServerScanDir, addServerImportsDir, useLogger } from '@nuxt/kit'
+import { defineNuxtModule, addDevServerHandler, addPlugin, addImports, addRouteMiddleware, createResolver, extendPages, addComponentsDir, addServerScanDir, addServerImportsDir, useLogger } from '@nuxt/kit'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
-import { basename, dirname, extname, join } from 'node:path'
+import { basename, dirname, extname, join, resolve } from 'node:path'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import tailwindcss from '@tailwindcss/vite'
+import { createDevConfigHandler, DEV_CONFIG_ROUTE } from './devconfig/handler'
 
 // Module options TypeScript interface definition
 export interface ModuleOptions {
@@ -93,6 +94,26 @@ export default defineNuxtModule<ModuleOptions>({
       __SMILE_DEV_TOOLS__: JSON.stringify(includeDevTools),
     }
     addServerImportsDir(resolver.resolve('./runtime/server/utils'))
+
+    // The dev tools' build settings page reads the project's env files through
+    // this route. Dev server only: a dev server handler runs in the Nuxt
+    // process and is never part of a build (unlike runtime/server/, which
+    // every build scans). Read-only, no secrets in the reply.
+    if (_nuxt.options.dev) {
+      // Env files are read from Vite's envDir (the playground's is the repo root).
+      const envDir = () => resolve(_nuxt.options.rootDir, _nuxt.options.vite.envDir || '.')
+      // As written in nuxt.config.ts (undefined if not set), not the merged default.
+      const devToolsOption = (_nuxt.options as { smile?: ModuleOptions }).smile?.devTools
+      addDevServerHandler({
+        route: DEV_CONFIG_ROUTE,
+        handler: {
+          nuxt: createDevConfigHandler(
+            () => ({ rootDir: envDir(), env: process.env, devToolsOption }),
+            () => _nuxt.options.vite.server?.allowedHosts,
+          ),
+        },
+      })
+    }
 
     // Server-only secrets (dev password, Turso credentials, the participant
     // auth secret) are deliberately NOT put in runtimeConfig. runtimeConfig is
