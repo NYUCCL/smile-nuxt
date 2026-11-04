@@ -24,6 +24,9 @@ const api = useAPI()
 const modes = [
   { view: 'devmode', icon: BugPlay, label: 'Developer mode' },
   { view: 'presentation', icon: Presentation, label: 'Presentation mode' },
+]
+// After the participant view link, at the bottom of the list
+const tools = [
   { view: 'config', icon: SlidersHorizontal, label: 'Build & deploy settings' },
 ]
 
@@ -72,6 +75,23 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
             tooltip="Participant view (leaves the dev tools)"
           >
             <a href="/"><UserRound /></a>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        <SidebarMenuItem
+          v-for="mode in tools"
+          :key="mode.view"
+        >
+          <SidebarMenuButton
+            class="sd-rail-btn"
+            :class="api.store.dev.mainView === mode.view
+              ? 'bg-sd-selected text-sd-selected-fg hover:!bg-sd-selected-hover'
+              : 'hover:!bg-sd-hover'"
+            :tooltip="mode.label"
+            :aria-label="mode.label"
+            @click="selectMode(mode.view)"
+          >
+            <component :is="mode.icon" />
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

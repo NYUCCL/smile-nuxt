@@ -70,9 +70,9 @@ applyDevPalette()
           />
 
           <!-- Build & deploy settings - read-only view of the project's env settings -->
-          <BuildConfigView
-            v-else-if="api.store.dev.mainView === 'config'"
-          />
+          <DevScope v-else-if="api.store.dev.mainView === 'config'">
+            <BuildConfigView />
+          </DevScope>
 
           <!-- Dashboard Mode - browse past data from the linked database (hidden until the feature is complete)
           <SmileDevDashboardView
