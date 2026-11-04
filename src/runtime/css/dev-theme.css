@@ -572,12 +572,25 @@
   padding-left: 1rem;
   color: var(--sd-text-muted);
 }
+/* Left-aligned, as in VitePress; a page centers one with style="margin: auto" */
 .sd-prose img {
+  display: block;
   max-width: 100%;
   height: auto;
-  margin: 1rem auto;
+  margin: 1rem 0;
   border-radius: 0.375rem;
   background: white; /* the diagrams are drawn on white */
+}
+.sd-prose img.sd-docs-center {
+  margin-inline: auto;
+}
+.sd-prose img.sd-docs-float-right {
+  float: right;
+  margin: 0 0 1rem 1.5rem;
+}
+.sd-prose img.sd-docs-float-left {
+  float: left;
+  margin: 0 1.5rem 1rem 0;
 }
 .sd-prose video {
   max-width: 100%;
@@ -615,6 +628,100 @@
 .sd-prose .sd-docs-code-group .sd-docs-code + .sd-docs-code {
   margin-top: -0.25rem;
 }
+/* Shiki's colors (both themes as variables): github-light / github-dark, as
+   on the website. The block keeps the docs' background. */
+.sd-prose .shiki {
+  margin: 0;
+  background: transparent;
+}
+.sd-prose .shiki span {
+  color: var(--shiki-light);
+}
+.dark .sd-prose .shiki span {
+  color: var(--shiki-dark);
+}
+.sd-prose .shiki code {
+  display: block;
+  width: fit-content;
+  min-width: 100%;
+}
+/* The language, top right; the copy button takes its place on hover */
+.sd-prose .sd-docs-code-body {
+  position: relative;
+}
+.sd-prose .sd-docs-lang {
+  position: absolute;
+  top: 0.375rem;
+  right: 0.75rem;
+  z-index: 1;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--sd-text-muted);
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+.sd-prose .sd-docs-copy {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--sd-reading-line);
+  border-radius: 0.375rem;
+  background: var(--sd-reading-card);
+  color: var(--sd-text-muted);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+}
+.sd-prose .sd-docs-copy:hover,
+.sd-prose .sd-docs-copy:focus-visible {
+  color: var(--sd-text);
+  border-color: var(--sd-accent);
+}
+.sd-prose .sd-docs-code-body:hover .sd-docs-copy,
+.sd-prose .sd-docs-copy:focus-visible,
+.sd-prose .sd-docs-copy.copied {
+  opacity: 1;
+}
+.sd-prose .sd-docs-code-body:hover .sd-docs-lang,
+.sd-prose .sd-docs-code-body:has(.copied) .sd-docs-lang {
+  opacity: 0;
+}
+.sd-prose .sd-docs-copy svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sd-prose .sd-docs-copied-icon,
+.sd-prose .sd-docs-copy.copied .sd-docs-copy-icon {
+  display: none;
+}
+.sd-prose .sd-docs-copy.copied .sd-docs-copied-icon {
+  display: block;
+}
+.sd-prose .sd-docs-copy.copied {
+  color: var(--sd-ok);
+  border-color: var(--sd-ok);
+}
+/* "Copied", to the left of the button */
+.sd-prose .sd-docs-copy.copied::before {
+  content: 'Copied';
+  position: absolute;
+  right: calc(100% + 0.375rem);
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--sd-text-muted);
+}
 .sd-prose table {
   display: block;
   overflow-x: auto;
@@ -632,30 +739,31 @@
   background: var(--sd-reading-card);
   font-weight: 600;
 }
+/* Callouts, as VitePress's custom blocks: a rounded tinted box, info in grey */
 .sd-prose .sd-docs-callout {
   margin: 1rem 0;
-  padding: 0.625rem 1rem;
+  padding: 1rem 1rem 0.5rem;
   border-radius: 0.5rem;
-  border-left: 3px solid var(--sd-info);
-  background: var(--sd-info-bg);
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+  background: color-mix(in srgb, var(--sd-text-muted) 14%, transparent);
 }
-.sd-prose .sd-docs-callout > :last-child {
-  margin-bottom: 0;
+.sd-prose .sd-docs-callout > * {
+  margin: 0.5rem 0;
+}
+.sd-prose .sd-docs-callout > :first-child {
+  margin-top: 0;
 }
 .sd-prose .sd-docs-callout-title {
   font-weight: 600;
-  margin: 0 0 0.25rem;
 }
 .sd-prose .sd-docs-tip {
-  border-left-color: var(--sd-ok);
   background: var(--sd-ok-bg);
 }
 .sd-prose .sd-docs-warning {
-  border-left-color: var(--sd-warn);
   background: var(--sd-warn-bg);
 }
 .sd-prose .sd-docs-danger {
-  border-left-color: var(--sd-error);
   background: var(--sd-error-bg);
 }
 .sd-prose details {

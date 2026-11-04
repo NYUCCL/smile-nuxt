@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, it, expect } from 'vitest'
 import { buildAgentDocs } from '../../scripts/build-agent-docs.mjs'
-import { createDocs, prepareMarkdown, resolveTarget, slugify, websiteUrl } from '../../src/runtime/server/dev/renderDocs.js'
+import { createDocs, loadHighlighter, prepareMarkdown, resolveTarget, slugify, websiteUrl } from '../../src/runtime/server/dev/renderDocs.js'
 
 /**
  * The dev tools' Docs mode renderer (src/runtime/server/dev/renderDocs.js),
@@ -110,5 +110,30 @@ describe('docs renderer: the shipped pages', () => {
   it('refuses paths that are not docs pages', () => {
     expect(docs.page('../package.json')).toBeNull()
     expect(docs.page('index.md')).toBeNull()
+  })
+})
+
+describe('docs renderer: code blocks', () => {
+  let tmp
+  let docs
+
+  beforeAll(async () => {
+    tmp = mkdtempSync(join(tmpdir(), 'smile-docs-code-'))
+    await buildAgentDocs({ outDir: join(tmp, 'docs') })
+    docs = createDocs(join(tmp, 'docs'), { highlight: await loadHighlighter() })
+  })
+
+  afterAll(() => rmSync(tmp, { recursive: true, force: true }))
+
+  it('highlights them with Shiki, in both of the website\'s themes, with a copy button', () => {
+    const html = docs.page('coding/timeline.md').html
+    expect(html).toContain('class="shiki shiki-themes github-light github-dark')
+    expect(html).toMatch(/--shiki-light:#[0-9A-F]{6};--shiki-dark:#[0-9A-F]{6}/i)
+    expect(html).toContain('class="sd-docs-copy"')
+    expect(html).toContain('<span class="sd-docs-lang">js</span>')
+  })
+
+  it('renders inline code in a callout title', () => {
+    expect(docs.page('coding/timeline.md').html).toContain('<p class="sd-docs-callout-title">Why <code>markRaw()</code>?</p>')
   })
 })

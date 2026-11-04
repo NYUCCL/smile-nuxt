@@ -39,6 +39,38 @@ test.describe('Docs mode', () => {
     await expect(article.locator('#overriding-a-built-in-view')).toBeInViewport()
   })
 
+  test('"On this page" jumps to a heading and marks it', async ({ page }) => {
+    await page.getByRole('button', { name: 'Timeline and Design File' }).click()
+    const toc = page.getByTestId('docs-toc')
+    await toc.getByRole('link', { name: 'Randomized nodes' }).click()
+    await expect(page.getByTestId('docs-page').locator('#randomized-nodes')).toBeInViewport()
+    await expect(toc.locator('[aria-current="location"]')).toHaveText('Randomized nodes')
+  })
+
+  test.describe('code blocks', () => {
+    test.use({ permissions: ['clipboard-read', 'clipboard-write'] })
+
+    test('are highlighted, and copy their code', async ({ page }) => {
+      await page.getByRole('button', { name: 'Timeline and Design File' }).click()
+      const block = page.getByTestId('docs-page').locator('.sd-docs-code-body').first()
+      await expect(block.locator('pre.shiki')).toBeVisible()
+      await block.hover()
+      await block.getByRole('button', { name: 'Copy code' }).click()
+      await expect(block.getByRole('button', { name: 'Copy code' })).toHaveClass(/copied/)
+      const copied = await page.evaluate(() => navigator.clipboard.readText())
+      expect(copied).toBe(await block.locator('pre code').textContent())
+    })
+  })
+
+  test('the pager goes to the next and previous pages', async ({ page }) => {
+    await page.getByRole('button', { name: 'Timeline and Design File' }).click()
+    const pager = page.getByTestId('docs-pager')
+    await pager.getByRole('button', { name: /Next page/ }).click()
+    await expect(page.getByTestId('docs-page').locator('h1')).toHaveText('Stepping Through Trials')
+    await pager.getByRole('button', { name: /Previous page/ }).click()
+    await expect(page.getByTestId('docs-page').locator('h1')).toHaveText('Timeline and Design File')
+  })
+
   test('search finds a section and jumps to it', async ({ page }) => {
     await page.getByTestId('docs-search').fill('randomized node')
     const first = page.getByTestId('docs-results').getByRole('button').first()

@@ -82,6 +82,13 @@ function attr(tag, name) {
  * The page's markdown with its Vue parts made readable. `example(name)`
  * returns an example component's source (or '').
  */
+// `outline: false` in a page's frontmatter: no "On this page" (as in VitePress,
+// which ignores other values such as `none`)
+function hasOutline(text) {
+  const front = text.match(/^---\n([\s\S]*?)\n---\n/)
+  return !/^outline:\s*false\s*$/m.test(front?.[1] || '')
+}
+
 export function prepareMarkdown(text, page, example = () => '') {
   const body = text.replace(/^---\n[\s\S]*?\n---\n/, '')
   return outsideFences(body, (md) => {
@@ -140,19 +147,50 @@ export function resolveTarget(href, page) {
   return { path: resolved.replace(/\/$/, '/index'), hash }
 }
 
+// The copy button on code blocks (the click is handled by the docs view)
+const COPY_BUTTON = '<button type="button" class="sd-docs-copy" title="Copy code" aria-label="Copy code">'
+  + '<svg class="sd-docs-copy-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
+  + '<svg class="sd-docs-copied-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>'
+  + '</button>'
+
+// The languages the docs use, and the website's themes (VitePress's defaults)
+const LANGS = ['javascript', 'typescript', 'vue', 'html', 'css', 'json', 'shellscript', 'python', 'ini', 'sql', 'yaml', 'toml', 'diff', 'markdown']
+const THEMES = { light: 'github-light', dark: 'github-dark' }
+
+/**
+ * Shiki, loaded once (it's async; rendering a page isn't). Returns
+ * highlight(code, lang) -> html, or null if Shiki can't be loaded, in which
+ * case code blocks are plain.
+ */
+export async function loadHighlighter() {
+  try {
+    const { createHighlighter } = await import('shiki')
+    const shiki = await createHighlighter({ themes: Object.values(THEMES), langs: LANGS })
+    const known = new Set(shiki.getLoadedLanguages())
+    return (code, lang) => shiki.codeToHtml(code.replace(/\n$/, ''), {
+      lang: known.has(lang) ? lang : 'text',
+      themes: THEMES,
+      defaultColor: false, // both themes as CSS variables; dev-theme.css picks one
+    })
+  }
+  catch {
+    return null
+  }
+}
+
 /** The address of a page link target: 'coding/steps' or 'coding/steps.md' -> 'coding/steps.md'. */
 const asPage = path => path.replace(/\.(md|html)$/, '') + '.md'
 
-function createRenderer({ hasImage }) {
+function createRenderer({ hasImage, highlight }) {
   const md = new MarkdownIt({ html: true, linkify: true })
   md.use(footnote).use(mark)
 
   const callout = (type, label) => md.use(container, type, {
-    render(tokens, idx) {
+    render(tokens, idx, options, env) {
       const token = tokens[idx]
       if (token.nesting !== 1) return '</div>\n'
       const title = token.info.trim().slice(type.length).trim() || label
-      return `<div class="sd-docs-callout sd-docs-${type}"><p class="sd-docs-callout-title">${md.utils.escapeHtml(title)}</p>\n`
+      return `<div class="sd-docs-callout sd-docs-${type}"><p class="sd-docs-callout-title">${md.renderInline(title, env)}</p>\n`
     },
   })
   callout('tip', 'Tip')
@@ -160,28 +198,32 @@ function createRenderer({ hasImage }) {
   callout('warning', 'Warning')
   callout('danger', 'Danger')
   md.use(container, 'details', {
-    render(tokens, idx) {
+    render(tokens, idx, options, env) {
       const token = tokens[idx]
       if (token.nesting !== 1) return '</details>\n'
       const title = token.info.trim().slice('details'.length).trim() || 'Details'
-      return `<details class="sd-docs-details"><summary>${md.utils.escapeHtml(title)}</summary>\n`
+      return `<details class="sd-docs-details"><summary>${md.renderInline(title, env)}</summary>\n`
     },
   })
   md.use(container, 'code-group', {
     render: (tokens, idx) => tokens[idx].nesting === 1 ? '<div class="sd-docs-code-group">\n' : '</div>\n',
   })
 
-  // Fences: ```sh [pnpm] gets a label; no highlighting.
+  // Fences: highlighted with Shiki when it's loaded (as on the website), with
+  // a copy button and the language; ```sh [pnpm] gets a label.
   md.renderer.rules.fence = (tokens, idx) => {
     const token = tokens[idx]
     const info = token.info.trim()
     const lang = info.split(/[\s{[]/)[0]
     const label = (info.match(/\[([^\]]+)\]/) || [])[1]
     const head = label ? `<div class="sd-docs-code-label">${md.utils.escapeHtml(label)}</div>` : ''
-    return `<div class="sd-docs-code">${head}<pre><code${lang ? ` class="language-${md.utils.escapeHtml(lang)}"` : ''}>${md.utils.escapeHtml(token.content)}</code></pre></div>\n`
+    const code = highlight?.(token.content, lang)
+      || `<pre><code${lang ? ` class="language-${md.utils.escapeHtml(lang)}"` : ''}>${md.utils.escapeHtml(token.content)}</code></pre>`
+    const langTag = lang ? `<span class="sd-docs-lang">${md.utils.escapeHtml(lang)}</span>` : ''
+    return `<div class="sd-docs-code">${head}<div class="sd-docs-code-body">${COPY_BUTTON}${langTag}${code}</div></div>\n`
   }
 
-  // Headings: {#id} or VitePress's slug; collect h2/h3 for the outline.
+  // Headings: {#id} or VitePress's slug; collect h2-h6 for the outline (the site's `level: 'deep'`).
   md.renderer.rules.heading_open = (tokens, idx, options, env, self) => {
     const token = tokens[idx]
     const inline = tokens[idx + 1]
@@ -200,7 +242,7 @@ function createRenderer({ hasImage }) {
     env.slugs[id] = seen + 1
     if (seen) id = `${id}-${seen}`
     token.attrSet('id', id)
-    if (token.tag === 'h2' || token.tag === 'h3') env.headings.push({ level: Number(token.tag[1]), id, text: text.trim() })
+    if (/^h[2-6]$/.test(token.tag)) env.headings.push({ level: Number(token.tag[1]), id, text: text.trim() })
     return self.renderToken(tokens, idx, options)
   }
 
@@ -247,8 +289,14 @@ function createRenderer({ hasImage }) {
   const rewriteHtml = (html, env) => html
     .replace(/<img\b[^>]*>/g, (tag) => {
       // Keep the page's sizing (width="300" on the logo, width="600" on diagrams)
+      // and placement: left by default, as in VitePress; style="margin: auto"
+      // centers, align="right" floats.
       const size = ['width', 'height'].map(n => attr(tag, n) ? ` ${n}="${escapeHtml(attr(tag, n))}"` : '').join('')
-      return imageHtml(attr(tag, 'src'), attr(tag, 'alt'), env, size)
+      const align = (attr(tag, 'align') || '').toLowerCase()
+      const place = align === 'right' || align === 'left'
+        ? `sd-docs-float-${align}`
+        : /margin\s*:\s*(?:0\s+)?auto/.test(attr(tag, 'style') || '') ? 'sd-docs-center' : ''
+      return imageHtml(attr(tag, 'src'), attr(tag, 'alt'), env, size + (place ? ` class="${place}"` : ''))
     })
     .replace(/<(video|source)\b([^>]*)\ssrc="([^"]*)"/g, (all, tag, before, src) => {
       const target = resolveTarget(src, env.page)
@@ -263,9 +311,10 @@ function createRenderer({ hasImage }) {
 
 /**
  * The docs service for one docs folder: the page list, rendered pages (cached
- * by modification time), search and the shipped images.
+ * by modification time), search and the shipped images. `highlight` (from
+ * loadHighlighter) colors the code blocks.
  */
-export function createDocs(docsDir) {
+export function createDocs(docsDir, { highlight = null } = {}) {
   const read = file => readFileSync(join(docsDir, file), 'utf8')
   const index = () => JSON.parse(read('index.json'))
   const pages = () => new Map(index().sections.flatMap(s => s.pages.map(p => [p.path, { ...p, section: s.section }])))
@@ -274,7 +323,7 @@ export function createDocs(docsDir) {
     const file = join(docsDir, 'examples', `${name}.vue`)
     return /^[A-Z0-9]+$/i.test(name) && existsSync(file) ? readFileSync(file, 'utf8') : ''
   }
-  const md = createRenderer({ hasImage })
+  const md = createRenderer({ hasImage, highlight })
   const cache = new Map()
 
   function page(path) {
@@ -284,12 +333,13 @@ export function createDocs(docsDir) {
     const hit = cache.get(path)
     if (hit && hit.mtime === mtime) return hit.result
     const env = { page: path, slugs: {}, headings: [] }
-    let html = md.render(prepareMarkdown(read(path), path, example), env)
+    const source = read(path)
+    let html = md.render(prepareMarkdown(source, path, example), env)
     // [[toc]]: the page's headings, as VitePress renders it.
-    html = html.replace(/<p>\[\[toc\]\]<\/p>/g, () => `<nav class="sd-docs-toc"><ul>${env.headings
+    html = html.replace(/<p>\[\[toc\]\]<\/p>/g, () => `<nav class="sd-docs-toc"><ul>${env.headings.filter(h => h.level <= 3)
       .map(h => `<li class="sd-docs-toc-${h.level}"><a href="#${h.id}" data-docs-hash="${h.id}">${escapeHtml(h.text)}</a></li>`)
       .join('')}</ul></nav>`)
-    const result = { path, title: info.title, section: info.section, description: info.description, html, headings: env.headings, website: websiteUrl(path) }
+    const result = { path, title: info.title, section: info.section, description: info.description, html, headings: env.headings, outline: hasOutline(source), website: websiteUrl(path) }
     cache.set(path, { mtime, result })
     return result
   }

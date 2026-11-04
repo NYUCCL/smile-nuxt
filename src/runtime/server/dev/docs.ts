@@ -10,31 +10,32 @@
  */
 import { createError, defineEventHandler, getQuery, setResponseHeader } from 'h3'
 // @ts-expect-error — plain JS module, no type declarations
-import { createDocs } from './renderDocs.js'
+import { createDocs, loadHighlighter } from './renderDocs.js'
 
 // The folder with index.json and the pages, set by the module.
 declare const __SMILE_DOCS_DIR__: string
 
-let docs: ReturnType<typeof createDocs> | undefined
+let docs: Promise<ReturnType<typeof createDocs>> | undefined
 
-export default defineEventHandler((event) => {
-  docs ??= createDocs(__SMILE_DOCS_DIR__)
+export default defineEventHandler(async (event) => {
+  docs ??= loadHighlighter().then((highlight: unknown) => createDocs(__SMILE_DOCS_DIR__, { highlight }))
+  const service = await docs
   const route = event.path.replace(/^\/__smile\/docs\/?/, '').split('?')[0]
   const query = getQuery(event)
 
-  if (route === 'index') return docs.index()
+  if (route === 'index') return service.index()
 
   if (route === 'page') {
-    const page = docs.page(String(query.path || ''))
+    const page = service.page(String(query.path || ''))
     if (!page) throw createError({ statusCode: 404, statusMessage: 'No such docs page' })
     return page
   }
 
-  if (route === 'search') return docs.search(String(query.q || ''))
+  if (route === 'search') return service.search(String(query.q || ''))
 
   const image = route.match(/^images\/([\w.-]+\.svg)$/)
   if (image) {
-    const svg = docs.image(image[1])
+    const svg = service.image(image[1])
     if (svg) {
       setResponseHeader(event, 'content-type', 'image/svg+xml')
       return svg
