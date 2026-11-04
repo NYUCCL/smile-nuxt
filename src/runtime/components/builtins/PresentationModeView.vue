@@ -207,7 +207,7 @@ function goToSection(section) {
           v-for="(section, index) in sections"
           :key="index"
           type="button"
-          class="presentation-card group"
+          class="presentation-card group bg-muted/70 dark:bg-card"
           :class="{ 'md:col-span-2': index === 0 && sections.length % 2 === 1 }"
           @click="goToSection(section)"
         >
@@ -283,7 +283,6 @@ function goToSection(section) {
   padding: 1.25rem;
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  background-color: var(--card);
   color: var(--card-foreground);
   cursor: pointer;
   transition: border-color 0.15s, background-color 0.15s;
