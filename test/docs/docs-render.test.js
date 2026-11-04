@@ -101,6 +101,19 @@ describe('docs renderer: the shipped pages', () => {
     expect(recruitment).toContain('class="sd-docs-figure"')
   })
 
+  it('gives each diagram a dark copy, and leaves the logo alone', () => {
+    const timeline = rendered['coding/timeline.md'].html
+    expect(timeline).toContain('<img src="/__smile/docs/images/timeline.svg" alt="')
+    expect(timeline).toMatch(/<img src="\/__smile\/docs\/images\/timeline\.dark\.svg"[^>]* class="sd-fig-dark/)
+    const dark = docs.image('timeline.dark.svg')
+    expect(dark).toContain('<rect width="760" height="610" fill="none"/>') // sits on the page
+    expect(dark).not.toMatch(/fill="(?:white|#fff(?:fff)?)"/i)
+    expect(docs.image('timeline.svg')).toContain('<rect width="760" height="610" fill="none"/>')
+    expect(docs.image('smile.dark.svg')).toBeNull()
+    expect(String(docs.image('smile.svg'))).toContain('cls-1') // the logo as it is
+    expect(rendered['introduction.md'].html).not.toContain('sd-fig-dark')
+  })
+
   it('finds a section by its words', () => {
     const [first] = docs.search('randomized node')
     expect(first).toMatchObject({ path: 'coding/timeline.md', hash: 'randomized-nodes' })

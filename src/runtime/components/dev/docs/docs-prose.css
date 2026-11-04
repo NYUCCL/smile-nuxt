@@ -84,7 +84,17 @@
   height: auto;
   margin: 1rem 0;
   border-radius: 0.375rem;
-  background: white; /* the diagrams are drawn on white */
+}
+/* Diagrams come in a light and a dark copy (server/dev/darkFigures.js); the
+   other images (the logo) are drawn to sit on any background. */
+.sd-prose img.sd-fig-dark {
+  display: none;
+}
+.dark .sd-prose img.sd-fig-dark {
+  display: block;
+}
+.dark .sd-prose img.sd-fig-light {
+  display: none;
 }
 .sd-prose img.sd-docs-center {
   margin-inline: auto;

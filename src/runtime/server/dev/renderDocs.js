@@ -21,6 +21,7 @@ import MarkdownIt from 'markdown-it'
 import container from 'markdown-it-container'
 import footnote from 'markdown-it-footnote'
 import mark from 'markdown-it-mark'
+import { darkFigure, lightFigure } from './darkFigures.js'
 
 export const WEBSITE = 'https://smile.gureckislab.org'
 
@@ -181,7 +182,7 @@ export async function loadHighlighter() {
 /** The address of a page link target: 'coding/steps' or 'coding/steps.md' -> 'coding/steps.md'. */
 const asPage = path => path.replace(/\.(md|html)$/, '') + '.md'
 
-function createRenderer({ hasImage, highlight }) {
+function createRenderer({ hasImage, hasDark, highlight }) {
   const md = new MarkdownIt({ html: true, linkify: true })
   md.use(footnote).use(mark)
 
@@ -270,11 +271,17 @@ function createRenderer({ hasImage, highlight }) {
     return self.renderToken(tokens, idx, options)
   }
 
-  const imageHtml = (src, alt, env, size = '') => {
+  const imageHtml = (src, alt, env, size = '', place = '') => {
     const target = resolveTarget(src, env.page)
-    if (target.external) return `<img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}"${size}>`
+    const img = (url, cls) => `<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}"${size}${cls ? ` class="${cls}"` : ''}>`
+    if (target.external) return img(src, place)
     const name = posix.basename(target.path || '')
-    if (target.path && hasImage(name)) return `<img src="/__smile/docs/images/${encodeURIComponent(name)}" alt="${escapeHtml(alt)}"${size}>`
+    if (target.path && hasImage(name)) {
+      const url = `/__smile/docs/images/${encodeURIComponent(name)}`
+      // A diagram has a dark copy (darkFigures.js); the page shows the one for its mode
+      if (!hasDark(name)) return img(url, place)
+      return img(url, `sd-fig-light ${place}`.trim()) + img(url.replace(/\.svg$/, '.dark.svg'), `sd-fig-dark ${place}`.trim())
+    }
     // Screenshots and other images don't ship: link to the page that has them.
     return `<a class="sd-docs-figure" href="${websiteUrl(env.page)}" target="_blank" rel="noopener">`
       + `<span>Image${alt ? `: ${escapeHtml(alt)}` : ''}</span><span class="sd-docs-figure-hint">on the website</span></a>`
@@ -296,7 +303,7 @@ function createRenderer({ hasImage, highlight }) {
       const place = align === 'right' || align === 'left'
         ? `sd-docs-float-${align}`
         : /margin\s*:\s*(?:0\s+)?auto/.test(attr(tag, 'style') || '') ? 'sd-docs-center' : ''
-      return imageHtml(attr(tag, 'src'), attr(tag, 'alt'), env, size + (place ? ` class="${place}"` : ''))
+      return imageHtml(attr(tag, 'src'), attr(tag, 'alt'), env, size, place)
     })
     .replace(/<(video|source)\b([^>]*)\ssrc="([^"]*)"/g, (all, tag, before, src) => {
       const target = resolveTarget(src, env.page)
@@ -323,7 +330,23 @@ export function createDocs(docsDir, { highlight = null } = {}) {
     const file = join(docsDir, 'examples', `${name}.vue`)
     return /^[A-Z0-9]+$/i.test(name) && existsSync(file) ? readFileSync(file, 'utf8') : ''
   }
-  const md = createRenderer({ hasImage, highlight })
+  // The diagrams' light and dark copies on no background (darkFigures.js),
+  // made when first asked for (by file mtime). null: not a diagram.
+  const figureCache = new Map()
+  function figure(name) {
+    if (!hasImage(name)) return null
+    const file = join(docsDir, 'images', name)
+    const mtime = statSync(file).mtimeMs
+    const hit = figureCache.get(name)
+    if (hit && hit.mtime === mtime) return hit.copies
+    const svg = readFileSync(file, 'utf8')
+    const light = lightFigure(svg)
+    const copies = light && { light, dark: darkFigure(svg) }
+    figureCache.set(name, { mtime, copies })
+    return copies
+  }
+  const hasDark = name => figure(name) !== null
+  const md = createRenderer({ hasImage, hasDark, highlight })
   const cache = new Map()
 
   function page(path) {
@@ -387,8 +410,12 @@ export function createDocs(docsDir, { highlight = null } = {}) {
     return results.sort((a, b) => b.score - a.score).slice(0, limit)
   }
 
+  // An image that ships, or `<name>.dark.svg` for a diagram's dark copy
   function image(name) {
-    return hasImage(name) ? readFileSync(join(docsDir, 'images', name)) : null
+    const dark = name.match(/^(.+)\.dark\.svg$/)
+    if (dark) return figure(`${dark[1]}.svg`)?.dark ?? null
+    if (!hasImage(name)) return null
+    return figure(name)?.light ?? readFileSync(join(docsDir, 'images', name))
   }
 
   return { index, page, search, image }
