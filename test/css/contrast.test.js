@@ -54,10 +54,17 @@ const DEV_PAIRS = [
     .flatMap(fg => [[fg, 'sd-bg'], [fg, 'sd-panel']]),
   // status text on its own tint
   ['sd-ok', 'sd-ok-bg'],
+  ['sd-done', 'sd-done-bg'],
+  ['sd-done', 'sd-panel'],
   ['sd-warn', 'sd-warn-bg'],
   ['sd-error', 'sd-error-bg'],
   ['sd-info', 'sd-info-bg'],
   // filled controls, brand button, pinned route, recruitment tiles
+  // the recruit page's reading surface
+  ['sd-text', 'sd-reading-bg'],
+  ['sd-text-muted', 'sd-reading-bg'],
+  ['sd-text-muted', 'sd-reading-card'],
+  ['sd-link', 'sd-reading-bg'],
   ['sd-pinned-fg', 'sd-pinned'],
   ['sd-local-fg', 'sd-local-1'],
   ['sd-local-fg', 'sd-local-2'],

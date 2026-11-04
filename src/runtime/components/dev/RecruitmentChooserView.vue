@@ -200,7 +200,7 @@ const currentService = computed(() => services[selectedService.value])
 </script>
 
 <template>
-  <div class="sd-root sd-recruit px-4 md:px-8 lg:px-12 pt-10 pb-10 bg-background text-foreground global-color-mode">
+  <div class="sd-root sd-recruit min-h-full px-4 md:px-8 lg:px-12 pt-10 pb-10 bg-background text-foreground global-color-mode">
     <!-- Detail view for selected service -->
     <template v-if="selectedService && currentService">
       <!-- Back button -->
@@ -553,9 +553,13 @@ const currentService = computed(() => services[selectedService.value])
 </style>
 
 <style scoped>
-/* The dev tools' colors (.sd-root); cards lift a step off the page */
-.sd-recruit {
-  --card: var(--sd-hover);
+/* The dev tools' ink, on a reading surface: neutral in light mode under
+   every palette, the palette's own in dark mode. Cards sit a step off it. */
+.sd-recruit.sd-root {
+  --background: var(--sd-reading-bg);
+  --card: var(--sd-reading-card);
+  --muted: var(--sd-reading-card);
+  --border: var(--sd-reading-line);
 }
 
 .is-blue {

@@ -27,7 +27,9 @@ const HUES = ['blue', 'teal', 'green', 'yellow', 'orange', 'red', 'purple', 'pin
    the eight hues. surface is the chrome (rails, bars, tab strips); it may be
    darker than bg in dark mode (catppuccin, everforest, london), which sets the
    panels off from the content. Optional `accent`: the hue for focus rings and
-   links-as-accent (default blue). */
+   links-as-accent (default blue). Optional `lightReading`: how much white to
+   mix into bg for the recruit page in light mode, for palettes whose tint is
+   too strong for a whole page (0-1; default 0, the palette's own bg). */
 const PALETTES = {
   github: {
     label: 'GitHub',
@@ -77,6 +79,7 @@ const PALETTES = {
   // app/assets/css/themes.css).
   everforest: {
     label: 'Everforest',
+    lightReading: 0.6,
     light: {
       neutrals: ['#fdf6e3', '#f4f0d9', '#e6e2cc', '#d5d1bb', '#434f57', '#829181'],
       hues: ['#3a94c5', '#35a77c', '#8da101', '#b38600', '#f57d26', '#f85552', '#df69ba', '#ec5f88'],
@@ -164,7 +167,7 @@ function fitLightness(hex, backgrounds, target, direction, tintOver = null) {
 
 /* ---- build --------------------------------------------------------------- */
 
-function modeBlock(spec, dark, accent) {
+function modeBlock(spec, dark, accent, lightReading = 0) {
   const [bg, surface, surface2, border, fg, fgMuted] = spec.neutrals
   const backgrounds = [bg, surface].map(hexToOklab)
   const direction = dark ? 1 : -1
@@ -185,6 +188,12 @@ function modeBlock(spec, dark, accent) {
     lines.push(`  --sd-p-${name}: ${fmt(hues[i])};`)
   })
   lines.push(`  --sd-p-accent: var(--sd-p-${accent ?? 'blue'});`)
+  lines.push('  --sd-p-done: var(--sd-p-accent);') // progress meter's reached stages
+  // Recruitment tiles: the hue mixed into bg (dark mode carries more color)
+  HUES.forEach((name) => {
+    lines.push(`  --sd-p-tile-${name}: color-mix(in oklab, var(--sd-p-${name}) ${dark ? 28 : 22}%, var(--sd-p-bg));`)
+  })
+  if (!dark && lightReading) lines.push(`  --sd-p-reading: color-mix(in oklab, oklch(1 0 0) ${Math.round(lightReading * 100)}%, var(--sd-p-bg));`)
   return lines.join('\n')
 }
 
@@ -202,7 +211,7 @@ for (const [name, p] of Object.entries(PALETTES)) {
 /* ${p.label} */
 [data-sd-palette='${name}'].light,
 [data-sd-palette='${name}'] .light {
-${modeBlock(p.light, false, p.accent)}
+${modeBlock(p.light, false, p.accent, p.lightReading)}
 }
 
 [data-sd-palette='${name}'].dark,

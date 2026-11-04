@@ -26,6 +26,15 @@
   --sd-p-purple: oklch(0.503 0.207 295.0);
   --sd-p-pink: oklch(0.500 0.187 348.0);
   --sd-p-accent: var(--sd-p-blue);
+  --sd-p-done: var(--sd-p-accent);
+  --sd-p-tile-blue: color-mix(in oklab, var(--sd-p-blue) 22%, var(--sd-p-bg));
+  --sd-p-tile-teal: color-mix(in oklab, var(--sd-p-teal) 22%, var(--sd-p-bg));
+  --sd-p-tile-green: color-mix(in oklab, var(--sd-p-green) 22%, var(--sd-p-bg));
+  --sd-p-tile-yellow: color-mix(in oklab, var(--sd-p-yellow) 22%, var(--sd-p-bg));
+  --sd-p-tile-orange: color-mix(in oklab, var(--sd-p-orange) 22%, var(--sd-p-bg));
+  --sd-p-tile-red: color-mix(in oklab, var(--sd-p-red) 22%, var(--sd-p-bg));
+  --sd-p-tile-purple: color-mix(in oklab, var(--sd-p-purple) 22%, var(--sd-p-bg));
+  --sd-p-tile-pink: color-mix(in oklab, var(--sd-p-pink) 22%, var(--sd-p-bg));
 }
 
 [data-sd-palette='github'].dark,
@@ -46,6 +55,15 @@
   --sd-p-purple: oklch(0.688 0.178 298.9);
   --sd-p-pink: oklch(0.687 0.168 349.5);
   --sd-p-accent: var(--sd-p-blue);
+  --sd-p-done: var(--sd-p-accent);
+  --sd-p-tile-blue: color-mix(in oklab, var(--sd-p-blue) 28%, var(--sd-p-bg));
+  --sd-p-tile-teal: color-mix(in oklab, var(--sd-p-teal) 28%, var(--sd-p-bg));
+  --sd-p-tile-green: color-mix(in oklab, var(--sd-p-green) 28%, var(--sd-p-bg));
+  --sd-p-tile-yellow: color-mix(in oklab, var(--sd-p-yellow) 28%, var(--sd-p-bg));
+  --sd-p-tile-orange: color-mix(in oklab, var(--sd-p-orange) 28%, var(--sd-p-bg));
+  --sd-p-tile-red: color-mix(in oklab, var(--sd-p-red) 28%, var(--sd-p-bg));
+  --sd-p-tile-purple: color-mix(in oklab, var(--sd-p-purple) 28%, var(--sd-p-bg));
+  --sd-p-tile-pink: color-mix(in oklab, var(--sd-p-pink) 28%, var(--sd-p-bg));
 }
 
 /* Nord */
@@ -67,6 +85,15 @@
   --sd-p-purple: oklch(0.452 0.062 332.7);
   --sd-p-pink: oklch(0.453 0.074 342.0);
   --sd-p-accent: var(--sd-p-blue);
+  --sd-p-done: var(--sd-p-accent);
+  --sd-p-tile-blue: color-mix(in oklab, var(--sd-p-blue) 22%, var(--sd-p-bg));
+  --sd-p-tile-teal: color-mix(in oklab, var(--sd-p-teal) 22%, var(--sd-p-bg));
+  --sd-p-tile-green: color-mix(in oklab, var(--sd-p-green) 22%, var(--sd-p-bg));
+  --sd-p-tile-yellow: color-mix(in oklab, var(--sd-p-yellow) 22%, var(--sd-p-bg));
+  --sd-p-tile-orange: color-mix(in oklab, var(--sd-p-orange) 22%, var(--sd-p-bg));
+  --sd-p-tile-red: color-mix(in oklab, var(--sd-p-red) 22%, var(--sd-p-bg));
+  --sd-p-tile-purple: color-mix(in oklab, var(--sd-p-purple) 22%, var(--sd-p-bg));
+  --sd-p-tile-pink: color-mix(in oklab, var(--sd-p-pink) 22%, var(--sd-p-bg));
 }
 
 [data-sd-palette='nord'].dark,
@@ -87,6 +114,15 @@
   --sd-p-purple: oklch(0.822 0.062 332.7);
   --sd-p-pink: oklch(0.823 0.074 342.0);
   --sd-p-accent: var(--sd-p-blue);
+  --sd-p-done: var(--sd-p-accent);
+  --sd-p-tile-blue: color-mix(in oklab, var(--sd-p-blue) 28%, var(--sd-p-bg));
+  --sd-p-tile-teal: color-mix(in oklab, var(--sd-p-teal) 28%, var(--sd-p-bg));
+  --sd-p-tile-green: color-mix(in oklab, var(--sd-p-green) 28%, var(--sd-p-bg));
+  --sd-p-tile-yellow: color-mix(in oklab, var(--sd-p-yellow) 28%, var(--sd-p-bg));
+  --sd-p-tile-orange: color-mix(in oklab, var(--sd-p-orange) 28%, var(--sd-p-bg));
+  --sd-p-tile-red: color-mix(in oklab, var(--sd-p-red) 28%, var(--sd-p-bg));
+  --sd-p-tile-purple: color-mix(in oklab, var(--sd-p-purple) 28%, var(--sd-p-bg));
+  --sd-p-tile-pink: color-mix(in oklab, var(--sd-p-pink) 28%, var(--sd-p-bg));
 }
 
 /* Solarized */
@@ -108,6 +144,15 @@
   --sd-p-purple: oklch(0.467 0.126 279.1);
   --sd-p-pink: oklch(0.482 0.202 355.9);
   --sd-p-accent: var(--sd-p-blue);
+  --sd-p-done: var(--sd-p-accent);
+  --sd-p-tile-blue: color-mix(in oklab, var(--sd-p-blue) 22%, var(--sd-p-bg));
+  --sd-p-tile-teal: color-mix(in oklab, var(--sd-p-teal) 22%, var(--sd-p-bg));
+  --sd-p-tile-green: color-mix(in oklab, var(--sd-p-green) 22%, var(--sd-p-bg));
+  --sd-p-tile-yellow: color-mix(in oklab, var(--sd-p-yellow) 22%, var(--sd-p-bg));
+  --sd-p-tile-orange: color-mix(in oklab, var(--sd-p-orange) 22%, var(--sd-p-bg));
+  --sd-p-tile-red: color-mix(in oklab, var(--sd-p-red) 22%, var(--sd-p-bg));
+  --sd-p-tile-purple: color-mix(in oklab, var(--sd-p-purple) 22%, var(--sd-p-bg));
+  --sd-p-tile-pink: color-mix(in oklab, var(--sd-p-pink) 22%, var(--sd-p-bg));
 }
 
 [data-sd-palette='solarized'].dark,
@@ -128,6 +173,15 @@
   --sd-p-purple: oklch(0.757 0.126 279.1);
   --sd-p-pink: oklch(0.837 0.202 355.9);
   --sd-p-accent: var(--sd-p-blue);
+  --sd-p-done: var(--sd-p-accent);
+  --sd-p-tile-blue: color-mix(in oklab, var(--sd-p-blue) 28%, var(--sd-p-bg));
+  --sd-p-tile-teal: color-mix(in oklab, var(--sd-p-teal) 28%, var(--sd-p-bg));
+  --sd-p-tile-green: color-mix(in oklab, var(--sd-p-green) 28%, var(--sd-p-bg));
+  --sd-p-tile-yellow: color-mix(in oklab, var(--sd-p-yellow) 28%, var(--sd-p-bg));
+  --sd-p-tile-orange: color-mix(in oklab, var(--sd-p-orange) 28%, var(--sd-p-bg));
+  --sd-p-tile-red: color-mix(in oklab, var(--sd-p-red) 28%, var(--sd-p-bg));
+  --sd-p-tile-purple: color-mix(in oklab, var(--sd-p-purple) 28%, var(--sd-p-bg));
+  --sd-p-tile-pink: color-mix(in oklab, var(--sd-p-pink) 28%, var(--sd-p-bg));
 }
 
 /* Catppuccin */
@@ -149,6 +203,15 @@
   --sd-p-purple: oklch(0.485 0.250 297.0);
   --sd-p-pink: oklch(0.471 0.174 338.4);
   --sd-p-accent: var(--sd-p-blue);
+  --sd-p-done: var(--sd-p-accent);
+  --sd-p-tile-blue: color-mix(in oklab, var(--sd-p-blue) 22%, var(--sd-p-bg));
+  --sd-p-tile-teal: color-mix(in oklab, var(--sd-p-teal) 22%, var(--sd-p-bg));
+  --sd-p-tile-green: color-mix(in oklab, var(--sd-p-green) 22%, var(--sd-p-bg));
+  --sd-p-tile-yellow: color-mix(in oklab, var(--sd-p-yellow) 22%, var(--sd-p-bg));
+  --sd-p-tile-orange: color-mix(in oklab, var(--sd-p-orange) 22%, var(--sd-p-bg));
+  --sd-p-tile-red: color-mix(in oklab, var(--sd-p-red) 22%, var(--sd-p-bg));
+  --sd-p-tile-purple: color-mix(in oklab, var(--sd-p-purple) 22%, var(--sd-p-bg));
+  --sd-p-tile-pink: color-mix(in oklab, var(--sd-p-pink) 22%, var(--sd-p-bg));
 }
 
 [data-sd-palette='catppuccin'].dark,
@@ -169,6 +232,15 @@
   --sd-p-purple: oklch(0.787 0.119 304.8);
   --sd-p-pink: oklch(0.870 0.075 336.3);
   --sd-p-accent: var(--sd-p-blue);
+  --sd-p-done: var(--sd-p-accent);
+  --sd-p-tile-blue: color-mix(in oklab, var(--sd-p-blue) 28%, var(--sd-p-bg));
+  --sd-p-tile-teal: color-mix(in oklab, var(--sd-p-teal) 28%, var(--sd-p-bg));
+  --sd-p-tile-green: color-mix(in oklab, var(--sd-p-green) 28%, var(--sd-p-bg));
+  --sd-p-tile-yellow: color-mix(in oklab, var(--sd-p-yellow) 28%, var(--sd-p-bg));
+  --sd-p-tile-orange: color-mix(in oklab, var(--sd-p-orange) 28%, var(--sd-p-bg));
+  --sd-p-tile-red: color-mix(in oklab, var(--sd-p-red) 28%, var(--sd-p-bg));
+  --sd-p-tile-purple: color-mix(in oklab, var(--sd-p-purple) 28%, var(--sd-p-bg));
+  --sd-p-tile-pink: color-mix(in oklab, var(--sd-p-pink) 28%, var(--sd-p-bg));
 }
 
 /* Everforest */
@@ -190,6 +262,16 @@
   --sd-p-purple: oklch(0.482 0.174 341.0);
   --sd-p-pink: oklch(0.480 0.177 5.1);
   --sd-p-accent: var(--sd-p-blue);
+  --sd-p-done: var(--sd-p-accent);
+  --sd-p-tile-blue: color-mix(in oklab, var(--sd-p-blue) 22%, var(--sd-p-bg));
+  --sd-p-tile-teal: color-mix(in oklab, var(--sd-p-teal) 22%, var(--sd-p-bg));
+  --sd-p-tile-green: color-mix(in oklab, var(--sd-p-green) 22%, var(--sd-p-bg));
+  --sd-p-tile-yellow: color-mix(in oklab, var(--sd-p-yellow) 22%, var(--sd-p-bg));
+  --sd-p-tile-orange: color-mix(in oklab, var(--sd-p-orange) 22%, var(--sd-p-bg));
+  --sd-p-tile-red: color-mix(in oklab, var(--sd-p-red) 22%, var(--sd-p-bg));
+  --sd-p-tile-purple: color-mix(in oklab, var(--sd-p-purple) 22%, var(--sd-p-bg));
+  --sd-p-tile-pink: color-mix(in oklab, var(--sd-p-pink) 22%, var(--sd-p-bg));
+  --sd-p-reading: color-mix(in oklab, oklch(1 0 0) 60%, var(--sd-p-bg));
 }
 
 [data-sd-palette='everforest'].dark,
@@ -210,6 +292,15 @@
   --sd-p-purple: oklch(0.825 0.082 349.2);
   --sd-p-pink: oklch(0.833 0.107 5.0);
   --sd-p-accent: var(--sd-p-blue);
+  --sd-p-done: var(--sd-p-accent);
+  --sd-p-tile-blue: color-mix(in oklab, var(--sd-p-blue) 28%, var(--sd-p-bg));
+  --sd-p-tile-teal: color-mix(in oklab, var(--sd-p-teal) 28%, var(--sd-p-bg));
+  --sd-p-tile-green: color-mix(in oklab, var(--sd-p-green) 28%, var(--sd-p-bg));
+  --sd-p-tile-yellow: color-mix(in oklab, var(--sd-p-yellow) 28%, var(--sd-p-bg));
+  --sd-p-tile-orange: color-mix(in oklab, var(--sd-p-orange) 28%, var(--sd-p-bg));
+  --sd-p-tile-red: color-mix(in oklab, var(--sd-p-red) 28%, var(--sd-p-bg));
+  --sd-p-tile-purple: color-mix(in oklab, var(--sd-p-purple) 28%, var(--sd-p-bg));
+  --sd-p-tile-pink: color-mix(in oklab, var(--sd-p-pink) 28%, var(--sd-p-bg));
 }
 
 /* London */
@@ -231,6 +322,15 @@
   --sd-p-purple: oklch(0.449 0.066 316.0);
   --sd-p-pink: oklch(0.455 0.095 356.4);
   --sd-p-accent: var(--sd-p-yellow);
+  --sd-p-done: var(--sd-p-accent);
+  --sd-p-tile-blue: color-mix(in oklab, var(--sd-p-blue) 22%, var(--sd-p-bg));
+  --sd-p-tile-teal: color-mix(in oklab, var(--sd-p-teal) 22%, var(--sd-p-bg));
+  --sd-p-tile-green: color-mix(in oklab, var(--sd-p-green) 22%, var(--sd-p-bg));
+  --sd-p-tile-yellow: color-mix(in oklab, var(--sd-p-yellow) 22%, var(--sd-p-bg));
+  --sd-p-tile-orange: color-mix(in oklab, var(--sd-p-orange) 22%, var(--sd-p-bg));
+  --sd-p-tile-red: color-mix(in oklab, var(--sd-p-red) 22%, var(--sd-p-bg));
+  --sd-p-tile-purple: color-mix(in oklab, var(--sd-p-purple) 22%, var(--sd-p-bg));
+  --sd-p-tile-pink: color-mix(in oklab, var(--sd-p-pink) 22%, var(--sd-p-bg));
 }
 
 [data-sd-palette='london'].dark,
@@ -251,4 +351,13 @@
   --sd-p-purple: oklch(0.734 0.048 318.0);
   --sd-p-pink: oklch(0.742 0.083 359.3);
   --sd-p-accent: var(--sd-p-yellow);
+  --sd-p-done: var(--sd-p-accent);
+  --sd-p-tile-blue: color-mix(in oklab, var(--sd-p-blue) 28%, var(--sd-p-bg));
+  --sd-p-tile-teal: color-mix(in oklab, var(--sd-p-teal) 28%, var(--sd-p-bg));
+  --sd-p-tile-green: color-mix(in oklab, var(--sd-p-green) 28%, var(--sd-p-bg));
+  --sd-p-tile-yellow: color-mix(in oklab, var(--sd-p-yellow) 28%, var(--sd-p-bg));
+  --sd-p-tile-orange: color-mix(in oklab, var(--sd-p-orange) 28%, var(--sd-p-bg));
+  --sd-p-tile-red: color-mix(in oklab, var(--sd-p-red) 28%, var(--sd-p-bg));
+  --sd-p-tile-purple: color-mix(in oklab, var(--sd-p-purple) 28%, var(--sd-p-bg));
+  --sd-p-tile-pink: color-mix(in oklab, var(--sd-p-pink) 28%, var(--sd-p-bg));
 }

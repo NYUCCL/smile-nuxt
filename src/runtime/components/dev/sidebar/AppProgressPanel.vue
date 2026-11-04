@@ -62,16 +62,16 @@ const stages = computed(() => {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  /* Same language as the rest of the dev tools: not reached is a muted
-     outline, reached is the neutral "selected" fill, and only unsaved
-     changes get a color */
+  /* Not reached: a dashed muted outline. Reached: --sd-done (sky; the
+     accent in the other palettes), so a fresh visit (unknown user, no
+     record) reads plainly different from a connected one. Unsaved: amber. */
   --sd-stage: var(--sd-text-muted);
   --sd-stage-bg: transparent;
   --sd-stage-ring: var(--sd-line);
 }
 .sd-progress-stage[data-state='ok'] {
-  --sd-stage: var(--sd-text);
-  --sd-stage-bg: var(--sd-selected);
+  --sd-stage: var(--sd-done);
+  --sd-stage-bg: var(--sd-done-bg);
   --sd-stage-ring: transparent;
 }
 .sd-progress-stage[data-state='warn'] {
@@ -90,7 +90,7 @@ const stages = computed(() => {
   background-color: var(--sd-line);
 }
 .sd-progress-line[data-state='ok'] {
-  background-color: var(--sd-text-muted);
+  background-color: var(--sd-done);
 }
 .sd-progress-line[data-state='warn'] {
   background-color: var(--sd-warn);
@@ -106,6 +106,10 @@ const stages = computed(() => {
   color: var(--sd-stage);
   background-color: var(--sd-stage-bg);
   box-shadow: inset 0 0 0 1px var(--sd-stage-ring);
+}
+.sd-progress-stage[data-state='off'] .sd-progress-dot {
+  box-shadow: none;
+  border: 1px dashed var(--sd-text-muted);
 }
 .sd-progress-dot svg {
   width: 14px;

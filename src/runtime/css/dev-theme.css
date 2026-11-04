@@ -38,6 +38,12 @@
   --sd-p-stage-shadow: inset 0 2px 6px color-mix(in oklab, oklch(0 0 0) 10%, transparent), inset 0 0 28px color-mix(in oklab, oklch(0 0 0) 10%, transparent);
   /* floating controls over the stage */
   --sd-p-float-shadow: 0 4px 14px color-mix(in oklab, oklch(0 0 0) 10%, transparent), 0 1px 3px color-mix(in oklab, oklch(0 0 0) 8%, transparent);
+  /* Reading surface (the recruit page): the palette's background. A palette
+     whose tint is too strong for a whole page lightens it (lightReading in
+     scripts/dev-palettes.js). Cards sit a step off it. */
+  --sd-p-reading: var(--sd-p-bg);
+  --sd-p-reading-card: color-mix(in oklab, var(--sd-p-fg) 4%, var(--sd-p-reading));
+  --sd-p-reading-line: var(--sd-p-border);
   --sd-p-device-shadow: 0 6px 20px color-mix(in oklab, oklch(0 0 0) 15%, transparent), 0 3px 8px color-mix(in oklab, oklch(0 0 0) 10%, transparent);
 
   /* Hues dark enough for text on the light surfaces */
@@ -50,6 +56,18 @@
   --sd-p-red: oklch(0.52 0.18 25);
   --sd-p-purple: oklch(0.5 0.15 300);
   --sd-p-pink: oklch(0.52 0.15 355);
+  --sd-p-done: oklch(0.5 0.11 230); /* sky: the data progress' reached stages */
+
+  /* Recruitment tiles: Smile's own bright tints (palettes mix theirs from
+     their hues, scripts/dev-palettes.js) */
+  --sd-p-tile-blue: oklch(0.88 0.07 250);
+  --sd-p-tile-teal: oklch(0.89 0.06 190);
+  --sd-p-tile-green: oklch(0.9 0.08 150);
+  --sd-p-tile-yellow: oklch(0.92 0.09 90);
+  --sd-p-tile-orange: oklch(0.89 0.08 55);
+  --sd-p-tile-red: oklch(0.87 0.08 20);
+  --sd-p-tile-purple: oklch(0.88 0.07 300);
+  --sd-p-tile-pink: oklch(0.89 0.07 350);
 
 
   /* Hazard stripes (the "local" tag): a true caution yellow, which the
@@ -75,6 +93,9 @@
      shade plus a faint light rim along the top edge */
   --sd-p-stage-shadow: inset 0 1px 0 color-mix(in oklab, var(--sd-p-fg) 8%, transparent), inset 0 3px 10px color-mix(in oklab, oklch(0 0 0) 85%, transparent), inset 0 0 60px color-mix(in oklab, oklch(0 0 0) 75%, transparent);
   --sd-p-float-shadow: 0 4px 16px color-mix(in oklab, oklch(0 0 0) 60%, transparent), 0 1px 3px color-mix(in oklab, oklch(0 0 0) 50%, transparent);
+  --sd-p-reading: var(--sd-p-bg);
+  --sd-p-reading-card: color-mix(in oklab, var(--sd-p-fg) 5%, var(--sd-p-bg));
+  --sd-p-reading-line: var(--sd-p-border);
   --sd-p-device-shadow: 0 10px 36px color-mix(in oklab, oklch(0 0 0) 80%, transparent), 0 3px 10px color-mix(in oklab, oklch(0 0 0) 60%, transparent);
 
   /* Same hues, lighter and a little less saturated */
@@ -87,6 +108,16 @@
   --sd-p-red: oklch(0.72 0.14 22);
   --sd-p-purple: oklch(0.76 0.1 300);
   --sd-p-pink: oklch(0.78 0.1 355);
+  --sd-p-done: oklch(0.8 0.11 225);
+
+  --sd-p-tile-blue: oklch(0.42 0.09 250);
+  --sd-p-tile-teal: oklch(0.42 0.07 190);
+  --sd-p-tile-green: oklch(0.42 0.09 150);
+  --sd-p-tile-yellow: oklch(0.45 0.08 85);
+  --sd-p-tile-orange: oklch(0.43 0.09 50);
+  --sd-p-tile-red: oklch(0.42 0.11 22);
+  --sd-p-tile-purple: oklch(0.42 0.1 300);
+  --sd-p-tile-pink: oklch(0.43 0.1 355);
 
   --sd-p-stripe-1: oklch(0.46 0.08 88);
   --sd-p-stripe-2: oklch(0.37 0.06 85);
@@ -111,6 +142,9 @@
   /* The stage sits recessed under the bars and panels: a soft inner shadow */
   --sd-stage-shadow: var(--sd-p-stage-shadow);
   --sd-float-shadow: var(--sd-p-float-shadow);
+  --sd-reading-bg: var(--sd-p-reading);
+  --sd-reading-card: var(--sd-p-reading-card);
+  --sd-reading-line: var(--sd-p-reading-line);
   --sd-device-shadow: var(--sd-p-device-shadow); /* the previewed device */
   --sd-bg: var(--sd-p-bg);
   --sd-panel: var(--sd-p-surface);
@@ -136,6 +170,9 @@
   /* Status: a hue for icons/text, a quiet tint for backgrounds */
   --sd-ok: var(--sd-p-green);
   --sd-ok-bg: color-mix(in oklab, var(--sd-p-green) 15%, var(--sd-p-bg));
+  /* Reached stages of the participant's data (progress meter, top bar) */
+  --sd-done: var(--sd-p-done);
+  --sd-done-bg: color-mix(in oklab, var(--sd-p-done) 15%, var(--sd-p-bg));
   --sd-warn: var(--sd-p-yellow);
   --sd-warn-bg: color-mix(in oklab, var(--sd-p-yellow) 15%, var(--sd-p-bg));
   --sd-error: var(--sd-p-red);
@@ -178,14 +215,14 @@
 
   /* Recruitment chooser tiles: quiet tints of the hues, normal text */
   --sd-tile-fg: var(--sd-p-fg);
-  --sd-tile-blue: color-mix(in oklab, var(--sd-p-blue) 22%, var(--sd-p-bg));
-  --sd-tile-teal: color-mix(in oklab, var(--sd-p-teal) 22%, var(--sd-p-bg));
-  --sd-tile-green: color-mix(in oklab, var(--sd-p-green) 22%, var(--sd-p-bg));
-  --sd-tile-yellow: color-mix(in oklab, var(--sd-p-yellow) 22%, var(--sd-p-bg));
-  --sd-tile-orange: color-mix(in oklab, var(--sd-p-orange) 22%, var(--sd-p-bg));
-  --sd-tile-red: color-mix(in oklab, var(--sd-p-red) 22%, var(--sd-p-bg));
-  --sd-tile-purple: color-mix(in oklab, var(--sd-p-purple) 22%, var(--sd-p-bg));
-  --sd-tile-pink: color-mix(in oklab, var(--sd-p-pink) 22%, var(--sd-p-bg));
+  --sd-tile-blue: var(--sd-p-tile-blue);
+  --sd-tile-teal: var(--sd-p-tile-teal);
+  --sd-tile-green: var(--sd-p-tile-green);
+  --sd-tile-yellow: var(--sd-p-tile-yellow);
+  --sd-tile-orange: var(--sd-p-tile-orange);
+  --sd-tile-red: var(--sd-p-tile-red);
+  --sd-tile-purple: var(--sd-p-tile-purple);
+  --sd-tile-pink: var(--sd-p-tile-pink);
 
   /* Bits of chrome */
   --sd-bar: var(--sd-chrome);
@@ -198,18 +235,6 @@
   --sd-scrollbar-thumb-hover: color-mix(in oklab, var(--sd-p-fg) 38%, var(--sd-p-surface));
 }
 
-/* Recruitment tiles: dark mode can carry more color than light (where the
-   hues are dark and a stronger mix would cost text contrast) */
-.dark {
-  --sd-tile-blue: color-mix(in oklab, var(--sd-p-blue) 28%, var(--sd-p-bg));
-  --sd-tile-teal: color-mix(in oklab, var(--sd-p-teal) 28%, var(--sd-p-bg));
-  --sd-tile-green: color-mix(in oklab, var(--sd-p-green) 28%, var(--sd-p-bg));
-  --sd-tile-yellow: color-mix(in oklab, var(--sd-p-yellow) 28%, var(--sd-p-bg));
-  --sd-tile-orange: color-mix(in oklab, var(--sd-p-orange) 28%, var(--sd-p-bg));
-  --sd-tile-red: color-mix(in oklab, var(--sd-p-red) 28%, var(--sd-p-bg));
-  --sd-tile-purple: color-mix(in oklab, var(--sd-p-purple) 28%, var(--sd-p-bg));
-  --sd-tile-pink: color-mix(in oklab, var(--sd-p-pink) 28%, var(--sd-p-bg));
-}
 
 /* ---- The dev tools' chrome ------------------------------------------- */
 
@@ -320,20 +345,17 @@
   background-color: var(--sd-chrome);
   border-top: 1px solid var(--sd-line);
   border-bottom: 1px solid var(--sd-line);
-  font-size: var(--sd-font-xs);
+  font-size: var(--sd-font-sm);
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--sd-text-muted);
+  color: var(--sd-text);
 }
 .sd-section:first-child {
   border-top: 0; /* right under a tab strip or panel edge, which has its own line */
 }
 .sd-section code,
 .sd-section .sd-mono {
-  text-transform: none;
-  letter-spacing: 0;
   font-weight: 400;
+  color: var(--sd-text-muted);
 }
 
 /* A label over or beside a control; help text under a section title */
