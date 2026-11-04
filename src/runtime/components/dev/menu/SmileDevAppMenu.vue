@@ -1,5 +1,5 @@
 <script setup>
-import { BookMarked, BugPlay, Moon, Presentation, Settings, Sun, SunMoon, UserRound } from 'lucide-vue-next'
+import { BookMarked, BugPlay, Moon, Presentation, Settings, SlidersHorizontal, Sun, SunMoon, UserRound } from 'lucide-vue-next'
 import { useSmileColorMode } from '../../../composables/useColorMode'
 import DevConfigPanel from './DevConfigPanel.vue'
 import useAPI from '../../../composables/useAPI'
@@ -26,6 +26,7 @@ const modes = [
   { view: 'presentation', icon: Presentation, label: 'Presentation mode' },
   // Docs mode: dev server only (layouts/development.vue)
   ...(import.meta.dev ? [{ view: 'docs', icon: BookMarked, label: 'Docs' }] : []),
+  { view: 'config', icon: SlidersHorizontal, label: 'Build & deploy settings' },
 ]
 
 function selectMode(view) {
@@ -47,6 +48,17 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
   >
     <SidebarContent class="pt-2">
       <SidebarMenu class="sd-rail-group">
+        <!-- The study as participants see it: leaves the dev tools (the local
+             banner there links back) -->
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            as-child
+            class="sd-rail-btn hover:!bg-sd-hover"
+            tooltip="Participant view (leaves the dev tools)"
+          >
+            <a href="/"><UserRound /></a>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
         <SidebarMenuItem
           v-for="mode in modes"
           :key="mode.view"
@@ -61,18 +73,6 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
             @click="selectMode(mode.view)"
           >
             <component :is="mode.icon" />
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-
-        <!-- The study as participants see it: leaves the dev tools (the local
-             banner there links back) -->
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            as-child
-            class="sd-rail-btn hover:!bg-sd-hover"
-            tooltip="Participant view (leaves the dev tools)"
-          >
-            <a href="/"><UserRound /></a>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

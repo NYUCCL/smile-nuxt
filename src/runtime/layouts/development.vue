@@ -9,6 +9,7 @@ import DevConsole from '#smile-dev/console/SmileDevConsole.vue'
 import DevSideBar from '#smile-dev/sidebar/SmileDevSideBar.vue'
 import ResponsiveDeviceContainer from '#smile-dev/ResponsiveDeviceContainer.vue'
 import SmileDevPresentationView from '#smile-dev/SmileDevPresentationView.vue'
+import BuildConfigView from '#smile-dev/buildconfig/BuildConfigView.vue'
 // Dashboard is hidden until the feature is complete
 // import SmileDevDashboardView from '#smile-dev/dashboard/SmileDevDashboardView.vue'
 import useAPI from '../composables/useAPI'
@@ -76,6 +77,11 @@ applyDevPalette()
           <SmileDevPresentationView
             v-if="api.store.dev.mainView === 'presentation'"
           />
+
+          <!-- Build & deploy settings - read-only view of the project's env settings -->
+          <DevScope v-else-if="api.store.dev.mainView === 'config'">
+            <BuildConfigView />
+          </DevScope>
 
           <!-- Dashboard Mode - browse past data from the linked database (hidden until the feature is complete)
           <SmileDevDashboardView
