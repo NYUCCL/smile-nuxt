@@ -70,7 +70,7 @@ const services = {
     name: 'Prolific',
     buttonLabel: 'Prolific',
     buttonClass: 'is-blue',
-    description: 'Prolific.co is a dedicated platform for online behavioral research with high-quality participants.',
+    description: 'Prolific is a dedicated platform for online behavioral research with high-quality participants.',
     link: 'https://www.prolific.com',
     urlNote: 'Prolific appends query parameters automatically. Use the "Study URL" below as your study link in Prolific.',
     studyUrl: computed(() => `${baseUrl.value}/welcome/prolific`),
@@ -196,7 +196,7 @@ const currentService = computed(() => services[selectedService.value])
 </script>
 
 <template>
-  <div class="px-4 md:px-8 lg:px-12 pt-10 pb-10 bg-background text-foreground global-color-mode">
+  <div class="sd-root sd-recruit px-4 md:px-8 lg:px-12 pt-10 pb-10 bg-background text-foreground global-color-mode">
     <!-- Detail view for selected service -->
     <template v-if="selectedService && currentService">
       <!-- Back button -->
@@ -549,6 +549,11 @@ const currentService = computed(() => services[selectedService.value])
 </style>
 
 <style scoped>
+/* The dev tools' colors (.sd-root); cards lift a step off the page */
+.sd-recruit {
+  --card: var(--sd-hover);
+}
+
 .is-blue {
   background-color: var(--sd-tile-blue);
   color: var(--sd-tile-fg);
