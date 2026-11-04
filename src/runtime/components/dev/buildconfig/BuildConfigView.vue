@@ -527,7 +527,7 @@ function showSetting(key) {
   flex: none;
   padding: 14px 12px 10px;
   border-bottom: 1px solid var(--sd-line);
-  background: var(--sd-panel);
+  background: var(--sd-bg);
 }
 
 .bc-title {
