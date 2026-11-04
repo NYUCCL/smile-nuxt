@@ -31,7 +31,7 @@
     "dist"
   ],
   "scripts": {
-    "prepack": "nuxt-module-build build",
+    "prepack": "nuxt-module-build build && node scripts/build-agent-docs.mjs",
     "dev": "pnpm run dev:prepare && nuxt dev playground",
     "dev:build": "nuxt build playground",
     "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxt prepare playground",
@@ -51,6 +51,7 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:serve": "vitepress serve docs",
+    "docs:agents": "node scripts/build-agent-docs.mjs",
     "smile:hash-password": "node scripts/hash-password.js",
     "test:coverage": "vitest run --coverage"
   },
