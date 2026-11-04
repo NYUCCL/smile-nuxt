@@ -73,13 +73,13 @@ const database_tooltip = computed(() => {
 
           <!-- Progress circle for data usage -->
           <template v-if="!api.store.browserEphemeral.dataLoaded">
-            <div class="mt-1">
+            <div class="mt-1 disconnected">
               <CircleProgress
                 :percentage="dataPercent"
                 :size="12"
                 :stroke-width="40"
-                slicecolor="var(--muted-foreground)"
-                basecolor="var(--muted-foreground)"
+                slicecolor="var(--sd-text-muted)"
+                basecolor="var(--sd-line)"
               />
             </div>
           </template>
@@ -89,8 +89,8 @@ const database_tooltip = computed(() => {
                 :percentage="dataPercent"
                 :size="12"
                 :stroke-width="40"
-                slicecolor="var(--sd-accent)"
-                basecolor="var(--sd-ok)"
+                slicecolor="var(--sd-done)"
+                basecolor="var(--sd-line)"
               />
             </div>
           </template>
@@ -104,16 +104,20 @@ const database_tooltip = computed(() => {
 </template>
 
 <style scoped>
-.disconnected {
-  color: var(--sd-error);
+/* Connected and saved: --sd-done (sky). Not connected (no record yet):
+   faded. Unsaved changes: amber. Same states as the side panel's progress. */
+.disconnected,
+.has-text-grey {
+  color: var(--sd-text-muted);
+  opacity: 0.55;
 }
 .connected {
-  color: var(--sd-ok);
+  color: var(--sd-done);
 }
 .outofsync {
   color: var(--sd-warn);
 }
 .insync {
-  color: var(--sd-ok);
+  color: var(--sd-done);
 }
 </style>

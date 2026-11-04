@@ -62,16 +62,22 @@ const stages = computed(() => {
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  /* Not reached: a dashed muted outline. Reached: --sd-done (sky; the
+     accent in the other palettes), so a fresh visit (unknown user, no
+     record) reads plainly different from a connected one. Unsaved: amber. */
   --sd-stage: var(--sd-text-muted);
-  --sd-stage-bg: var(--sd-panel-2);
+  --sd-stage-bg: transparent;
+  --sd-stage-ring: var(--sd-line);
 }
 .sd-progress-stage[data-state='ok'] {
-  --sd-stage: var(--sd-ok);
-  --sd-stage-bg: var(--sd-ok-bg);
+  --sd-stage: var(--sd-done);
+  --sd-stage-bg: var(--sd-done-bg);
+  --sd-stage-ring: transparent;
 }
 .sd-progress-stage[data-state='warn'] {
   --sd-stage: var(--sd-warn);
   --sd-stage-bg: var(--sd-warn-bg);
+  --sd-stage-ring: transparent;
 }
 
 /* The connector from the previous stage, at the dots' middle */
@@ -84,7 +90,7 @@ const stages = computed(() => {
   background-color: var(--sd-line);
 }
 .sd-progress-line[data-state='ok'] {
-  background-color: var(--sd-ok);
+  background-color: var(--sd-done);
 }
 .sd-progress-line[data-state='warn'] {
   background-color: var(--sd-warn);
@@ -96,16 +102,21 @@ const stages = computed(() => {
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: 9999px;
+  border-radius: var(--sd-radius);
   color: var(--sd-stage);
   background-color: var(--sd-stage-bg);
+  box-shadow: inset 0 0 0 1px var(--sd-stage-ring);
+}
+.sd-progress-stage[data-state='off'] .sd-progress-dot {
+  box-shadow: none;
+  border: 1px dashed var(--sd-text-muted);
 }
 .sd-progress-dot svg {
   width: 14px;
   height: 14px;
 }
 button.sd-progress-dot:hover {
-  box-shadow: 0 0 0 1px var(--sd-stage);
+  background-color: var(--sd-hover);
 }
 
 .sd-progress-label {

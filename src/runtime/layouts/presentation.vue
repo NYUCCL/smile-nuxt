@@ -3,6 +3,8 @@ import { computed, ref, onMounted } from 'vue'
 import useAPI from '#smile-composables/useAPI'
 
 import PresentationNavBar from '#smile-dev/presentation/PresentationNavBar.vue'
+import { applyDevPalette } from '#smile-composables/useDevPalette'
+import DevScope from '#smile-dev/DevScope.vue'
 
 const api = useAPI()
 
@@ -18,6 +20,9 @@ const isLoading = computed(() => {
 const isRouteNotFound = computed(() => {
   return mounted.value && api.currentRouteName() === undefined
 })
+
+// The dev tools' palette, on <html> (only the dev tools' colors use it)
+applyDevPalette()
 </script>
 
 <template>
@@ -25,9 +30,11 @@ const isRouteNotFound = computed(() => {
     <!-- Main app container for presentation mode -->
     <div class="app-container">
       <!-- Top toolbar with navigation -->
-      <div class="toolbar sd-root">
-        <PresentationNavBar />
-      </div>
+      <DevScope>
+        <div class="toolbar sd-root">
+          <PresentationNavBar />
+        </div>
+      </DevScope>
 
       <!-- Middle row - content area -->
       <div class="content-wrapper">

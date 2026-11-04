@@ -130,13 +130,13 @@ const isSinglePrimitive = (value) => {
 }
 
 .node-content:hover {
-  background-color: var(--muted);
+  background-color: var(--sd-chrome);
 }
 
 .expand-icon {
   display: inline-block;
   width: 16px;
-  color: var(--muted-foreground);
+  color: var(--sd-text-muted);
 }
 
 .key {
@@ -145,7 +145,7 @@ const isSinglePrimitive = (value) => {
 }
 
 .preview {
-  color: var(--muted-foreground);
+  color: var(--sd-text-muted);
   font-style: italic;
 }
 
@@ -155,6 +155,6 @@ const isSinglePrimitive = (value) => {
 
 .nested-content {
   padding-left: 20px;
-  border-left: 1px dotted var(--border);
+  border-left: 1px dotted var(--sd-line);
 }
 </style>

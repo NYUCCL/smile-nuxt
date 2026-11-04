@@ -152,14 +152,14 @@ const getChildVerticalLines = (verticalLines, index, total) => {
 
 .tree-line:hover {
   background-color: var(--sd-hover);
-  border-radius: 10px;
+  border-radius: var(--sd-radius);
   margin-right: 70px;
 }
 
 .node-selected {
   background-color: var(--sd-selected);
-  color: var(--foreground);
-  border-radius: 10px;
+  color: var(--sd-selected-fg);
+  border-radius: var(--sd-radius);
   margin-right: 70px;
 }
 
@@ -182,7 +182,7 @@ const getChildVerticalLines = (verticalLines, index, total) => {
 
 .node-data {
   margin-left: 8px;
-  color: var(--muted-foreground);
+  color: var(--sd-text-muted);
   font-family: var(--font-mono), ui-monospace, monospace;
 }
 

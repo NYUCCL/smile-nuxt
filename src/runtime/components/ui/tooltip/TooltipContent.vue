@@ -1,5 +1,6 @@
 <script setup>
 import { cn } from '../../../lib/utils'
+import { useDevScopeClass } from '../../../composables/useDevScope'
 import { reactiveOmit } from '@vueuse/core'
 import { TooltipArrow, TooltipContent, TooltipPortal, useForwardPropsEmits } from 'reka-ui'
 
@@ -30,6 +31,7 @@ const props = defineProps({
 const emits = defineEmits(['escapeKeyDown', 'pointerDownOutside'])
 
 const delegatedProps = reactiveOmit(props, 'class')
+const devScopeClass = useDevScopeClass() // dev tools colors when opened from the dev tools
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
 
@@ -40,6 +42,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
       v-bind="{ ...forwarded, ...$attrs }"
       :class="
         cn(
+          devScopeClass,
           'bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit rounded-md px-3 py-1.5 text-xs text-balance',
           props.class,
         )

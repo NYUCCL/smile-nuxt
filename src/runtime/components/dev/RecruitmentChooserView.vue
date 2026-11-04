@@ -3,6 +3,10 @@ import { ArrowLeft, ArrowRight, Info, Copy, Check, Dices } from 'lucide-vue-next
 import { ref, computed } from 'vue'
 import useViewAPI from '../../composables/useViewAPI'
 import useSmileStore from '../../stores/smilestore'
+import { provideDevScope } from '../../composables/useDevScope'
+
+// Dev tools UI: its menus and tooltips use the dev tools' colors
+provideDevScope()
 
 const api = useViewAPI()
 const store = useSmileStore()
@@ -70,7 +74,7 @@ const services = {
     name: 'Prolific',
     buttonLabel: 'Prolific',
     buttonClass: 'is-blue',
-    description: 'Prolific.co is a dedicated platform for online behavioral research with high-quality participants.',
+    description: 'Prolific is a dedicated platform for online behavioral research with high-quality participants.',
     link: 'https://www.prolific.com',
     urlNote: 'Prolific appends query parameters automatically. Use the "Study URL" below as your study link in Prolific.',
     studyUrl: computed(() => `${baseUrl.value}/welcome/prolific`),
@@ -196,7 +200,7 @@ const currentService = computed(() => services[selectedService.value])
 </script>
 
 <template>
-  <div class="px-4 md:px-8 lg:px-12 pt-10 pb-10 bg-background text-foreground global-color-mode">
+  <div class="sd-root sd-recruit min-h-full px-4 md:px-8 lg:px-12 pt-10 pb-10 bg-background text-foreground global-color-mode">
     <!-- Detail view for selected service -->
     <template v-if="selectedService && currentService">
       <!-- Back button -->
@@ -549,6 +553,15 @@ const currentService = computed(() => services[selectedService.value])
 </style>
 
 <style scoped>
+/* The dev tools' ink, on a reading surface: neutral in light mode under
+   every palette, the palette's own in dark mode. Cards sit a step off it. */
+.sd-recruit.sd-root {
+  --background: var(--sd-reading-bg);
+  --card: var(--sd-reading-card);
+  --muted: var(--sd-reading-card);
+  --border: var(--sd-reading-line);
+}
+
 .is-blue {
   background-color: var(--sd-tile-blue);
   color: var(--sd-tile-fg);

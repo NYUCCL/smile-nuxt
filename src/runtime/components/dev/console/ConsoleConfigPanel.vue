@@ -190,7 +190,7 @@ function _resetDevState() {
         </div>
       </div>
       <!-- Three-panel configuration browser -->
-      <div class="flex-1 grid grid-cols-3 gap-0 bg-background overflow-hidden">
+      <div class="flex-1 grid grid-cols-3 gap-0 bg-sd-bg overflow-hidden">
         <!-- Left panel -->
         <div class="border-r border-sd-line h-full overflow-hidden">
           <ConfigList
@@ -208,7 +208,7 @@ function _resetDevState() {
           />
         </div>
         <!-- Right panel -->
-        <div class="bg-background h-full overflow-hidden">
+        <div class="bg-sd-bg h-full overflow-hidden">
           <ConfigList
             :data="panel_path(0)"
             @selected="panel3_select"

@@ -68,8 +68,8 @@ const _props = defineProps({
   position: fixed;
   top: 50px;
   left: 60px;
-  background: var(--background);
-  border: 1px solid var(--border);
+  background: var(--sd-bg);
+  border: 1px solid var(--sd-line);
   border-radius: 8px;
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.1),
@@ -87,7 +87,7 @@ const _props = defineProps({
 
 .notification-content {
   padding: 12px 16px;
-  background: linear-gradient(135deg, var(--background) 0%, var(--muted) 100%);
+  background: linear-gradient(135deg, var(--sd-bg) 0%, var(--sd-chrome) 100%);
 }
 
 .error-content {
@@ -137,9 +137,9 @@ const _props = defineProps({
   transform: rotate(45deg);
   width: 12px;
   height: 12px;
-  background: var(--background);
-  border-left: 1px solid var(--border);
-  border-top: 1px solid var(--border);
+  background: var(--sd-bg);
+  border-left: 1px solid var(--sd-line);
+  border-top: 1px solid var(--sd-line);
 }
 
 .error-arrow {

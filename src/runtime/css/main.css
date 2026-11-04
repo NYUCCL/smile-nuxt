@@ -2,6 +2,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import './dev-theme.css'; /* dev tools colors (--sd-*) */
+@import './dev-palettes.css'; /* the dev tools' palettes (generated: scripts/dev-palettes.js) */
 
 /* Ensure Tailwind scans the module's runtime files for class detection */
 @source "../components/**/*.vue";

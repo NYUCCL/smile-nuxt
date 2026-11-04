@@ -98,7 +98,7 @@ function goHome() {
       :key="r.name"
       :class="{
         'bg-accent text-accent-foreground': activeRouteName === r.name,
-        'bg-muted': hoverRoute === r.name,
+        'bg-sd-hover': hoverRoute === r.name,
       }"
       class="cursor-pointer"
       @mouseover="hoverRoute = r.name"

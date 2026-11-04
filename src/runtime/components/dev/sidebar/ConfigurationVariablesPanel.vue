@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import useAPI from '../../../composables/useAPI'
+import DevNumberInput from '../DevNumberInput.vue'
 import { useSmileColorMode } from '../../../composables/useColorMode'
 
 const api = useAPI()
@@ -77,18 +78,16 @@ const colorModeDisplayText = computed(() => {
       <div class="sd-config-field">
         <span class="sd-label">Min window size (W × H)</span>
         <div class="flex items-center gap-1.5">
-          <Input
+          <DevNumberInput
             v-model="api.config.windowsizerRequest.width"
-            type="number"
-            class="sd-field sd-mono w-20"
-            :placeholder="api.config.windowsizerRequest.width"
+            :step="10"
+            label="minimum width"
           />
           <span class="sd-label">×</span>
-          <Input
+          <DevNumberInput
             v-model="api.config.windowsizerRequest.height"
-            type="number"
-            class="sd-field sd-mono w-20"
-            :placeholder="api.config.windowsizerRequest.height"
+            :step="10"
+            label="minimum height"
           />
         </div>
       </div>

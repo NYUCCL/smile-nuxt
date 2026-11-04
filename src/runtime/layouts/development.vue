@@ -13,6 +13,8 @@ import BuildConfigView from '#smile-dev/buildconfig/BuildConfigView.vue'
 // Dashboard is hidden until the feature is complete
 // import SmileDevDashboardView from '#smile-dev/dashboard/SmileDevDashboardView.vue'
 import useWindowSizer from '#smile-composables/useWindowSizer'
+import { applyDevPalette } from '#smile-composables/useDevPalette'
+import DevScope from '#smile-dev/DevScope.vue'
 
 const api = useAPI()
 const { showAggressiveOverlay } = useWindowSizer({ useDeviceContainer: true })
@@ -31,6 +33,9 @@ const isLoading = computed(() => {
 const isRouteNotFound = computed(() => {
   return mounted.value && api.currentRouteName() === undefined
 })
+
+// The dev tools' palette, on <html> (only the dev tools' colors use it)
+applyDevPalette()
 </script>
 
 <template>
@@ -51,7 +56,9 @@ const isRouteNotFound = computed(() => {
       }"
     >
       <!-- Developer app menu sidebar -->
-      <SmileDevAppMenu />
+      <DevScope>
+        <SmileDevAppMenu />
+      </DevScope>
 
       <!-- Main content area -->
       <SidebarInset>
@@ -89,16 +96,18 @@ const isRouteNotFound = computed(() => {
           <!-- Developer Mode - Full interface with toolbar, sidebar, console -->
           <template v-else>
             <!-- Top toolbar with navigation controls -->
-            <div class="toolbar sd-root">
-              <DevNavBar />
-            </div>
+            <DevScope>
+              <div class="toolbar sd-root">
+                <DevNavBar />
+              </div>
+            </DevScope>
 
             <!-- Middle row - content and sidebar -->
             <div class="content-wrapper">
               <!-- Main content area with console -->
               <div class="content-and-console">
                 <!-- Main content - scrollable experiment container -->
-                <div class="main-content @container bg-background text-foreground relative">
+                <div class="main-content @container bg-sd-stage text-foreground relative">
                   <!-- Loading state -->
                   <div
                     v-if="isLoading"
@@ -137,7 +146,9 @@ const isRouteNotFound = computed(() => {
                     v-if="api.store.dev.showConsoleBar"
                     class="console sd-root"
                   >
-                    <DevConsole />
+                    <DevScope>
+                      <DevConsole />
+                    </DevScope>
                   </div>
                 </Transition>
               </div>
@@ -148,7 +159,9 @@ const isRouteNotFound = computed(() => {
                   v-if="api.store.dev.showSideBar"
                   class="sidebar sd-root"
                 >
-                  <DevSideBar />
+                  <DevScope>
+                    <DevSideBar />
+                  </DevScope>
                 </div>
               </Transition>
             </div>
@@ -317,12 +330,12 @@ const isRouteNotFound = computed(() => {
 }
 
 .not-found-message {
-  color: var(--muted-foreground);
+  color: var(--sd-text-muted);
   font-size: 0.875rem;
 }
 
 .not-found-message code {
-  background-color: var(--muted);
+  background-color: var(--sd-chrome);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.8rem;

@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useNuxtApp } from '#imports'
 import PresentationNavBar from '#smile-dev/presentation/PresentationNavBar.vue'
+import DevScope from './DevScope.vue'
 import PresentationModeView from '../builtins/PresentationModeView.vue'
 import useSmileStore from '../../stores/smilestore'
 import useAPI from '../../composables/useAPI'
@@ -49,9 +50,11 @@ onMounted(() => {
 <template>
   <div class="presentation-container bg-background">
     <!-- Top toolbar with presentation navigation -->
-    <div class="toolbar sd-root">
-      <PresentationNavBar hide-dark-mode />
-    </div>
+    <DevScope>
+      <div class="toolbar sd-root">
+        <PresentationNavBar hide-dark-mode />
+      </div>
+    </DevScope>
 
     <!-- Content area -->
     <div class="content-wrapper">

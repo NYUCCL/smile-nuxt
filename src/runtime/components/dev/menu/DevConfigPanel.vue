@@ -26,6 +26,7 @@ import { RotateCcw } from 'lucide-vue-next'
  */
 import ResponsiveDeviceSelect from './ResponsiveDeviceSelect.vue'
 import { useSmileColorMode } from '../../../composables/useColorMode'
+import { DEV_PALETTES, useDevPalette } from '../../../composables/useDevPalette'
 
 /**
  * Import shared device presets
@@ -42,6 +43,9 @@ const api = useAPI()
 
 /** The dev tools' own theme mode (the same setting the app menu's button cycles) */
 const { mode: devColorMode, system } = useSmileColorMode('global')
+
+/** The dev tools' palette */
+const devPalette = useDevPalette()
 
 /**
  * Check if current dimensions match any preset and update selected device
@@ -98,7 +102,7 @@ const toggleRotation = () => {
 function resetDevState() {
   localStorage.removeItem(api.config.devLocalStorageKey) // delete the local store (legacy)
   // Reset cookie-backed dev state to defaults
-  const defaults = { viewProvidesAutofill: null, viewProvidesStepper: false, showConsoleBar: false, showSideBar: false, pinnedRoute: null, mainView: 'devmode', consoleBarHeight: 300, consoleBarTab: 'browse', sideBarTab: 'steps', searchParams: '', logFilter: 'All', notificationFilter: 'Errors only', lastViewLimit: false, dataPath: null, configPath: null, selectedDevice: 'desktop2', deviceWidth: 1024, deviceHeight: 768, isRotated: false, isFullscreen: false, routePanelVisible: false, globalColorMode: 'auto', experimentColorMode: null }
+  const defaults = { viewProvidesAutofill: null, viewProvidesStepper: false, showConsoleBar: false, showSideBar: false, pinnedRoute: null, mainView: 'devmode', consoleBarHeight: 300, consoleBarTab: 'browse', sideBarTab: 'steps', searchParams: '', logFilter: 'All', notificationFilter: 'Errors only', lastViewLimit: false, dataPath: null, configPath: null, selectedDevice: 'desktop2', deviceWidth: 1024, deviceHeight: 768, isRotated: false, isFullscreen: false, routePanelVisible: false, globalColorMode: 'auto', devPalette: 'default', experimentColorMode: null }
   Object.assign(api.store.dev, defaults)
   location.reload()
 }
@@ -117,7 +121,24 @@ function resetDevState() {
     </div>
     <div class="sd-settings-group">
       <div class="sd-settings-row">
-        <Label class="sd-label font-normal">Theme</Label>
+        <Label class="sd-label font-normal">Palette</Label>
+        <Select v-model="devPalette">
+          <SelectTrigger class="sd-field w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem
+              v-for="p in DEV_PALETTES"
+              :key="p.value"
+              :value="p.value"
+            >
+              {{ p.label }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div class="sd-settings-row">
+        <Label class="sd-label font-normal">Mode</Label>
         <Select v-model="devColorMode">
           <SelectTrigger class="sd-field w-36">
             <SelectValue />

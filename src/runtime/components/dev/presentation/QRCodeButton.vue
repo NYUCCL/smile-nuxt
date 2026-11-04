@@ -40,7 +40,7 @@ const qrUrl = computed(() => {
           <h3 class="text-sm font-semibold">
             QR Code
           </h3>
-          <p class="text-xs text-muted-foreground mt-1">
+          <p class="text-xs text-sd-text-muted mt-1">
             Use the QR code to quickly access the current page from a mobile device. Can be downloaded as a .svg to add
             to posters and talks.
           </p>

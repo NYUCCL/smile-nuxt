@@ -1,5 +1,6 @@
 <script setup>
 import { cn } from '../../../lib/utils'
+import { useDevScopeClass } from '../../../composables/useDevScope'
 import { reactiveOmit } from '@vueuse/core'
 import { X } from 'lucide-vue-next'
 import { DialogClose, DialogContent, DialogPortal, useForwardPropsEmits } from 'reka-ui'
@@ -28,6 +29,7 @@ const emits = defineEmits([
 ])
 
 const delegatedProps = reactiveOmit(props, 'class', 'side')
+const devScopeClass = useDevScopeClass() // dev tools colors when opened from the dev tools
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
@@ -39,6 +41,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
       data-slot="sheet-content"
       :class="
         cn(
+          devScopeClass,
           'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500',
           side === 'right'
             && 'data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm',
