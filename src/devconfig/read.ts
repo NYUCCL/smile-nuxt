@@ -48,7 +48,7 @@ export interface ReadOptions {
 
 function show(key: string, value: string | undefined): Shown {
   if (value === undefined) return undefined
-  return SECRETS.has(key) ? redactSecret(value) : value
+  return SECRETS.has(key) ? redactSecret(value) as Redacted : value
 }
 
 export function readFiles(rootDir: string): Partial<Record<EnvFile, Record<string, string>>> {
@@ -77,7 +77,8 @@ export function readBuildConfig({ rootDir, env, devToolsOption }: ReadOptions) {
   const localOnly: string[] = []
 
   const settings = SETTINGS.map((s) => {
-    const key = s.key
+    // Every setting has a key (config-schema.js is plain JS, so TS can't tell)
+    const key = s.key as string
     const setIn = ENV_FILES.filter(f => fileValue(f, key) !== undefined)
 
     // This machine: the shell wins if it holds a value no file has (Nuxt
