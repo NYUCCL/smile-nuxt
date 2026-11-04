@@ -1,8 +1,9 @@
 <script setup>
-import { BookMarked, BugPlay, Moon, Presentation, Settings, SlidersHorizontal, Sun, SunMoon, UserRound } from 'lucide-vue-next'
+import { Moon, Settings, Sun, SunMoon, UserRound } from 'lucide-vue-next'
 import { useSmileColorMode } from '../../../composables/useColorMode'
 import DevConfigPanel from './DevConfigPanel.vue'
 import useAPI from '../../../composables/useAPI'
+import { DEV_MODES as modes } from './devModes'
 
 /**
  * The dev tools' app menu: a narrow rail on the left. The top holds the
@@ -19,15 +20,8 @@ const props = defineProps({
 
 const api = useAPI()
 
-// Modes shown in the dev layout (store.dev.mainView). The dashboard ('dashboard',
-// Database icon) comes back here when it's ready.
-const modes = [
-  { view: 'devmode', icon: BugPlay, label: 'Developer mode' },
-  { view: 'presentation', icon: Presentation, label: 'Presentation mode' },
-  // Docs mode: dev server only (layouts/development.vue)
-  ...(import.meta.dev ? [{ view: 'docs', icon: BookMarked, label: 'Docs' }] : []),
-  { view: 'config', icon: SlidersHorizontal, label: 'Build & deploy settings' },
-]
+// Modes shown in the dev layout (store.dev.mainView): devModes.js, shared
+// with the `:` command palette
 
 function selectMode(view) {
   // Clicking the open mode again returns to developer mode

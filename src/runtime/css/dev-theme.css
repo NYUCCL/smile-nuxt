@@ -44,6 +44,9 @@
   --sd-p-reading: var(--sd-p-bg);
   --sd-p-reading-card: color-mix(in oklab, var(--sd-p-fg) 4%, var(--sd-p-reading));
   --sd-p-reading-line: var(--sd-p-border);
+  /* Over the page: the command palette's dimmed backdrop and its box's shadow */
+  --sd-p-scrim: color-mix(in oklab, oklch(0 0 0) 18%, transparent);
+  --sd-p-overlay-shadow: 0 18px 50px color-mix(in oklab, oklch(0 0 0) 22%, transparent), 0 4px 12px color-mix(in oklab, oklch(0 0 0) 12%, transparent);
   --sd-p-device-shadow: 0 6px 20px color-mix(in oklab, oklch(0 0 0) 15%, transparent), 0 3px 8px color-mix(in oklab, oklch(0 0 0) 10%, transparent);
 
   /* Hues dark enough for text on the light surfaces */
@@ -96,6 +99,8 @@
   --sd-p-reading: var(--sd-p-bg);
   --sd-p-reading-card: color-mix(in oklab, var(--sd-p-fg) 5%, var(--sd-p-bg));
   --sd-p-reading-line: var(--sd-p-border);
+  --sd-p-scrim: color-mix(in oklab, oklch(0 0 0) 40%, transparent);
+  --sd-p-overlay-shadow: 0 18px 50px color-mix(in oklab, oklch(0 0 0) 60%, transparent), 0 0 0 1px color-mix(in oklab, var(--sd-p-fg) 6%, transparent);
   --sd-p-device-shadow: 0 10px 36px color-mix(in oklab, oklch(0 0 0) 80%, transparent), 0 3px 10px color-mix(in oklab, oklch(0 0 0) 60%, transparent);
 
   /* Same hues, lighter and a little less saturated */
@@ -146,6 +151,8 @@
   --sd-reading-card: var(--sd-p-reading-card);
   --sd-reading-line: var(--sd-p-reading-line);
   --sd-device-shadow: var(--sd-p-device-shadow); /* the previewed device */
+  --sd-scrim: var(--sd-p-scrim); /* dims the page behind the command palette */
+  --sd-overlay-shadow: var(--sd-p-overlay-shadow); /* the command palette's box */
   --sd-bg: var(--sd-p-bg);
   --sd-panel: var(--sd-p-surface);
   --sd-panel-2: var(--sd-p-surface-2);
