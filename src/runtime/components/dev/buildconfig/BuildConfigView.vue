@@ -91,7 +91,7 @@ function showSetting(key) {
     data-testid="build-config"
   >
     <!-- Top bar: same layout as developer and presentation mode's -->
-    <nav class="flex items-center justify-between gap-4 w-full border-b border-sd-line h-9 px-3 text-xs flex-none">
+    <nav class="bc-bar flex items-center justify-between gap-4 w-full border-b border-sd-line h-9 px-3 text-xs flex-none">
       <div class="flex items-center gap-2 min-w-0">
         <DevModeLabel
           :icon="SlidersHorizontal"
@@ -332,6 +332,11 @@ function showSetting(key) {
 </template>
 
 <style scoped>
+/* The top bar: the same grey as developer and presentation mode's */
+.bc-bar {
+  background-color: var(--sd-bar);
+}
+
 .build-config {
   display: flex;
   flex-direction: column;
