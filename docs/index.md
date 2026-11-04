@@ -9,5 +9,5 @@ hero:
       link: /introduction
     - theme: alt
       text: View on GitHub
-      link: https://github.com/NYUCCL/smile
+      link: https://github.com/NYUCCL/smile-nuxt
 ---
