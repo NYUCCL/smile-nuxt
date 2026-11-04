@@ -37,6 +37,34 @@ This bumps the pin in your `package.json`, updates the lockfile, and
 downloads the new version into `node_modules/`. Restart your dev server
 afterwards.
 
+## Docs for coding agents
+
+These docs come with the package, as markdown, in
+`node_modules/@nyuccl/smile-nuxt/dist/docs/`. Updating SMILE updates them
+too, so they always match the version you run. A new project has the files
+that point coding agents (Claude Code, Cursor, Codex and others) there:
+
+- `AGENTS.md`: the project layout, the API and the conventions, and where
+  the docs are
+- `CLAUDE.md`: points Claude Code at `AGENTS.md`
+- `.claude/skills/smile-docs/`: a skill that answers SMILE questions from
+  the installed docs
+- `.cursor/rules/smile.mdc`: the same pointer for Cursor
+
+These files don't change when you update, since they only point at the
+docs. A project created before they existed can copy them from the
+template for the version you updated to (replace `<version>`, for example
+`0.2.0`):
+
+```sh
+pnpm dlx giget gh:nyuccl/smile-nuxt/start#v<version> /tmp/smile-template
+cp /tmp/smile-template/AGENTS.md /tmp/smile-template/CLAUDE.md .
+cp -R /tmp/smile-template/.claude /tmp/smile-template/.cursor .
+```
+
+If you already have a `CLAUDE.md` or `.cursor/rules/` of your own, merge
+rather than overwrite.
+
 ## Check what version you have
 
 The version of <SmileText/> your project depends on lives in your
