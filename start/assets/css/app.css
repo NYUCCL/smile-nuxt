@@ -1,1 +1,36 @@
-/* Add custom styles or Tailwind plugins here */
+/* Your project's global styles. This file loads after SMILE's own CSS.
+
+   These rules apply to every page, including SMILE's built-in components
+   and the dev tools. To keep from changing those, put rules in a layer:
+   a rule outside any layer overrides Tailwind's classes on SMILE's
+   components, whatever its specificity.
+
+   Guide: https://smile.gureckislab.org/coding/overrides.html#adding-your-own-css */
+
+/* Change colors, radius or fonts with the theme tokens:
+
+:root,
+.light {
+  --primary: oklch(0.55 0.2 250);
+}
+.dark {
+  --primary: oklch(0.7 0.18 250);
+}
+*/
+
+/* Defaults for plain elements, and classes shared across your Views:
+
+@layer base {
+  h1 {
+    font-size: 2rem;
+  }
+}
+
+@layer components {
+  .stimulus-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+  }
+}
+*/
