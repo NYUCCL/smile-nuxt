@@ -25,7 +25,12 @@ async function load() {
     const res = await fetch('/_smile/dev-config', { headers: { accept: 'application/json' } })
     const body = await res.json().catch(() => ({}))
     if (res.status === 404) {
-      // A deployed build with the dev tools: the route exists only in nuxt dev.
+      // The route exists only in nuxt dev, registered when the server starts.
+      if (import.meta.dev) {
+        throw new Error('The dev server was started before this page was added (or the smile module changed). '
+          + 'Restart it (press r in its terminal, or run pnpm dev again) and reload.')
+      }
+      // A deployed build with the dev tools
       throw new Error('This page reads the project\'s env files, so it works only in the local dev server (pnpm dev). '
         + 'On a deploy, the settings live in Vercel > Settings > Environment Variables.')
     }
