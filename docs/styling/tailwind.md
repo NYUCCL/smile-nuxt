@@ -1,3 +1,7 @@
+---
+description: "An introduction to styling with Tailwind CSS utility classes: the utility-first approach, a worked example component, naming conventions and common classes."
+---
+
 # Styling with Tailwind CSS
 
 In modern web design, the look and feel of an application are determined jointly

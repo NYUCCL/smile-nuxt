@@ -1,3 +1,7 @@
+---
+description: "The layout components for experiment pages (TwoCol, TitleTwoCol, ConstrainedTaskWindow, ConstrainedPage, CenteredContent), their props and examples."
+---
+
 <script setup>
 import TwoColBasicExample from '../examples/TwoColBasicExample.vue'
 import TwoColBasicExample2 from '../examples/TwoColBasicExample2.vue'
@@ -47,10 +51,6 @@ mobile and arranges them horizontally on larger screens.
 ### Example
 
 ```vue
-<script setup>
-import { TwoCol } from '@/runtime/components/layouts'
-</script>
-
 <template>
   <TwoCol leftWidth="w-1/2" leftFirst class="custom-styles">
     <template #left>
@@ -106,10 +106,6 @@ Same as TwoCol, plus:
 ### Usage
 
 ```vue
-<script setup>
-import { TitleTwoCol } from '@/runtime/components/layouts'
-</script>
-
 <template>
   <TitleTwoCol leftWidth="w-1/3" leftFirst class="custom-styles">
     <template #title>
@@ -174,10 +170,6 @@ specified (forcing the browser to scroll).
 ### Usage
 
 ```vue
-<script setup>
-import { ConstrainedTaskWindow } from '@/runtime/components/layouts'
-</script>
-
 <template>
   <ConstrainedTaskWindow
     variant="ghost"
@@ -248,10 +240,6 @@ When `responsiveUI` is `false`, the layout uses fixed dimensions:
 ### Usage
 
 ```vue
-<script setup>
-import { ConstrainedPage } from '@/runtime/components/layouts'
-</script>
-
 <template>
   <ConstrainedPage :width="800" :height="600" :responsiveUI="true">
     <!-- Your experiment content -->
@@ -302,10 +290,6 @@ and centering behavior.
 ### Usage
 
 ```vue
-<script setup>
-import { CenteredContent } from '@/runtime/components/layouts'
-</script>
-
 <template>
   <CenteredContent>
     <!-- Your centered content -->

@@ -1,3 +1,7 @@
+---
+description: "Building forms and quizzes, using the TaskFeedbackSurveyView and InstructionsQuiz built-ins as worked examples."
+---
+
 # Forms and Quizzes
 
 Forms are a critical component of many psychological experiments and research
@@ -8,7 +12,7 @@ forms easy.
 
 The `TaskFeedbackSurveyView.vue` built-in component demonstrates how to build a
 comprehensive feedback form in Smile. Click
-[here](https://github.com/NYUCCL/smile/blob/main/src/builtins/instructionsQuiz/InstructionsQuiz.vue)
+[here](https://github.com/NYUCCL/smile-nuxt/blob/main/src/runtime/components/builtins/InstructionsQuiz.vue)
 to see the entire code structure before continuing.
 
 This component collects both quantitative ratings and qualitative feedback about

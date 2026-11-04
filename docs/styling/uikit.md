@@ -1,3 +1,7 @@
+---
+description: "The auto-imported UI components (Button, ButtonGroup, Checkbox, Switch, Badge and the rest of shadcn-vue): how to use them, with variants, sizes and examples."
+---
+
 <script setup>
 import ButtonVariantsExample from '../examples/ButtonVariantsExample.vue'
 import ButtonVariantsExampleRaw from '../examples/ButtonVariantsExample.vue?raw'
@@ -29,20 +33,27 @@ themed to match the overall project. These components build on
 consistent interfaces with themed colors, dark mode support, and a consistent
 look and feel. We anticipate adding more here over time.
 
-## Importing Components
+## Using the components
 
-All UIkit components can be imported from the `@/runtime/components/ui` directory.
-The full list of available components is in the file. Most are in fact imported
-from [Shadcn-vue](https://www.shadcn-vue.com/), but some have been extended for
-use in Smile and are documented here:
+The UI components are available in every `.vue` file in your project with no
+`import` needed: write `<Button>`, `<Badge>`, `<Switch>` and so on in your
+template. Most come from [shadcn-vue](https://www.shadcn-vue.com/); some are
+extended for <SmileText/> and documented on this page.
 
-```javascript
-import { Badge } from '@/runtime/components/ui/badge'
-import { Button } from '@/runtime/components/ui/button'
-import { ButtonGroup, ButtonGroupItem } from '@/runtime/components/ui/button-group'
-import { Checkbox } from '@/runtime/components/ui/checkbox'
-import { Switch } from '@/runtime/components/ui/switch'
+```vue
+<template>
+  <Button variant="outline">Continue</Button>
+</template>
 ```
+
+To use one in a plain `.js` file (rare), import it from `#components`:
+
+```js
+import { Button } from '#components'
+```
+
+To change how a component looks or works everywhere, see
+[Overriding Builtins](/coding/overrides#vue-components).
 
 ## Button Component
 
@@ -65,8 +76,9 @@ supports various styles, sizes, and can include icons.
 
 :::
 
-There are also many color variants controlled by the main Tailwind theme sheet
-(`src/core/main.css`).
+There are also many color variants, set by <SmileText/>'s Tailwind theme. You
+can change the theme colors in your project's `assets/css/app.css` (see
+[Overriding Builtins: CSS](/coding/overrides#css)).
 
 ::: raw
 

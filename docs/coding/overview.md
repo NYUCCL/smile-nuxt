@@ -1,3 +1,7 @@
+---
+description: "Map of the coding guides: project organization, developer mode, configuration, components, views, the timeline, steps, autofill, randomization, persistence and data recording."
+---
+
 # Coding Overview
 
 The following sections describe how to design experiments using the <SmileText/>
@@ -38,7 +42,7 @@ documentation explains all the configuration settings available.
 
 ## Components
 
-<img src="/images/components.png" width="50%" align="right">
+![A page split into components, and the same components as a tree](/images/components.svg)
 
 This section introduces the concept of a [**component**](/coding/components) and
 how components help organize code by making it more modular and reusable. Then
@@ -58,7 +62,7 @@ instructions, debriefing, etc.). We call the phases "Views" and each major phase
 of an experiment is associated with its own Vue component. Learn about views
 [here](/coding/views).
 
-<img src="/images/viewstimeline.png" width="600" alt="timeline example" style="margin: auto;">
+<img src="/images/viewstimeline.svg" width="600" alt="timeline example" style="margin: auto;">
 
 Smile comes with several [built-in views](/coding/builtin-views) for
 common phases of an experiment. This includes things like obtaining informed
@@ -98,7 +102,7 @@ form). Critically, by using the built-in <SmileText/> "stepped Views" feature,
 if a participant refreshes the page or loses internet connection, they can pick
 up where they left off.
 
-<img src="/images/steps.png" width="600" alt="steps example" style="margin: auto;">
+<img src="/images/steps.svg" width="600" alt="steps example" style="margin: auto;">
 
 ## Autofill
 

@@ -1,3 +1,7 @@
+---
+description: "Overview of styling a SMILE experiment: Tailwind CSS, dark mode, layouts, UI components, icons, forms, images and video."
+---
+
 # Style and Design Overview
 
 Styling the look and feel of your experiment elements is often a time-consuming
@@ -14,7 +18,10 @@ classes. Tailwind also provides easy ways to support theming, color modes, color
 palettes, etc... We describe
 [how to use Tailwind to determine the look and feel of your experiment](/styling/tailwind).
 Of course, you can style your components with custom CSS as well or overwrite
-Smile defaults for your entire project.
+Smile defaults for your entire project. Project-wide CSS goes in
+`assets/css/app.css`; see
+[Adding your own CSS](/coding/overrides#adding-your-own-css) for how to
+write it so it doesn't change SMILE's built-in components or the dev tools.
 
 ## Dark Mode
 

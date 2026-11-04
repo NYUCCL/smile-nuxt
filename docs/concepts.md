@@ -1,3 +1,7 @@
+---
+description: "A worked first example of SMILE's key ideas: writing an experiment View component, adding it to the timeline in design.js, and developing and debugging it with the dev tools."
+---
+
 # Key Concepts
 
 Smile introduces a new way to build behavioral experiments which promotes
@@ -11,7 +15,7 @@ an experiment. For example, the part of your experiment that collects informed
 consent might be one View. Another View might be the debriefing form. Below we
 will describe how to define the sequence of Views in your experiment.
 
-<img src="/images/viewstimeline.png" width="600" alt="timeline example" style="margin: auto;">
+<img src="/images/viewstimeline.svg" width="600" alt="timeline example" style="margin: auto;">
 
 Each View is minimally a Vue component (a special type of web development file)
 which can be written in whatever way you please. However, Smile provides a
@@ -22,7 +26,7 @@ The key idea behind this API is the concept of 'steps'. A
 example, a View might have a step that presents a question to the participant, a
 step that collects a response, and a step that displays the results.
 
-<img src="/images/steps.png" width="600" alt="steps example" style="margin: auto;">
+<img src="/images/steps.svg" width="600" alt="steps example" style="margin: auto;">
 
 A useful way to think about it is that Views are like slides in a presentation
 software like Powerpoint/Keynote and steps are like "builds" or "animation

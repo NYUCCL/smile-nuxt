@@ -1,3 +1,7 @@
+---
+description: "Create a new SMILE experiment with pnpm create @nyuccl/smile-nuxt, start the dev server, try the developer, presentation and participant modes, and make a first edit."
+---
+
 # Quick Start
 
 This page walks you through getting a basic <SmileText/> starter template running

@@ -1,3 +1,7 @@
+---
+description: "How to start contributing to SMILE itself: the smile-nuxt repository, which holds both the module code and these docs."
+---
+
 # Getting started contributing
 
 The <SmileText/> repo

@@ -1,3 +1,7 @@
+---
+description: "What each file and folder in a SMILE project is for (design.js, components/, public/, assets/, .env files, analysis/, test/, .data/), which ones you edit and which are generated."
+---
+
 # Project Organization
 
 When you scaffold a new experiment with

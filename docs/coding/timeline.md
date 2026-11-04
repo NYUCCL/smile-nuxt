@@ -1,3 +1,7 @@
+---
+description: "The design.js file and the experiment timeline: URLs and routes, adding Views with pushSeqView and registerView, navigation guards (meta), branching and randomized flows."
+---
+
 # Timeline and Design File
 
 Web experiments are often composed of several parts presented in sequence. For
@@ -107,7 +111,7 @@ around the basic Vue Router.
 The timeline class allows you to configure a sequence of Views as well as allow
 for Views that are not part of a sequence:
 
-<img src="/images/timeline.png" width="500" alt="timeline example" style="margin: auto;">
+<img src="/images/timeline.svg" width="500" alt="timeline example" style="margin: auto;">
 
 Sequential Views are accessed in a timeline. Non-sequential Views are not part
 of that timeline.
@@ -448,7 +452,7 @@ Sometimes you need timeline structures a little more complex than a simple
 sequence. For example, there might be multiple initial landing pages depending
 on if you come in from a particular [recruitment](/recruit/recruitment) service:
 
-<img src="/images/timeline-flows.png" width="500" alt="timeline example" style="margin: auto;">
+<img src="/images/timeline-flows.svg" width="600" alt="branching flows with meta.next" style="margin: auto;">
 
 To configure this we need multiple routes (1a and 1b in the figure) to all point
 to the same successor. We can do this using
@@ -505,7 +509,7 @@ Or, you might have four tasks, and you want one group of participants to see two
 of the tasks and the other group to see the other two tasks. We call these
 "alternative flows":
 
-<img src="/images/randomizedflows.png" width="500" alt="timeline example" style="margin: auto;">
+<img src="/images/randomizedflows.svg" width="600" alt="randomized and conditional nodes" style="margin: auto;">
 
 These alternative flows can be accomplished by adding <b>nodes</b>, which you
 can think of as containing several paths of Views and guiding participants along

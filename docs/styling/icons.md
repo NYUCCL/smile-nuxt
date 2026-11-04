@@ -1,3 +1,7 @@
+---
+description: "Using icons with Iconify: finding icons, the <i-collection-name /> component syntax, popular icon sets, and setting icon size and color."
+---
+
 # Icons
 
 This project uses the [Iconify](https://iconify.design/) package for icons.

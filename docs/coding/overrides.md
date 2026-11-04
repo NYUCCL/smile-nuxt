@@ -1,3 +1,7 @@
+---
+description: "How your project's files take priority over SMILE's built-ins: overriding Vue components, public assets, CSS theme tokens and composables, and a cheat sheet of what wins when names collide."
+---
+
 # Overriding Builtins
 
 Your code and the `@nyuccl/smile-nuxt` module both contribute components,
@@ -12,7 +16,7 @@ The short version:
 | Built-in views (string-referenced)    | ✅ Yes                    | Local `components/` has higher priority than module dirs (`priority: -1`) |
 | UI primitives & layouts (`Button`, …) | ⚠️ Yes, everywhere — discouraged | Module ships source, so a local `Button.vue` also replaces `<Button>` *inside* built-in views and can break them; SMILE prints a build warning |
 | Public assets                         | N/A                       | No collision — different URL namespaces (`/` vs `/_smile/`)               |
-| CSS rules                             | ✅ Yes                    | Module's `main.css` loads first; your `app.css` wins at equal specificity |
+| CSS rules                             | ✅ Yes                    | Module's `main.css` loads first; your `app.css` wins at equal specificity. Put global rules in a cascade layer so they don't override SMILE's components ([below](#adding-your-own-css)) |
 | CSS variables (theme tokens)          | ✅ Yes                    | Same as above — redefine `--primary` etc. in your `app.css`               |
 | Composables / API                     | N/A                       | Module exposes `useAPI()` etc.; project doesn't redefine these            |
 
@@ -130,8 +134,10 @@ registered after, so the final load order is:
 2. Your `assets/css/app.css`
 
 This means **your `app.css` wins at equal specificity** — the natural
-expectation for module-vs-project styling. Tailwind utility classes are
-unaffected by load order (they're processed at compile time).
+expectation for module-vs-project styling. Load order isn't the whole story,
+though: Tailwind keeps its styles in cascade layers, and that changes what a
+rule in `app.css` can override (see
+[Adding your own CSS](#adding-your-own-css) below).
 
 To rebrand the experiment, redefine the theme tokens you care about in
 your `app.css`:
@@ -154,6 +160,66 @@ your `app.css`:
 Theme tokens are defined twice in the module's `main.css` — once in
 `:root, .light` and once in `.dark`. Override the relevant block(s) in
 your `app.css` using the matching selector.
+
+### Adding your own CSS
+
+`app.css` is global: its rules apply to every page, including SMILE's
+built-in components (the buttons, the consent and demographic forms, the
+withdraw dialog) and, while you develop, the dev tools around your
+experiment. A rule like `button { padding: 0 }` reaches all of those, not
+just your own buttons.
+
+It can also win more often than you'd expect. Tailwind puts its styles in
+[cascade layers](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/Cascade_layers)
+(`theme`, `base`, `components`, `utilities`), and the browser lets a rule
+that isn't in any layer beat every layered rule, whatever their
+specificity. So a plain `button { padding: 0 }` in `app.css` overrides the
+`px-4` on SMILE's own Button, even though a class normally beats an
+element selector.
+
+To add styles without changing SMILE's components:
+
+1. **Change a color, radius or font:** redefine the theme tokens (above).
+   SMILE's components read them too, so everything changes together.
+2. **Style one of your own components:** use a `<style scoped>` block in
+   its `.vue` file, or Tailwind classes in its template. Scoped styles apply
+   only to that component's elements
+   (see [Components](/coding/components)).
+3. **Set defaults for plain elements** (headings, links, paragraphs), or
+   share a class across your Views: put the rules in a layer in `app.css`.
+   Layered rules lose to Tailwind's utilities, so any class SMILE (or you)
+   puts on an element still wins:
+
+   ```css
+   /* assets/css/app.css */
+   @layer base {
+     h1 {
+       font-size: 2rem;
+       font-weight: 700;
+     }
+   }
+
+   @layer components {
+     .stimulus-card {
+       border: 1px solid var(--border);
+       border-radius: var(--radius);
+       padding: 1.5rem;
+     }
+   }
+   ```
+
+   These join the layers Tailwind already declared (the module's `main.css`
+   loads first), so `base` rules sit under everything else and `components`
+   rules sit under the utilities.
+4. **Keep element selectors to your own pages:** put a class on the outer
+   element of your Views and start your selectors with it
+   (`.my-task button { … }`), rather than styling every `button`.
+
+Avoid unlayered rules on bare elements (`button`, `input`, `*`) and
+`!important` in `app.css`: those are what reach into SMILE's components and
+the dev tools. To change how one of SMILE's built-in Views looks, override
+that View ([how](/coding/timeline#overriding-a-built-in-view)) rather than
+restyling it from outside.
 
 ## Composables and API
 

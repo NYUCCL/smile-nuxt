@@ -1,3 +1,7 @@
+---
+description: "Where to get help with SMILE: these docs, other resources, GitHub Discussions for questions and GitHub Issues for bugs."
+---
+
 # Getting help
 
 Smile is a free, open-source project and is provided with no warranty or
@@ -105,6 +109,6 @@ new features.
 ## GitHub Issues
 
 If you think you have found a bug in the software, you can open an issue on the
-[GitHub Issues](https://github.com/NYUCCL/smile/issues). Please provide as much
+[GitHub Issues](https://github.com/NYUCCL/smile-nuxt/issues). Please provide as much
 information as you can and also first search existing issues (both open and
 closed).

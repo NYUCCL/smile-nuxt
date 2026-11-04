@@ -1,3 +1,7 @@
+---
+description: "The design principles behind SMILE: no code is the best code, documentation first, open web standards, limiting choices so the right one is easy, and data that is always linked to the code that made it."
+---
+
 # Design Philosophy
 
 The design of online experiments (and webpages in general) requires a lot of

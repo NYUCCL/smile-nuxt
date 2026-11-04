@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 440" font-family="Inter, Helvetica, Arial, sans-serif">
+  <title>Software versions and experiment branches</title>
+  <desc>Software versions form a line, each replacing the one before (v1.0.0, v1.0.1, v1.1.0, v2.0.0). Experiments branch: a base project leads to a pilot, the pilot to exp1a, exp1b and exp1c, and exp1b to exp2 and then exp3. Every branch stays, with its own data.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#050505"/>
+    </marker>
+  </defs>
+  <rect width="760" height="440" fill="white"/>
+  <text x="20" y="34" text-anchor="start" font-size="18" font-weight="600" fill="#050505">(a) Software: each version replaces the last</text>
+  <path d="M129,90 L159,90" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M269,90 L299,90" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M409,90 L439,90" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="23.0" y="72" width="104" height="36" rx="18" fill="#F2F2F2" stroke="#050505" stroke-width="1.5"/>
+  <text x="75" y="95" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">v1.0.0</text>
+  <rect x="163.0" y="72" width="104" height="36" rx="18" fill="#F2F2F2" stroke="#050505" stroke-width="1.5"/>
+  <text x="215" y="95" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">v1.0.1</text>
+  <rect x="303.0" y="72" width="104" height="36" rx="18" fill="#F2F2F2" stroke="#050505" stroke-width="1.5"/>
+  <text x="355" y="95" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">v1.1.0</text>
+  <rect x="443.0" y="72" width="104" height="36" rx="18" fill="#F2F2F2" stroke="#050505" stroke-width="1.5"/>
+  <text x="495" y="95" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">v2.0.0</text>
+  <text x="600" y="95" text-anchor="start" font-size="14" fill="#444444">only the newest is used</text>
+  <text x="20" y="170" text-anchor="start" font-size="18" font-weight="600" fill="#050505">(b) Experiments: every branch stays, with its own data</text>
+  <path d="M129,300 L159,300" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M269,300 C294.0,300 294.0,230 319,230" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M269,300 L319,300" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M269,300 C294.0,300 294.0,370 319,370" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M429,300 L469,300" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M579,300 L619,300" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="23.0" y="282" width="104" height="36" rx="18" fill="#E6E6E6" stroke="#050505" stroke-width="1.5"/>
+  <text x="75" y="305" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">main</text>
+  <rect x="163.0" y="282" width="104" height="36" rx="18" fill="#E7F2F8" stroke="#050505" stroke-width="1.5"/>
+  <text x="215" y="305" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">pilot</text>
+  <rect x="323.0" y="212" width="104" height="36" rx="18" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="375" y="235" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">exp1a</text>
+  <rect x="323.0" y="282" width="104" height="36" rx="18" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="375" y="305" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">exp1b</text>
+  <rect x="323.0" y="352" width="104" height="36" rx="18" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="375" y="375" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">exp1c</text>
+  <rect x="473.0" y="282" width="104" height="36" rx="18" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="525" y="305" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">exp2</text>
+  <rect x="623.0" y="282" width="104" height="36" rx="18" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="675" y="305" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">exp3</text>
+  <text x="380" y="425" text-anchor="middle" font-size="16" fill="#050505">In SMILE, each branch deploys to its own URLs and keeps its own data.</text>
+</svg>

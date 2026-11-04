@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" font-family="Inter, Helvetica, Arial, sans-serif">
+  <title>A page as a tree of components</title>
+  <desc>A page is split into a header, a main area holding two questions, and a sidebar holding three buttons. The same parts form a tree: Page contains Header, Main and Sidebar; Main contains two Questions; Sidebar contains the Buttons.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#050505"/>
+    </marker>
+  </defs>
+  <rect width="760" height="300" fill="white"/>
+  <rect x="20" y="40" width="290" height="220" rx="9" fill="#F2F2F2" stroke="#050505" stroke-width="1.5"/>
+  <rect x="34" y="54" width="262" height="34" rx="6" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <rect x="34" y="98" width="168" height="148" rx="6" fill="#E7F2F8" stroke="#050505" stroke-width="1.5"/>
+  <rect x="46" y="112" width="144" height="56" rx="6" fill="#F9D174" stroke="#050505" stroke-width="1.5"/>
+  <rect x="46" y="178" width="144" height="56" rx="6" fill="#F9D174" stroke="#050505" stroke-width="1.5"/>
+  <rect x="212" y="98" width="84" height="148" rx="6" fill="#FCEFFA" stroke="#050505" stroke-width="1.5"/>
+  <rect x="224" y="112" width="60" height="28" rx="6" fill="#E8B2E3" stroke="#050505" stroke-width="1.5"/>
+  <rect x="224" y="150" width="60" height="28" rx="6" fill="#E8B2E3" stroke="#050505" stroke-width="1.5"/>
+  <rect x="224" y="188" width="60" height="28" rx="6" fill="#E8B2E3" stroke="#050505" stroke-width="1.5"/>
+  <path d="M326,150 L378,150" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M570,77 C570,105.0 456,105.0 456,133" fill="none" stroke="#050505" stroke-width="1.5"/>
+  <path d="M570,77 C570,105.0 570,105.0 570,133" fill="none" stroke="#050505" stroke-width="1.5"/>
+  <path d="M570,77 C570,105.0 688,105.0 688,133" fill="none" stroke="#050505" stroke-width="1.5"/>
+  <path d="M570,167 C570,195.0 470,195.0 470,223" fill="none" stroke="#050505" stroke-width="1.5"/>
+  <path d="M570,167 C570,195.0 570,195.0 570,223" fill="none" stroke="#050505" stroke-width="1.5"/>
+  <path d="M688,167 C688,195.0 688,195.0 688,223" fill="none" stroke="#050505" stroke-width="1.5"/>
+  <rect x="518.0" y="43" width="104" height="34" rx="8" fill="#F2F2F2" stroke="#050505" stroke-width="1.5"/>
+  <text x="570" y="65" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">Page</text>
+  <rect x="404.0" y="133" width="104" height="34" rx="8" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="456" y="155" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">Header</text>
+  <rect x="518.0" y="133" width="104" height="34" rx="8" fill="#E7F2F8" stroke="#050505" stroke-width="1.5"/>
+  <text x="570" y="155" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">Main</text>
+  <rect x="636.0" y="133" width="104" height="34" rx="8" fill="#FCEFFA" stroke="#050505" stroke-width="1.5"/>
+  <text x="688" y="155" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">Sidebar</text>
+  <rect x="424.0" y="223" width="92" height="34" rx="8" fill="#F9D174" stroke="#050505" stroke-width="1.5"/>
+  <text x="470" y="245" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">Question</text>
+  <rect x="524.0" y="223" width="92" height="34" rx="8" fill="#F9D174" stroke="#050505" stroke-width="1.5"/>
+  <text x="570" y="245" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">Question</text>
+  <rect x="638.0" y="223" width="100" height="34" rx="8" fill="#E8B2E3" stroke="#050505" stroke-width="1.5"/>
+  <text x="688" y="245" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">Button ×3</text>
+</svg>

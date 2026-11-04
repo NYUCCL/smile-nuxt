@@ -1,3 +1,7 @@
+---
+description: "Contributing to the SMILE docs and module: running the docs site locally (pnpm docs:dev), the module's test commands, technical figures, and how changes are published."
+---
+
 # Contributing to the documentation
 
 This project takes a "docs first" approach by first planning the development in
@@ -18,7 +22,7 @@ To develop the docs in real time type `pnpm docs:dev` in the top level
 project folder. You should see something like this:
 
 ```
-➜ npm run docs:dev
+➜ pnpm docs:dev
 > smile@0.0.0 docs:dev
 > vitepress dev docs
 
@@ -50,10 +54,10 @@ The docs are written in
 [plain markdown](https://vitepress.vuejs.org/guide/markdown.html). Just edit or
 add new `.md` files as you like. You can also add new subfolders. To add them to
 the side bar or nav bar at the top take a look inside
-`docs/.vitepress/config.js`. It is mildly self-explanatory (full docs
+`docs/.vitepress/config.mjs`. It is mildly self-explanatory (full docs
 [here](https://vitepress.vuejs.org/config/introduction.html)).
 
-One cool thing about running `npm run docs:dev` is the website uses
+One cool thing about running `pnpm docs:dev` is the website uses
 [hot module reloading](https://vitejs.dev/guide/features.html#hot-module-replacement)
 so any changes you save to the markdown or configuration files will
 automatically update your browser giving you instant feedback. It is incredibly
@@ -107,7 +111,7 @@ This is a core design principle of Smile:
 
 If the build fails on the Github Action the website will remain unchanged. You
 can get diagnostic information about the auto-deploy process on the
-[Github Actions tab](https://github.com/NYUCCL/smile/actions) of the repo. If
+[Github Actions tab](https://github.com/NYUCCL/smile-nuxt/actions) of the repo. If
 you suspect your changes to the docs introduced a bug that was not caught by the
 development server, you can check the build process locally by running
-`npm run docs:build`.
+`pnpm docs:build`.

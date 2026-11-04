@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 240" font-family="Inter, Helvetica, Arial, sans-serif">
+  <title>Views in a timeline</title>
+  <desc>Three Views in order: /consent, then /instructions, then /thanks. Each is a page of the experiment.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#050505"/>
+    </marker>
+  </defs>
+  <rect width="760" height="240" fill="white"/>
+  <rect x="20" y="20" width="200" height="150" rx="9" fill="white" stroke="#050505" stroke-width="1.5"/>
+  <rect x="34" y="34" width="172" height="20" rx="5" fill="#E6E6E6" stroke="#050505" stroke-width="1.5"/>
+  <rect x="34" y="64" width="110.08" height="72" rx="6" fill="#F2F2F2" stroke="#050505" stroke-width="1.5"/>
+  <rect x="154.07999999999998" y="64" width="51.92" height="72" rx="6" fill="#F2F2F2" stroke="#050505" stroke-width="1.5"/>
+  <text x="120.0" y="158" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">/consent</text>
+  <circle cx="120" cy="200" r="14" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="120" y="205" text-anchor="middle" font-size="14" font-weight="600" fill="#050505">1</text>
+  <rect x="280" y="20" width="200" height="150" rx="9" fill="white" stroke="#050505" stroke-width="1.5"/>
+  <rect x="294" y="34" width="172" height="20" rx="5" fill="#E6E6E6" stroke="#050505" stroke-width="1.5"/>
+  <rect x="294" y="64" width="110.08" height="72" rx="6" fill="#F2F2F2" stroke="#050505" stroke-width="1.5"/>
+  <rect x="414.08" y="64" width="51.92" height="72" rx="6" fill="#F2F2F2" stroke="#050505" stroke-width="1.5"/>
+  <text x="380.0" y="158" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">/instructions</text>
+  <circle cx="380" cy="200" r="14" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="380" y="205" text-anchor="middle" font-size="14" font-weight="600" fill="#050505">2</text>
+  <rect x="540" y="20" width="200" height="150" rx="9" fill="white" stroke="#050505" stroke-width="1.5"/>
+  <rect x="554" y="34" width="172" height="20" rx="5" fill="#E6E6E6" stroke="#050505" stroke-width="1.5"/>
+  <rect x="554" y="64" width="110.08" height="72" rx="6" fill="#F2F2F2" stroke="#050505" stroke-width="1.5"/>
+  <rect x="674.08" y="64" width="51.92" height="72" rx="6" fill="#F2F2F2" stroke="#050505" stroke-width="1.5"/>
+  <text x="640.0" y="158" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">/thanks</text>
+  <circle cx="640" cy="200" r="14" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="640" y="205" text-anchor="middle" font-size="14" font-weight="600" fill="#050505">3</text>
+  <path d="M224,95 L276,95" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M484,95 L536,95" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+</svg>

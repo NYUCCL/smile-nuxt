@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 480" font-family="Inter, Helvetica, Arial, sans-serif">
+  <title>Steps within a View</title>
+  <desc>The /stroop View sits between /instructions and /debrief. Inside it, three steps run in order (trials showing the words BLUE, GREEN and DOG in mismatched colors); after the last step, the View moves on.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#050505"/>
+    </marker>
+  </defs>
+  <rect width="760" height="480" fill="white"/>
+  <rect x="20" y="20" width="200" height="140" rx="9" fill="white" stroke="#9A9A9A" stroke-width="1.5"/>
+  <rect x="34" y="34" width="172" height="20" rx="5" fill="#E6E6E6" stroke="#9A9A9A" stroke-width="1.5"/>
+  <rect x="34" y="64" width="110.08" height="62" rx="6" fill="#F2F2F2" stroke="#9A9A9A" stroke-width="1.5"/>
+  <rect x="154.07999999999998" y="64" width="51.92" height="62" rx="6" fill="#F2F2F2" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="120.0" y="148" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#6B6B6B">/instructions</text>
+  <rect x="280" y="20" width="200" height="140" rx="9" fill="white" stroke="#050505" stroke-width="1.5"/>
+  <rect x="294" y="34" width="172" height="20" rx="5" fill="#E6E6E6" stroke="#050505" stroke-width="1.5"/>
+  <rect x="294" y="64" width="110.08" height="62" rx="6" fill="#F2F2F2" stroke="#050505" stroke-width="1.5"/>
+  <rect x="414.08" y="64" width="51.92" height="62" rx="6" fill="#F2F2F2" stroke="#050505" stroke-width="1.5"/>
+  <text x="380.0" y="148" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#050505">/stroop</text>
+  <rect x="540" y="20" width="200" height="140" rx="9" fill="white" stroke="#9A9A9A" stroke-width="1.5"/>
+  <rect x="554" y="34" width="172" height="20" rx="5" fill="#E6E6E6" stroke="#9A9A9A" stroke-width="1.5"/>
+  <rect x="554" y="64" width="110.08" height="62" rx="6" fill="#F2F2F2" stroke="#9A9A9A" stroke-width="1.5"/>
+  <rect x="674.08" y="64" width="51.92" height="62" rx="6" fill="#F2F2F2" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="640.0" y="148" text-anchor="middle" font-size="15" font-family="SF Mono, Menlo, Consolas, monospace" fill="#6B6B6B">/debrief</text>
+  <path d="M224,90 L276,90" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M484,90 L536,90" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <rect x="20" y="270" width="200" height="130" rx="9" fill="white" stroke="#050505" stroke-width="1.5"/>
+  <rect x="34" y="284" width="172" height="20" rx="5" fill="#E6E6E6" stroke="#050505" stroke-width="1.5"/>
+  <text x="120" y="356" text-anchor="middle" font-size="34" font-weight="600" fill="#F08A24">BLUE</text>
+  <circle cx="48" cy="374" r="14" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="48" y="379" text-anchor="middle" font-size="14" font-weight="600" fill="#050505">1</text>
+  <rect x="280" y="270" width="200" height="130" rx="9" fill="white" stroke="#050505" stroke-width="1.5"/>
+  <rect x="294" y="284" width="172" height="20" rx="5" fill="#E6E6E6" stroke="#050505" stroke-width="1.5"/>
+  <text x="380" y="356" text-anchor="middle" font-size="34" font-weight="600" fill="#3B6FB6">GREEN</text>
+  <circle cx="308" cy="374" r="14" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="308" y="379" text-anchor="middle" font-size="14" font-weight="600" fill="#050505">2</text>
+  <rect x="540" y="270" width="200" height="130" rx="9" fill="white" stroke="#050505" stroke-width="1.5"/>
+  <rect x="554" y="284" width="172" height="20" rx="5" fill="#E6E6E6" stroke="#050505" stroke-width="1.5"/>
+  <text x="640" y="356" text-anchor="middle" font-size="34" font-weight="600" fill="#2A9D8F">DOG</text>
+  <circle cx="568" cy="374" r="14" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="568" y="379" text-anchor="middle" font-size="14" font-weight="600" fill="#050505">3</text>
+  <path d="M224,335 L276,335" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M484,335 L536,335" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M340,164 C340,220 120,210 120,266" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M640,266 C640,210 420,220 420,164" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <text x="104" y="246" text-anchor="end" font-size="14" fill="#444444">enter</text>
+  <text x="652" y="246" text-anchor="start" font-size="14" fill="#444444">last step done</text>
+  <text x="380" y="450" text-anchor="middle" font-size="16" fill="#050505">A View can hold many steps; they play in order inside the same page.</text>
+</svg>

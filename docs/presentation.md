@@ -1,3 +1,7 @@
+---
+description: "Presentation mode (/presentation/): a landing page and free navigation for showing your experiment to others, how to customize it by overriding PresentationModeView, and how to share it from a deployed site."
+---
+
 # Presentation Mode
 
 Presentation mode is a way of deploying <SmileText /> experiments in a way that
@@ -47,31 +51,31 @@ mode website.
 
 ## How to customize Presentation Mode
 
-To customize this presentation mode page edit the
-`src/userPresentationModeView.vue` component. You can add links to papers, hot
-link to different parts of your experiment, or add custom routes that help to
-visualize your data, etc...
+The landing page is the built-in `PresentationModeView` component. To change
+it, [override it](/coding/overrides): create `components/PresentationModeView.vue`
+in your project, and your version replaces the built-in one. A good start is to
+copy the built-in file from
+`node_modules/@nyuccl/smile-nuxt/dist/runtime/components/builtins/PresentationModeView.vue`
+and edit it. You can add links to papers, links that jump to parts of your
+experiment, figures, or anything else that helps explain the study.
 
-## How to deploy in Presentation Mode
+## Sharing a deployed experiment in Presentation Mode
 
-To deploy your project in presentation mode there are two options:
+`/presentation/` is part of every build, including the one participants use.
+On a deployed site it's turned off by default (it returns a 404) until you
+choose who can open it, with `SMILE_PRESENTATION_ACCESS` in your hosting
+provider's environment variables:
 
-### Option 1: Branch-based deployment
+| Setting | Who can open `/presentation/` |
+| --- | --- |
+| unset (`disabled`) | nobody (404) |
+| `password` | anyone with the password in `SMILE_PRESENTATION_PASSWORD` (setting the password alone is enough) |
+| `open` | anyone with the link, for example readers of a paper |
 
-Create a new branch titled 'presentation' and push this to GitHub. This will
-generate a special "presentation mode" deployment and you'll receive a slack
-notification about when the website is ready. An example from the default
-<SmileText/> repo is
-[here](https://exps.gureckislab.org/nyuccl/smile/presentation/#/)
+The presentation password is separate from the dev tools' password, so you can
+share one without the other. See
+[Dev & presentation route access](/recruit/deploying#dev-password) for the
+details, and hash the password with `pnpm smile:hash-password` rather than
+storing it as plain text.
 
-### Option 2: Environment variable deployment
-
-Set the `EXP_DEPLOY_MODE` environment variable in your local `.env.deploy.local`
-file to `'presentation'`. This can be done by:
-
-1. Create or edit the file `.env.deploy.local` in your project root
-2. Add the line: `EXP_DEPLOY_MODE = presentation`
-3. Run the update script: `npm run update_config`
-
-When you next commit and push to any branch, the site will be built in
-presentation mode.
+Then share `https://<your-deploy-url>/presentation/` (or the QR code above).

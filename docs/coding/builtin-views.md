@@ -1,3 +1,7 @@
+---
+description: "The built-in Views that come with SMILE (advertisement, informed consent, window sizer, instructions and quiz, demographic and device surveys, withdraw, debrief, thanks, feedback survey), their props and options."
+---
+
 # Built-in Views
 
 When you [set up](/quickstart) the default <SmileText /> project you automatically
