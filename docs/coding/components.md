@@ -16,7 +16,7 @@ application are broken down into smaller elements, which are then built up into
 a hierarchy. The code for these smaller elements can, in many cases, be
 developed completely independently from the rest of the project or webpage.
 
-![components](/images/components.png)
+![components](/images/components.svg)
 
 [Component development](https://www.componentdriven.org) speeds up the process
 of designing a new experiment or web application because you don't have to

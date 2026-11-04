@@ -12,7 +12,7 @@ capital 'V' to distinguish them from ordinary uses of the word "view."). Other
 packages might refer to View elements as "pages", "routes", "sections", "parts",
 or "phases."
 
-<img src="/images/viewstimeline.png" width="600" alt="timeline example" style="margin: auto;">
+<img src="/images/viewstimeline.svg" width="600" alt="timeline example" style="margin: auto;">
 
 To help make clear the distinction between a View and an ordinary component,
 consider the following examples:

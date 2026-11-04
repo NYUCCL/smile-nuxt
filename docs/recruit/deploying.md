@@ -480,7 +480,7 @@ truly want a public dev/presentation view.
 A research project rarely has just one version. You pilot, then run a
 pre-registered design, then follow-ups:
 
-![branching nature of experiments](../images/branchingexps.png)
+![branching nature of experiments](../images/branchingexps.svg)
 
 <SmileText/> maps this onto git: **one repository per project, one branch per
 experiment.** Every branch deploys to its own pair of URLs.

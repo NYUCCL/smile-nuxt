@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 470" font-family="Inter, Helvetica, Arial, sans-serif">
+  <title>Branching flows with meta.next</title>
+  <desc>(a) Two starting Views, 1a and 1b, both lead to View 2, then 3, 4 and 5. (b) 1a leads to 2, 3, 4 and 5, while 1b skips straight to 4.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#050505"/>
+    </marker>
+  </defs>
+  <rect width="760" height="470" fill="white"/>
+  <text x="190" y="36" text-anchor="middle" font-size="18" font-weight="600" fill="#050505">(a) Two ways in</text>
+  <text x="570" y="36" text-anchor="middle" font-size="18" font-weight="600" fill="#050505">(b) A shortcut</text>
+  <path d="M120,110 C120,132.0 190,132.0 190,154" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M260,110 C260,132.0 190,132.0 190,154" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M190,195 L190,229" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M190,270 L190,304" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M190,345 L190,379" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <circle cx="120" cy="90" r="18" fill="#E8B2E3" stroke="#050505" stroke-width="1.5"/>
+  <text x="120" y="95" text-anchor="middle" font-size="15" font-weight="600" fill="#050505">1a</text>
+  <circle cx="260" cy="90" r="18" fill="#E8B2E3" stroke="#050505" stroke-width="1.5"/>
+  <text x="260" y="95" text-anchor="middle" font-size="15" font-weight="600" fill="#050505">1b</text>
+  <circle cx="190" cy="175" r="18" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="190" y="180" text-anchor="middle" font-size="15" font-weight="600" fill="#050505">2</text>
+  <circle cx="190" cy="250" r="18" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="190" y="255" text-anchor="middle" font-size="15" font-weight="600" fill="#050505">3</text>
+  <circle cx="190" cy="325" r="18" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="190" y="330" text-anchor="middle" font-size="15" font-weight="600" fill="#050505">4</text>
+  <circle cx="190" cy="400" r="18" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="190" y="405" text-anchor="middle" font-size="15" font-weight="600" fill="#050505">5</text>
+  <path d="M540,110 L540,154" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M540,195 L540,229" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M540,270 L540,304" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M540,345 L540,379" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <path d="M680,110 L680,285 C680,315 640,325 561,325" fill="none" stroke="#050505" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <circle cx="540" cy="90" r="18" fill="#E8B2E3" stroke="#050505" stroke-width="1.5"/>
+  <text x="540" y="95" text-anchor="middle" font-size="15" font-weight="600" fill="#050505">1a</text>
+  <circle cx="680" cy="90" r="18" fill="#E8B2E3" stroke="#050505" stroke-width="1.5"/>
+  <text x="680" y="95" text-anchor="middle" font-size="15" font-weight="600" fill="#050505">1b</text>
+  <circle cx="540" cy="175" r="18" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="540" y="180" text-anchor="middle" font-size="15" font-weight="600" fill="#050505">2</text>
+  <circle cx="540" cy="250" r="18" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="540" y="255" text-anchor="middle" font-size="15" font-weight="600" fill="#050505">3</text>
+  <circle cx="540" cy="325" r="18" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="540" y="330" text-anchor="middle" font-size="15" font-weight="600" fill="#050505">4</text>
+  <circle cx="540" cy="400" r="18" fill="#B2D5E8" stroke="#050505" stroke-width="1.5"/>
+  <text x="540" y="405" text-anchor="middle" font-size="15" font-weight="600" fill="#050505">5</text>
+  <text x="190" y="448" text-anchor="middle" font-size="14" font-family="SF Mono, Menlo, Consolas, monospace" fill="#444444">1a and 1b: meta: { next: '2' }</text>
+  <text x="570" y="448" text-anchor="middle" font-size="14" font-family="SF Mono, Menlo, Consolas, monospace" fill="#444444">1b: meta: { next: '4' }</text>
+</svg>

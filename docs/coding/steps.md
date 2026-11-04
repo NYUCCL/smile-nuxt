@@ -8,7 +8,7 @@ For some conditions in your experiment, you may want to repeat several trials of
 the same event. Smile provides a trial stepper for organizing and managing
 sequenced events _within_ a View.
 
-<img src="/images/steps.png" width="600" alt="steps example" style="margin: auto;">
+<img src="/images/steps.svg" width="600" alt="steps example" style="margin: auto;">
 
 ::: tip Steps are like builds in a Keynote/Powerpoint animation
 
