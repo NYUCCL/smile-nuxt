@@ -145,6 +145,12 @@ try {
   log('Production build (nuxt build) …')
   run('pnpm', ['exec', 'nuxt', 'build'], { cwd: projectDir, env })
 
+  // The dev tools' Docs mode route exists only under `nuxt dev`.
+  const serverDir = join(projectDir, '.output/server')
+  const withDocsRoute = readdirSync(serverDir, { recursive: true })
+    .filter(f => /\.m?js$/.test(f) && readFileSync(join(serverDir, f), 'utf8').includes('__smile/docs'))
+  if (withDocsRoute.length) throw new Error(`The production build has the dev-only docs route: ${withDocsRoute.join(', ')}`)
+
   log('Ensuring Playwright chromium …')
   run('pnpm', ['exec', 'playwright', 'install', 'chromium'], { cwd: projectDir, env })
 

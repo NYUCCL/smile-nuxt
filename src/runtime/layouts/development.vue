@@ -9,6 +9,7 @@ import DevConsole from '#smile-dev/console/SmileDevConsole.vue'
 import DevSideBar from '#smile-dev/sidebar/SmileDevSideBar.vue'
 import ResponsiveDeviceContainer from '#smile-dev/ResponsiveDeviceContainer.vue'
 import SmileDevPresentationView from '#smile-dev/SmileDevPresentationView.vue'
+import SmileDevDocsView from '#smile-dev/docs/SmileDevDocsView.vue'
 // Dashboard is hidden until the feature is complete
 // import SmileDevDashboardView from '#smile-dev/dashboard/SmileDevDashboardView.vue'
 import useAPI from '../composables/useAPI'
@@ -75,18 +76,10 @@ applyDevPalette()
           />
           -->
 
-          <!-- Docs Mode - Clean full-screen documentation -->
-          <div
+          <!-- Docs Mode - the docs for the installed version -->
+          <SmileDevDocsView
             v-else-if="api.store.dev.mainView === 'docs'"
-            class="docs-container"
-          >
-            <iframe
-              src="https://smile.gureckislab.org"
-              class="docs-iframe"
-              frameborder="0"
-              title="Documentation"
-            />
-          </div>
+          />
 
           <!-- Developer Mode - Full interface with toolbar, sidebar, console -->
           <template v-else>
@@ -198,19 +191,6 @@ applyDevPalette()
 }
 
 /* Docs mode container */
-.docs-container {
-  height: 100vh;
-  width: 100%;
-  overflow: hidden;
-}
-
-.docs-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  overflow: hidden;
-}
-
 /* Developer mode layout */
 .toolbar {
   margin-top: auto;

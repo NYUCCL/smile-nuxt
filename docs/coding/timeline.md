@@ -740,7 +740,7 @@ One important feature of these navigation functions are that they calls
 `saveData()` on the global store prior to View changes. So as a result, you can
 trust that your data will be saved/synchronized with the persistent store
 (Turso/libsql) whenever you navigate between sequential Views. See the data
-storage docs on [automatic saving](/coding/datastorage.html#automatic-saving).
+storage docs on [automatic saving](/coding/datastorage#when-data-is-saved).
 This only works if you use the API to advance between Views.
 
 :::

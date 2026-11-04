@@ -83,6 +83,7 @@ const initDev = {
   showSideBar: false,
   pinnedRoute: null,
   mainView: 'devmode',
+  docsPage: null, // the page open in Docs mode ('coding/steps.md')
   consoleBarHeight: 300,
   consoleBarTab: 'browse',
   sideBarTab: 'steps',

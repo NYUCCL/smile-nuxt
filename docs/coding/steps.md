@@ -25,7 +25,7 @@ from the same step. This is nice because it helps ensure that subjects are
 always completing the set of steps/trials assigned to them and are not able to
 start the task over (possibly introducing biased data from practice effects or
 exposure to different manipulations). You can learn more about this feature by
-reading about how to [persist stepper state](#persisting-stepper-state). The
+reading about how to [persist stepper state](#persisting-data-for-the-view-not-just-a-step). The
 stepper also integrates with the [developer mode](/coding/developing) interface.
 
 ## Creating a stepped View

@@ -78,7 +78,7 @@ before we perform the actual experiment. Smile provides a
 [timeline](/coding/timeline#timeline) that you use to configure this behavior.
 
 The timeline is configured in an important file in every <SmileText/> project
-called the [design file](/coding/timeline#the-design-file-user-design-js)
+called the [design file](/coding/timeline#the-design-file-design-js)
 (located at `design.js` in your project root). This file is where you configure
 the timeline
 for your experiment, including which phases are included and the order in which

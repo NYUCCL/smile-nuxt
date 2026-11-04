@@ -1,5 +1,5 @@
 <script setup>
-import { BugPlay, Moon, Presentation, Settings, Sun, SunMoon, UserRound } from 'lucide-vue-next'
+import { BookMarked, BugPlay, Moon, Presentation, Settings, Sun, SunMoon, UserRound } from 'lucide-vue-next'
 import { useSmileColorMode } from '../../../composables/useColorMode'
 import DevConfigPanel from './DevConfigPanel.vue'
 import useAPI from '../../../composables/useAPI'
@@ -20,10 +20,11 @@ const props = defineProps({
 const api = useAPI()
 
 // Modes shown in the dev layout (store.dev.mainView). The dashboard ('dashboard',
-// Database icon) and docs ('docs', BookMarked) come back here when they're ready.
+// Database icon) comes back here when it's ready.
 const modes = [
   { view: 'devmode', icon: BugPlay, label: 'Developer mode' },
   { view: 'presentation', icon: Presentation, label: 'Presentation mode' },
+  { view: 'docs', icon: BookMarked, label: 'Docs' },
 ]
 
 function selectMode(view) {
@@ -55,6 +56,7 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
               ? 'bg-sd-selected text-sd-selected-fg hover:!bg-sd-selected-hover'
               : 'hover:!bg-sd-hover'"
             :tooltip="mode.label"
+            :aria-label="mode.label"
             @click="selectMode(mode.view)"
           >
             <component :is="mode.icon" />
