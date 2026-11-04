@@ -3,6 +3,7 @@ import Mark from 'markdown-it-mark'
 import { sub } from '@mdit/plugin-sub'
 import { defineConfig } from 'vitepress'
 import { sidebar } from './sidebar.mjs'
+import { darkFiguresMarkdown, darkFiguresVite, writeDarkFigures } from './darkFigures.mjs'
 import { version } from '../../package.json'
 import tailwindcss from '@tailwindcss/vite'
 import Icons from 'unplugin-icons/vite'
@@ -47,10 +48,17 @@ export default defineConfig({
       md.use(sub)
       md.use(footnote)
       md.use(Mark)
+      // Each diagram twice, light and dark (darkFigures.mjs)
+      md.use(darkFiguresMarkdown)
     },
+  },
+  // The dark copies of the diagrams are derived, not committed: write them into the build
+  buildEnd(siteConfig) {
+    console.log(`dark figures: wrote ${writeDarkFigures(siteConfig.outDir)} dark SVG copies`)
   },
   vite: {
     plugins: [
+      darkFiguresVite(),
       tailwindcss(),
       Components({
         dirs: [resolve('.vitepress/theme/components')],

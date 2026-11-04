@@ -704,3 +704,9 @@ html[class*='index'] .VPFooter a:hover {
 .VPNavBarTitle {
   color: #32363f !important;
 }
+
+/* Diagrams come in a light and a dark copy (.vitepress/darkFigures.mjs) */
+html:not(.dark) .vp-doc img.fig-dark,
+.dark .vp-doc img.fig-light {
+  display: none;
+}
