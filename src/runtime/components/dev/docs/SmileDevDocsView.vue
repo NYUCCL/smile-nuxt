@@ -1,12 +1,14 @@
 <script setup>
 /**
  * Docs mode: the SMILE docs for the installed version, inside the dev tools.
+ * Dev server only: the layout loads this view only when import.meta.dev, so a
+ * build (even with SMILE_DEV_TOOLS=include) has neither it nor its route.
  * Pages come from the dev-only /__smile/docs route (server/dev/docs.ts), which
  * renders the markdown that ships with the module. Links between pages stay
  * here; the page you were on comes back next time (store.dev.docsPage).
  *
- * Where that route doesn't exist (a deployed build with the dev tools
- * included), it shows the website instead.
+ * If the route doesn't answer (no docs found in the installed module), it
+ * shows the website instead.
  */
 import { BookMarked, ExternalLink, Search, X } from 'lucide-vue-next'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
@@ -15,6 +17,7 @@ import { provideDevScope } from '../../../composables/useDevScope'
 import { Button } from '../../ui/button'
 import DevModeLabel from '../navbar/DevModeLabel.vue'
 import DevScope from '../DevScope.vue'
+import './docs-prose.css'
 
 provideDevScope()
 

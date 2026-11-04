@@ -23,6 +23,7 @@ function vueFiles(dir) {
 const FILES = [
   ...vueFiles(join(repo, 'src/runtime/components/dev')),
   join(repo, 'src/runtime/layouts/development.vue'),
+  join(repo, 'src/runtime/components/dev/docs/docs-prose.css'),
   join(repo, 'src/runtime/layouts/presentation.vue'),
 ]
 
@@ -33,6 +34,8 @@ const ALLOWED_VARS = new Set([
   'primary', 'primary-foreground', 'accent', 'accent-foreground', 'card', 'card-foreground',
   'popover', 'popover-foreground', 'secondary', 'secondary-foreground', 'destructive',
   'font-mono', 'sidebar-width-icon', 'device-width', 'device-height', 'toast-offset-x', 'toast-offset-y',
+  // Docs mode's code blocks: the colors Shiki writes into each token (github-light / github-dark)
+  'shiki-light', 'shiki-dark',
 ])
 
 const PALETTE = 'red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone'

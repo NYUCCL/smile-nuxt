@@ -142,14 +142,23 @@ try {
   if (missingFiles.length) throw new Error(`The scaffold is missing ${missingFiles.join(', ')}`)
   console.log(`  ${pages.length} docs pages in node_modules; ${agentFiles.length} agent files in the project`)
 
-  log('Production build (nuxt build) …')
-  run('pnpm', ['exec', 'nuxt', 'build'], { cwd: projectDir, env })
+  // With the dev tools included (SMILE_DEV_TOOLS=include), the case where Docs
+  // mode could leak: it exists only under `nuxt dev`, so the build must have
+  // none of it (view, styles, route, renderer, Shiki), client or server.
+  log('Production build with the dev tools included (nuxt build) …')
+  run('pnpm', ['exec', 'nuxt', 'build'], { cwd: projectDir, env: { ...env, SMILE_DEV_TOOLS: 'include' } })
 
-  // The dev tools' Docs mode route exists only under `nuxt dev`.
-  const serverDir = join(projectDir, '.output/server')
-  const withDocsRoute = readdirSync(serverDir, { recursive: true })
-    .filter(f => /\.m?js$/.test(f) && readFileSync(join(serverDir, f), 'utf8').includes('__smile/docs'))
-  if (withDocsRoute.length) throw new Error(`The production build has the dev-only docs route: ${withDocsRoute.join(', ')}`)
+  const outputDir = join(projectDir, '.output')
+  const DOCS_MARKERS = ['__smile/docs', 'sd-prose', 'docs-toc', 'shiki-themes', 'markdown-it']
+  const leaks = readdirSync(outputDir, { recursive: true })
+    .filter(f => /\.(?:m?js|css|html)$/.test(f))
+    .flatMap((f) => {
+      const text = readFileSync(join(outputDir, f), 'utf8')
+      return DOCS_MARKERS.filter(m => text.includes(m)).map(m => `${f} (${m})`)
+    })
+  const shikiDir = readdirSync(outputDir, { recursive: true }).filter(f => /(?:^|[\\/])shiki(?:[\\/]|$)/.test(f))
+  if (leaks.length || shikiDir.length) throw new Error(`The production build has Docs mode in it: ${[...leaks, ...shikiDir].join(', ')}`)
+  console.log('  no Docs mode in the build (client or server)')
 
   log('Ensuring Playwright chromium …')
   run('pnpm', ['exec', 'playwright', 'install', 'chromium'], { cwd: projectDir, env })

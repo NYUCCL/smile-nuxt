@@ -24,7 +24,8 @@ const api = useAPI()
 const modes = [
   { view: 'devmode', icon: BugPlay, label: 'Developer mode' },
   { view: 'presentation', icon: Presentation, label: 'Presentation mode' },
-  { view: 'docs', icon: BookMarked, label: 'Docs' },
+  // Docs mode: dev server only (layouts/development.vue)
+  ...(import.meta.dev ? [{ view: 'docs', icon: BookMarked, label: 'Docs' }] : []),
 ]
 
 function selectMode(view) {
