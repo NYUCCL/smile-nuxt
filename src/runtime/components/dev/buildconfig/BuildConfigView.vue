@@ -9,11 +9,9 @@
  * /_smile/dev-config (src/devconfig/handler.ts), which never sends a secret.
  */
 import { computed, onMounted, ref } from 'vue'
-import { CircleCheck, CircleAlert, ShieldAlert, Info, RotateCw, Search } from 'lucide-vue-next'
-import useAPI from '../../../composables/useAPI'
+import { CircleCheck, CircleAlert, ShieldAlert, Info, RotateCw, Search, SlidersHorizontal } from 'lucide-vue-next'
 import BuildConfigSetting from './BuildConfigSetting.vue'
-
-const api = useAPI()
+import DevModeLabel from '../navbar/DevModeLabel.vue'
 
 const data = ref(null)
 const error = ref(null)
@@ -77,7 +75,9 @@ function showSetting(key) {
   requestAnimationFrame(() => {
     const el = document.getElementById(`sd-setting-${key}`)
     if (!el) return
-    el.closest('details')?.setAttribute('open', '')
+    for (let d = el; d; d = d.parentElement?.closest('details')) {
+      if (d.tagName === 'DETAILS') d.open = true
+    }
     el.scrollIntoView({ block: 'center', behavior: 'smooth' })
     el.classList.add('sd-flash')
     setTimeout(() => el.classList.remove('sd-flash'), 1200)
@@ -90,30 +90,47 @@ function showSetting(key) {
     class="sd-root build-config bg-sd-bg text-sd-text"
     data-testid="build-config"
   >
-    <header class="bc-header">
-      <div>
-        <h1 class="bc-title">
-          Build & deploy settings
-        </h1>
-        <p class="sd-help">
-          What a deploy of <span class="sd-mono">{{ api.config.github?.repoName || 'this project' }}</span> will do, and
-          every setting behind it. Read-only: each setting says where to change it. Values come from this project's env
-          files; on Vercel, its Environment Variables add to them and win.
-        </p>
-      </div>
-      <Button
-        variant="toolbar"
-        size="sm"
-        :disabled="loading"
-        @click="load"
-      >
-        <RotateCw
-          class="size-3.5"
-          :class="{ 'animate-spin': loading }"
+    <!-- Top bar: same layout as developer and presentation mode's -->
+    <nav class="flex items-center justify-between gap-4 w-full border-b border-sd-line h-9 px-3 text-xs flex-none">
+      <div class="flex items-center gap-2 min-w-0">
+        <DevModeLabel
+          :icon="SlidersHorizontal"
+          label="Build & deploy settings"
+          short="Settings"
         />
-        Reload
-      </Button>
-    </header>
+        <span class="text-sd-text-muted truncate hidden md:inline">read-only · click any line for details</span>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <span
+          v-if="data"
+          class="bc-counts"
+        >
+          <span
+            v-if="counts.risk"
+            class="bc-count is-risk"
+          >{{ counts.risk }} risk</span>
+          <span
+            v-if="counts.check"
+            class="bc-count is-check"
+          >{{ counts.check }} to check</span>
+          <span
+            v-if="!counts.risk && !counts.check"
+            class="bc-count is-ok"
+          >all OK</span>
+        </span>
+        <div class="sd-toolbar-rule" />
+        <Button
+          size="menu"
+          variant="toolbar"
+          title="Read the files again"
+          aria-label="Reload"
+          :disabled="loading"
+          @click="load"
+        >
+          <RotateCw :class="{ 'animate-spin': loading }" />
+        </Button>
+      </div>
+    </nav>
 
     <p
       v-if="error"
@@ -123,161 +140,155 @@ function showSetting(key) {
       {{ error }}
     </p>
 
-    <template v-if="data">
-      <!-- What a deploy will do -->
-      <section aria-labelledby="bc-deploy">
-        <h2
-          id="bc-deploy"
-          class="sd-section"
-        >
-          <span>When you deploy</span>
-          <span class="bc-counts">
-            <span v-if="counts.risk">{{ counts.risk }} risk</span>
-            <span v-if="counts.check">{{ counts.check }} to check</span>
-            <span v-if="!counts.risk && !counts.check">all OK</span>
-          </span>
-        </h2>
-        <p class="sd-help bc-pad">
-          Worked out from the files a deploy builds with (<span class="sd-mono">.env</span>, and
-          <span class="sd-mono">.env.production</span> if you have one), and
-          <span class="sd-mono">smile.devTools</span> in nuxt.config.ts. On this dev server, /dev and /presentation are
-          always open with no password; none of this changes that.
-        </p>
-        <ul class="bc-summary">
-          <li
-            v-for="line in data.summary"
-            :key="line.id"
-            class="bc-line"
-            :class="`is-${line.status}`"
-            :data-testid="`deploy-${line.id}`"
-          >
-            <component
-              :is="statusIcon[line.status]"
-              class="bc-icon"
-              :aria-label="statusLabel[line.status]"
-            />
-            <div class="bc-line-body">
-              <div class="bc-q">
-                {{ line.question }}
-              </div>
-              <div class="bc-a">
-                {{ line.answer }}
-              </div>
-              <p class="sd-help">
-                {{ line.explanation }}
-              </p>
-              <p
-                v-if="line.recommendation"
-                class="bc-rec"
-              >
-                <span class="bc-rec-label">Recommended:</span> {{ line.recommendation }}
-              </p>
-              <div class="bc-keys">
-                <button
-                  v-for="k in line.keys"
-                  :key="k"
-                  class="bc-key sd-mono"
-                  @click="showSetting(k)"
-                >
-                  {{ k }}
-                </button>
-              </div>
-            </div>
-          </li>
-        </ul>
-      </section>
+    <!-- Where settings live: one line under the bar -->
+    <div
+      v-if="data"
+      class="bc-sources"
+      data-testid="sources"
+    >
+      <span class="bc-sources-label">Settings come from</span>
+      <span
+        v-for="[name, f] in envFiles"
+        :key="name"
+        class="bc-source"
+        :title="name === '.env.git.local' ? 'Written by SMILE from git on each dev start' : f.tracked ? 'Committed to git: deploys build with it' : 'Not in git: only this machine sees it'"
+      >
+        <span class="sd-mono">{{ name }}</span>
+        <span class="bc-from">{{ name === '.env.git.local' ? 'generated' : f.tracked ? 'deploys' : 'this machine' }}</span>
+      </span>
+      <span
+        v-if="!envFiles.length"
+        class="bc-from"
+      >no env files (all defaults)</span>
+      <span
+        class="bc-source"
+        title="On a deploy, Vercel > Settings > Environment Variables add to the tracked files and win. GitHub Actions' deploy secrets (VERCEL_TOKEN, SLACK_WEBHOOK_URL, MAIL_*) live on GitHub. This page can't see either."
+      >
+        <span>Vercel</span>
+        <span class="bc-from">{{ data.vercelLinked ? 'linked · its variables win on deploys' : 'not linked: pnpm smile:setup-deploy' }}</span>
+      </span>
+    </div>
 
-      <!-- Other findings -->
+    <div
+      v-if="data"
+      class="bc-cols"
+    >
+      <div class="bc-col">
+        <!-- What a deploy will do -->
+        <section aria-labelledby="bc-deploy">
+          <h2
+            id="bc-deploy"
+            class="sd-section"
+          >
+            <span>When you deploy</span>
+          </h2>
+          <ul class="bc-summary">
+            <li
+              v-for="line in data.summary"
+              :key="line.id"
+              :data-testid="`deploy-${line.id}`"
+            >
+              <details
+                class="bc-line"
+                :class="`is-${line.status}`"
+              >
+                <summary class="bc-line-head">
+                  <component
+                    :is="statusIcon[line.status]"
+                    class="bc-icon"
+                    :aria-label="statusLabel[line.status]"
+                  />
+                  <span class="bc-q">{{ line.question }}</span>
+                  <span class="bc-a">{{ line.answer }}</span>
+                </summary>
+                <div class="bc-line-body">
+                  <p class="sd-help">
+                    {{ line.explanation }}
+                  </p>
+                  <p
+                    v-if="line.recommendation"
+                    class="bc-rec"
+                  >
+                    <span class="bc-rec-label">Recommended:</span> {{ line.recommendation }}
+                  </p>
+                  <div class="bc-keys">
+                    <button
+                      v-for="k in line.keys"
+                      :key="k"
+                      class="bc-key sd-mono"
+                      @click="showSetting(k)"
+                    >
+                      {{ k }}
+                    </button>
+                  </div>
+                </div>
+              </details>
+            </li>
+          </ul>
+        </section>
+
+        <!-- Other findings -->
+        <section
+          v-if="data.findings.length"
+          aria-labelledby="bc-findings"
+        >
+          <h2
+            id="bc-findings"
+            class="sd-section"
+          >
+            <span>Also worth a look</span>
+            <span class="bc-counts">{{ data.findings.length }}</span>
+          </h2>
+          <ul class="bc-summary">
+            <li
+              v-for="f in data.findings"
+              :key="f.id"
+              data-testid="finding"
+            >
+              <details
+                class="bc-line"
+                :class="`is-${f.level}`"
+              >
+                <summary class="bc-line-head">
+                  <component
+                    :is="levelIcon[f.level]"
+                    class="bc-icon"
+                  />
+                  <span class="bc-a">{{ f.message }}</span>
+                </summary>
+                <div class="bc-line-body">
+                  <p
+                    v-if="f.fix"
+                    class="sd-help"
+                  >
+                    {{ f.fix }}
+                  </p>
+                  <div class="bc-keys">
+                    <button
+                      v-for="k in f.keys"
+                      :key="k"
+                      class="bc-key sd-mono"
+                      @click="showSetting(k)"
+                    >
+                      {{ k }}
+                    </button>
+                  </div>
+                </div>
+              </details>
+            </li>
+          </ul>
+        </section>
+      </div>
       <section
-        v-if="data.findings.length"
-        aria-labelledby="bc-findings"
+        class="bc-col"
+        aria-labelledby="bc-all"
+        data-testid="all-settings"
       >
         <h2
-          id="bc-findings"
-          class="sd-section"
-        >
-          <span>Also worth a look</span>
-          <span class="bc-counts">{{ data.findings.length }}</span>
-        </h2>
-        <ul class="bc-summary">
-          <li
-            v-for="f in data.findings"
-            :key="f.id"
-            class="bc-line"
-            :class="`is-${f.level}`"
-            data-testid="finding"
-          >
-            <component
-              :is="levelIcon[f.level]"
-              class="bc-icon"
-            />
-            <div class="bc-line-body">
-              <div class="bc-a">
-                {{ f.message }}
-              </div>
-              <p
-                v-if="f.fix"
-                class="sd-help"
-              >
-                {{ f.fix }}
-              </p>
-              <div class="bc-keys">
-                <button
-                  v-for="k in f.keys"
-                  :key="k"
-                  class="bc-key sd-mono"
-                  @click="showSetting(k)"
-                >
-                  {{ k }}
-                </button>
-              </div>
-            </div>
-          </li>
-        </ul>
-      </section>
-
-      <!-- Files -->
-      <section aria-labelledby="bc-files">
-        <h2
-          id="bc-files"
-          class="sd-section"
-        >
-          <span>Where settings live</span>
-        </h2>
-        <div class="bc-pad bc-files">
-          <div
-            v-for="[name, f] in envFiles"
-            :key="name"
-            class="bc-file"
-          >
-            <span class="sd-mono">{{ name }}</span>
-            <span class="bc-badge">{{ name === '.env.git.local' ? 'generated' : f.tracked ? 'tracked: deploys use it' : 'this machine only' }}</span>
-          </div>
-          <div
-            v-if="!envFiles.length"
-            class="sd-help"
-          >
-            No env files: everything is at its default.
-          </div>
-          <div class="bc-file">
-            <span>Vercel</span>
-            <span class="bc-badge">{{ data.vercelLinked ? 'linked (.vercel/project.json)' : 'not linked: run pnpm smile:setup-deploy' }}</span>
-          </div>
-          <p class="sd-help">
-            Deploy secrets for GitHub Actions (VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID, SLACK_WEBHOOK_URL, MAIL_*)
-            are set by <span class="sd-mono">pnpm smile:setup-deploy</span> and live on GitHub; the app's own variables
-            for deploys live in Vercel &gt; Settings &gt; Environment Variables. This page can't see either.
-          </p>
-        </div>
-      </section>
-
-      <!-- All settings -->
-      <section aria-labelledby="bc-all">
-        <h2
           id="bc-all"
-          class="sd-section"
+          class="sd-section bc-sticky"
         >
-          <span>All settings</span>
+          <span>All settings <span class="bc-counts">{{ data.settings.length }}</span></span>
           <label class="bc-filter">
             <Search class="size-3" />
             <input
@@ -288,24 +299,20 @@ function showSetting(key) {
             >
           </label>
         </h2>
-        <template
+        <div
           v-for="g in groups"
           :key="g.id"
+          class="bc-subgroup"
         >
-          <details
-            class="bc-group"
-            :open="g.id !== 'generated' || !!filter"
-          >
-            <summary class="bc-group-title">
-              {{ g.title }} <span class="bc-counts">{{ g.settings.length }}</span>
-            </summary>
-            <BuildConfigSetting
-              v-for="s in g.settings"
-              :key="s.key"
-              :setting="s"
-            />
-          </details>
-        </template>
+          <h3 class="bc-subgroup-title">
+            {{ g.title }}
+          </h3>
+          <BuildConfigSetting
+            v-for="s in g.settings"
+            :key="s.key"
+            :setting="s"
+          />
+        </div>
         <p
           v-if="!groups.length"
           class="sd-help bc-pad"
@@ -313,7 +320,7 @@ function showSetting(key) {
           No setting matches "{{ filter }}".
         </p>
       </section>
-    </template>
+    </div>
 
     <p
       v-else-if="loading"
@@ -326,27 +333,41 @@ function showSetting(key) {
 
 <style scoped>
 .build-config {
+  display: flex;
+  flex-direction: column;
   height: 100vh;
   overflow-y: auto;
   font-size: var(--sd-font-sm);
 }
 
-.build-config > * {
-  max-width: 980px;
-}
-
-.bc-header {
+.bc-cols {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px 12px 12px;
+  flex-direction: column;
 }
 
-.bc-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 4px;
+@media (min-width: 1100px) {
+  .build-config {
+    overflow: hidden;
+  }
+  .bc-cols {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  }
+  .bc-col {
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .bc-col + .bc-col {
+    border-left: 1px solid var(--sd-line);
+  }
+}
+
+.bc-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .bc-pad {
@@ -370,6 +391,23 @@ function showSetting(key) {
   letter-spacing: 0;
 }
 
+.bc-count {
+  padding: 0 6px;
+  border-radius: 4px;
+  line-height: 18px;
+}
+.bc-count.is-risk {
+  background: var(--sd-error-bg);
+  color: var(--sd-error);
+}
+.bc-count.is-check {
+  background: var(--sd-warn-bg);
+  color: var(--sd-warn);
+}
+.bc-count.is-ok {
+  color: var(--sd-ok);
+}
+
 .bc-summary {
   list-style: none;
   margin: 0;
@@ -377,10 +415,23 @@ function showSetting(key) {
 }
 
 .bc-line {
-  display: flex;
-  gap: 10px;
-  padding: 10px 12px;
   border-bottom: 1px solid var(--sd-line);
+}
+
+.bc-line-head {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  list-style: none;
+}
+.bc-line-head::-webkit-details-marker {
+  display: none;
+}
+.bc-line-head:hover {
+  background: var(--sd-hover);
 }
 
 .bc-icon {
@@ -404,26 +455,34 @@ function showSetting(key) {
 .is-info .bc-icon {
   color: var(--sd-info);
 }
-.is-risk,
-.is-error {
+.is-risk > .bc-line-head,
+.is-error > .bc-line-head {
   background: var(--sd-error-bg);
 }
 
 .bc-line-body {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  min-width: 0;
+  gap: 4px;
+  padding: 2px 12px 10px 36px;
 }
 
 .bc-q {
+  grid-column: 2;
   font-size: var(--sd-font-xs);
   color: var(--sd-text-muted);
 }
 
+.bc-q + .bc-a {
+  grid-column: 2;
+}
+
 .bc-a {
-  font-size: var(--sd-font-md);
   font-weight: 500;
+}
+
+.bc-line-head > .bc-icon {
+  grid-row: 1 / span 2;
 }
 
 .bc-rec {
@@ -452,23 +511,34 @@ function showSetting(key) {
   background: var(--sd-hover);
 }
 
-.bc-files {
+.bc-sources {
+  flex: none;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.bc-file {
-  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px 10px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--sd-line);
+  background: var(--sd-panel);
 }
 
-.bc-badge {
-  font-size: var(--sd-font-xs);
-  padding: 0 6px;
+.bc-sources-label {
+  color: var(--sd-text-muted);
+}
+
+.bc-source {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 1px 8px;
+  border: 1px solid var(--sd-line);
   border-radius: 4px;
-  background: var(--sd-panel-2);
+  background: var(--sd-bg);
+  cursor: help;
+}
+
+.bc-from {
+  font-size: var(--sd-font-xs);
   color: var(--sd-text-muted);
 }
 
@@ -503,5 +573,14 @@ function showSetting(key) {
 }
 .bc-group-title:hover {
   background: var(--sd-hover);
+}
+
+.bc-subgroup-title {
+  padding: 10px 12px 4px;
+  font-size: var(--sd-font-xs);
+  font-weight: 600;
+  color: var(--sd-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 </style>

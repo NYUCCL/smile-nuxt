@@ -16,7 +16,7 @@ test.describe('Build & deploy settings', () => {
     const button = page.getByRole('button', { name: 'Build & deploy settings' })
     await button.click()
     const view = page.getByTestId('build-config')
-    await expect(view.getByRole('heading', { name: 'Build & deploy settings' })).toBeVisible()
+    await expect(view.getByRole('navigation')).toContainText('Build & deploy settings')
     await button.click()
     await expect(view).not.toBeVisible()
     await expect(page.locator('nav')).toBeVisible()
@@ -38,7 +38,7 @@ test.describe('Build & deploy settings', () => {
 
     // A setting from the tracked .env, with where it comes from and how to change it
     const row = view.getByTestId('setting-VITE_MAX_WRITES')
-    await expect(row.getByTestId('value')).toContainText('from .env')
+    await expect(row.getByTestId('value')).toContainText('.env')
     await expect(row).toContainText('Change it')
 
     // A secret shows only whether it's set
@@ -46,9 +46,11 @@ test.describe('Build & deploy settings', () => {
     expect(responses.length).toBeGreaterThan(0)
     expect(responses.join('')).not.toMatch(/"SMILE_DEV_PASSWORD"[^}]*"value":"/)
 
-    // A finding's key jumps to its row
+    // A line opens to say why; its keys jump to their rows
+    await view.getByTestId('deploy-saving').locator('summary').click()
     await view.getByTestId('deploy-saving').getByRole('button', { name: 'VITE_AUTO_SAVE_DATA' }).click()
     await expect(view.getByTestId('setting-VITE_AUTO_SAVE_DATA')).toBeInViewport()
+    await expect(view.getByTestId('setting-VITE_AUTO_SAVE_DATA')).toHaveAttribute('open', '')
   })
 
   test('the filter narrows the settings', async ({ page }) => {
