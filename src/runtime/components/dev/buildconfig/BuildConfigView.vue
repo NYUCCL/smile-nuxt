@@ -98,7 +98,6 @@ function showSetting(key) {
           label="Build & deploy settings"
           short="Settings"
         />
-        <span class="text-sd-text-muted truncate hidden md:inline">read-only · click any line for details</span>
       </div>
       <div class="flex items-center gap-2 flex-shrink-0">
         <span
@@ -140,34 +139,42 @@ function showSetting(key) {
       {{ error }}
     </p>
 
-    <!-- Where settings live: one line under the bar -->
-    <div
-      v-if="data"
-      class="bc-sources"
-      data-testid="sources"
-    >
-      <span class="bc-sources-label">Settings come from</span>
-      <span
-        v-for="[name, f] in envFiles"
-        :key="name"
-        class="bc-source"
-        :title="name === '.env.git.local' ? 'Written by SMILE from git on each dev start' : f.tracked ? 'Committed to git: deploys build with it' : 'Not in git: only this machine sees it'"
+    <!-- Title, and where settings live -->
+    <header class="bc-head">
+      <h1 class="bc-title">
+        Build & deploy settings
+      </h1>
+      <p class="bc-sub">
+        Read-only. Click any line to see why, and where to change it.
+      </p>
+      <div
+        v-if="data"
+        class="bc-sources"
+        data-testid="sources"
       >
-        <span class="sd-mono">{{ name }}</span>
-        <span class="bc-from">{{ name === '.env.git.local' ? 'generated' : f.tracked ? 'deploys' : 'this machine' }}</span>
-      </span>
-      <span
-        v-if="!envFiles.length"
-        class="bc-from"
-      >no env files (all defaults)</span>
-      <span
-        class="bc-source"
-        title="On a deploy, Vercel > Settings > Environment Variables add to the tracked files and win. GitHub Actions' deploy secrets (VERCEL_TOKEN, SLACK_WEBHOOK_URL, MAIL_*) live on GitHub. This page can't see either."
-      >
-        <span>Vercel</span>
-        <span class="bc-from">{{ data.vercelLinked ? 'linked · its variables win on deploys' : 'not linked: pnpm smile:setup-deploy' }}</span>
-      </span>
-    </div>
+        <span class="bc-sources-label">Settings come from</span>
+        <span
+          v-for="[name, f] in envFiles"
+          :key="name"
+          class="bc-source"
+          :title="name === '.env.git.local' ? 'Written by SMILE from git on each dev start' : f.tracked ? 'Committed to git: deploys build with it' : 'Not in git: only this machine sees it'"
+        >
+          <span class="sd-mono">{{ name }}</span>
+          <span class="bc-from">{{ name === '.env.git.local' ? 'generated' : f.tracked ? 'deploys' : 'this machine' }}</span>
+        </span>
+        <span
+          v-if="!envFiles.length"
+          class="bc-from"
+        >no env files (all defaults)</span>
+        <span
+          class="bc-source"
+          title="On a deploy, Vercel > Settings > Environment Variables add to the tracked files and win. GitHub Actions' deploy secrets (VERCEL_TOKEN, SLACK_WEBHOOK_URL, MAIL_*) live on GitHub. This page can't see either."
+        >
+          <span>Vercel</span>
+          <span class="bc-from">{{ data.vercelLinked ? 'linked · its variables win on deploys' : 'not linked: pnpm smile:setup-deploy' }}</span>
+        </span>
+      </div>
+    </header>
 
     <div
       v-if="data"
@@ -516,15 +523,30 @@ function showSetting(key) {
   background: var(--sd-hover);
 }
 
-.bc-sources {
+.bc-head {
   flex: none;
+  padding: 14px 12px 10px;
+  border-bottom: 1px solid var(--sd-line);
+  background: var(--sd-panel);
+}
+
+.bc-title {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.bc-sub {
+  margin-top: 2px;
+  color: var(--sd-text-muted);
+}
+
+.bc-sources {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 10px;
-  padding: 6px 12px;
-  border-bottom: 1px solid var(--sd-line);
-  background: var(--sd-panel);
+  margin-top: 10px;
 }
 
 .bc-sources-label {
