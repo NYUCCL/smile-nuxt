@@ -1,5 +1,5 @@
 <script setup>
-import { BugPlay, Moon, Presentation, Settings, Sun, SunMoon, UserRound } from 'lucide-vue-next'
+import { BugPlay, Moon, Presentation, Settings, SlidersHorizontal, Sun, SunMoon, UserRound } from 'lucide-vue-next'
 import { useSmileColorMode } from '../../../composables/useColorMode'
 import DevConfigPanel from './DevConfigPanel.vue'
 import useAPI from '../../../composables/useAPI'
@@ -24,6 +24,7 @@ const api = useAPI()
 const modes = [
   { view: 'devmode', icon: BugPlay, label: 'Developer mode' },
   { view: 'presentation', icon: Presentation, label: 'Presentation mode' },
+  { view: 'config', icon: SlidersHorizontal, label: 'Build & deploy settings' },
 ]
 
 function selectMode(view) {
@@ -45,6 +46,17 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
   >
     <SidebarContent class="pt-2">
       <SidebarMenu class="sd-rail-group">
+        <!-- The study as participants see it: leaves the dev tools (the local
+             banner there links back) -->
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            as-child
+            class="sd-rail-btn hover:!bg-sd-hover"
+            tooltip="Participant view (leaves the dev tools)"
+          >
+            <a href="/"><UserRound /></a>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
         <SidebarMenuItem
           v-for="mode in modes"
           :key="mode.view"
@@ -55,21 +67,10 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
               ? 'bg-sd-selected text-sd-selected-fg hover:!bg-sd-selected-hover'
               : 'hover:!bg-sd-hover'"
             :tooltip="mode.label"
+            :aria-label="mode.label"
             @click="selectMode(mode.view)"
           >
             <component :is="mode.icon" />
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-
-        <!-- The study as participants see it: leaves the dev tools (the local
-             banner there links back) -->
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            as-child
-            class="sd-rail-btn hover:!bg-sd-hover"
-            tooltip="Participant view (leaves the dev tools)"
-          >
-            <a href="/"><UserRound /></a>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
