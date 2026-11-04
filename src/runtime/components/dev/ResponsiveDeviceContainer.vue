@@ -2,6 +2,7 @@
 import { Maximize, Moon, RotateCcw, Sun, SunMoon } from 'lucide-vue-next'
 import { ref, computed, watch } from 'vue'
 import ResponsiveDeviceSelect from './menu/ResponsiveDeviceSelect.vue'
+import DevScope from './DevScope.vue'
 import { useElementSize } from '@vueuse/core'
 
 import { devicePresets } from './devicePresets.js'
@@ -142,76 +143,78 @@ const colorMode = computed(() => {
     <div class="device-content-wrapper">
       <!-- Device information and control panel -->
       <div class="device-info">
-        <div class="device-controls">
-          <ResponsiveDeviceSelect />
+        <DevScope>
+          <div class="device-controls sd-root">
+            <ResponsiveDeviceSelect />
 
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  @click="toggleRotation"
-                >
-                  <RotateCcw :class="{ 'text-link-button-foreground': api.store.dev.isRotated }" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p>Rotate device</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    @click="toggleRotation"
+                  >
+                    <RotateCcw :class="{ 'text-sd-link': api.store.dev.isRotated }" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>Rotate device</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-          <Separator orientation="vertical" />
+            <Separator orientation="vertical" />
 
-          <div class="device-dimensions">
-            {{ api.store.dev.deviceWidth }} x {{ api.store.dev.deviceHeight }}
+            <div class="device-dimensions">
+              {{ api.store.dev.deviceWidth }} x {{ api.store.dev.deviceHeight }}
+            </div>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    @click="toggleColorMode"
+                  >
+                    <Moon v-if="experimentColorModeRaw === 'light'" />
+                    <SunMoon v-else-if="experimentColorModeRaw === 'dark'" />
+                    <Sun v-else />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p v-if="experimentColorModeRaw === 'light'">
+                    Switch to Dark Mode
+                  </p>
+                  <p v-else-if="experimentColorModeRaw === 'dark'">
+                    Switch to System ({{ system }})
+                  </p>
+                  <p v-else>
+                    Switch to Light Mode
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    @click="toggleFullscreen"
+                  >
+                    <Maximize />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>Fullscreen Mode</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  @click="toggleColorMode"
-                >
-                  <Moon v-if="experimentColorModeRaw === 'light'" />
-                  <SunMoon v-else-if="experimentColorModeRaw === 'dark'" />
-                  <Sun v-else />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p v-if="experimentColorModeRaw === 'light'">
-                  Switch to Dark Mode
-                </p>
-                <p v-else-if="experimentColorModeRaw === 'dark'">
-                  Switch to System ({{ system }})
-                </p>
-                <p v-else>
-                  Switch to Light Mode
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  @click="toggleFullscreen"
-                >
-                  <Maximize />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p>Fullscreen Mode</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+        </DevScope>
       </div>
 
       <!-- Device container with resize handles -->
@@ -253,9 +256,10 @@ const colorMode = computed(() => {
   height: 100%;
   min-height: 100%;
   max-width: 100%;
+  box-shadow: var(--sd-stage-shadow);
   background-image:
-    linear-gradient(color-mix(in srgb, var(--border) 70%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--border) 70%, transparent) 1px, transparent 1px);
+    linear-gradient(var(--sd-stage-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--sd-stage-grid) 1px, transparent 1px);
   background-size: 20px 20px;
   background-position: -1px 0px;
   overflow-y: auto;
@@ -269,7 +273,6 @@ const colorMode = computed(() => {
   align-items: center;
   justify-content: flex-start;
   padding: 20px;
-  background-color: var(--test-background);
 }
 
 @container (min-width: 800px) {
@@ -305,10 +308,11 @@ const colorMode = computed(() => {
   margin-bottom: 10px;
   font-family: monospace;
   font-size: 14px;
-  background-color: var(--background);
-  border: 1px solid var(--border);
+  background-color: var(--sd-bg);
+  border: 1px solid var(--sd-line);
   border-radius: 10px;
   padding: 5px;
+  box-shadow: var(--sd-float-shadow);
 }
 
 .device-controls {
@@ -327,18 +331,7 @@ const colorMode = computed(() => {
 .device-dimensions {
   font-family: monospace;
   font-size: 0.8em;
-  color: var(--muted-foreground);
-}
-
-.device-controls :deep(.select-small) {
-  height: 28px !important;
-  padding: 4px 8px !important;
-  font-size: 12px !important;
-}
-
-.device-controls :deep(.select-small svg) {
-  width: 12px !important;
-  height: 12px !important;
+  color: var(--sd-text-muted);
 }
 
 .device-wrapper {
@@ -347,6 +340,7 @@ const colorMode = computed(() => {
   justify-content: flex-start;
   align-items: center;
   background-color: var(--background);
+  border-radius: 12px; /* same as .device-container, or its square corners show */
 }
 
 .device-container {
@@ -355,16 +349,14 @@ const colorMode = computed(() => {
   height: var(--device-height);
   overflow-x: auto;
   overflow-y: auto;
-  box-shadow:
-    0 6px 20px rgba(0, 0, 0, 0.15),
-    0 3px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--sd-device-shadow);
   border: 2px solid var(--border);
   border-radius: 12px;
 }
 
 .resize-handle {
   position: absolute;
-  background: var(--resize-handle);
+  background: var(--sd-handle);
   border-radius: 20px;
   transition: all 0.2s;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -372,12 +364,12 @@ const colorMode = computed(() => {
 }
 
 .resize-handle:hover {
-  background: var(--resize-handle-hover);
+  background: var(--sd-handle-hover);
   transform: scale(1.1);
 }
 
 .resize-handle:active {
-  background: var(--resize-handle-hover);
+  background: var(--sd-handle-hover);
   transform: scale(1.05);
 }
 

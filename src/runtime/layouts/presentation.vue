@@ -3,6 +3,8 @@ import { computed, ref, onMounted } from 'vue'
 import useAPI from '#smile-composables/useAPI'
 
 import PresentationNavBar from '#smile-dev/presentation/PresentationNavBar.vue'
+import { applyDevPalette } from '#smile-composables/useDevPalette'
+import DevScope from '#smile-dev/DevScope.vue'
 
 const api = useAPI()
 
@@ -18,18 +20,21 @@ const isLoading = computed(() => {
 const isRouteNotFound = computed(() => {
   return mounted.value && api.currentRouteName() === undefined
 })
+
+// The dev tools' palette, on <html> (only the dev tools' colors use it)
+applyDevPalette()
 </script>
 
 <template>
   <ClientOnly>
     <!-- Main app container for presentation mode -->
     <div class="app-container">
-      <LocalDevBanner />
-
       <!-- Top toolbar with navigation -->
-      <div class="toolbar">
-        <PresentationNavBar />
-      </div>
+      <DevScope>
+        <div class="toolbar sd-root">
+          <PresentationNavBar />
+        </div>
+      </DevScope>
 
       <!-- Middle row - content area -->
       <div class="content-wrapper">
@@ -82,7 +87,7 @@ const isRouteNotFound = computed(() => {
   margin-bottom: auto;
   height: 36px;
   width: full;
-  background-color: var(--dev-bar-bg);
+  background-color: var(--sd-bar);
 }
 
 /* Content wrapper layout */
@@ -127,8 +132,8 @@ const isRouteNotFound = computed(() => {
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid var(--spinner-track);
-  border-top: 4px solid var(--spinner-active);
+  border: 4px solid var(--sd-spinner-track);
+  border-top: 4px solid var(--sd-spinner);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;

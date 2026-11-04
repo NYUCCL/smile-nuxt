@@ -122,7 +122,7 @@ function panel_jump(index) {
   <!-- Database browsing panel with breadcrumb navigation and three-panel layout -->
   <div class="h-full p-0 m-0 flex flex-col">
     <!-- Breadcrumb navigation bar -->
-    <Breadcrumb class="bg-muted border-b border-dev-lines px-3 py-2 font-mono">
+    <Breadcrumb class="sd-controlbar sd-mono">
       <BreadcrumbList>
         <template
           v-for="(option, index) in browse_panels.path"
@@ -152,7 +152,7 @@ function panel_jump(index) {
     <!-- Three-panel layout for hierarchical data navigation -->
     <div class="flex flex-1 overflow-hidden">
       <!-- Left panel - 25% width -->
-      <div class="w-1/4 h-full border-r border-dev-lines p-0 m-0">
+      <div class="w-1/4 h-full border-r border-sd-line p-0 m-0">
         <!-- two from end -->
         <DatabaseList
           :data="panel_path(2)"
@@ -161,7 +161,7 @@ function panel_jump(index) {
         />
       </div>
       <!-- Middle panel - 25% width -->
-      <div class="w-1/4 h-full border-r border-dev-lines p-0 m-0 bg-background">
+      <div class="w-1/4 h-full border-r border-sd-line p-0 m-0 bg-sd-bg">
         <!-- one from end -->
         <DatabaseList
           :data="panel_path(1)"
@@ -170,7 +170,7 @@ function panel_jump(index) {
         />
       </div>
       <!-- Right panel - 50% width -->
-      <div class="w-1/2 h-full p-0 m-0 bg-background">
+      <div class="w-1/2 h-full p-0 m-0 bg-sd-bg">
         <!-- zero from end -->
         <DatabaseList
           :data="panel_path(0)"

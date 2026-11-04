@@ -1,0 +1,495 @@
+/* Dev tools theme (plans/dev_tools_theming.md).
+
+   Every color the dev tools use comes from here, in two layers:
+
+   1. Palette primitives (--sd-p-*): neutrals and eight hues, set once per
+      mode. A palette's light and dark halves set the same keys; hues keep
+      their hue between modes and change only lightness, so blue stays blue.
+   2. Semantic tokens (--sd-*): what the dev tools mean (a line, the selected
+      tab, an ok status, a data key …), defined only in terms of primitives.
+      Components use these, never primitives, raw colors, or tokens meant for
+      something else (chart-*, *-button).
+
+   The semantic layer is declared on every element that sets primitives
+   (:root, .light, .dark): custom properties resolve where they're declared,
+   so a nested .light/.dark scope must re-run the mapping to pick up its own
+   primitives.
+
+   Only the dev tools use the --sd- names; participant pages and the
+   experiment preview never do. Prefix: sd = smile dev. */
+
+/* ---- Default palette: primitives ------------------------------------- */
+
+:root,
+.light {
+  --sd-p-bg: oklch(1 0 0);
+  --sd-p-surface: oklch(0.967 0.001 286.375);
+  --sd-p-surface-2: oklch(0.935 0.003 286.3);
+  --sd-p-border: oklch(0.905 0.004 286.32);
+  --sd-p-fg: oklch(0.141 0.005 285.823);
+  --sd-p-fg-muted: oklch(0.48 0.016 285.938);
+  --sd-p-solid: color-mix(in oklab, var(--sd-p-fg) 58%, var(--sd-p-bg)); /* checked controls: a soft near-fg */
+  /* The stage (behind the experiment preview): recessed, a step darker
+     than the chrome. Defined from the other primitives, so every palette
+     gets one */
+  --sd-p-stage: color-mix(in oklab, var(--sd-p-fg) 3%, var(--sd-p-bg));
+  --sd-p-stage-grid: color-mix(in oklab, var(--sd-p-fg) 9%, var(--sd-p-stage)); /* grey lines */
+  /* the stage's inner shadow */
+  --sd-p-stage-shadow: inset 0 2px 6px color-mix(in oklab, oklch(0 0 0) 10%, transparent), inset 0 0 28px color-mix(in oklab, oklch(0 0 0) 10%, transparent);
+  /* floating controls over the stage */
+  --sd-p-float-shadow: 0 4px 14px color-mix(in oklab, oklch(0 0 0) 10%, transparent), 0 1px 3px color-mix(in oklab, oklch(0 0 0) 8%, transparent);
+  /* Reading surface (the recruit page): the palette's background. A palette
+     whose tint is too strong for a whole page lightens it (lightReading in
+     scripts/dev-palettes.js). Cards sit a step off it. */
+  --sd-p-reading: var(--sd-p-bg);
+  --sd-p-reading-card: color-mix(in oklab, var(--sd-p-fg) 4%, var(--sd-p-reading));
+  --sd-p-reading-line: var(--sd-p-border);
+  --sd-p-device-shadow: 0 6px 20px color-mix(in oklab, oklch(0 0 0) 15%, transparent), 0 3px 8px color-mix(in oklab, oklch(0 0 0) 10%, transparent);
+
+  /* Hues dark enough for text on the light surfaces */
+  --sd-p-blue: oklch(0.5 0.13 255);
+  --sd-p-accent: var(--sd-p-blue);
+  --sd-p-teal: oklch(0.5 0.08 195);
+  --sd-p-green: oklch(0.5 0.11 150);
+  --sd-p-yellow: oklch(0.52 0.11 75);
+  --sd-p-orange: oklch(0.53 0.14 45);
+  --sd-p-red: oklch(0.52 0.18 25);
+  --sd-p-purple: oklch(0.5 0.15 300);
+  --sd-p-pink: oklch(0.52 0.15 355);
+  --sd-p-done: oklch(0.5 0.11 230); /* sky: the data progress' reached stages */
+
+  /* Recruitment tiles: Smile's own bright tints (palettes mix theirs from
+     their hues, scripts/dev-palettes.js) */
+  --sd-p-tile-blue: oklch(0.88 0.07 250);
+  --sd-p-tile-teal: oklch(0.89 0.06 190);
+  --sd-p-tile-green: oklch(0.9 0.08 150);
+  --sd-p-tile-yellow: oklch(0.92 0.09 90);
+  --sd-p-tile-orange: oklch(0.89 0.08 55);
+  --sd-p-tile-red: oklch(0.87 0.08 20);
+  --sd-p-tile-purple: oklch(0.88 0.07 300);
+  --sd-p-tile-pink: oklch(0.89 0.07 350);
+
+
+  /* Hazard stripes (the "local" tag): a true caution yellow, which the
+     text-dark yellow above can't give by tinting */
+  --sd-p-stripe-1: oklch(0.9 0.13 92);
+  --sd-p-stripe-2: oklch(0.84 0.14 85);
+  --sd-p-stripe-edge: oklch(0.76 0.13 80);
+}
+
+.dark {
+  /* A slate leaning toward the London palette's navy: chrome a step darker
+     than the panels, the stage darker still */
+  --sd-p-bg: oklch(0.235 0.012 250);
+  --sd-p-surface: oklch(0.205 0.011 250);
+  --sd-p-surface-2: oklch(0.3 0.014 250);
+  --sd-p-border: oklch(0.34 0.015 250);
+  --sd-p-fg: oklch(0.94 0.005 90);
+  --sd-p-fg-muted: oklch(0.76 0.012 250);
+  --sd-p-solid: color-mix(in oklab, var(--sd-p-fg) 58%, var(--sd-p-bg));
+  --sd-p-stage: color-mix(in oklab, oklch(0 0 0) 30%, var(--sd-p-bg)); /* near-black, darker than the panels */
+  --sd-p-stage-grid: color-mix(in oklab, var(--sd-p-fg) 20%, var(--sd-p-stage)); /* light grey lines */
+  /* on a near-black stage a shadow alone barely shows: a deeper, wider
+     shade plus a faint light rim along the top edge */
+  --sd-p-stage-shadow: inset 0 1px 0 color-mix(in oklab, var(--sd-p-fg) 8%, transparent), inset 0 3px 10px color-mix(in oklab, oklch(0 0 0) 85%, transparent), inset 0 0 60px color-mix(in oklab, oklch(0 0 0) 75%, transparent);
+  --sd-p-float-shadow: 0 4px 16px color-mix(in oklab, oklch(0 0 0) 60%, transparent), 0 1px 3px color-mix(in oklab, oklch(0 0 0) 50%, transparent);
+  --sd-p-reading: var(--sd-p-bg);
+  --sd-p-reading-card: color-mix(in oklab, var(--sd-p-fg) 5%, var(--sd-p-bg));
+  --sd-p-reading-line: var(--sd-p-border);
+  --sd-p-device-shadow: 0 10px 36px color-mix(in oklab, oklch(0 0 0) 80%, transparent), 0 3px 10px color-mix(in oklab, oklch(0 0 0) 60%, transparent);
+
+  /* Same hues, lighter and a little less saturated */
+  --sd-p-blue: oklch(0.76 0.1 250);
+  --sd-p-accent: var(--sd-p-blue);
+  --sd-p-teal: oklch(0.78 0.07 190);
+  --sd-p-green: oklch(0.78 0.1 150);
+  --sd-p-yellow: oklch(0.83 0.1 85);
+  --sd-p-orange: oklch(0.78 0.1 55);
+  --sd-p-red: oklch(0.72 0.14 22);
+  --sd-p-purple: oklch(0.76 0.1 300);
+  --sd-p-pink: oklch(0.78 0.1 355);
+  --sd-p-done: oklch(0.8 0.11 225);
+
+  --sd-p-tile-blue: oklch(0.42 0.09 250);
+  --sd-p-tile-teal: oklch(0.42 0.07 190);
+  --sd-p-tile-green: oklch(0.42 0.09 150);
+  --sd-p-tile-yellow: oklch(0.45 0.08 85);
+  --sd-p-tile-orange: oklch(0.43 0.09 50);
+  --sd-p-tile-red: oklch(0.42 0.11 22);
+  --sd-p-tile-purple: oklch(0.42 0.1 300);
+  --sd-p-tile-pink: oklch(0.43 0.1 355);
+
+  --sd-p-stripe-1: oklch(0.46 0.08 88);
+  --sd-p-stripe-2: oklch(0.37 0.06 85);
+  --sd-p-stripe-edge: oklch(0.56 0.09 85);
+}
+
+/* ---- Semantic tokens (palette- and mode-independent) ------------------ */
+
+:root,
+.light,
+.dark {
+  /* Surfaces. Two roles, nothing else:
+     - chrome: what frames and drives the tools: the app menu rail, toolbars,
+       tab strips, section headers, control bars, footers
+     - bg: what you read: trees, data, logs, tables
+     (plus the stage, below, behind the experiment preview) */
+  --sd-chrome: var(--sd-p-surface);
+  /* stage: the recessed area the experiment preview sits on, set apart from
+     both the chrome and the panels */
+  --sd-stage: var(--sd-p-stage);
+  --sd-stage-grid: var(--sd-p-stage-grid);
+  /* The stage sits recessed under the bars and panels: a soft inner shadow */
+  --sd-stage-shadow: var(--sd-p-stage-shadow);
+  --sd-float-shadow: var(--sd-p-float-shadow);
+  --sd-reading-bg: var(--sd-p-reading);
+  --sd-reading-card: var(--sd-p-reading-card);
+  --sd-reading-line: var(--sd-p-reading-line);
+  --sd-device-shadow: var(--sd-p-device-shadow); /* the previewed device */
+  --sd-bg: var(--sd-p-bg);
+  --sd-panel: var(--sd-p-surface);
+  --sd-panel-2: var(--sd-p-surface-2);
+  --sd-line: var(--sd-p-border);
+  --sd-text: var(--sd-p-fg);
+  --sd-text-muted: var(--sd-p-fg-muted);
+  --sd-hover: color-mix(in oklab, var(--sd-p-fg) 5%, var(--sd-p-bg));
+  --sd-link: var(--sd-p-blue);
+
+  /* Selection and controls: neutral. The current tab, mode, step or item
+     is a grey a step darker (lighter in dark mode) than hover, and checked
+     controls are a soft near-foreground fill. Color is kept for meaning:
+     links, data syntax, warnings and errors. --sd-accent is the one hue
+     for focus rings and the odd highlight. */
+  --sd-accent: var(--sd-p-accent);
+  --sd-selected: color-mix(in oklab, var(--sd-p-fg) 10%, var(--sd-p-bg));
+  --sd-selected-hover: color-mix(in oklab, var(--sd-p-fg) 14%, var(--sd-p-bg));
+  --sd-selected-fg: var(--sd-p-fg);
+  --sd-solid: var(--sd-p-solid);
+  --sd-solid-fg: var(--sd-p-bg);
+
+  /* Status: a hue for icons/text, a quiet tint for backgrounds */
+  --sd-ok: var(--sd-p-green);
+  --sd-ok-bg: color-mix(in oklab, var(--sd-p-green) 15%, var(--sd-p-bg));
+  /* Reached stages of the participant's data (progress meter, top bar) */
+  --sd-done: var(--sd-p-done);
+  --sd-done-bg: color-mix(in oklab, var(--sd-p-done) 15%, var(--sd-p-bg));
+  --sd-warn: var(--sd-p-yellow);
+  --sd-warn-bg: color-mix(in oklab, var(--sd-p-yellow) 15%, var(--sd-p-bg));
+  --sd-error: var(--sd-p-red);
+  --sd-error-bg: color-mix(in oklab, var(--sd-p-red) 12%, var(--sd-p-bg));
+  --sd-error-line: color-mix(in oklab, var(--sd-p-red) 35%, var(--sd-p-bg));
+  --sd-info: var(--sd-p-blue);
+  --sd-info-bg: color-mix(in oklab, var(--sd-p-blue) 15%, var(--sd-p-bg));
+
+  /* Data viewers (step data, config, database browser) */
+  --sd-key: var(--sd-p-blue);
+  --sd-value: var(--sd-p-fg);
+  --sd-string: var(--sd-p-green);
+  --sd-number: var(--sd-p-orange);
+
+  /* Step explorer */
+  --sd-step-label: var(--sd-p-fg);
+  --sd-step-path: var(--sd-p-fg-muted);
+  --sd-step-index: var(--sd-p-fg-muted);
+  --sd-step-leaf: var(--sd-p-fg-muted);
+  --sd-step-home: var(--sd-p-blue);
+
+  /* Console log levels */
+  --sd-log-error: var(--sd-p-red);
+  --sd-log-warn: var(--sd-p-yellow);
+  --sd-log-info: var(--sd-p-green);
+  /* Log rows: a quiet tint, plus the full hue as a thin mark at the left */
+  --sd-log-warn-bg: color-mix(in oklab, var(--sd-p-yellow) 10%, var(--sd-p-bg));
+  --sd-log-error-bg: color-mix(in oklab, var(--sd-p-red) 9%, var(--sd-p-bg));
+  --sd-log-info-bg: color-mix(in oklab, var(--sd-p-green) 8%, var(--sd-p-bg));
+
+  /* "Local" tag (local dev server): yellow stripes */
+  --sd-local-1: var(--sd-p-stripe-1);
+  --sd-local-2: var(--sd-p-stripe-2);
+  --sd-local-edge: var(--sd-p-stripe-edge);
+  --sd-local-fg: var(--sd-p-fg);
+
+  /* Pinned route */
+  --sd-pinned: color-mix(in oklab, var(--sd-p-yellow) 24%, var(--sd-p-bg));
+  --sd-pinned-fg: var(--sd-p-fg);
+
+  /* Recruitment chooser tiles: quiet tints of the hues, normal text */
+  --sd-tile-fg: var(--sd-p-fg);
+  --sd-tile-blue: var(--sd-p-tile-blue);
+  --sd-tile-teal: var(--sd-p-tile-teal);
+  --sd-tile-green: var(--sd-p-tile-green);
+  --sd-tile-yellow: var(--sd-p-tile-yellow);
+  --sd-tile-orange: var(--sd-p-tile-orange);
+  --sd-tile-red: var(--sd-p-tile-red);
+  --sd-tile-purple: var(--sd-p-tile-purple);
+  --sd-tile-pink: var(--sd-p-tile-pink);
+
+  /* Bits of chrome */
+  --sd-bar: var(--sd-chrome);
+  --sd-handle: var(--sd-p-fg-muted);
+  --sd-handle-hover: var(--sd-p-blue);
+  --sd-spinner-track: var(--sd-p-surface-2);
+  --sd-spinner: var(--sd-p-blue);
+  --sd-scrollbar-track: var(--sd-p-surface);
+  --sd-scrollbar-thumb: color-mix(in oklab, var(--sd-p-fg) 22%, var(--sd-p-surface));
+  --sd-scrollbar-thumb-hover: color-mix(in oklab, var(--sd-p-fg) 38%, var(--sd-p-surface));
+}
+
+
+/* ---- The dev tools' chrome ------------------------------------------- */
+
+/* On the dev tools' own containers (app menu, toolbar, panels), not on the
+   experiment preview: the shadcn controls there (checkboxes, switches,
+   default buttons, focus rings) take the dev accent instead of the
+   participant theme's near-white/near-black primary. The preview resets
+   these with its own .light/.dark container. .sd-root.light/.dark: an
+   element that is both a dev root and a color-mode container (the recruit
+   page, via .global-color-mode) must keep the remap over main.css's .dark. */
+.sd-root,
+.sd-root.light,
+.sd-root.dark {
+  --sidebar: var(--sd-chrome); /* the app menu rail */
+  --primary: var(--sd-solid);
+  --primary-foreground: var(--sd-solid-fg);
+  --ring: var(--sd-solid); /* switches use it as their checked color */
+  /* The shadcn controls' surfaces and lines, so inputs, selects and popovers
+     follow the dev palette too */
+  --background: var(--sd-bg);
+  --foreground: var(--sd-text);
+  --card: var(--sd-bg);
+  --card-foreground: var(--sd-text);
+  --popover: var(--sd-bg);
+  --popover-foreground: var(--sd-text);
+  --muted: var(--sd-chrome);
+  --muted-foreground: var(--sd-text-muted);
+  --accent: var(--sd-hover);
+  --accent-foreground: var(--sd-text);
+  --border: var(--sd-line);
+  --input: var(--sd-line);
+}
+
+/* ---- Type and controls: one scale for the dev tools ------------------
+
+   Plain (unlayered) CSS on purpose: it wins over the Tailwind utilities the
+   shadcn controls carry (h-9, md:text-sm …), so a control marked .sd-field is
+   the compact dev size whatever its defaults.
+
+   - Text: 11px labels and section titles, 12px body and controls, 13px for
+     the odd heading. Sans for the interface; mono only for data (ids, paths,
+     variable names, values).
+   - Controls: 24px tall. Toolbar/tab buttons, inputs, selects alike. */
+
+:root {
+  --sd-font-xs: 11px;
+  --sd-font-sm: 12px;
+  --sd-font-md: 13px;
+  --sd-control-h: 24px;
+  --sd-radius: 6px;
+}
+
+/* Tabs: real tabs along the top of a panel. Icon + label; the open one is
+   underlined in the accent and joins the panel below (no separate fill). */
+.sd-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  width: 100%;
+  height: 36px;
+  padding: 0;
+  justify-content: flex-start;
+  border-radius: 0;
+  background-color: var(--sd-chrome);
+  border-bottom: 1px solid var(--sd-line);
+}
+.sd-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: auto;
+  margin-bottom: -1px; /* sit on the strip's bottom line */
+  padding: 0 10px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+  flex: none;
+  font-size: var(--sd-font-sm);
+  font-weight: 500;
+  color: var(--sd-text-muted);
+  transition: color 0.15s, border-color 0.15s;
+}
+.sd-tab svg {
+  width: 14px;
+  height: 14px;
+}
+.sd-tab:hover {
+  color: var(--sd-text);
+}
+.sd-tab[data-state='active'] {
+  color: var(--sd-text);
+  border-bottom-color: var(--sd-text-muted);
+  background-color: var(--sd-bg);
+  box-shadow: inset 1px 0 var(--sd-line), inset -1px 0 var(--sd-line);
+}
+
+/* Section header: a quiet band with a small uppercase title and, at the
+   right, its actions */
+.sd-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 28px;
+  padding: 0 8px 0 12px;
+  background-color: var(--sd-chrome);
+  border-top: 1px solid var(--sd-line);
+  border-bottom: 1px solid var(--sd-line);
+  font-size: var(--sd-font-sm);
+  font-weight: 600;
+  color: var(--sd-text);
+}
+.sd-section:first-child {
+  border-top: 0; /* right under a tab strip or panel edge, which has its own line */
+}
+.sd-section code,
+.sd-section .sd-mono {
+  font-weight: 400;
+  color: var(--sd-text-muted);
+}
+
+/* A label over or beside a control; help text under a section title */
+.sd-label {
+  font-size: var(--sd-font-xs);
+  color: var(--sd-text-muted);
+}
+.sd-help {
+  font-size: var(--sd-font-sm);
+  line-height: 1.45;
+  color: var(--sd-text-muted);
+}
+
+/* Data: ids, paths, variable names, values */
+.sd-mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--sd-font-xs);
+}
+
+/* Compact controls: inputs, select triggers, panel buttons */
+.sd-field {
+  height: var(--sd-control-h);
+  min-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: var(--sd-font-sm);
+  border-radius: var(--sd-radius);
+  box-shadow: none;
+}
+.sd-field svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* A bar of controls over a panel (filters, search): chrome, one row */
+.sd-controlbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 32px;
+  padding: 4px 12px;
+  background-color: var(--sd-chrome);
+  border-bottom: 1px solid var(--sd-line);
+}
+
+/* A narrow vertical rail of icon buttons (the console's views) */
+.sd-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 33px;
+  padding: 4px 0;
+  flex-shrink: 0;
+  background-color: var(--sd-chrome);
+  border-right: 1px solid var(--sd-line);
+}
+.sd-rail > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* A thin vertical rule between groups of toolbar buttons */
+.sd-toolbar-rule {
+  width: 1px;
+  height: 16px;
+  margin: 0 4px;
+  background-color: var(--sd-line);
+}
+
+/* Dev panel tables (config variables, database status) */
+.sd-table-cell-small {
+  font-size: var(--sd-font-xs);
+}
+.sd-table-cell-base {
+  padding: 6px 12px;
+  vertical-align: baseline;
+}
+.sd-table-cell-left {
+  text-align: left;
+}
+.sd-table-cell-center {
+  text-align: center;
+}
+.sd-table-cell-mono {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+.sd-table-row-base {
+  transition: background-color 0.2s;
+}
+.sd-table-row-base-bottom {
+  border-bottom: 1px solid var(--sd-line);
+}
+.sd-table-row-odd {
+  background-color: var(--sd-bg);
+}
+.sd-table-row-even {
+  background-color: var(--sd-panel);
+}
+.sd-table-row-odd:hover,
+.sd-table-row-even:hover {
+  background-color: var(--sd-hover);
+}
+.sd-table-border-top {
+  border-top: 1px solid var(--sd-line);
+}
+.sd-table-border-bottom {
+  border-bottom: 1px solid var(--sd-line);
+}
+
+/* Tailwind color utilities for the semantic tokens (bg-sd-line, text-sd-ok …) */
+@theme inline {
+  --color-sd-chrome: var(--sd-chrome);
+  --color-sd-stage: var(--sd-stage);
+  --color-sd-bg: var(--sd-bg);
+  --color-sd-panel: var(--sd-panel);
+  --color-sd-panel-2: var(--sd-panel-2);
+  --color-sd-line: var(--sd-line);
+  --color-sd-text: var(--sd-text);
+  --color-sd-text-muted: var(--sd-text-muted);
+  --color-sd-hover: var(--sd-hover);
+  --color-sd-link: var(--sd-link);
+  --color-sd-accent: var(--sd-accent);
+  --color-sd-selected: var(--sd-selected);
+  --color-sd-selected-hover: var(--sd-selected-hover);
+  --color-sd-selected-fg: var(--sd-selected-fg);
+  --color-sd-ok: var(--sd-ok);
+  --color-sd-ok-bg: var(--sd-ok-bg);
+  --color-sd-warn: var(--sd-warn);
+  --color-sd-warn-bg: var(--sd-warn-bg);
+  --color-sd-error: var(--sd-error);
+  --color-sd-error-bg: var(--sd-error-bg);
+  --color-sd-error-line: var(--sd-error-line);
+  --color-sd-info: var(--sd-info);
+  --color-sd-info-bg: var(--sd-info-bg);
+}

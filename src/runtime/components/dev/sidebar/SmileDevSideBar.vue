@@ -1,4 +1,5 @@
 <script setup>
+import { Dices, Info, ListTree } from 'lucide-vue-next'
 import StepExplorerPanel from './StepExplorerPanel.vue'
 import ConfigurationVariablesPanel from './ConfigurationVariablesPanel.vue'
 import DatabaseStatusInfoPanel from './DatabaseStatusInfoPanel.vue'
@@ -21,26 +22,29 @@ const api = useAPI()
     <div class="sidebar-content">
       <Tabs
         v-model="api.store.dev.sideBarTab"
-        class="w-full py-2"
+        class="w-full gap-0"
       >
         <!-- Tab navigation -->
-        <TabsList class="mx-auto text-xs">
+        <TabsList class="sd-tabs">
           <TabsTrigger
             value="steps"
-            class="text-[0.75rem] font-mono"
+            class="sd-tab"
           >
+            <ListTree />
             Steps
           </TabsTrigger>
           <TabsTrigger
             value="randomization"
-            class="text-[0.75rem] font-mono"
+            class="sd-tab"
           >
+            <Dices />
             Random
           </TabsTrigger>
           <TabsTrigger
             value="db"
-            class="text-[0.75rem] font-mono"
+            class="sd-tab"
           >
+            <Info />
             Info
           </TabsTrigger>
         </TabsList>
@@ -64,13 +68,13 @@ const api = useAPI()
 
     <!-- Footer panels -->
     <div class="sidebar-footer">
-      <div class="border-t border-dev-lines">
+      <div class="border-t border-sd-line">
         <ConfigurationVariablesPanel />
       </div>
       <div>
         <AppProgressPanel />
       </div>
-      <div class="border-t border-dev-lines">
+      <div class="border-t border-sd-line">
         <StudyInfoPanel />
       </div>
     </div>
@@ -92,5 +96,6 @@ const api = useAPI()
 
 .sidebar-footer {
   margin-top: auto;
+  background-color: var(--sd-chrome);
 }
 </style>

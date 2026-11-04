@@ -16,7 +16,7 @@ const { mode: experimentColorMode, toggle: toggleColorMode, system } = useSmileC
       <TooltipTrigger as-child>
         <Button
           size="menu"
-          variant="outline"
+          variant="toolbar"
           @click="toggleColorMode()"
         >
           <Moon v-if="experimentColorMode === 'light'" />

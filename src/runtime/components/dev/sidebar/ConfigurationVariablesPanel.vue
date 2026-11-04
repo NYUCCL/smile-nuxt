@@ -1,9 +1,19 @@
 <script setup>
 import { computed } from 'vue'
 import useAPI from '../../../composables/useAPI'
+import DevNumberInput from '../DevNumberInput.vue'
 import { useSmileColorMode } from '../../../composables/useColorMode'
 
 const api = useAPI()
+
+/** The study-state switches in the first row (label, read, write) */
+const stateSwitches = [
+  { label: 'Consent', get: () => api.store.cookieState.consented, set: (v) => { api.store.cookieState.consented = v } },
+  { label: 'Known', get: () => api.store.cookieState.knownUser, set: (v) => { api.store.cookieState.knownUser = v } },
+  { label: 'Done', get: () => api.store.cookieState.done, set: (v) => { api.store.cookieState.done = v } },
+  { label: 'Withdrew', get: () => api.store.cookieState.withdrawn, set: (v) => { api.store.cookieState.withdrawn = v } },
+  { label: 'Visible', get: () => api.store.data.verifiedVisibility, set: (v) => { api.store.data.verifiedVisibility = v } },
+]
 
 /**
  * Color mode composable for experiment color mode
@@ -43,214 +53,130 @@ const colorModeDisplayText = computed(() => {
 </script>
 
 <template>
-  <!-- Configuration variables panel -->
-  <div class="bg-muted">
-    <table class="w-full">
-      <tbody>
-        <!-- Consent, Known, Done, Withdrew, Viz toggles -->
-        <tr class="table-row-base ">
-          <td
-            class="table-cell-base table-cell-left table-cell-small font-mono"
-            colspan="4"
-          >
-            <div class="flex flex-wrap gap-4">
-              <div class="flex flex-col items-center">
-                <span>Consent</span>
-                <div class="field">
-                  <Switch
-                    v-model="api.store.cookieState.consented"
-                    class="mt-1"
-                  />
-                </div>
-              </div>
-              <div class="flex flex-col items-center">
-                <span>Known</span>
-                <div class="field">
-                  <Switch
-                    v-model="api.store.cookieState.knownUser"
-                    class="mt-1"
-                  />
-                </div>
-              </div>
-              <div class="flex flex-col items-center">
-                <span>Done</span>
-                <div class="field">
-                  <Switch
-                    v-model="api.store.cookieState.done"
-                    class="mt-1"
-                  />
-                </div>
-              </div>
-              <div class="flex flex-col items-center">
-                <span>Withdrew</span>
-                <div class="field">
-                  <Switch
-                    v-model="api.store.cookieState.withdrawn"
-                    class="mt-1"
-                  />
-                </div>
-              </div>
-              <div class="flex flex-col items-center">
-                <span>Viz</span>
-                <div class="field">
-                  <Switch
-                    v-model="api.store.data.verifiedVisibility"
-                    class="mt-1"
-                  />
-                </div>
-              </div>
-            </div>
-          </td>
-        </tr>
-        <!-- Window size and aggressive mode -->
-        <tr class="table-row-base table-row-base-bottom ">
-          <td
-            class="table-cell-base table-cell-left table-cell-small font-mono"
-            :class="{
-              'bg-danger-button-light text-danger-button-light-foreground': api.store.browserEphemeral.tooSmall,
-            }"
-            colspan="4"
-          >
-            <div class="flex flex-wrap gap-4 items-center">
-              <div class="flex flex-col items-left">
-                <span>Min Window Size Request (WxH):</span>
-                <div class="flex items-center gap-2 mt-1">
-                  <Input
-                    v-model="api.config.windowsizerRequest.width"
-                    type="number"
-                    class="h-5 w-20 text-[1.0em] font-mono"
-                    :placeholder="api.config.windowsizerRequest.width"
-                  />
-                  <span class="text-[1.2em] font-mono">x</span>
-                  <Input
-                    v-model="api.config.windowsizerRequest.height"
-                    type="number"
-                    class="h-5 w-20 text-[1.0em] font-mono"
-                    :placeholder="api.config.windowsizerRequest.height"
-                  />
-                </div>
-              </div>
-              <div class="flex flex-col items-center">
-                <span>Aggressive</span>
-                <div class="field">
-                  <Checkbox
-                    v-model="api.config.windowsizerAggressive"
-                    class="mt-1"
-                  />
-                </div>
-              </div>
-            </div>
-          </td>
-        </tr>
-        <!-- Responsive UI and color mode -->
-        <tr class="table-row-base table-row-base-bottom ">
-          <td
-            class="table-cell-base table-cell-left table-cell-small font-mono"
-            colspan="4"
-          >
-            <div class="flex flex-wrap gap-4 items-center">
-              <div class="flex flex-col items-center">
-                <span>Resp. UI</span>
-                <div class="field">
-                  <Checkbox
-                    v-model="api.config.responsiveUI"
-                    class="mt-1"
-                  />
-                </div>
-              </div>
-              <div class="flex flex-col items-left">
-                <span>Color Mode</span>
-                <Select
-                  v-model="colorModeSelect"
-                  class="mt-1 h-8"
-                >
-                  <SelectTrigger
-                    size="sm"
-                    class="h-6 text-[1.1em] font-mono"
-                  >
-                    <SelectValue>{{ colorModeDisplayText }}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem
-                      key="light"
-                      value="light"
-                    >
-                      Light
-                    </SelectItem>
-                    <SelectItem
-                      key="dark"
-                      value="dark"
-                    >
-                      Dark
-                    </SelectItem>
-                    <SelectItem
-                      key="auto"
-                      value="auto"
-                    >
-                      System ({{ system }})
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </td>
-        </tr>
-        <!-- Recruitment service select -->
-        <tr class="table-row-base table-row-base-bottom">
-          <td
-            class="table-cell-base table-cell-left table-cell-small font-mono"
-            colspan="4"
-          >
-            <div class="flex flex-wrap gap-4 items-center">
-              <div class="flex flex-col items-left">
-                Service<br>
-                <Select
-                  v-model="api.store.data.recruitmentService"
-                  class="mt-1 h-8"
-                >
-                  <SelectTrigger
-                    size="sm"
-                    class="h-8 text-[1.2em] font-mono"
-                  >
-                    <SelectValue :placeholder="api.store.data.recruitmentService" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem
-                      v-for="(cond, key) in api.store.browserEphemeral.urls"
-                      :key="cond"
-                      :value="key"
-                    >
-                      {{ key }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <!-- Study state switches and participant-facing settings -->
+  <div class="sd-config">
+    <!-- Study state (cookie): consent, known, done, withdrew, verified visibility -->
+    <div class="sd-config-row">
+      <label
+        v-for="item in stateSwitches"
+        :key="item.label"
+        class="sd-config-switch"
+      >
+        <span class="sd-label">{{ item.label }}</span>
+        <Switch
+          :model-value="item.get()"
+          @update:model-value="item.set"
+        />
+      </label>
+    </div>
+
+    <!-- Minimum window size and aggressive mode -->
+    <div
+      class="sd-config-row"
+      :class="{ 'sd-config-alert': api.store.browserEphemeral.tooSmall }"
+    >
+      <div class="sd-config-field">
+        <span class="sd-label">Min window size (W × H)</span>
+        <div class="flex items-center gap-1.5">
+          <DevNumberInput
+            v-model="api.config.windowsizerRequest.width"
+            :step="10"
+            label="minimum width"
+          />
+          <span class="sd-label">×</span>
+          <DevNumberInput
+            v-model="api.config.windowsizerRequest.height"
+            :step="10"
+            label="minimum height"
+          />
+        </div>
+      </div>
+      <label class="sd-config-check">
+        <Checkbox v-model="api.config.windowsizerAggressive" />
+        <span class="sd-label">Aggressive</span>
+      </label>
+    </div>
+
+    <!-- Responsive UI, color mode, recruitment service -->
+    <div class="sd-config-row">
+      <div class="sd-config-field">
+        <span class="sd-label">Color mode</span>
+        <Select v-model="colorModeSelect">
+          <SelectTrigger class="sd-field w-32">
+            <SelectValue>{{ colorModeDisplayText }}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="light">
+              Light
+            </SelectItem>
+            <SelectItem value="dark">
+              Dark
+            </SelectItem>
+            <SelectItem value="auto">
+              System ({{ system }})
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div class="sd-config-field">
+        <span class="sd-label">Service</span>
+        <Select v-model="api.store.data.recruitmentService">
+          <SelectTrigger class="sd-field w-24">
+            <SelectValue :placeholder="api.store.data.recruitmentService" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem
+              v-for="(cond, key) in api.store.browserEphemeral.urls"
+              :key="key"
+              :value="key"
+            >
+              {{ key }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <label class="sd-config-check">
+        <Checkbox v-model="api.config.responsiveUI" />
+        <span class="sd-label">Responsive UI</span>
+      </label>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.table-cell-small {
-  font-size: 0.6em;
+.sd-config-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 16px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--sd-line);
 }
 
-/* Ensure consistent spacing between table cells */
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
+.sd-config-alert {
+  background-color: var(--sd-error-bg);
+}
+.sd-config-alert .sd-label {
+  color: var(--sd-error);
 }
 
-td {
-  border: none;
-  border-bottom: 1px solid var(--dev-lines);
-  padding: 0.5rem 0.85rem;
+.sd-config-switch,
+.sd-config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-tr:last-child td {
-  border-bottom: none;
+.sd-config-switch {
+  align-items: center;
+  cursor: pointer;
+}
+
+.sd-config-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--sd-control-h);
+  cursor: pointer;
 }
 </style>

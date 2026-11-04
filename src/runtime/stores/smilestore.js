@@ -99,6 +99,7 @@ const initDev = {
   isFullscreen: false,
   routePanelVisible: false,
   globalColorMode: 'auto', // the dev tools' own theme; 'auto' = follow the system
+  devPalette: 'default', // the dev tools' palette (useDevPalette.js)
   experimentColorMode: null, // null = follow config.colorMode
 }
 

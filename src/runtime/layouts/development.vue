@@ -12,6 +12,8 @@ import SmileDevPresentationView from '#smile-dev/SmileDevPresentationView.vue'
 // Dashboard is hidden until the feature is complete
 // import SmileDevDashboardView from '#smile-dev/dashboard/SmileDevDashboardView.vue'
 import useWindowSizer from '#smile-composables/useWindowSizer'
+import { applyDevPalette } from '#smile-composables/useDevPalette'
+import DevScope from '#smile-dev/DevScope.vue'
 
 const api = useAPI()
 const { showAggressiveOverlay } = useWindowSizer({ useDeviceContainer: true })
@@ -30,6 +32,9 @@ const isLoading = computed(() => {
 const isRouteNotFound = computed(() => {
   return mounted.value && api.currentRouteName() === undefined
 })
+
+// The dev tools' palette, on <html> (only the dev tools' colors use it)
+applyDevPalette()
 </script>
 
 <template>
@@ -50,7 +55,9 @@ const isRouteNotFound = computed(() => {
       }"
     >
       <!-- Developer app menu sidebar -->
-      <SmileDevAppMenu />
+      <DevScope>
+        <SmileDevAppMenu />
+      </DevScope>
 
       <!-- Main content area -->
       <SidebarInset>
@@ -82,18 +89,19 @@ const isRouteNotFound = computed(() => {
 
           <!-- Developer Mode - Full interface with toolbar, sidebar, console -->
           <template v-else>
-            <LocalDevBanner />
             <!-- Top toolbar with navigation controls -->
-            <div class="toolbar">
-              <DevNavBar />
-            </div>
+            <DevScope>
+              <div class="toolbar sd-root">
+                <DevNavBar />
+              </div>
+            </DevScope>
 
             <!-- Middle row - content and sidebar -->
             <div class="content-wrapper">
               <!-- Main content area with console -->
               <div class="content-and-console">
                 <!-- Main content - scrollable experiment container -->
-                <div class="main-content @container bg-background text-foreground relative">
+                <div class="main-content @container bg-sd-stage text-foreground relative">
                   <!-- Loading state -->
                   <div
                     v-if="isLoading"
@@ -130,9 +138,11 @@ const isRouteNotFound = computed(() => {
                 <Transition name="console-slide">
                   <div
                     v-if="api.store.dev.showConsoleBar"
-                    class="console"
+                    class="console sd-root"
                   >
-                    <DevConsole />
+                    <DevScope>
+                      <DevConsole />
+                    </DevScope>
                   </div>
                 </Transition>
               </div>
@@ -141,9 +151,11 @@ const isRouteNotFound = computed(() => {
               <Transition name="sidebar-slide">
                 <div
                   v-if="api.store.dev.showSideBar"
-                  class="sidebar"
+                  class="sidebar sd-root"
                 >
-                  <DevSideBar />
+                  <DevScope>
+                    <DevSideBar />
+                  </DevScope>
                 </div>
               </Transition>
             </div>
@@ -204,7 +216,7 @@ const isRouteNotFound = computed(() => {
   margin-bottom: auto;
   height: 36px;
   width: full;
-  background-color: var(--dev-bar-bg);
+  background-color: var(--sd-bar);
 }
 
 .content-wrapper {
@@ -237,15 +249,15 @@ const isRouteNotFound = computed(() => {
   flex: 0 0 300px;
   height: 100%;
   overflow-y: auto;
-  border-left: 1px solid var(--dev-lines);
-  background-color: var(--dev-bg);
+  border-left: 1px solid var(--sd-line);
+  background-color: var(--sd-bg);
 }
 
 .console {
   height: v-bind(height_pct);
   width: 100%;
-  background-color: var(--muted);
-  border-top: 1px solid var(--dev-lines);
+  background-color: var(--sd-bg);
+  border-top: 1px solid var(--sd-line);
   overflow: hidden;
   overflow-x: hidden;
   min-width: 0;
@@ -288,8 +300,8 @@ const isRouteNotFound = computed(() => {
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid var(--spinner-track);
-  border-top: 4px solid var(--spinner-active);
+  border: 4px solid var(--sd-spinner-track);
+  border-top: 4px solid var(--sd-spinner);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
@@ -312,12 +324,12 @@ const isRouteNotFound = computed(() => {
 }
 
 .not-found-message {
-  color: var(--muted-foreground);
+  color: var(--sd-text-muted);
   font-size: 0.875rem;
 }
 
 .not-found-message code {
-  background-color: var(--muted);
+  background-color: var(--sd-chrome);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.8rem;

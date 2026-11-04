@@ -25,6 +25,8 @@ import { RotateCcw } from 'lucide-vue-next'
  * @requires Tooltip Tooltip components for enhanced UX
  */
 import ResponsiveDeviceSelect from './ResponsiveDeviceSelect.vue'
+import { useSmileColorMode } from '../../../composables/useColorMode'
+import { DEV_PALETTES, useDevPalette } from '../../../composables/useDevPalette'
 
 /**
  * Import shared device presets
@@ -38,6 +40,12 @@ import useAPI from '../../../composables/useAPI'
  * @constant {object} api Global API instance
  */
 const api = useAPI()
+
+/** The dev tools' own theme mode (the same setting the app menu's button cycles) */
+const { mode: devColorMode, system } = useSmileColorMode('global')
+
+/** The dev tools' palette */
+const devPalette = useDevPalette()
 
 /**
  * Check if current dimensions match any preset and update selected device
@@ -94,54 +102,76 @@ const toggleRotation = () => {
 function resetDevState() {
   localStorage.removeItem(api.config.devLocalStorageKey) // delete the local store (legacy)
   // Reset cookie-backed dev state to defaults
-  const defaults = { viewProvidesAutofill: null, viewProvidesStepper: false, showConsoleBar: false, showSideBar: false, pinnedRoute: null, mainView: 'devmode', consoleBarHeight: 300, consoleBarTab: 'browse', sideBarTab: 'steps', searchParams: '', logFilter: 'All', notificationFilter: 'Errors only', lastViewLimit: false, dataPath: null, configPath: null, selectedDevice: 'desktop2', deviceWidth: 1024, deviceHeight: 768, isRotated: false, isFullscreen: false, routePanelVisible: false, globalColorMode: 'auto', experimentColorMode: 'auto' }
+  const defaults = { viewProvidesAutofill: null, viewProvidesStepper: false, showConsoleBar: false, showSideBar: false, pinnedRoute: null, mainView: 'devmode', consoleBarHeight: 300, consoleBarTab: 'browse', sideBarTab: 'steps', searchParams: '', logFilter: 'All', notificationFilter: 'Errors only', lastViewLimit: false, dataPath: null, configPath: null, selectedDevice: 'desktop2', deviceWidth: 1024, deviceHeight: 768, isRotated: false, isFullscreen: false, routePanelVisible: false, globalColorMode: 'auto', devPalette: 'default', experimentColorMode: null }
   Object.assign(api.store.dev, defaults)
   location.reload()
 }
 </script>
 
 <template>
-  <!-- Main configuration container -->
-  <div class="grid gap-4">
-    <!-- Header section with title and description -->
-    <div class="space-y-2">
-      <h4 class="font-medium leading-none">
-        Developer Configurations
-      </h4>
-      <p class="text-sm text-muted-foreground">
-        Adjust or reset developer mode settings.
-      </p>
+  <!-- Dev tools settings: appearance, panels, responsive preview -->
+  <div class="sd-settings">
+    <div class="sd-settings-title">
+      Dev tools settings
     </div>
 
-    <!-- Visual separator with "Panels" label -->
-    <div class="relative">
-      <div class="absolute inset-0 flex items-center">
-        <Separator />
+    <!-- Appearance (the dev tools only; the palette picker joins it here) -->
+    <div class="sd-section">
+      Appearance
+    </div>
+    <div class="sd-settings-group">
+      <div class="sd-settings-row">
+        <Label class="sd-label font-normal">Palette</Label>
+        <Select v-model="devPalette">
+          <SelectTrigger class="sd-field w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem
+              v-for="p in DEV_PALETTES"
+              :key="p.value"
+              :value="p.value"
+            >
+              {{ p.label }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-      <div class="relative flex justify-center text-xs uppercase">
-        <span class="bg-background px-2 text-muted-foreground">Panels</span>
+      <div class="sd-settings-row">
+        <Label class="sd-label font-normal">Mode</Label>
+        <Select v-model="devColorMode">
+          <SelectTrigger class="sd-field w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="auto">
+              System ({{ system }})
+            </SelectItem>
+            <SelectItem value="light">
+              Light
+            </SelectItem>
+            <SelectItem value="dark">
+              Dark
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
 
-    <!-- Configuration options grid -->
-    <div class="grid gap-2">
-      <!-- Sidebar visibility toggle -->
-      <div class="grid grid-cols-3 items-center gap-4">
-        <Label for="sidebar">Show Sidebar</Label>
-        <Switch
-          id="sidebar"
-          v-model="api.store.dev.showSideBar"
-          class="col-span-2"
-        />
-      </div>
-
-      <!-- Sidebar tab selection -->
-      <div class="grid grid-cols-3 items-center gap-4">
-        <Label for="sidebarTab">Sidebar Tab</Label>
-        <div class="col-span-2">
+    <!-- Panels -->
+    <div class="sd-section">
+      Panels
+    </div>
+    <div class="sd-settings-group">
+      <div class="sd-settings-row">
+        <Label
+          for="sd-show-sidebar"
+          class="sd-label font-normal"
+        >Side panel</Label>
+        <div class="flex items-center gap-2">
           <Select v-model="api.store.dev.sideBarTab">
-            <SelectTrigger>
-              <SelectValue placeholder="Select tab" />
+            <SelectTrigger class="sd-field w-24">
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="steps">
@@ -155,30 +185,25 @@ function resetDevState() {
               </SelectItem>
             </SelectContent>
           </Select>
+          <Switch
+            id="sd-show-sidebar"
+            v-model="api.store.dev.showSideBar"
+          />
         </div>
       </div>
-
-      <!-- Console visibility toggle -->
-      <div class="grid grid-cols-3 items-center gap-4">
-        <Label for="console">Show Console</Label>
-        <Switch
-          id="console"
-          v-model="api.store.dev.showConsoleBar"
-          class="col-span-2"
-        />
-      </div>
-
-      <!-- Console tab selection -->
-      <div class="grid grid-cols-3 items-center gap-4">
-        <Label for="consoleBarTab">Console Tab</Label>
-        <div class="col-span-2">
+      <div class="sd-settings-row">
+        <Label
+          for="sd-show-console"
+          class="sd-label font-normal"
+        >Console</Label>
+        <div class="flex items-center gap-2">
           <Select v-model="api.store.dev.consoleBarTab">
-            <SelectTrigger>
-              <SelectValue placeholder="Select tab" />
+            <SelectTrigger class="sd-field w-24">
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="browse">
-                Data Browser
+                Data
               </SelectItem>
               <SelectItem value="log">
                 Log
@@ -188,63 +213,89 @@ function resetDevState() {
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
-      </div>
-
-      <!-- Visual separator with "Responsive Mode" label -->
-      <div class="relative mt-5">
-        <div class="absolute inset-0 flex items-center">
-          <Separator />
-        </div>
-        <div class="relative flex justify-center text-xs uppercase">
-          <span class="bg-background px-2 text-muted-foreground">Responsive Mode</span>
-        </div>
-      </div>
-
-      <!-- Fullscreen toggle -->
-      <div class="grid grid-cols-3 items-center gap-4">
-        <Label for="width">Full screen</Label>
-        <Switch
-          id="width"
-          v-model="api.store.dev.isFullscreen"
-          class="col-span-2"
-        />
-      </div>
-
-      <!-- Device selection with rotation button -->
-      <div class="grid grid-cols-3 items-center gap-4">
-        <Label for="device">Target Device</Label>
-        <div class="col-span-2 flex items-center gap-2">
-          <ResponsiveDeviceSelect />
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <Button
-                  variant="outline"
-                  size="xs"
-                  @click="toggleRotation"
-                >
-                  <RotateCcw :class="{ 'text-link-button-foreground': api.store.dev.isRotated }" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p>Rotate device</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Switch
+            id="sd-show-console"
+            v-model="api.store.dev.showConsoleBar"
+          />
         </div>
       </div>
     </div>
 
-    <!-- Reset button section -->
-    <div class="flex justify-end mt-5">
+    <!-- Responsive preview -->
+    <div class="sd-section">
+      Preview
+    </div>
+    <div class="sd-settings-group">
+      <div class="sd-settings-row">
+        <Label
+          for="sd-fullscreen"
+          class="sd-label font-normal"
+        >Full screen</Label>
+        <Switch
+          id="sd-fullscreen"
+          v-model="api.store.dev.isFullscreen"
+        />
+      </div>
+      <div class="sd-settings-row">
+        <Label class="sd-label font-normal">Device</Label>
+        <div class="flex items-center gap-1">
+          <ResponsiveDeviceSelect />
+          <Button
+            variant="toolbar"
+            size="menu"
+            title="Rotate device"
+            @click="toggleRotation"
+          >
+            <RotateCcw :class="{ 'text-sd-link': api.store.dev.isRotated }" />
+          </Button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sd-settings-footer">
       <Button
-        variant="outline"
-        size="sm"
+        variant="panel"
+        class="sd-field px-2.5"
         @click="resetDevState"
       >
-        Reset to Default
+        Reset to defaults
       </Button>
     </div>
   </div>
 </template>
+
+<style scoped>
+.sd-settings {
+  width: 280px;
+  color: var(--sd-text);
+  font-size: var(--sd-font-sm);
+}
+
+.sd-settings-title {
+  padding: 10px 12px;
+  font-size: var(--sd-font-md);
+  font-weight: 600;
+}
+
+.sd-settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px 10px;
+}
+
+.sd-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: var(--sd-control-h);
+}
+
+.sd-settings-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 12px;
+  border-top: 1px solid var(--sd-line);
+}
+</style>

@@ -32,7 +32,10 @@ const forwardedProps = useForwardProps(delegatedProps)
           variant: context?.variant || variant,
           size: context?.size || size,
         }),
-        `px-2 flex-1 rounded-none shadow-none first:rounded-l-md last:rounded-r-md focus:z-10 focus-visible:z-10 border-l-0 first:border-l [&_svg:not([class*='size-'])]:size-3.5`,
+        `px-2 flex-1 shadow-none focus:z-10 focus-visible:z-10 [&_svg:not([class*='size-'])]:size-3.5`,
+        // outlined groups join into one segmented control; borderless ones keep
+        // each button's own rounded hover
+        (context?.variant || variant) === 'outline' && 'rounded-none first:rounded-l-md last:rounded-r-md border-l-0 first:border-l',
         props.class,
       )
     "

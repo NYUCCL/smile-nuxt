@@ -9,6 +9,7 @@ import ColorModeButton from './ColorModeButton.vue'
 import DatabaseButtonGroup from './DatabaseButtonGroup.vue'
 import FullScreenButton from './FullScreenButton.vue'
 import PanelButtonGroup from './PanelButtonGroup.vue'
+import DevModeLabel from './DevModeLabel.vue'
 import KeyCommandNotification from './KeyCommandNotification.vue'
 import LogoutButton from '../presentation/LogoutButton.vue'
 
@@ -237,89 +238,31 @@ onKeyDown((e) => {
 </script>
 
 <template>
-  <!-- Main navigation bar container -->
-  <nav class="flex items-center justify-between w-full border-b border-dev-lines min-h-[36px] max-h-[36px] text-sm px-2">
-    <!-- Left section - Developer mode indicator -->
-    <div class="flex items-center flex-shrink-0 px-2 py-1 rounded">
-      <div class="flex items-center">
-        <!-- Desktop version -->
-        <div class="hidden sm:block">
-          <div class="flex items-center text-xs font-normal">
-            <BugPlay class="size-4 mr-1" />
-            <b>DEVELOPER MODE</b> &nbsp;({{ api.config.smileVersion }})
-          </div>
-        </div>
-        <!-- Mobile version -->
-        <div class="block sm:hidden">
-          <div class="flex items-center text-xs font-normal">
-            <BugPlay class="size-4 mr-1" />
-            <b>DEV</b> &nbsp;({{ api.config.smileVersion }})
-          </div>
-        </div>
+  <!-- Main navigation bar: mode and version on the left, controls on the right.
+       Controls are borderless toolbar buttons in groups, separated by thin rules. -->
+  <nav class="flex items-center justify-between gap-4 w-full border-b border-sd-line h-9 px-3 text-xs">
+    <DevModeLabel
+      :icon="BugPlay"
+      label="Developer mode"
+      short="Dev"
+    />
+
+    <div class="flex items-center gap-1 flex-shrink-0">
+      <LogoutButton />
+      <ReloadButton />
+      <ResetButton />
+      <ColorModeButton v-if="api.store.dev.isFullscreen && api.currentRouteName() !== 'recruit'" />
+      <FullScreenButton v-if="api.currentRouteName() !== 'recruit'" />
+      <div class="sd-toolbar-rule" />
+      <DatabaseButtonGroup />
+      <div class="sd-toolbar-rule" />
+      <StepInfoButtonGroup />
+      <div class="sd-toolbar-rule hidden md:block" />
+      <div class="hidden md:flex items-center">
+        <ViewInfoButtonGroup />
       </div>
-    </div>
-
-    <!-- Middle section - Centered content area -->
-    <div class="flex items-center justify-center flex-1 min-w-0 px-2 py-1 rounded">
-      <div class="flex items-center space-x-2">
-        <div class="text-xs text-muted-foreground">
-          <!-- Middle content placeholder -->
-        </div>
-      </div>
-    </div>
-
-    <!-- Right section - Control buttons -->
-    <div class="flex items-center flex-shrink-0 px-1 py-1 rounded">
-      <div class="flex items-center space-x-2.5 border-border pl-4 rounded-l">
-        <!-- Logout button (only when authenticated) -->
-        <div class="flex items-center">
-          <LogoutButton />
-        </div>
-
-        <!-- Reload button -->
-        <div class="flex items-center">
-          <ReloadButton />
-        </div>
-
-        <!-- Reset button -->
-        <div class="flex items-center">
-          <ResetButton />
-        </div>
-
-        <!-- Color mode button (only in fullscreen mode and not on recruit page) -->
-        <div
-          v-if="api.store.dev.isFullscreen && api.currentRouteName() !== 'recruit'"
-          class="flex items-center"
-        >
-          <ColorModeButton />
-        </div>
-
-        <!-- Fullscreen button (not on recruit page) -->
-        <div
-          v-if="api.currentRouteName() !== 'recruit'"
-          class="flex items-center"
-        >
-          <FullScreenButton />
-        </div>
-
-        <!-- Database info button group -->
-        <DatabaseButtonGroup />
-
-        <!-- Step info buttons (responsive - hidden on small screens) -->
-        <div class="items-center">
-          <StepInfoButtonGroup />
-        </div>
-
-        <!-- View info buttons (hidden on medium screens and below) -->
-        <div class="hidden md:flex items-center">
-          <ViewInfoButtonGroup />
-        </div>
-
-        <!-- Panel toggles (console + sidebar) -->
-        <div class="flex items-center">
-          <PanelButtonGroup />
-        </div>
-      </div>
+      <div class="sd-toolbar-rule" />
+      <PanelButtonGroup />
     </div>
   </nav>
 
@@ -331,7 +274,3 @@ onKeyDown((e) => {
     :type="notificationType"
   />
 </template>
-
-<style scoped>
-/* No custom styles needed - all styling handled by Tailwind classes */
-</style>

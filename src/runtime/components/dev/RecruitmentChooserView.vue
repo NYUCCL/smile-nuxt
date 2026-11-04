@@ -3,6 +3,10 @@ import { ArrowLeft, ArrowRight, Info, Copy, Check, Dices } from 'lucide-vue-next
 import { ref, computed } from 'vue'
 import useViewAPI from '../../composables/useViewAPI'
 import useSmileStore from '../../stores/smilestore'
+import { provideDevScope } from '../../composables/useDevScope'
+
+// Dev tools UI: its menus and tooltips use the dev tools' colors
+provideDevScope()
 
 const api = useViewAPI()
 const store = useSmileStore()
@@ -70,14 +74,14 @@ const services = {
     name: 'Prolific',
     buttonLabel: 'Prolific',
     buttonClass: 'is-blue',
-    description: 'Prolific.co is a dedicated platform for online behavioral research with high-quality participants.',
-    link: 'https://www.prolific.co',
+    description: 'Prolific is a dedicated platform for online behavioral research with high-quality participants.',
+    link: 'https://www.prolific.com',
     urlNote: 'Prolific appends query parameters automatically. Use the "Study URL" below as your study link in Prolific.',
     studyUrl: computed(() => `${baseUrl.value}/welcome/prolific`),
     setupSteps: [
-      'Go to <a href="https://app.prolific.co" target="_blank" class="underline font-medium">app.prolific.co</a> and create a new study.',
+      'Go to <a href="https://app.prolific.com" target="_blank" class="underline font-medium">app.prolific.com</a> and create a new study.',
       'Set the <strong>Study URL</strong> to the Prolific URL shown below. Prolific will automatically append <code>PROLIFIC_PID</code>, <code>STUDY_ID</code>, and <code>SESSION_ID</code> query parameters.',
-      'Under <strong>Study completion</strong>, select "I\'ll redirect them using a URL". Set the completion URL to: <code>https://app.prolific.co/submissions/complete?cc=YOUR_CODE</code> (SMILE handles this automatically via the Thanks page).',
+      'Under <strong>Study completion</strong>, select "I\'ll redirect them using a URL". Set the completion URL to: <code>https://app.prolific.com/submissions/complete?cc=YOUR_CODE</code> (SMILE handles this automatically via the Thanks page).',
       'Set your <strong>Audience</strong> filters (country, language, demographics, etc.).',
       'Set the estimated <strong>completion time</strong> and <strong>reward</strong>. Prolific requires fair pay (currently min ~$8/hr equivalent).',
       'Click <strong>Preview</strong> to test the external study link opens correctly, then <strong>Publish</strong> when ready.',
@@ -196,7 +200,7 @@ const currentService = computed(() => services[selectedService.value])
 </script>
 
 <template>
-  <div class="px-4 md:px-8 lg:px-12 pt-10 pb-10 bg-background text-foreground global-color-mode">
+  <div class="sd-root sd-recruit min-h-full px-4 md:px-8 lg:px-12 pt-10 pb-10 bg-background text-foreground global-color-mode">
     <!-- Detail view for selected service -->
     <template v-if="selectedService && currentService">
       <!-- Back button -->
@@ -403,7 +407,7 @@ const currentService = computed(() => services[selectedService.value])
                   <a
                     :href="`https://github.com/${config.github.owner}/${config.github.repoName}`"
                     target="_blank"
-                    class="text-[var(--link-button-foreground)] underline"
+                    class="text-sd-link underline"
                   >{{ config.github.owner }}/{{ config.github.repoName }}</a>
                   <span class="text-muted-foreground">({{ config.github.branch || '?' }})</span>
                   <button
@@ -428,7 +432,7 @@ const currentService = computed(() => services[selectedService.value])
                     v-if="config.github.lastCommitHash"
                     :href="config.github.commitURL"
                     target="_blank"
-                    class="text-[var(--link-button-foreground)] underline text-xs"
+                    class="text-sd-link underline text-xs"
                   >{{ config.github.lastCommitHash }}</a>
                   <span
                     v-if="config.github.lastCommitMsg"
@@ -544,49 +548,58 @@ const currentService = computed(() => services[selectedService.value])
 
 <style>
 .global-color-mode a:not([class*="is-"]) {
-  color: var(--link-button-foreground);
+  color: var(--sd-link);
 }
 </style>
 
 <style scoped>
+/* The dev tools' ink, on a reading surface: neutral in light mode under
+   every palette, the palette's own in dark mode. Cards sit a step off it. */
+.sd-recruit.sd-root {
+  --background: var(--sd-reading-bg);
+  --card: var(--sd-reading-card);
+  --muted: var(--sd-reading-card);
+  --border: var(--sd-reading-line);
+}
+
 .is-blue {
-  background-color: var(--recruit-blue);
-  color: var(--recruit-text);
+  background-color: var(--sd-tile-blue);
+  color: var(--sd-tile-fg);
 }
 
 .is-red {
-  background-color: var(--recruit-red);
-  color: var(--recruit-text);
+  background-color: var(--sd-tile-red);
+  color: var(--sd-tile-fg);
 }
 
 .is-pink {
-  background-color: var(--recruit-pink);
-  color: var(--recruit-text);
+  background-color: var(--sd-tile-pink);
+  color: var(--sd-tile-fg);
 }
 
 .is-green {
-  background-color: var(--recruit-green);
-  color: var(--recruit-text);
+  background-color: var(--sd-tile-green);
+  color: var(--sd-tile-fg);
 }
 
 .is-orange {
-  background-color: var(--recruit-orange);
-  color: var(--recruit-text);
+  background-color: var(--sd-tile-orange);
+  color: var(--sd-tile-fg);
 }
 
 .is-teal {
-  background-color: var(--recruit-teal);
-  color: var(--recruit-text);
+  background-color: var(--sd-tile-teal);
+  color: var(--sd-tile-fg);
 }
 
 .is-coral {
-  background-color: var(--recruit-coral);
-  color: var(--recruit-text);
+  background-color: var(--sd-tile-orange);
+  color: var(--sd-tile-fg);
 }
 
 .is-purple {
-  background-color: var(--recruit-purple);
-  color: var(--recruit-text);
+  background-color: var(--sd-tile-purple);
+  color: var(--sd-tile-fg);
   border: none;
 }
 

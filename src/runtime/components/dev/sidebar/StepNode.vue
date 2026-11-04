@@ -106,7 +106,7 @@ const getChildVerticalLines = (verticalLines, index, total) => {
         <Leaf
           v-else-if="state.isLeaf"
           class="inline size-3.5"
-          style="color: var(--step-leaf-color)"
+          style="color: var(--sd-step-leaf)"
         />
       </span>
     </div>
@@ -151,28 +151,28 @@ const getChildVerticalLines = (verticalLines, index, total) => {
 }
 
 .tree-line:hover {
-  background-color: rgba(0, 0, 0, 0.03);
-  border-radius: 10px;
+  background-color: var(--sd-hover);
+  border-radius: var(--sd-radius);
   margin-right: 70px;
 }
 
 .node-selected {
-  background-color: var(--step-selected-bg);
-  color: var(--foreground);
-  border-radius: 10px;
+  background-color: var(--sd-selected);
+  color: var(--sd-selected-fg);
+  border-radius: var(--sd-radius);
   margin-right: 70px;
 }
 
 .node-selected:hover {
-  background-color: var(--step-selected-bg-hover);
+  background-color: var(--sd-selected-hover);
 }
 
 .vertical-lines {
-  font-family: monospace;
+  font-family: var(--font-mono), ui-monospace, monospace;
 }
 
 .tree-branch {
-  font-family: monospace;
+  font-family: var(--font-mono), ui-monospace, monospace;
 }
 
 .node-path {
@@ -182,8 +182,8 @@ const getChildVerticalLines = (verticalLines, index, total) => {
 
 .node-data {
   margin-left: 8px;
-  color: var(--muted-foreground);
-  font-family: monospace;
+  color: var(--sd-text-muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
 }
 
 .children {
@@ -194,7 +194,7 @@ const getChildVerticalLines = (verticalLines, index, total) => {
 
 .end-state {
   opacity: 0.4;
-  color: var(--status-red-text);
+  color: var(--sd-error);
 }
 
 .leaf-state {
@@ -202,12 +202,12 @@ const getChildVerticalLines = (verticalLines, index, total) => {
 }
 
 .leaf-icon {
-  color: var(--step-leaf-color);
+  color: var(--sd-step-leaf);
   opacity: 0.35;
 }
 
 .home-icon {
-  color: var(--step-home-color);
+  color: var(--sd-step-home);
   opacity: 0.65;
 }
 </style>

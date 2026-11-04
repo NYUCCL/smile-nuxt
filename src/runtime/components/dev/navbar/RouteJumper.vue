@@ -83,7 +83,7 @@ function goHome() {
   <!-- Dropdown menu listing all routes for navigation -->
   <DropdownMenuContent align="end">
     <DropdownMenuItem
-      class="cursor-pointer border-b border-dev-lines mb-1"
+      class="cursor-pointer border-b border-sd-line mb-1"
       @click="goHome"
     >
       <span class="text-[0.65rem] font-mono">
@@ -98,7 +98,7 @@ function goHome() {
       :key="r.name"
       :class="{
         'bg-accent text-accent-foreground': activeRouteName === r.name,
-        'bg-muted': hoverRoute === r.name,
+        'bg-sd-hover': hoverRoute === r.name,
       }"
       class="cursor-pointer"
       @mouseover="hoverRoute = r.name"

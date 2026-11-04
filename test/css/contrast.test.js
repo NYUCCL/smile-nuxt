@@ -1,70 +1,22 @@
-import { readFileSync } from 'node:fs'
-import { resolve as resolvePath } from 'node:path'
 import { describe, it, expect } from 'vitest'
+import { readCss, tokensIn, contrast } from './color.js'
 
 /**
- * Text contrast in the theme (#44). Reads the light (:root) and dark (.dark)
- * tokens from main.css and checks each text/background pair participants see
- * against WCAG AA (4.5:1 for normal text).
+ * Text contrast in the themes, against WCAG AA (4.5:1 for normal text).
+ *
+ * - Participant theme (#44): main.css, light (:root/.light) and dark (.dark).
+ * - Dev tools theme (plans/dev_tools_theming.md): dev-theme.css, every
+ *   semantic text/background pair the dev tools draw, in both modes.
  */
 
-const css = readFileSync(resolvePath(__dirname, '../../src/runtime/css/main.css'), 'utf8')
+const AA = 4.5
 
-function block(selector) {
-  const start = css.indexOf(`${selector} {`)
-  return css.slice(start, css.indexOf('\n}', start))
-}
-
-function tokens(text) {
-  const out = {}
-  for (const m of text.matchAll(/--([\w-]+):([^;]+);/g)) out[m[1]] = m[2].trim()
-  return out
-}
-
-// :root holds the light theme; the first `:root {` block is the Tailwind
-// @theme mapping, so take the one that defines --background.
-const rootStart = css.indexOf('--background: oklch(1 0 0)')
-const light = tokens(css.slice(css.lastIndexOf(':root', rootStart), css.indexOf('\n}', rootStart)))
-const dark = { ...light, ...tokens(block('.dark')) }
-
-function resolve(theme, value, depth = 0) {
-  const ref = value.match(/^var\(--([\w-]+)\)$/)
-  if (ref && depth < 5) return resolve(theme, theme[ref[1]], depth + 1)
-  return value
-}
-
-const lin = c => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
-
-/** Linear-light sRGB of an oklch() or #hex color. */
-function linearRGB(color) {
-  const hex = color.match(/^#([0-9a-f]{6})$/i)
-  if (hex) return [0, 2, 4].map(i => lin(Number.parseInt(hex[1].slice(i, i + 2), 16) / 255))
-  const m = color.match(/^oklch\(([\d.]+)\s+([\d.]+)\s+([\d.]+)\)$/)
-  if (!m) throw new Error(`can't read color ${color}`)
-  const [L, C, h] = m.slice(1).map(Number)
-  const a = C * Math.cos((h * Math.PI) / 180)
-  const b = C * Math.sin((h * Math.PI) / 180)
-  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3
-  const mm = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3
-  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3
-  return [
-    4.0767416621 * l - 3.3077115913 * mm + 0.2309699292 * s,
-    -1.2684380046 * l + 2.6097574011 * mm - 0.3413193965 * s,
-    -0.0041960863 * l - 0.7034186147 * mm + 1.707614701 * s,
-  ].map(x => Math.min(Math.max(x, 0), 1))
-}
-
-function contrast(theme, fg, bg) {
-  const lum = (name) => {
-    const [r, g, b] = linearRGB(resolve(theme, theme[name]))
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b
-  }
-  const [hi, lo] = [lum(fg), lum(bg)].sort((x, y) => y - x)
-  return (hi + 0.05) / (lo + 0.05)
-}
+const main = readCss('src/runtime/css/main.css')
+const lightParticipant = tokensIn(main, s => s.includes(':root') || s.includes('.light'))
+const darkParticipant = { ...lightParticipant, ...tokensIn(main, s => s.includes('.dark')) }
 
 // [text, background]
-const PAIRS = [
+const PARTICIPANT_PAIRS = [
   ['foreground', 'background'],
   ['card-foreground', 'card'],
   ['muted-foreground', 'background'],
@@ -80,8 +32,68 @@ const PAIRS = [
   ['warning-text', 'warning-bg'],
 ]
 
-describe.each([['light', light], ['dark', dark]])('%s theme text contrast (#44)', (_name, theme) => {
-  it.each(PAIRS)('%s on %s meets WCAG AA', (fg, bg) => {
-    expect(contrast(theme, fg, bg)).toBeGreaterThanOrEqual(4.5)
+describe.each([['light', lightParticipant], ['dark', darkParticipant]])('participant theme, %s: text contrast (#44)', (_name, theme) => {
+  it.each(PARTICIPANT_PAIRS)('%s on %s meets WCAG AA', (fg, bg) => {
+    expect(contrast(theme, fg, bg)).toBeGreaterThanOrEqual(AA)
+  })
+})
+
+const dev = readCss('src/runtime/css/dev-theme.css')
+const lightDev = tokensIn(dev, s => s.includes(':root') || s.includes('.light'))
+const darkDev = { ...lightDev, ...tokensIn(dev, s => s.length === 1 && s[0] === '.dark') }
+
+const DEV_SURFACES = ['sd-bg', 'sd-panel', 'sd-hover', 'sd-selected']
+const DEV_PAIRS = [
+  // body text and muted text on every surface
+  ...DEV_SURFACES.flatMap(bg => [['sd-text', bg], ['sd-text-muted', bg]]),
+  ['sd-selected-fg', 'sd-selected'],
+  ['sd-selected-fg', 'sd-selected-hover'],
+  // colored text on the plain surfaces
+  ...['sd-link', 'sd-accent', 'sd-key', 'sd-value', 'sd-string', 'sd-number', 'sd-step-label', 'sd-step-path',
+    'sd-step-index', 'sd-step-home', 'sd-log-error', 'sd-log-warn', 'sd-log-info', 'sd-ok', 'sd-warn', 'sd-error', 'sd-info']
+    .flatMap(fg => [[fg, 'sd-bg'], [fg, 'sd-panel']]),
+  // status text on its own tint
+  ['sd-ok', 'sd-ok-bg'],
+  ['sd-done', 'sd-done-bg'],
+  ['sd-done', 'sd-panel'],
+  ['sd-warn', 'sd-warn-bg'],
+  ['sd-error', 'sd-error-bg'],
+  ['sd-info', 'sd-info-bg'],
+  // filled controls, brand button, pinned route, recruitment tiles
+  // the recruit page's reading surface
+  ['sd-text', 'sd-reading-bg'],
+  ['sd-text-muted', 'sd-reading-bg'],
+  ['sd-text-muted', 'sd-reading-card'],
+  ['sd-link', 'sd-reading-bg'],
+  ['sd-pinned-fg', 'sd-pinned'],
+  ['sd-local-fg', 'sd-local-1'],
+  ['sd-local-fg', 'sd-local-2'],
+  ...['blue', 'teal', 'green', 'yellow', 'orange', 'red', 'purple', 'pink'].map(h => ['sd-tile-fg', `sd-tile-${h}`]),
+]
+
+// Every palette (src/runtime/css/dev-palettes.css) over the default, both modes
+const palettesCss = readCss('src/runtime/css/dev-palettes.css')
+const paletteNames = [...new Set([...palettesCss.matchAll(/data-sd-palette='([\w-]+)'/g)].map(m => m[1]))]
+const devThemes = [['default light', lightDev], ['default dark', darkDev]]
+for (const name of paletteNames) {
+  devThemes.push([`${name} light`, { ...lightDev, ...tokensIn(palettesCss, s => s.includes(`[data-sd-palette='${name}'].light`)) }])
+  devThemes.push([`${name} dark`, { ...darkDev, ...tokensIn(palettesCss, s => s.includes(`[data-sd-palette='${name}'].dark`)) }])
+}
+
+it('the palettes file defines palettes', () => {
+  expect(paletteNames.length).toBeGreaterThan(0)
+})
+
+// Checked checkbox/switch: the mark is a graphic, not text, so it needs 3:1
+// (WCAG 1.4.11, non-text contrast)
+describe.each(devThemes)('dev tools theme, %s: control contrast', (_name, theme) => {
+  it('the check mark on the solid fill is at least 3:1', () => {
+    expect(contrast(theme, 'sd-solid-fg', 'sd-solid')).toBeGreaterThanOrEqual(3)
+  })
+})
+
+describe.each(devThemes)('dev tools theme, %s: text contrast', (_name, theme) => {
+  it.each(DEV_PAIRS)('%s on %s meets WCAG AA', (fg, bg) => {
+    expect(contrast(theme, fg, bg)).toBeGreaterThanOrEqual(AA)
   })
 })

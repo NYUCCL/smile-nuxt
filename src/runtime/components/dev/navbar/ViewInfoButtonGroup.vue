@@ -64,7 +64,7 @@ const togglePin = () => {
   <!-- View information button group with tooltips -->
   <TooltipProvider>
     <ButtonGroup
-      variant="outline"
+      variant="toolbar"
       size="menu"
     >
       <!-- Autofill button -->
@@ -177,7 +177,7 @@ const togglePin = () => {
 
 <style scoped>
 .pinned {
-  background-color: var(--pinned-route);
-  color: var(--dev-contrast-text);
+  background-color: var(--sd-pinned);
+  color: var(--sd-pinned-fg);
 }
 </style>

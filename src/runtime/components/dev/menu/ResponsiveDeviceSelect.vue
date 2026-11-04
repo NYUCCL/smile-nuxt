@@ -71,7 +71,7 @@ const handleDeviceChange = (value) => {
     v-model="api.store.dev.selectedDevice"
     @update:model-value="handleDeviceChange"
   >
-    <SelectTrigger class="select-small">
+    <SelectTrigger class="sd-field min-w-28">
       <SelectValue placeholder="Custom size" />
     </SelectTrigger>
     <SelectContent>
@@ -150,14 +150,4 @@ const handleDeviceChange = (value) => {
 
 <style scoped>
 /* Make select smaller for compact layout */
-:deep(.select-small) {
-  height: 28px !important;
-  padding: 4px 8px !important;
-  font-size: 12px !important;
-}
-
-:deep(.select-small svg) {
-  width: 12px !important;
-  height: 12px !important;
-}
 </style>

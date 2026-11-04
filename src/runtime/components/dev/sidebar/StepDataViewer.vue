@@ -114,8 +114,8 @@ const isSinglePrimitive = (value) => {
 
 <style scoped>
 .data-path-viewer {
-  font-family: monospace;
-  font-size: 0.7rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--sd-font-xs);
   line-height: 1.4;
 }
 
@@ -130,31 +130,31 @@ const isSinglePrimitive = (value) => {
 }
 
 .node-content:hover {
-  background-color: var(--muted);
+  background-color: var(--sd-chrome);
 }
 
 .expand-icon {
   display: inline-block;
   width: 16px;
-  color: var(--muted-foreground);
+  color: var(--sd-text-muted);
 }
 
 .key {
-  color: var(--data-key-color);
+  color: var(--sd-key);
   margin-right: 4px;
 }
 
 .preview {
-  color: var(--muted-foreground);
+  color: var(--sd-text-muted);
   font-style: italic;
 }
 
 .primitive-value {
-  color: var(--data-value-color);
+  color: var(--sd-value);
 }
 
 .nested-content {
   padding-left: 20px;
-  border-left: 1px dotted var(--border);
+  border-left: 1px dotted var(--sd-line);
 }
 </style>

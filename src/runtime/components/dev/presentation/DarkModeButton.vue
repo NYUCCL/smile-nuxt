@@ -22,7 +22,7 @@ const {
       <TooltipTrigger as-child>
         <Button
           size="menu"
-          variant="outline"
+          variant="toolbar"
           @click="toggleColorMode"
         >
           <!-- Light mode icon -->

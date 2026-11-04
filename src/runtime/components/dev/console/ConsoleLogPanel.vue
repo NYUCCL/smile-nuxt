@@ -63,20 +63,13 @@ function filter_log(msg) {
  * @returns {string} CSS class name for background styling
  */
 function getBgClass(msg) {
-  switch (msg.type) {
-    case 'log':
-      return 'bg-background'
-    case 'warn':
-      return 'log-bg-warn'
-    case 'error':
-      return 'log-bg-error'
-    case 'debug':
-      return 'bg-muted text-muted-foreground'
-    case 'success':
-      return 'log-bg-success'
-    default:
-      return 'bg-background'
-  }
+  // A row per message; warnings, errors and successes get a tint and a mark
+  return {
+    warn: 'sd-log-warn',
+    error: 'sd-log-error',
+    success: 'sd-log-ok',
+    debug: 'sd-log-debug',
+  }[msg.type] ?? ''
 }
 </script>
 
@@ -84,11 +77,11 @@ function getBgClass(msg) {
   <!-- Console log panel with controls and log display -->
   <div class="h-full p-0 m-0 overflow-hidden">
     <!-- Control bar with filters and search -->
-    <div class="bg-muted border-b border-dev-lines px-3 py-2 font-mono">
-      <div class="flex items-center justify-end gap-4 text-xs">
+    <div class="sd-controlbar justify-end">
+      <div class="flex items-center justify-end gap-4">
         <!-- Since last view toggle -->
         <div class="flex items-center gap-2">
-          <Label class="text-xs font-semibold">Since last view:</Label>
+          <Label class="sd-label font-normal">Since last view</Label>
           <Switch
             v-model="api.store.dev.lastViewLimit"
             size="sm"
@@ -97,19 +90,19 @@ function getBgClass(msg) {
 
         <!-- Search input -->
         <div class="flex items-center gap-2">
-          <Label class="text-xs font-semibold">Search:</Label>
+          <Label class="sd-label font-normal">Search</Label>
           <Input
             v-model="api.store.dev.searchParams"
-            placeholder="Search..."
-            class="h-6 w-24 text-xs"
+            placeholder="Filter text"
+            class="sd-field w-32"
           />
         </div>
 
         <!-- Log type filter -->
         <div class="flex items-center gap-2">
-          <Label class="text-xs font-semibold">Filter:</Label>
+          <Label class="sd-label font-normal">Filter</Label>
           <Select v-model="api.store.dev.logFilter">
-            <SelectTrigger class="h-6 text-xs">
+            <SelectTrigger class="sd-field">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -137,9 +130,9 @@ function getBgClass(msg) {
 
         <!-- Notification filter -->
         <div class="flex items-center gap-2">
-          <Label class="text-xs font-semibold">Notifications:</Label>
+          <Label class="sd-label font-normal">Notifications</Label>
           <Select v-model="api.store.dev.notificationFilter">
-            <SelectTrigger class="h-6 text-xs">
+            <SelectTrigger class="sd-field">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -186,12 +179,12 @@ function getBgClass(msg) {
               v-if="filter_log(msg)"
               :class="[
                 getBgClass(msg),
-                'text-xs font-mono p-2 pr-0 border-b border-dev-lines whitespace-pre-wrap break-words break-all min-w-0 w-full',
+                'sd-log-row',
               ]"
             >
-              <div class="flex items-start gap-1 min-w-0">
+              <div class="flex items-start gap-1.5 min-w-0">
                 <!-- Icon indicator based on message content -->
-                <div class="flex-shrink-0 mt-0.5">
+                <div class="sd-log-icon">
                   <GitBranch
                     v-if="msg.message.includes('ROUTER GUARD')"
                     class="size-3.5"
@@ -223,10 +216,10 @@ function getBgClass(msg) {
                 </div>
                 <!-- Message content -->
                 <div class="min-w-0 flex-1">
-                  <div class="font-semibold break-words break-all">
-                    {{ msg.time }} {{ msg.message }}
+                  <div class="sd-log-message">
+                    <span class="sd-log-time">{{ msg.time }}</span> {{ msg.message }}
                   </div>
-                  <div class="break-words break-all text-xs opacity-75">
+                  <div class="sd-log-trace">
                     {{ msg.trace }}
                   </div>
                 </div>
@@ -247,12 +240,12 @@ function getBgClass(msg) {
               v-if="filter_log(msg)"
               :class="[
                 getBgClass(msg),
-                'text-xs font-mono p-2 pr-0 border-b border-dev-lines whitespace-pre-wrap break-words break-all min-w-0 w-full',
+                'sd-log-row',
               ]"
             >
-              <div class="flex items-start gap-1 min-w-0">
+              <div class="flex items-start gap-1.5 min-w-0">
                 <!-- Icon indicator based on message content -->
-                <div class="flex-shrink-0 mt-0.5">
+                <div class="sd-log-icon">
                   <GitBranch
                     v-if="msg.message.includes('ROUTER GUARD')"
                     class="size-3.5"
@@ -284,10 +277,10 @@ function getBgClass(msg) {
                 </div>
                 <!-- Message content -->
                 <div class="min-w-0 flex-1">
-                  <div class="font-semibold break-words break-all">
-                    {{ msg.time }} {{ msg.message }}
+                  <div class="sd-log-message">
+                    <span class="sd-log-time">{{ msg.time }}</span> {{ msg.message }}
                   </div>
-                  <div class="break-words break-all text-xs opacity-75">
+                  <div class="sd-log-trace">
                     {{ msg.trace }}
                   </div>
                 </div>
@@ -301,52 +294,70 @@ function getBgClass(msg) {
 </template>
 
 <style scoped>
-/* Custom scrollbar styling for better UX */
 .overflow-y-scroll::-webkit-scrollbar {
   width: 6px;
 }
-
 .overflow-y-scroll::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-  border-radius: 3px;
+  background: var(--sd-scrollbar-track);
 }
-
 .overflow-y-scroll::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
+  background: var(--sd-scrollbar-thumb);
   border-radius: 3px;
 }
-
 .overflow-y-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
+  background: var(--sd-scrollbar-thumb-hover);
 }
 
-/* Theme-aware background colors for log messages */
-.bg-background {
-  background-color: var(--background);
+/* One log message: content background, mono, a hairline between rows */
+.sd-log-row {
+  width: 100%;
+  min-width: 0;
+  padding: 5px 12px 5px 10px;
+  border-bottom: 1px solid var(--sd-line);
+  border-left: 2px solid transparent;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--sd-font-xs);
+  line-height: 1.5;
+  color: var(--sd-text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.sd-log-warn {
+  background-color: var(--sd-log-warn-bg);
+  border-left-color: var(--sd-log-warn);
+}
+.sd-log-error {
+  background-color: var(--sd-log-error-bg);
+  border-left-color: var(--sd-log-error);
+}
+.sd-log-ok {
+  background-color: var(--sd-log-info-bg);
+  border-left-color: var(--sd-log-info);
+}
+.sd-log-debug {
+  color: var(--sd-text-muted);
 }
 
-.bg-muted {
-  background-color: var(--muted);
+.sd-log-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--sd-text-muted);
+}
+.sd-log-warn .sd-log-icon {
+  color: var(--sd-log-warn);
+}
+.sd-log-error .sd-log-icon {
+  color: var(--sd-log-error);
+}
+.sd-log-ok .sd-log-icon {
+  color: var(--sd-log-info);
 }
 
-.text-muted-foreground {
-  color: var(--muted-foreground);
+.sd-log-time {
+  color: var(--sd-text-muted);
 }
-
-.border-dev-lines {
-  border-color: var(--dev-lines);
-}
-
-/* Semantic log type background colors */
-.log-bg-warn {
-  background-color: var(--log-yellow);
-}
-
-.log-bg-error {
-  background-color: var(--log-red);
-}
-
-.log-bg-success {
-  background-color: var(--log-green);
+.sd-log-trace {
+  color: var(--sd-text-muted);
+  font-size: 10px;
 }
 </style>

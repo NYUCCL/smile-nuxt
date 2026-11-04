@@ -7,7 +7,7 @@ const api = useAPI()
 <template>
   <TooltipProvider>
     <ButtonGroup
-      variant="outline"
+      variant="toolbar"
       size="menu"
     >
       <!-- Console toggle -->

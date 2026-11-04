@@ -15,6 +15,13 @@ export const buttonVariants = cva(
           'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200',
         'secondary':
           'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 disabled:bg-gray-300 disabled:text-gray-500',
+        // Dev tools chrome (toolbars, the app menu): borderless, themed by the
+        // dev tokens. One button look across the dev tools' bars.
+        'toolbar':
+          'text-sd-text hover:bg-sd-hover aria-expanded:bg-sd-hover disabled:opacity-40 disabled:hover:bg-transparent',
+        // Dev tools panels: a flat outlined button (no fill, no shadow)
+        'panel':
+          'border border-sd-line text-sd-text hover:bg-sd-hover disabled:opacity-40 disabled:hover:bg-transparent',
         'ghost':
           'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 disabled:text-gray-400 disabled:hover:bg-transparent',
         'link': 'text-primary underline-offset-4 hover:underline disabled:text-gray-400 disabled:no-underline',
