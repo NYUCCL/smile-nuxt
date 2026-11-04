@@ -27,6 +27,7 @@ const STALE = [
   [/fire(base|store)/i, 'Firebase/Firestore; data is in SQLite locally and Turso when deployed'],
   [/\bnpm run (getdata|dashboard|update_config)\b/, 'an old command that no longer exists'],
   [/\bEXP_DEPLOY_MODE\b|\.env\.deploy/, 'old deploy settings'],
+  [/\baddSpec\(|\bstep\.(?:next|index)\(\)/, 'the old stepper API (addSpec, step.next()); use api.steps and api.goNextStep()'],
 ]
 
 describe('docs: no old-version content', () => {

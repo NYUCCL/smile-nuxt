@@ -62,98 +62,68 @@ each view.
 
 ## Autofill trials
 
-The above works for simple forms but what about more complex components like
-multi-trial Views? In this case several trials might need autofill data. In
-addition, each trial might have different types of autofil data. For example,
-each trial might have a correct/incorrect field (Boolean) and a reaction time
-field (Number). In this case we can register a function that will be called for
-to autofill the data. This function should return an object with the autofill
-data for that trial. This is best explained with an example.
+A multi-trial View needs fake data for every trial, and each trial can have
+several kinds of response (a reaction time, a hit or miss, a key). The way to
+do this in <SmileText/> is to describe the expected responses once, on the
+parent step, as functions that make fake values. Every trial under that step
+inherits them (see
+[Abstract Dependent Variable Definition](/coding/steps#abstract-dependent-variable-definition)).
+This is how the Stroop task in a new project does it
+(`components/StroopExpView.vue`):
 
-Imagine you want to make simple Stroop experiment where participants see words
-written in different color fonts and respond to the color of the font, not the
-word itself. You might configure several trials like this:
+```vue
+<script setup>
+const api = useViewAPI()
 
-```js
-const trialTypes = [
-  { word: 'SHIP', color: 'red', condition: 'unrelated' },
+// The parent step says what each trial will record, as fake-data functions.
+const trials = api.steps.append([
   {
-    word: 'MONKEY',
-    color: 'green',
-    condition: 'unrelated',
-  },
-  { word: 'ZAMBONI', color: 'blue', condition: 'unrelated' },
-  { word: 'RED', color: 'red', condition: 'congruent' },
-  { word: 'GREEN', color: 'green', condition: 'congruent' },
-  {
-    word: 'BLUE',
-    color: 'blue',
-    condition: 'congruent',
-  },
-  { word: 'GREEN', color: 'red', condition: 'incongruent' },
-  { word: 'BLUE', color: 'green', condition: 'incongruent' },
-  { word: 'RED', color: 'blue', condition: 'incongruent' },
-]
-```
-
-This could of course be generated programmatically.
-
-Next we'd like to augment this data structure with expected responses. To do
-this we will loop through each trial spec and add fields we expect to record in
-our experiment including `reactionTime`, `accuracy`, and `response`:
-
-```js
-var trials = []
-
-// add the data fields
-for (let trialType of trialTypes) {
-  trials.addSpec({
-    ...trialType,
-    reactionTime: () => api.faker.rnorm(500, 50),
-    accuracy: () => api.faker.rbinom(1, 0.8),
+    id: 'stroop',
+    rt: () => api.faker.rnorm(500, 50),
+    hit: () => api.faker.rbinom(1, 0.8),
     response: () => api.faker.rchoice(['r', 'g', 'b']),
-  })
-}
+  },
+])
+
+// The trials themselves inherit those fields.
+trials[0]
+  .append([
+    { id: 'a', word: 'SHIP', color: 'red', condition: 'unrelated' },
+    { id: 'b', word: 'RED', color: 'red', condition: 'congruent' },
+    { id: 'c', word: 'GREEN', color: 'red', condition: 'incongruent' },
+  ])
+  .shuffle()
+
+trials.append([{ id: 'summary' }])
+</script>
 ```
 
-In this example, we are defining the fields `reactionTime`, `accuracy`, and
-`response` to be random variables chosen from a specific distribution. The
-`api.faker` library (documented below) provides a number of useful functions for
-generating data of various types.
-
-At this point these values are not "filled in" to the trials but are just
-defined to be functions `() => ...`. To actually fill in the values we need to
-'render' the data we can do this for a single trial using the
-`api.faker.render()` function. This function will call all the functions in the
-template and return the result. For example:
+When a participant really responds, your code sets `api.stepData.rt` (and so
+on), which replaces the function with the real value. The autofill function
+does the same thing with fake values: for each remaining trial it calls
+`api.faker.render()` on the step's data, records the step and moves on.
 
 ```js
-// next we shuffle the trials
-trials = api.shuffle(trials)
-
 function autofill() {
-  while (step.index() < trials.length) {
-    api.debug('auto stepping')
-
-    var t = api.faker.render(trials[step.index()])
-    api.debug(t)
-    api.recordPageData(t)
-
-    step.next()
+  while (api.stepIndex < api.nSteps) {
+    api.faker.render(api.stepData) // turn each function into a fake value
+    api.recordStep()
+    api.goNextStep()
   }
 }
 
 api.setAutofill(autofill)
 ```
 
-In this example we first shuffle the abstract trial definitions. Then we define
-an `autofill()` function. This function will be called when the autofill button
-is clicked after it is registered `api.setAutofill(autofill)`. Inside this
-function is steps through each trial, rendering the data for that trial, saving
-it to the smilestore database, then advancing to the next step. The rendering
-step calls the `api.faker.*()` methods as defined and makes "fake" data for the
-trial. This data is then [recorded to the database](/coding/datastorage) using
-`api.recordPageData()`.
+`api.faker.render()` changes the object you give it (and also returns it):
+each field that is a function is replaced by what the function returns, and
+fields that already hold a value are left alone. The recorded data then goes
+to the database like a real participant's
+(see [Data storage](/coding/datastorage)), which makes it useful for testing
+your analysis scripts.
+
+The built-in surveys (demographics, device, feedback) and the instructions
+quiz already register their own autofill functions.
 
 ## The Autofill API
 
@@ -176,21 +146,33 @@ called automatically when each [view](/coding/views) is advanced on the
 
 ## The Faker API
 
-The faker API provides a set of functions for generating fake data. This is
-provided a submodule of the `api` object. The following functions are available:
+`api.faker` has functions for making fake data. Each one returns an object
+`{ val, type }`, not a bare number: the value is in `.val` (for example
+`api.stepData.hit.val` after rendering), and `type` names the distribution.
 
 ### `api.faker.rnorm(mean, sd)`
 
+A value from a normal distribution.
+
 ### `api.faker.runif(min, max)`
+
+A value from a uniform distribution between `min` and `max`.
 
 ### `api.faker.rbinom(n, p)`
 
-### `api.faker.rexGuassian(mu, sigma, tau)`
+The number of successes in `n` tries, each with probability `p`.
+`rbinom(1, 0.8)` is 1 about 80% of the time.
+
+### `api.faker.rexGaussian(mu, sigma, tau)`
+
+A value from an ex-Gaussian distribution, a common shape for reaction times.
 
 ### `api.faker.rchoice(choices)`
 
+One item from the array `choices`, at random.
+
 ### `api.faker.render(object)`
 
-This function takes a javascript option contining functions and trial
-descriptors returns a new javascript object with the functions replaced by their
-values.
+Replaces each field of `object` that is a function with what the function
+returns, and returns `object`. Fields that aren't functions are left as they
+are.
