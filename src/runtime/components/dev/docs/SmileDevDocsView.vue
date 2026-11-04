@@ -575,7 +575,7 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   gap: 3rem;
-  padding: 1rem 2rem 4rem;
+  padding: 2.5rem 2rem 4rem;
 }
 .docs-page {
   flex: 1;
@@ -592,7 +592,7 @@ onMounted(async () => {
   width: 14rem;
   flex-shrink: 0;
   position: sticky;
-  top: 1rem;
+  top: 2.5rem;
   align-self: flex-start;
   max-height: calc(100vh - 6rem);
   overflow-y: auto;
