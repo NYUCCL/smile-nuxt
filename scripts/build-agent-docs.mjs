@@ -58,7 +58,7 @@ export function readPage(text) {
   }
   const heading = body.match(/^# (.+)$/m)
   const title = heading
-    ? heading[1].replace(/<SmileText\s*\/>/g, 'SMILE').replace(/:[a-z_]+:/g, '').trim()
+    ? heading[1].replace(/<SmileText\s*\/>/g, 'Smile').replace(/:[a-z_]+:/g, '').trim()
     : ''
   return { title, description }
 }
@@ -101,7 +101,7 @@ export function indexMarkdown(sections, version) {
     '',
     '- A link like `/coding/steps` or `/coding/steps#navigating-through-steps`',
     '  is the file `coding/steps.md` here (the part after `#` is a heading).',
-    '- Outside code blocks, `<SmileText/>` is the word SMILE and',
+    '- Outside code blocks, `<SmileText/>` is the word Smile and',
     '  `<GureckisLabText/>` is \'the Gureckis Lab\'. `<ComponentViewer>` and',
     '  tags ending in `Example` show live examples on the website; their code',
     '  is in `examples/` (for example `examples/ButtonVariantsExample.vue`).',
