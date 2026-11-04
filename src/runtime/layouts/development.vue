@@ -11,6 +11,7 @@ import ResponsiveDeviceContainer from '#smile-dev/ResponsiveDeviceContainer.vue'
 import SmileDevPresentationView from '#smile-dev/SmileDevPresentationView.vue'
 // Dashboard is hidden until the feature is complete
 // import SmileDevDashboardView from '#smile-dev/dashboard/SmileDevDashboardView.vue'
+import useAPI from '../composables/useAPI'
 import useWindowSizer from '#smile-composables/useWindowSizer'
 import { applyDevPalette } from '#smile-composables/useDevPalette'
 import DevScope from '#smile-dev/DevScope.vue'
