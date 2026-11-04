@@ -1,6 +1,6 @@
 # Build & deploy settings page in the dev tools
 
-Status: plan, for review (2026-11-03). Branch `dev-build-config` (from 227ba79).
+Status: plan agreed, building (2026-11-03). Branch `dev-build-config` (from 227ba79).
 Related: #38 (SMILE_DEV_TOOLS), #31 (auth secret), #65 (`pnpm smile:check`).
 
 ## Goal
@@ -8,8 +8,8 @@ Related: #38 (SMILE_DEV_TOOLS), #31 (auth secret), #65 (`pnpm smile:check`).
 One page in the dev tools that lists every setting that changes how a project
 builds, deploys and behaves; says what each does; shows its current value and
 where that value came from; warns about risky combinations; and lets the
-developer edit it. Edits rewrite the project's own config files through
-server routes that exist only in `nuxt dev`.
+developer edit it. Read-only for now: the page says where to change each
+setting. The data comes from one route that exists only in `nuxt dev`.
 
 ## 1. Inventory
 
@@ -98,118 +98,82 @@ the winning layer, and the row lists the other layers that also set it
 value with the live `api.config` in the browser: if they differ, it says
 "overridden in design.js (`api.setRuntimeConfig`)" or "restart pending".
 
+## Decisions (Todd, 2026-11-03)
+
+- A rail mode in the dev tools, not a tab in the settings popover.
+- **Read-only across the board** for now. The page explains each setting and
+  says where to change it (which file, or a Vercel env var / GitHub secret);
+  it doesn't write anything. Editing can come later on the same data.
+- Lead with what a deploy will do: dev tools / presentation available or
+  not, passworded or not, with explanations and recommendations.
+
 ## 2. UI
 
 **Where:** a third mode on the dev tools' left rail ("Build & deploy
-settings", a `SlidersHorizontal` icon), i.e. `store.dev.mainView = 'config'`,
-rendered full-width like presentation mode. The settings popover
-(`DevConfigPanel`) is the dev tools' own preferences and too small for ~45
-rows; the console's Config tab browses the live `api.config` object and stays
-as is. Touching shared files is two small edits: one entry in
-`SmileDevAppMenu.vue`'s `modes` array and one `v-else-if` in
-`layouts/development.vue`. Everything else is new files in
+settings", `SlidersHorizontal` icon): `store.dev.mainView = 'config'`,
+full-width like presentation mode. Shared files get two small edits (one entry
+in `SmileDevAppMenu.vue`'s `modes`, one `v-else-if` in
+`layouts/development.vue`); the rest is new files in
 `src/runtime/components/dev/buildconfig/`.
 
 **Layout** (top to bottom):
 
-1. Header: title, the "local files vs deploy" note, a Reload button.
-2. Findings: the risk-rule results, errors then warnings then info. Each names
-   the keys involved (click scrolls to the row) and the fix.
-3. Sections: Dev access, Database, Data saving, Experiment, Display &
-   branding, Recruitment, Generated (collapsed), Deploy.
-4. A row: key (mono), one-line description, effective value, source badge,
-   phase badge (build / runtime), and an edit control by type: switch (bool),
-   select (enum), number input, text input. Edit opens inline with a
-   target-file choice (`.env.local` default, `.env`), Save / Cancel, and an
-   "Unset" button. Secrets show "set (bcrypt hash)" / "set (plaintext)" / "not
-   set" and offer Set password… (a password field, hashed on the server) and
-   Clear.
-5. After a save: a toast saying what happens next ("the dev server restarts
-   now", or "takes effect in the next build; the dev server picks it up after
-   restart", or "runtime on deploys: set it in Vercel too").
+1. **When you deploy.** One line per question, each with a status (ok /
+   check / risk), a sentence of explanation, a recommendation, and where to
+   change it:
+   - Are the dev tools in the build? (`SMILE_DEV_TOOLS` / `smile.devTools`)
+   - Who can open /dev? (`SMILE_DEV_ACCESS` + password)
+   - Who can open /presentation? (`SMILE_PRESENTATION_ACCESS` + password,
+     legacy `SMILE_PUBLIC_PRESENTATION`)
+   - Where does data go? (`TURSO_*`)
+   - Are participant tokens signed with a real secret? (`SMILE_AUTH_SECRET`)
+   - Does data save? (`VITE_AUTO_SAVE_DATA`, write limits)
+   Answers are worked out from the files a deploy builds with (the tracked
+   `.env`, `.env.production`), and say plainly that Vercel env vars can
+   change them ("not set in tracked files; set it in Vercel if…").
+   A short line notes that this dev server always has /dev open, no password.
+2. **Other findings** from the risk rules not already in the summary.
+3. **All settings**, by section: Dev access, Database, Data saving,
+   Experiment, Display & branding, Recruitment, Generated (collapsed).
+   A row: key (mono), description, current value, source badge (`.env.local`,
+   `.env`, environment, generated, nuxt.config, default), phase badge (build /
+   runtime), "local only" when it's set only in an untracked file a deploy
+   won't see, and a "How to change" line (file for local; Vercel env var for
+   deploys; never commit secrets). Secrets show only "set (bcrypt hash)",
+   "set (plaintext)" or "not set". For `VITE_*` keys, a mismatch with the
+   live `api.config` shows "changed at runtime (design.js
+   `api.setRuntimeConfig`)" or "restart the dev server to pick this up".
 
 **Look:** the dev tools' committed tokens and utilities (`bg-sd-bg`,
-`border-sd-line`, `text-sd-*`, `sd-selected`, `variant="toolbar"` buttons,
-shadcn primitives). The new `.sd-section` / `.sd-label` / `.sd-field` classes
-are on the `dev-tools-theme` branch, not here yet, so I'll use local scoped
-classes with the same intent and switch them over at merge.
+`border-sd-line`, `text-sd-*`, `sd-selected`, shadcn primitives). The new
+`.sd-section` / `.sd-label` / `.sd-field` classes are on `dev-tools-theme`, not
+here yet, so local scoped classes with the same intent, swapped at merge.
 
-## 3. Server routes and safety
+## 3. Server route and safety
 
-### Registration: dev only, not in any build
+**Registration: dev only, not in any build.** Not in `runtime/server/` (that
+directory is scanned into every Nitro build). The handler lives in
+`src/devconfig/` next to `module.ts` and is registered with
+`addDevServerHandler()` inside `if (nuxt.options.dev)`. It runs in the Nuxt
+process on the dev server and is never written into `.output`;
+`SMILE_DEV_TOOLS` has no bearing on it. Checked by building the playground
+and grepping `.output`.
 
-Not in `runtime/server/` (that directory is scanned into every Nitro build).
-The handler lives in `src/devconfig/` next to `module.ts` and is registered
-with `addDevServerHandler()` inside `if (nuxt.options.dev)`. A dev server
-handler is an in-process h3 handler on the Nuxt dev server: it runs in the
-Nuxt process (where it can see `rootDir`), it is never written into
-`.output`, and `SMILE_DEV_TOOLS` has no bearing on it (in dev the tools are
-always included; in a build the route doesn't exist at all). A test builds the
-playground and checks the route is absent (§4).
+**One route:** `GET /_smile/dev-config`, read fresh per request (files
+change). Returns the settings (schema + value, source, other layers that set
+it, local-only flag), the deploy summary, the findings, which env files exist,
+`smile.devTools`, and whether `.vercel/project.json` exists.
 
-### Routes
-
-- `GET /_smile/dev-config`: the settings (inventory metadata + value, source,
-  other layers), the findings, which files exist, and a version token per
-  file (content hash). Secrets come back as `{ set, kind: 'bcrypt' |
-  'plaintext' }`, never a value.
-- `POST /_smile/dev-config`: `{ key, value | null, file: '.env' | '.env.local',
-  version }`. `null` removes the key. Returns the new GET payload plus
-  `{ effect: 'restart' | 'next-build' | 'runtime-on-deploy' }`.
-- `POST /_smile/dev-config/password`: `{ scope: 'dev' | 'presentation',
-  password }`. Hashes with `bcrypt.hash(password, 12)`, as
-  `scripts/hash-password.js` does, and writes `SMILE_*_PASSWORD` to
-  `.env.local`.
-
-### Safety
-
-- **Fixed targets.** `file` is an enum mapped to `join(rootDir, '.env')` /
-  `join(rootDir, '.env.local')`; no path ever comes from the request.
-  `nuxt.config.ts` is read-only in v1 (show `smile.devTools`, suggest the env
-  var); editing TS with magicast is possible later if wanted.
-- **Key allowlist** from the inventory; generated and unknown keys are
-  refused. Secret keys can only be written to `.env.local` (gitignored) and
-  only through the password route or a clear.
-- **Validation** per key: enum, boolean, integer with a range, `WIDTHxHEIGHT`,
-  URL (`libsql://`, `https://`, `file:`), and for every value: no newline, NUL
-  or `#`-comment ambiguity (quoted when needed), max 1000 chars.
-- **Requests from the page only.** The dev server listens on localhost, so
-  any site the developer visits could otherwise POST to it. Require: a
-  loopback remote address (refuses LAN requests when `nuxt dev --host`), a
-  `Host` of localhost / 127.0.0.1 / [::1] (DNS rebinding), an `Origin`
-  matching the Host, `content-type: application/json` and an
-  `x-smile-dev-config` header (so cross-site requests need a preflight we never
-  answer).
-- **Conflicts.** The POST carries the file's version from the GET; if the file
-  changed since (Todd edited it in his editor), it's refused and the page
-  reloads.
-- **Secrets never leave the server**: not in responses, errors or logs. The
-  handler doesn't print values at all.
-
-### Editing `.env` files
-
-A small line-based editor (`src/devconfig/envfile.ts`), not a
-parse-and-reserialize:
-
-- Finds the last active `KEY = value` line (the one dotenv uses) and replaces
-  only the value, keeping that line's spacing style (`KEY   = value` aligned or
-  `KEY=value`) and any trailing comment.
-- Missing key: inserted after the last active line of the same section in the
-  file if there is one, else appended; commented-out examples (`# KEY = …`)
-  are left alone.
-- Unset: removes the active line only.
-- Keeps line endings and the final newline; writes atomically (temp file +
-  rename). Creates `.env.local` if missing, with a one-line header.
-
-### What happens after a change
-
-Nuxt restarts the dev server when `.env` changes; I need to confirm whether it
-watches `.env.local` too. If it doesn't, the handler calls
-`nuxt.callHook('restart')` after writing, so the effect is the same for both
-files. The toast says which applies: `VITE_*` and `SMILE_DEV_TOOLS` matter at
-build time (the dev server picks them up on restart); the `SMILE_*_ACCESS`,
-password, auth and Turso values are runtime on deploys; and local dev ignores
-the access settings anyway (`/dev` is always open in `nuxt dev`).
+**Safety:**
+- Read-only; no request parameters; reads a fixed list of files in
+  `rootDir` (`.env`, `.env.local`, `.env.development[.local]`,
+  `.env.production[.local]`, `.env.git.local`, `.vercel/project.json` for
+  existence only).
+- Secrets never leave the server: `SMILE_*_PASSWORD`, `SMILE_AUTH_SECRET`,
+  `TURSO_AUTH_TOKEN` become `{ set, kind }` before anything else sees them;
+  the rules get that, not the value. Nothing is logged.
+- It still reveals config, so: loopback remote address only, `Host` must be
+  localhost / 127.0.0.1 / [::1] (DNS rebinding), and no CORS headers.
 
 ### Risk rules (shared with #65)
 
@@ -248,44 +212,25 @@ the same rule.
 
 ## 4. Tests
 
-Unit (vitest; `// @vitest-environment node` for server code):
+Unit (vitest; node environment for server code):
+- `test/devconfig/envparse.test.ts`: the dotenv-compatible parser (`KEY =
+  value` with alignment, quotes, `export`, inline comments, CRLF, last wins).
+- `test/devconfig/sources.test.ts`: layer precedence (environment >
+  `.env.local` > `.env` > generated > module option > default), "also set
+  in", local-only, secrets redacted.
+- `test/devconfig/rules.test.js`: each rule and the deploy summary, positive
+  and negative.
+- `test/devconfig/handler.test.ts` against a temp project dir: Host and
+  remote-address checks; a fixture password, hash and token never appear in
+  the response body.
 
-- `test/devconfig/envfile.test.ts`: replace keeps comments, order, spacing
-  and trailing comments; duplicate keys (last wins); insert into a section;
-  append; remove; quoting values with spaces or `#`; CRLF; no final newline.
-- `test/devconfig/rules.test.js`: each rule fires and stays quiet on its
-  negative case; secrets passed only as `{ set, kind }`.
-- `test/devconfig/sources.test.ts`: layer precedence (shell > .env.local >
-  .env > generated > default) and "also set in".
-- `test/devconfig/handler.test.ts` against a temp project dir: unknown key,
-  generated key, bad value, bad `file`, secret into `.env` all refused; Host /
-  Origin / header / content-type checks; stale version refused; the password
-  route writes a hash that `bcrypt.compare` accepts; the plaintext password and
-  the hash never appear in any response body.
-
-Build check: a test that runs `nuxt build playground` and checks that
-`.output` has no `/_smile/dev-config` (slow, so it goes in the e2e run or
-`test:starter`, not plain `vitest run`).
+Build check: `nuxt build playground`, then confirm `.output` has no
+`/_smile/dev-config`.
 
 E2E (`test/e2e/build-config.spec.ts`, playground on `SMILE_E2E_PORT=3100`):
-open /dev → the rail button → the page lists settings with sources; edit
-`VITE_MAX_STEPS` into `.env.local` and see the file change and the value
-update after the restart; set a dev password and see "set (bcrypt hash)" with
-no hash in any network response; a risky combination shows its finding. The
-spec backs up and restores `playground/.env.local` (gitignored) around the
-run.
+open /dev, click the rail button, see the deploy summary (playground
+defaults: dev tools excluded, /dev disabled, local SQLite) and a settings row
+with its source; the route answers 403 to a non-localhost Host.
 
-Also: `pnpm lint`, `pnpm exec vitest run`, the existing dev-mode specs (the
+Also `pnpm lint`, `pnpm exec vitest run`, and the existing dev-mode specs (the
 rail gained a button).
-
-## Open questions for Todd
-
-1. A rail mode (proposed) vs. a tab inside the settings popover?
-2. Edit `nuxt.config.ts`'s `smile.devTools` too, or show it read-only and
-   point to `SMILE_DEV_TOOLS` (proposed)?
-3. Default target file for edits: `.env.local` (proposed; per-developer,
-   untracked) or `.env` (shared with the team and used by deploys)? A
-   non-secret change meant for the deployed study belongs in `.env`, so the
-   page may need to suggest `.env` for `VITE_*` keys.
-4. OK to put the rules/schema under `src/runtime/shared/` with a package
-   export later for #65?
