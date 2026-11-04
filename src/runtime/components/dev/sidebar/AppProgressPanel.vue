@@ -62,16 +62,22 @@ const stages = computed(() => {
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  /* Same language as the rest of the dev tools: not reached is a muted
+     outline, reached is the neutral "selected" fill, and only unsaved
+     changes get a color */
   --sd-stage: var(--sd-text-muted);
-  --sd-stage-bg: var(--sd-panel-2);
+  --sd-stage-bg: transparent;
+  --sd-stage-ring: var(--sd-line);
 }
 .sd-progress-stage[data-state='ok'] {
-  --sd-stage: var(--sd-ok);
-  --sd-stage-bg: var(--sd-ok-bg);
+  --sd-stage: var(--sd-text);
+  --sd-stage-bg: var(--sd-selected);
+  --sd-stage-ring: transparent;
 }
 .sd-progress-stage[data-state='warn'] {
   --sd-stage: var(--sd-warn);
   --sd-stage-bg: var(--sd-warn-bg);
+  --sd-stage-ring: transparent;
 }
 
 /* The connector from the previous stage, at the dots' middle */
@@ -84,7 +90,7 @@ const stages = computed(() => {
   background-color: var(--sd-line);
 }
 .sd-progress-line[data-state='ok'] {
-  background-color: var(--sd-ok);
+  background-color: var(--sd-text-muted);
 }
 .sd-progress-line[data-state='warn'] {
   background-color: var(--sd-warn);
@@ -96,16 +102,17 @@ const stages = computed(() => {
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: 9999px;
+  border-radius: var(--sd-radius);
   color: var(--sd-stage);
   background-color: var(--sd-stage-bg);
+  box-shadow: inset 0 0 0 1px var(--sd-stage-ring);
 }
 .sd-progress-dot svg {
   width: 14px;
   height: 14px;
 }
 button.sd-progress-dot:hover {
-  box-shadow: 0 0 0 1px var(--sd-stage);
+  background-color: var(--sd-hover);
 }
 
 .sd-progress-label {

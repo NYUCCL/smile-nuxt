@@ -28,9 +28,21 @@
   --sd-p-border: oklch(0.905 0.004 286.32);
   --sd-p-fg: oklch(0.141 0.005 285.823);
   --sd-p-fg-muted: oklch(0.48 0.016 285.938);
+  --sd-p-solid: color-mix(in oklab, var(--sd-p-fg) 58%, var(--sd-p-bg)); /* checked controls: a soft near-fg */
+  /* The stage (behind the experiment preview): recessed, a step darker
+     than the chrome. Defined from the other primitives, so every palette
+     gets one */
+  --sd-p-stage: color-mix(in oklab, var(--sd-p-fg) 3%, var(--sd-p-bg));
+  --sd-p-stage-grid: color-mix(in oklab, var(--sd-p-fg) 9%, var(--sd-p-stage)); /* grey lines */
+  /* the stage's inner shadow */
+  --sd-p-stage-shadow: inset 0 2px 6px color-mix(in oklab, oklch(0 0 0) 10%, transparent), inset 0 0 28px color-mix(in oklab, oklch(0 0 0) 10%, transparent);
+  /* floating controls over the stage */
+  --sd-p-float-shadow: 0 4px 14px color-mix(in oklab, oklch(0 0 0) 10%, transparent), 0 1px 3px color-mix(in oklab, oklch(0 0 0) 8%, transparent);
+  --sd-p-device-shadow: 0 6px 20px color-mix(in oklab, oklch(0 0 0) 15%, transparent), 0 3px 8px color-mix(in oklab, oklch(0 0 0) 10%, transparent);
 
   /* Hues dark enough for text on the light surfaces */
   --sd-p-blue: oklch(0.5 0.13 255);
+  --sd-p-accent: var(--sd-p-blue);
   --sd-p-teal: oklch(0.5 0.08 195);
   --sd-p-green: oklch(0.5 0.11 150);
   --sd-p-yellow: oklch(0.52 0.11 75);
@@ -39,9 +51,6 @@
   --sd-p-purple: oklch(0.5 0.15 300);
   --sd-p-pink: oklch(0.52 0.15 355);
 
-  /* Filled controls (checked checkbox, switch): a quiet blue, white mark */
-  --sd-p-solid: oklch(0.55 0.09 255);
-  --sd-p-solid-fg: oklch(0.985 0 0);
 
   /* Hazard stripes (the "local" tag): a true caution yellow, which the
      text-dark yellow above can't give by tinting */
@@ -51,15 +60,26 @@
 }
 
 .dark {
-  --sd-p-bg: oklch(0.141 0.005 285.823);
-  --sd-p-surface: oklch(0.21 0.006 285.885);
-  --sd-p-surface-2: oklch(0.26 0.006 286.033);
-  --sd-p-border: oklch(0.3 0.006 286.033);
-  --sd-p-fg: oklch(0.96 0 0);
-  --sd-p-fg-muted: oklch(0.71 0.015 286.067);
+  /* A slate leaning toward the London palette's navy: chrome a step darker
+     than the panels, the stage darker still */
+  --sd-p-bg: oklch(0.235 0.012 250);
+  --sd-p-surface: oklch(0.205 0.011 250);
+  --sd-p-surface-2: oklch(0.3 0.014 250);
+  --sd-p-border: oklch(0.34 0.015 250);
+  --sd-p-fg: oklch(0.94 0.005 90);
+  --sd-p-fg-muted: oklch(0.76 0.012 250);
+  --sd-p-solid: color-mix(in oklab, var(--sd-p-fg) 58%, var(--sd-p-bg));
+  --sd-p-stage: color-mix(in oklab, oklch(0 0 0) 30%, var(--sd-p-bg)); /* near-black, darker than the panels */
+  --sd-p-stage-grid: color-mix(in oklab, var(--sd-p-fg) 20%, var(--sd-p-stage)); /* light grey lines */
+  /* on a near-black stage a shadow alone barely shows: a deeper, wider
+     shade plus a faint light rim along the top edge */
+  --sd-p-stage-shadow: inset 0 1px 0 color-mix(in oklab, var(--sd-p-fg) 8%, transparent), inset 0 3px 10px color-mix(in oklab, oklch(0 0 0) 85%, transparent), inset 0 0 60px color-mix(in oklab, oklch(0 0 0) 75%, transparent);
+  --sd-p-float-shadow: 0 4px 16px color-mix(in oklab, oklch(0 0 0) 60%, transparent), 0 1px 3px color-mix(in oklab, oklch(0 0 0) 50%, transparent);
+  --sd-p-device-shadow: 0 10px 36px color-mix(in oklab, oklch(0 0 0) 80%, transparent), 0 3px 10px color-mix(in oklab, oklch(0 0 0) 60%, transparent);
 
   /* Same hues, lighter and a little less saturated */
   --sd-p-blue: oklch(0.76 0.1 250);
+  --sd-p-accent: var(--sd-p-blue);
   --sd-p-teal: oklch(0.78 0.07 190);
   --sd-p-green: oklch(0.78 0.1 150);
   --sd-p-yellow: oklch(0.83 0.1 85);
@@ -67,10 +87,6 @@
   --sd-p-red: oklch(0.72 0.14 22);
   --sd-p-purple: oklch(0.76 0.1 300);
   --sd-p-pink: oklch(0.78 0.1 355);
-
-  /* Lighter, muted fill with a dark mark, so checked controls don't glare */
-  --sd-p-solid: oklch(0.72 0.07 250);
-  --sd-p-solid-fg: oklch(0.141 0.005 285.823);
 
   --sd-p-stripe-1: oklch(0.46 0.08 88);
   --sd-p-stripe-2: oklch(0.37 0.06 85);
@@ -85,28 +101,37 @@
   /* Surfaces. Two roles, nothing else:
      - chrome: what frames and drives the tools: the app menu rail, toolbars,
        tab strips, section headers, control bars, footers
-     - bg: what you read: trees, data, logs, tables */
+     - bg: what you read: trees, data, logs, tables
+     (plus the stage, below, behind the experiment preview) */
   --sd-chrome: var(--sd-p-surface);
+  /* stage: the recessed area the experiment preview sits on, set apart from
+     both the chrome and the panels */
+  --sd-stage: var(--sd-p-stage);
+  --sd-stage-grid: var(--sd-p-stage-grid);
+  /* The stage sits recessed under the bars and panels: a soft inner shadow */
+  --sd-stage-shadow: var(--sd-p-stage-shadow);
+  --sd-float-shadow: var(--sd-p-float-shadow);
+  --sd-device-shadow: var(--sd-p-device-shadow); /* the previewed device */
   --sd-bg: var(--sd-p-bg);
   --sd-panel: var(--sd-p-surface);
   --sd-panel-2: var(--sd-p-surface-2);
   --sd-line: var(--sd-p-border);
   --sd-text: var(--sd-p-fg);
   --sd-text-muted: var(--sd-p-fg-muted);
-  --sd-hover: var(--sd-p-surface-2);
+  --sd-hover: color-mix(in oklab, var(--sd-p-fg) 5%, var(--sd-p-bg));
   --sd-link: var(--sd-p-blue);
 
-  /* Accent: the one hue for "this one" (selected tab, current step, focus) */
-  --sd-accent: var(--sd-p-blue);
-  --sd-solid: var(--sd-p-solid);
-  --sd-solid-fg: var(--sd-p-solid-fg);
-  --sd-selected: color-mix(in oklab, var(--sd-p-blue) 20%, var(--sd-p-bg));
-  --sd-selected-hover: color-mix(in oklab, var(--sd-p-blue) 28%, var(--sd-p-bg));
+  /* Selection and controls: neutral. The current tab, mode, step or item
+     is a grey a step darker (lighter in dark mode) than hover, and checked
+     controls are a soft near-foreground fill. Color is kept for meaning:
+     links, data syntax, warnings and errors. --sd-accent is the one hue
+     for focus rings and the odd highlight. */
+  --sd-accent: var(--sd-p-accent);
+  --sd-selected: color-mix(in oklab, var(--sd-p-fg) 10%, var(--sd-p-bg));
+  --sd-selected-hover: color-mix(in oklab, var(--sd-p-fg) 14%, var(--sd-p-bg));
   --sd-selected-fg: var(--sd-p-fg);
-
-  /* Brand button (smile logo) */
-  --sd-brand-bg: color-mix(in oklab, var(--sd-p-blue) 26%, var(--sd-p-bg));
-  --sd-brand-fg: var(--sd-p-fg);
+  --sd-solid: var(--sd-p-solid);
+  --sd-solid-fg: var(--sd-p-bg);
 
   /* Status: a hue for icons/text, a quiet tint for backgrounds */
   --sd-ok: var(--sd-p-green);
@@ -148,7 +173,7 @@
   --sd-local-fg: var(--sd-p-fg);
 
   /* Pinned route */
-  --sd-pinned: color-mix(in oklab, var(--sd-p-yellow) 30%, var(--sd-p-bg));
+  --sd-pinned: color-mix(in oklab, var(--sd-p-yellow) 24%, var(--sd-p-bg));
   --sd-pinned-fg: var(--sd-p-fg);
 
   /* Recruitment chooser tiles: quiet tints of the hues, normal text */
@@ -173,18 +198,49 @@
   --sd-scrollbar-thumb-hover: color-mix(in oklab, var(--sd-p-fg) 38%, var(--sd-p-surface));
 }
 
+/* Recruitment tiles: dark mode can carry more color than light (where the
+   hues are dark and a stronger mix would cost text contrast) */
+.dark {
+  --sd-tile-blue: color-mix(in oklab, var(--sd-p-blue) 28%, var(--sd-p-bg));
+  --sd-tile-teal: color-mix(in oklab, var(--sd-p-teal) 28%, var(--sd-p-bg));
+  --sd-tile-green: color-mix(in oklab, var(--sd-p-green) 28%, var(--sd-p-bg));
+  --sd-tile-yellow: color-mix(in oklab, var(--sd-p-yellow) 28%, var(--sd-p-bg));
+  --sd-tile-orange: color-mix(in oklab, var(--sd-p-orange) 28%, var(--sd-p-bg));
+  --sd-tile-red: color-mix(in oklab, var(--sd-p-red) 28%, var(--sd-p-bg));
+  --sd-tile-purple: color-mix(in oklab, var(--sd-p-purple) 28%, var(--sd-p-bg));
+  --sd-tile-pink: color-mix(in oklab, var(--sd-p-pink) 28%, var(--sd-p-bg));
+}
+
 /* ---- The dev tools' chrome ------------------------------------------- */
 
 /* On the dev tools' own containers (app menu, toolbar, panels), not on the
    experiment preview: the shadcn controls there (checkboxes, switches,
    default buttons, focus rings) take the dev accent instead of the
    participant theme's near-white/near-black primary. The preview resets
-   these with its own .light/.dark container. */
-.sd-root {
+   these with its own .light/.dark container. .sd-root.light/.dark: an
+   element that is both a dev root and a color-mode container (the recruit
+   page, via .global-color-mode) must keep the remap over main.css's .dark. */
+.sd-root,
+.sd-root.light,
+.sd-root.dark {
   --sidebar: var(--sd-chrome); /* the app menu rail */
   --primary: var(--sd-solid);
   --primary-foreground: var(--sd-solid-fg);
   --ring: var(--sd-solid); /* switches use it as their checked color */
+  /* The shadcn controls' surfaces and lines, so inputs, selects and popovers
+     follow the dev palette too */
+  --background: var(--sd-bg);
+  --foreground: var(--sd-text);
+  --card: var(--sd-bg);
+  --card-foreground: var(--sd-text);
+  --popover: var(--sd-bg);
+  --popover-foreground: var(--sd-text);
+  --muted: var(--sd-chrome);
+  --muted-foreground: var(--sd-text-muted);
+  --accent: var(--sd-hover);
+  --accent-foreground: var(--sd-text);
+  --border: var(--sd-line);
+  --input: var(--sd-line);
 }
 
 /* ---- Type and controls: one scale for the dev tools ------------------
@@ -214,7 +270,7 @@
   gap: 0;
   width: 100%;
   height: 36px;
-  padding: 0 4px;
+  padding: 0;
   justify-content: flex-start;
   border-radius: 0;
   background-color: var(--sd-chrome);
@@ -247,7 +303,7 @@
 }
 .sd-tab[data-state='active'] {
   color: var(--sd-text);
-  border-bottom-color: var(--sd-accent);
+  border-bottom-color: var(--sd-text-muted);
   background-color: var(--sd-bg);
   box-shadow: inset 1px 0 var(--sd-line), inset -1px 0 var(--sd-line);
 }
@@ -392,6 +448,7 @@
 /* Tailwind color utilities for the semantic tokens (bg-sd-line, text-sd-ok …) */
 @theme inline {
   --color-sd-chrome: var(--sd-chrome);
+  --color-sd-stage: var(--sd-stage);
   --color-sd-bg: var(--sd-bg);
   --color-sd-panel: var(--sd-panel);
   --color-sd-panel-2: var(--sd-panel-2);

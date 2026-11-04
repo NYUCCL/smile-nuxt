@@ -12,6 +12,7 @@ import SmileDevPresentationView from '#smile-dev/SmileDevPresentationView.vue'
 // Dashboard is hidden until the feature is complete
 // import SmileDevDashboardView from '#smile-dev/dashboard/SmileDevDashboardView.vue'
 import useWindowSizer from '#smile-composables/useWindowSizer'
+import { applyDevPalette } from '#smile-composables/useDevPalette'
 
 const api = useAPI()
 const { showAggressiveOverlay } = useWindowSizer({ useDeviceContainer: true })
@@ -30,6 +31,9 @@ const isLoading = computed(() => {
 const isRouteNotFound = computed(() => {
   return mounted.value && api.currentRouteName() === undefined
 })
+
+// The dev tools' palette, on <html> (only the dev tools' colors use it)
+applyDevPalette()
 </script>
 
 <template>
@@ -92,7 +96,7 @@ const isRouteNotFound = computed(() => {
               <!-- Main content area with console -->
               <div class="content-and-console">
                 <!-- Main content - scrollable experiment container -->
-                <div class="main-content @container bg-background text-foreground relative">
+                <div class="main-content @container bg-sd-stage text-foreground relative">
                   <!-- Loading state -->
                   <div
                     v-if="isLoading"
@@ -311,12 +315,12 @@ const isRouteNotFound = computed(() => {
 }
 
 .not-found-message {
-  color: var(--muted-foreground);
+  color: var(--sd-text-muted);
   font-size: 0.875rem;
 }
 
 .not-found-message code {
-  background-color: var(--muted);
+  background-color: var(--sd-chrome);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.8rem;

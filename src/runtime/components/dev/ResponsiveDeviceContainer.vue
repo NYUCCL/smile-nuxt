@@ -253,9 +253,10 @@ const colorMode = computed(() => {
   height: 100%;
   min-height: 100%;
   max-width: 100%;
+  box-shadow: var(--sd-stage-shadow);
   background-image:
-    linear-gradient(color-mix(in srgb, var(--border) 70%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--border) 70%, transparent) 1px, transparent 1px);
+    linear-gradient(var(--sd-stage-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--sd-stage-grid) 1px, transparent 1px);
   background-size: 20px 20px;
   background-position: -1px 0px;
   overflow-y: auto;
@@ -304,10 +305,11 @@ const colorMode = computed(() => {
   margin-bottom: 10px;
   font-family: monospace;
   font-size: 14px;
-  background-color: var(--background);
-  border: 1px solid var(--border);
+  background-color: var(--sd-bg);
+  border: 1px solid var(--sd-line);
   border-radius: 10px;
   padding: 5px;
+  box-shadow: var(--sd-float-shadow);
 }
 
 .device-controls {
@@ -326,7 +328,7 @@ const colorMode = computed(() => {
 .device-dimensions {
   font-family: monospace;
   font-size: 0.8em;
-  color: var(--muted-foreground);
+  color: var(--sd-text-muted);
 }
 
 .device-wrapper {
@@ -335,6 +337,7 @@ const colorMode = computed(() => {
   justify-content: flex-start;
   align-items: center;
   background-color: var(--background);
+  border-radius: 12px; /* same as .device-container, or its square corners show */
 }
 
 .device-container {
@@ -343,9 +346,7 @@ const colorMode = computed(() => {
   height: var(--device-height);
   overflow-x: auto;
   overflow-y: auto;
-  box-shadow:
-    0 6px 20px rgba(0, 0, 0, 0.15),
-    0 3px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--sd-device-shadow);
   border: 2px solid var(--border);
   border-radius: 12px;
 }

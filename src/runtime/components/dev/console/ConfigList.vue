@@ -84,7 +84,7 @@ function option_selected(option) {
 
 <template>
   <!-- Configuration list container with header and scrollable content -->
-  <aside class="w-full h-full flex flex-col config-list-container bg-background">
+  <aside class="w-full h-full flex flex-col config-list-container bg-sd-bg">
     <!-- Header section with navigation title -->
     <div
       v-if="header"
@@ -132,8 +132,8 @@ function option_selected(option) {
             :class="[
               'w-full text-left px-2 py-1.5 text-xs font-mono rounded transition-colors duration-150 object-item',
               'hover:bg-accent hover:text-accent-foreground',
-              'focus:outline-none focus:ring-1 focus:ring-ring',
-              key === props.selected ? 'bg-accent text-accent-foreground border border-sd-line' : 'text-sd-text',
+              'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sd-accent',
+              key === props.selected ? 'bg-sd-selected text-sd-selected-fg' : 'text-sd-text hover:bg-sd-hover',
             ]"
             @click="option_selected(key)"
           >

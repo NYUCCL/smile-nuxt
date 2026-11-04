@@ -78,8 +78,8 @@ const database_tooltip = computed(() => {
                 :percentage="dataPercent"
                 :size="12"
                 :stroke-width="40"
-                slicecolor="var(--muted-foreground)"
-                basecolor="var(--muted-foreground)"
+                slicecolor="var(--sd-text-muted)"
+                basecolor="var(--sd-text-muted)"
               />
             </div>
           </template>
@@ -89,8 +89,8 @@ const database_tooltip = computed(() => {
                 :percentage="dataPercent"
                 :size="12"
                 :stroke-width="40"
-                slicecolor="var(--sd-accent)"
-                basecolor="var(--sd-ok)"
+                slicecolor="var(--sd-text)"
+                basecolor="var(--sd-line)"
               />
             </div>
           </template>
@@ -104,16 +104,18 @@ const database_tooltip = computed(() => {
 </template>
 
 <style scoped>
+/* Neutral by default: not connected yet is the normal state on a fresh
+   visit. Only "unsaved changes" gets a color. */
 .disconnected {
-  color: var(--sd-error);
+  color: var(--sd-text-muted);
 }
 .connected {
-  color: var(--sd-ok);
+  color: var(--sd-text);
 }
 .outofsync {
   color: var(--sd-warn);
 }
 .insync {
-  color: var(--sd-ok);
+  color: var(--sd-text);
 }
 </style>

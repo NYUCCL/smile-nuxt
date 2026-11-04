@@ -3,12 +3,14 @@
  * A small floating "local" tag at the top center of the page on the local dev
  * server (pnpm dev), so it's easy to tell from a deployed build. Hidden in
  * production builds. It looks like the "local" tag in the dev tools' toolbar;
- * hovered (or focused) it grows to offer a jump back to developer mode.
+ * hovered (or focused) it slides open into a little button bar: reset the
+ * local state (the dev toolbar's lightning bolt) and open developer mode.
  *
- * - default: a link to /dev/ (the participant view, standalone presentation)
+ * - default: "Developer mode" links to /dev/ (the participant view)
  * - inline: inside the dev tools (e.g. the dashboard); switches back to
  *   developer mode instead of navigating
  */
+import { BugPlay, Zap } from 'lucide-vue-next'
 import useAPI from '../../composables/useAPI'
 
 const props = defineProps({
@@ -26,16 +28,33 @@ function openDevMode(event) {
 </script>
 
 <template>
-  <a
+  <div
     v-if="isDev"
     class="sd-local-pill"
-    href="/dev/"
-    title="Local dev server: open developer mode"
-    @click="openDevMode"
+    role="toolbar"
+    aria-label="Local dev server"
+    tabindex="0"
   >
     <span class="sd-local-pill-tag">local</span>
-    <span class="sd-local-pill-more">Open developer mode →</span>
-  </a>
+    <span class="sd-local-pill-more">
+      <button
+        type="button"
+        title="Reset local state (Ctrl + R)"
+        @click="api.resetLocalState()"
+      >
+        <Zap />
+        Reset
+      </button>
+      <a
+        href="/dev/"
+        title="Open developer mode"
+        @click="openDevMode"
+      >
+        <BugPlay />
+        Developer mode
+      </a>
+    </span>
+  </div>
 </template>
 
 <style scoped>
@@ -72,8 +91,10 @@ function openDevMode(event) {
   background: repeating-linear-gradient(-45deg, var(--sd-local-1) 0 5px, var(--sd-local-2) 5px 10px);
 }
 
-/* The extra label: collapsed until hover/focus, then slides open */
+/* The button bar: collapsed until hover/focus, then slides open */
 .sd-local-pill-more {
+  display: flex;
+  align-self: stretch;
   max-width: 0;
   overflow: hidden;
   white-space: nowrap;
@@ -82,19 +103,47 @@ function openDevMode(event) {
   transition:
     max-width 0.25s ease,
     opacity 0.2s ease,
-    padding 0.25s ease;
 }
 
 .sd-local-pill:hover .sd-local-pill-more,
-.sd-local-pill:focus-visible .sd-local-pill-more {
-  max-width: 160px;
-  padding: 0 8px 0 6px;
+.sd-local-pill:focus-within .sd-local-pill-more {
+  max-width: 260px;
   opacity: 1;
+}
+
+.sd-local-pill-more button,
+.sd-local-pill-more a {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  border-left: 1px solid var(--sd-local-edge);
+}
+
+.sd-local-pill-more button:hover,
+.sd-local-pill-more a:hover,
+.sd-local-pill-more button:focus-visible,
+.sd-local-pill-more a:focus-visible {
+  outline: none;
+  background-color: var(--sd-local-2);
+}
+
+.sd-local-pill-more svg {
+  width: 12px;
+  height: 12px;
 }
 
 .sd-local-pill:focus-visible {
   outline: 2px solid var(--sd-accent);
   outline-offset: 2px;
+}
+
+.sd-local-pill:focus {
+  outline: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

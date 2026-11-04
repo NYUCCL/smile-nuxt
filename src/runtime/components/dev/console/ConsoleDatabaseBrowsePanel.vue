@@ -161,7 +161,7 @@ function panel_jump(index) {
         />
       </div>
       <!-- Middle panel - 25% width -->
-      <div class="w-1/4 h-full border-r border-sd-line p-0 m-0 bg-background">
+      <div class="w-1/4 h-full border-r border-sd-line p-0 m-0 bg-sd-bg">
         <!-- one from end -->
         <DatabaseList
           :data="panel_path(1)"
@@ -170,7 +170,7 @@ function panel_jump(index) {
         />
       </div>
       <!-- Right panel - 50% width -->
-      <div class="w-1/2 h-full p-0 m-0 bg-background">
+      <div class="w-1/2 h-full p-0 m-0 bg-sd-bg">
         <!-- zero from end -->
         <DatabaseList
           :data="panel_path(0)"

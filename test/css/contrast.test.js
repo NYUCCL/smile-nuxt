@@ -58,15 +58,34 @@ const DEV_PAIRS = [
   ['sd-error', 'sd-error-bg'],
   ['sd-info', 'sd-info-bg'],
   // filled controls, brand button, pinned route, recruitment tiles
-  ['sd-solid-fg', 'sd-solid'],
-  ['sd-brand-fg', 'sd-brand-bg'],
   ['sd-pinned-fg', 'sd-pinned'],
   ['sd-local-fg', 'sd-local-1'],
   ['sd-local-fg', 'sd-local-2'],
   ...['blue', 'teal', 'green', 'yellow', 'orange', 'red', 'purple', 'pink'].map(h => ['sd-tile-fg', `sd-tile-${h}`]),
 ]
 
-describe.each([['light', lightDev], ['dark', darkDev]])('dev tools theme, %s: text contrast', (_name, theme) => {
+// Every palette (src/runtime/css/dev-palettes.css) over the default, both modes
+const palettesCss = readCss('src/runtime/css/dev-palettes.css')
+const paletteNames = [...new Set([...palettesCss.matchAll(/data-sd-palette='([\w-]+)'/g)].map(m => m[1]))]
+const devThemes = [['default light', lightDev], ['default dark', darkDev]]
+for (const name of paletteNames) {
+  devThemes.push([`${name} light`, { ...lightDev, ...tokensIn(palettesCss, s => s.includes(`[data-sd-palette='${name}'].light`)) }])
+  devThemes.push([`${name} dark`, { ...darkDev, ...tokensIn(palettesCss, s => s.includes(`[data-sd-palette='${name}'].dark`)) }])
+}
+
+it('the palettes file defines palettes', () => {
+  expect(paletteNames.length).toBeGreaterThan(0)
+})
+
+// Checked checkbox/switch: the mark is a graphic, not text, so it needs 3:1
+// (WCAG 1.4.11, non-text contrast)
+describe.each(devThemes)('dev tools theme, %s: control contrast', (_name, theme) => {
+  it('the check mark on the solid fill is at least 3:1', () => {
+    expect(contrast(theme, 'sd-solid-fg', 'sd-solid')).toBeGreaterThanOrEqual(3)
+  })
+})
+
+describe.each(devThemes)('dev tools theme, %s: text contrast', (_name, theme) => {
   it.each(DEV_PAIRS)('%s on %s meets WCAG AA', (fg, bg) => {
     expect(contrast(theme, fg, bg)).toBeGreaterThanOrEqual(AA)
   })
