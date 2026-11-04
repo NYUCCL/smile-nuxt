@@ -7,6 +7,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/runtime/components/ui/toggle-gro
 import { Check, Terminal, Monitor, Tablet, Smartphone, Fullscreen } from 'lucide-vue-next'
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { highlighter } from '../config/shiki'
+import { forReaders } from '../forReaders.js'
 
 const props = defineProps({
   name: {
@@ -58,12 +59,6 @@ const metadata = reactive({
 // so the docs site can render them. In a project those components are
 // auto-imported, so drop those lines from the code readers copy, along with a
 // <script setup> block left empty.
-function forReaders(code) {
-  return code
-    .replace(/^import .* from '@\/runtime\/[^']*'\n/gm, '')
-    .replace(/<script setup>\s*<\/script>\n*/g, '')
-}
-
 const loadCode = async () => {
   if (props.rawCode) {
     rawCode.value = forReaders(props.rawCode)

@@ -25,7 +25,7 @@
  * SMILE_E2E_PORT, default 3100) -> tear down. Needs network access.
  */
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { connect } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
@@ -126,6 +126,21 @@ try {
 
   log('Installing …')
   run('pnpm', ['install'], { cwd: projectDir, env })
+
+  // The docs ship with the module, for coding agents, and the template points
+  // there (AGENTS.md, CLAUDE.md, the smile-docs skill).
+  log('Checking the agent docs …')
+  const docsDir = join(projectDir, 'node_modules/@nyuccl/smile-nuxt/dist/docs')
+  const index = readFileSync(join(docsDir, 'INDEX.md'), 'utf8')
+  const pages = [...index.matchAll(/^- \*\*.+?\*\* \(`([^`]+)`\)/gm)].map(m => m[1])
+  const missingPages = pages.filter(p => !existsSync(join(docsDir, p)))
+  if (pages.length < 30 || missingPages.length) {
+    throw new Error(`INDEX.md lists ${pages.length} pages; missing: ${missingPages.join(', ') || 'none'}`)
+  }
+  const agentFiles = ['AGENTS.md', 'CLAUDE.md', '.claude/skills/smile-docs/SKILL.md', '.cursor/rules/smile.mdc']
+  const missingFiles = agentFiles.filter(f => !existsSync(join(projectDir, f)))
+  if (missingFiles.length) throw new Error(`The scaffold is missing ${missingFiles.join(', ')}`)
+  console.log(`  ${pages.length} docs pages in node_modules; ${agentFiles.length} agent files in the project`)
 
   log('Production build (nuxt build) …')
   run('pnpm', ['exec', 'nuxt', 'build'], { cwd: projectDir, env })
