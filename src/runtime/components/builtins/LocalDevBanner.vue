@@ -6,10 +6,12 @@
  * hovered (or focused) it slides open into a little button bar: reset the
  * local state (the dev toolbar's lightning bolt) and open developer mode.
  *
- * - default: "Developer mode" links to /dev/ (the participant view)
+ * - default: "Developer mode" opens /dev/ in developer mode (not whichever
+ *   view the dev tools were last left on)
  * - inline: inside the dev tools (e.g. the dashboard); switches back to
  *   developer mode instead of navigating
  */
+import { nextTick } from 'vue'
 import { BugPlay, Zap } from 'lucide-vue-next'
 import useAPI from '../../composables/useAPI'
 
@@ -20,10 +22,14 @@ const props = defineProps({
 const isDev = import.meta.dev
 const api = useAPI()
 
-function openDevMode(event) {
-  if (!props.inline) return // the link navigates
+// The dev tools open on the last view saved in the dev cookie (it could be
+// presentation mode), so pick developer mode before going there
+async function openDevMode(event) {
   event.preventDefault()
   api.store.dev.mainView = 'devmode'
+  if (props.inline) return
+  await nextTick() // let the dev-sync watcher write the cookie
+  window.location.href = '/dev/'
 }
 </script>
 
