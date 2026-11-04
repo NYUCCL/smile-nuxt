@@ -2,9 +2,10 @@
  * Ship the docs with the module, for coding agents (plans/docs_in_dev_tools.md,
  * Phase 1). Runs in prepack, after nuxt-module-build (which empties dist/).
  *
- * Copies the docs pages in the website's sidebar (docs/.vitepress/sidebar.mjs)
- * and the example components (docs/examples/*.vue) to dist/docs/ unchanged,
- * and writes two generated files next to them:
+ * Copies the docs pages in the website's sidebar (docs/.vitepress/sidebar.mjs),
+ * the example components (docs/examples/*.vue) and the SVG images
+ * (docs/images/ and docs/public/images/) to dist/docs/, and writes two generated files next to
+ * them:
  *
  *   dist/docs/INDEX.md    every page with its title, path and description,
  *                         grouped like the website's sidebar
@@ -104,7 +105,8 @@ export function indexMarkdown(sections, version) {
     '  `<GureckisLabText/>` is \'the Gureckis Lab\'. `<ComponentViewer>` and',
     '  tags ending in `Example` show live examples on the website; their code',
     '  is in `examples/` (for example `examples/ButtonVariantsExample.vue`).',
-    '- Images aren\'t included. Look at the website if a figure matters.',
+    '- The diagrams (SVG) are in `images/`. Screenshots aren\'t included;',
+    '  the website has them.',
     '- When a page and the code disagree, the code wins: it is in',
     '  `../runtime/` (composables in `composables/`, components in',
     '  `components/`).',
@@ -135,6 +137,14 @@ export async function buildAgentDocs({ docsDir = join(repoRoot, 'docs'), outDir 
   mkdirSync(join(outDir, 'examples'), { recursive: true })
   for (const file of readdirSync(join(docsDir, 'examples')).filter(f => f.endsWith('.vue'))) {
     writeFileSync(join(outDir, 'examples', file), forReaders(readFileSync(join(docsDir, 'examples', file), 'utf8')))
+  }
+  // The diagrams: small, and drawn as SVG, so agents can read them too and
+  // the dev tools' Docs mode can show them offline. Screenshots stay out.
+  mkdirSync(join(outDir, 'images'), { recursive: true })
+  for (const dir of ['images', 'public/images']) {
+    for (const file of readdirSync(join(docsDir, dir)).filter(f => f.endsWith('.svg'))) {
+      cpSync(join(docsDir, dir, file), join(outDir, 'images', file))
+    }
   }
   writeFileSync(join(outDir, 'INDEX.md'), indexMarkdown(sections, version))
   writeFileSync(join(outDir, 'index.json'), JSON.stringify({ version, sections }, null, 2) + '\n')

@@ -1,8 +1,8 @@
-import { defineNuxtModule, addDevServerHandler, addPlugin, addImports, addRouteMiddleware, createResolver, extendPages, addComponentsDir, addServerScanDir, addServerImportsDir, useLogger } from '@nuxt/kit'
+import { defineNuxtModule, addDevServerHandler, addPlugin, addImports, addRouteMiddleware, createResolver, extendPages, addComponentsDir, addServerHandler, addServerScanDir, addServerImportsDir, useLogger } from '@nuxt/kit'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 import { basename, dirname, extname, join, resolve } from 'node:path'
-import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import tailwindcss from '@tailwindcss/vite'
 import { createDevConfigHandler, DEV_CONFIG_ROUTE } from './devconfig/handler'
 
@@ -94,6 +94,23 @@ export default defineNuxtModule<ModuleOptions>({
       __SMILE_DEV_TOOLS__: JSON.stringify(includeDevTools),
     }
     addServerImportsDir(resolver.resolve('./runtime/server/utils'))
+
+    // The dev tools' Docs mode renders the docs that ship with the module
+    // (dist/docs/, from scripts/build-agent-docs.mjs). Only under `nuxt dev`:
+    // a build never has this route, and a deployed Docs mode shows the website.
+    // In this repo's stub mode the module runs from src/, so look in dist/ too
+    // (dev:prepare writes it).
+    if (_nuxt.options.dev) {
+      const docsDir = [resolver.resolve('./docs'), resolver.resolve('../dist/docs')]
+        .find(dir => existsSync(join(dir, 'index.json')))
+      if (docsDir) {
+        _nuxt.options.nitro.replace = { ..._nuxt.options.nitro.replace, __SMILE_DOCS_DIR__: JSON.stringify(docsDir) }
+        addServerHandler({ route: '/__smile/docs/**', handler: resolver.resolve('./runtime/server/dev/docs') })
+      }
+      else {
+        useLogger('smile').warn('No shipped docs found (dist/docs/index.json); the dev tools\' Docs mode will show the website. Run `pnpm docs:agents`.')
+      }
+    }
 
     // The dev tools' build settings page reads the project's env files through
     // this route. Dev server only: a dev server handler runs in the Nuxt

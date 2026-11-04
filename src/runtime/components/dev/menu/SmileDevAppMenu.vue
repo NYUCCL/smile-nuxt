@@ -1,5 +1,5 @@
 <script setup>
-import { BugPlay, Moon, Presentation, Settings, SlidersHorizontal, Sun, SunMoon, UserRound } from 'lucide-vue-next'
+import { BookMarked, BugPlay, Moon, Presentation, Settings, SlidersHorizontal, Sun, SunMoon, UserRound } from 'lucide-vue-next'
 import { useSmileColorMode } from '../../../composables/useColorMode'
 import DevConfigPanel from './DevConfigPanel.vue'
 import useAPI from '../../../composables/useAPI'
@@ -20,10 +20,12 @@ const props = defineProps({
 const api = useAPI()
 
 // Modes shown in the dev layout (store.dev.mainView). The dashboard ('dashboard',
-// Database icon) and docs ('docs', BookMarked) come back here when they're ready.
+// Database icon) comes back here when it's ready.
 const modes = [
   { view: 'devmode', icon: BugPlay, label: 'Developer mode' },
   { view: 'presentation', icon: Presentation, label: 'Presentation mode' },
+  // Docs mode: dev server only (layouts/development.vue)
+  ...(import.meta.dev ? [{ view: 'docs', icon: BookMarked, label: 'Docs' }] : []),
   { view: 'config', icon: SlidersHorizontal, label: 'Build & deploy settings' },
 ]
 

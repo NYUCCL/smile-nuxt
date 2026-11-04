@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, defineAsyncComponent, ref, onMounted } from 'vue'
 import { Toaster } from 'vue-sonner'
 import 'vue-sonner/style.css'
 
@@ -12,11 +12,20 @@ import SmileDevPresentationView from '#smile-dev/SmileDevPresentationView.vue'
 import BuildConfigView from '#smile-dev/buildconfig/BuildConfigView.vue'
 // Dashboard is hidden until the feature is complete
 // import SmileDevDashboardView from '#smile-dev/dashboard/SmileDevDashboardView.vue'
+import useAPI from '../composables/useAPI'
 import useWindowSizer from '#smile-composables/useWindowSizer'
 import { applyDevPalette } from '#smile-composables/useDevPalette'
 import DevScope from '#smile-dev/DevScope.vue'
 
 const api = useAPI()
+
+// Docs mode exists only on the dev server (pnpm dev). In a build, even with
+// SMILE_DEV_TOOLS=include, import.meta.dev is false, so the view, its styles and
+// its route are left out (a saved 'docs' view opens developer mode instead).
+const hasDocs = import.meta.dev
+const SmileDevDocsView = import.meta.dev
+  ? defineAsyncComponent(() => import('#smile-dev/docs/SmileDevDocsView.vue'))
+  : null
 const { showAggressiveOverlay } = useWindowSizer({ useDeviceContainer: true })
 
 const height_pct = computed(() => `${api.store.dev.consoleBarHeight}px`)
@@ -80,18 +89,10 @@ applyDevPalette()
           />
           -->
 
-          <!-- Docs Mode - Clean full-screen documentation -->
-          <div
-            v-else-if="api.store.dev.mainView === 'docs'"
-            class="docs-container"
-          >
-            <iframe
-              src="https://smile.gureckislab.org"
-              class="docs-iframe"
-              frameborder="0"
-              title="Documentation"
-            />
-          </div>
+          <!-- Docs Mode - the docs for the installed version -->
+          <SmileDevDocsView
+            v-else-if="hasDocs && api.store.dev.mainView === 'docs'"
+          />
 
           <!-- Developer Mode - Full interface with toolbar, sidebar, console -->
           <template v-else>
@@ -203,19 +204,6 @@ applyDevPalette()
 }
 
 /* Docs mode container */
-.docs-container {
-  height: 100vh;
-  width: 100%;
-  overflow: hidden;
-}
-
-.docs-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  overflow: hidden;
-}
-
 /* Developer mode layout */
 .toolbar {
   margin-top: auto;

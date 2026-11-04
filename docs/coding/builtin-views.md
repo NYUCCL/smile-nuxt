@@ -40,7 +40,7 @@ and more information can be found
 | [Device Survey](#device-survey)              | No    | A survey which collects some self-report about computer/device                                                                            |
 | [Withdraw](#withdraw)                        | No    | A survey which processes a participant's request to withdraw from study                                                                   |
 | [Debrief](#debrief)                          | Yes   | A simple text View which describes the purpose of study                                                                                   |
-| [Feedback](#feedback)                        | No    | A survey for soliciting structured and unstructured feedback on the study                                                                 |
+| [Feedback](#feedback-survey)                        | No    | A survey for soliciting structured and unstructured feedback on the study                                                                 |
 | [Thanks Page](#thanks)                       | No    | A thank you page                                                                                                                          |
 
 These components ship inside the `@nyuccl/smile-nuxt` module and are

@@ -451,7 +451,7 @@ See [Components: string names vs. `markRaw()`](/coding/timeline#components-strin
 You'll notice that the default timeline contains many other built-in views
 including `WindowSizerView`, `InstructionsView`, and `InformedConsentView`.
 These are all
-[built-in Views](/coding/views.html#built-in-views-1) that ship with
+[built-in Views](/coding/views#built-in-views) that ship with
 <SmileText/> for use in experiments. You can remove or
 [override](/coding/views) any of them. Some are quite sophisticated and can
 save you a lot of time, such as the `InstructionsQuiz` View used to quickly
