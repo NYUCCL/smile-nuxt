@@ -9,6 +9,7 @@ export const sidebar = [
       { text: 'Key Concepts', link: '/concepts' },
       { text: 'Updating Smile', link: '/updating' },
       { text: 'Getting help', link: '/help' },
+      { text: 'Leveraging agents', link: '/agents' },
     ],
   },
   {

@@ -15,7 +15,7 @@ const docsDir = resolve(__dirname, '../../docs')
 describe('agent docs: reading pages', () => {
   it('reads the title and a JSON-quoted description', () => {
     const page = readPage('---\ndescription: "Steps: trials and blocks."\n---\n\n# Stepping <SmileText/> Views\n\ntext')
-    expect(page).toEqual({ title: 'Stepping SMILE Views', description: 'Steps: trials and blocks.' })
+    expect(page).toEqual({ title: 'Stepping Smile Views', description: 'Steps: trials and blocks.' })
   })
 
   it('drops emoji shortcodes from titles', () => {

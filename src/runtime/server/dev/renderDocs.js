@@ -8,7 +8,7 @@
  * - containers (tip, info, warning, danger, details, code-group)
  * - `{#id}` heading ids, and VitePress's own slugs for the rest, so links
  *   with #anchors from the website land on the same heading
- * - Vue in the pages: <SmileText/> becomes SMILE; live demos (::: raw,
+ * - Vue in the pages: <SmileText/> becomes Smile (as on the website); live demos (::: raw,
  *   <ComponentViewer>) become a note with a link to the website, plus the
  *   example's source from examples/
  * - links between pages become in-app links (data-docs-page); images that
@@ -103,7 +103,7 @@ export function prepareMarkdown(text, page, example = () => '') {
       })
       .replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '')
       .replace(/<style\b[^>]*>[\s\S]*?<\/style>/g, '')
-      .replace(/<SmileText\s*\/>/g, 'SMILE')
+      .replace(/<SmileText\s*\/>/g, 'Smile')
       .replace(/<GureckisLabText\s*\/>/g, 'the Gureckis Lab')
     // A live example: what it is, where to see it, and its source.
     out = out.replace(/<ComponentViewer\b([^>]*?)(?:\/>|>([\s\S]*?)<\/ComponentViewer>)/g, (_, attrs) => {

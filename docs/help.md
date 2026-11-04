@@ -24,6 +24,10 @@ You might be surprised how often common issues can be addressed by carefully
 reading the documentation. We put a lot of time into making it as clear and
 comprehensive as possible and keep it up to date.
 
+A coding agent such as Claude Code or Codex, started in your project folder,
+can also read these docs for you and answer questions about your version of
+<SmileText/>. See [Leveraging agents](/agents).
+
 ## Other resources
 
 Technically, <SmileText/> is simply a collection of open-source tools that have

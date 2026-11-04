@@ -22,7 +22,7 @@ describe('docs renderer: pieces', () => {
     const md = '---\ndescription: "x"\n---\n\n<script setup>\nimport X from \'../examples/X.vue?raw\'\n</script>\n\n# Hi <SmileText/>\n\nWrite `<Button>` here.\n\n```vue\n<Button>kept</Button>\n```\n'
     const out = prepareMarkdown(md, 'a.md')
     expect(out).not.toContain('<script')
-    expect(out).toContain('# Hi SMILE')
+    expect(out).toContain('# Hi Smile')
     expect(out).toContain('`<Button>`') // inline code is literal
     expect(out).toContain('<Button>kept</Button>') // and so is fenced code
   })
