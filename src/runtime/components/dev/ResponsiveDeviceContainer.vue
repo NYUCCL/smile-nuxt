@@ -2,6 +2,7 @@
 import { Maximize, Moon, RotateCcw, Sun, SunMoon } from 'lucide-vue-next'
 import { ref, computed, watch } from 'vue'
 import ResponsiveDeviceSelect from './menu/ResponsiveDeviceSelect.vue'
+import DevScope from './DevScope.vue'
 import { useElementSize } from '@vueuse/core'
 
 import { devicePresets } from './devicePresets.js'
@@ -142,76 +143,78 @@ const colorMode = computed(() => {
     <div class="device-content-wrapper">
       <!-- Device information and control panel -->
       <div class="device-info">
-        <div class="device-controls sd-root">
-          <ResponsiveDeviceSelect />
+        <DevScope>
+          <div class="device-controls sd-root">
+            <ResponsiveDeviceSelect />
 
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  @click="toggleRotation"
-                >
-                  <RotateCcw :class="{ 'text-sd-link': api.store.dev.isRotated }" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p>Rotate device</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    @click="toggleRotation"
+                  >
+                    <RotateCcw :class="{ 'text-sd-link': api.store.dev.isRotated }" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>Rotate device</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-          <Separator orientation="vertical" />
+            <Separator orientation="vertical" />
 
-          <div class="device-dimensions">
-            {{ api.store.dev.deviceWidth }} x {{ api.store.dev.deviceHeight }}
+            <div class="device-dimensions">
+              {{ api.store.dev.deviceWidth }} x {{ api.store.dev.deviceHeight }}
+            </div>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    @click="toggleColorMode"
+                  >
+                    <Moon v-if="experimentColorModeRaw === 'light'" />
+                    <SunMoon v-else-if="experimentColorModeRaw === 'dark'" />
+                    <Sun v-else />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p v-if="experimentColorModeRaw === 'light'">
+                    Switch to Dark Mode
+                  </p>
+                  <p v-else-if="experimentColorModeRaw === 'dark'">
+                    Switch to System ({{ system }})
+                  </p>
+                  <p v-else>
+                    Switch to Light Mode
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    @click="toggleFullscreen"
+                  >
+                    <Maximize />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>Fullscreen Mode</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  @click="toggleColorMode"
-                >
-                  <Moon v-if="experimentColorModeRaw === 'light'" />
-                  <SunMoon v-else-if="experimentColorModeRaw === 'dark'" />
-                  <Sun v-else />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p v-if="experimentColorModeRaw === 'light'">
-                  Switch to Dark Mode
-                </p>
-                <p v-else-if="experimentColorModeRaw === 'dark'">
-                  Switch to System ({{ system }})
-                </p>
-                <p v-else>
-                  Switch to Light Mode
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  @click="toggleFullscreen"
-                >
-                  <Maximize />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p>Fullscreen Mode</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+        </DevScope>
       </div>
 
       <!-- Device container with resize handles -->

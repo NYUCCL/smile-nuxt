@@ -4,6 +4,7 @@ import useAPI from '#smile-composables/useAPI'
 
 import PresentationNavBar from '#smile-dev/presentation/PresentationNavBar.vue'
 import { applyDevPalette } from '#smile-composables/useDevPalette'
+import DevScope from '#smile-dev/DevScope.vue'
 
 const api = useAPI()
 
@@ -29,9 +30,11 @@ applyDevPalette()
     <!-- Main app container for presentation mode -->
     <div class="app-container">
       <!-- Top toolbar with navigation -->
-      <div class="toolbar sd-root">
-        <PresentationNavBar />
-      </div>
+      <DevScope>
+        <div class="toolbar sd-root">
+          <PresentationNavBar />
+        </div>
+      </DevScope>
 
       <!-- Middle row - content area -->
       <div class="content-wrapper">

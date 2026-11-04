@@ -13,6 +13,7 @@ import SmileDevPresentationView from '#smile-dev/SmileDevPresentationView.vue'
 // import SmileDevDashboardView from '#smile-dev/dashboard/SmileDevDashboardView.vue'
 import useWindowSizer from '#smile-composables/useWindowSizer'
 import { applyDevPalette } from '#smile-composables/useDevPalette'
+import DevScope from '#smile-dev/DevScope.vue'
 
 const api = useAPI()
 const { showAggressiveOverlay } = useWindowSizer({ useDeviceContainer: true })
@@ -54,7 +55,9 @@ applyDevPalette()
       }"
     >
       <!-- Developer app menu sidebar -->
-      <SmileDevAppMenu />
+      <DevScope>
+        <SmileDevAppMenu />
+      </DevScope>
 
       <!-- Main content area -->
       <SidebarInset>
@@ -87,9 +90,11 @@ applyDevPalette()
           <!-- Developer Mode - Full interface with toolbar, sidebar, console -->
           <template v-else>
             <!-- Top toolbar with navigation controls -->
-            <div class="toolbar sd-root">
-              <DevNavBar />
-            </div>
+            <DevScope>
+              <div class="toolbar sd-root">
+                <DevNavBar />
+              </div>
+            </DevScope>
 
             <!-- Middle row - content and sidebar -->
             <div class="content-wrapper">
@@ -135,7 +140,9 @@ applyDevPalette()
                     v-if="api.store.dev.showConsoleBar"
                     class="console sd-root"
                   >
-                    <DevConsole />
+                    <DevScope>
+                      <DevConsole />
+                    </DevScope>
                   </div>
                 </Transition>
               </div>
@@ -146,7 +153,9 @@ applyDevPalette()
                   v-if="api.store.dev.showSideBar"
                   class="sidebar sd-root"
                 >
-                  <DevSideBar />
+                  <DevScope>
+                    <DevSideBar />
+                  </DevScope>
                 </div>
               </Transition>
             </div>

@@ -3,6 +3,10 @@ import { ArrowLeft, ArrowRight, Info, Copy, Check, Dices } from 'lucide-vue-next
 import { ref, computed } from 'vue'
 import useViewAPI from '../../composables/useViewAPI'
 import useSmileStore from '../../stores/smilestore'
+import { provideDevScope } from '../../composables/useDevScope'
+
+// Dev tools UI: its menus and tooltips use the dev tools' colors
+provideDevScope()
 
 const api = useViewAPI()
 const store = useSmileStore()
