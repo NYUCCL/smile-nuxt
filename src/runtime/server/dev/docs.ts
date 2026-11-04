@@ -9,7 +9,6 @@
  *   /__smile/docs/images/<name>.svg  a diagram
  */
 import { createError, defineEventHandler, getQuery, setResponseHeader } from 'h3'
-// @ts-expect-error — plain JS module, no type declarations
 import { createDocs, loadHighlighter } from './renderDocs.js'
 
 // The folder with index.json and the pages, set by the module.
@@ -18,9 +17,9 @@ declare const __SMILE_DOCS_DIR__: string
 let docs: Promise<ReturnType<typeof createDocs>> | undefined
 
 export default defineEventHandler(async (event) => {
-  docs ??= loadHighlighter().then((highlight: unknown) => createDocs(__SMILE_DOCS_DIR__, { highlight }))
+  docs ??= loadHighlighter().then(highlight => createDocs(__SMILE_DOCS_DIR__, { highlight }))
   const service = await docs
-  const route = event.path.replace(/^\/__smile\/docs\/?/, '').split('?')[0]
+  const route = event.path.replace(/^\/__smile\/docs\/?/, '').split('?')[0] ?? ''
   const query = getQuery(event)
 
   if (route === 'index') return service.index()

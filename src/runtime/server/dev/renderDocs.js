@@ -320,6 +320,9 @@ function createRenderer({ hasImage, hasDark, highlight }) {
  * The docs service for one docs folder: the page list, rendered pages (cached
  * by modification time), search and the shipped images. `highlight` (from
  * loadHighlighter) colors the code blocks.
+ *
+ * @param {string} docsDir
+ * @param {{ highlight?: ((code: string, lang: string) => string) | null }} [options]
  */
 export function createDocs(docsDir, { highlight = null } = {}) {
   const read = file => readFileSync(join(docsDir, file), 'utf8')
