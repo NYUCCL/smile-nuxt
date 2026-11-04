@@ -263,5 +263,40 @@ rail gained a button).
 - Found on this repo: the root `.env` (tracked) has a plaintext
   `SMILE_DEV_PASSWORD` and `SMILE_PUBLIC_PRESENTATION=false`. Left as is.
 
-Next, if wanted: editing (the write routes in the original plan), and the
-`pnpm smile:check` CLI on the same rules (#65).
+### Layout, after Todd's first look (2026-11-03)
+
+The first version (one long column, every setting fully spelled out) was too
+much to read. Now:
+
+- Top bar like developer and presentation mode's (`DevModeLabel`, the bar
+  grey `--sd-bar`): risk / check counts and a reload button on the right.
+- A title area on the page background: "Build & deploy settings", the
+  read-only line, and "Settings come from" chips (each env file: deploys /
+  this machine / generated; Vercel linked or not; hover for the longer text).
+- Two columns at 1100px and up, each scrolling on its own (one column below):
+  left, "When you deploy" (question over a one-line answer) and "Also worth a
+  look"; right, all settings.
+- Everything is one line until clicked (`<details>`). A deploy line opens to
+  its explanation, recommendation and key chips; a setting row (key, value,
+  source, or the default's value + "default") opens to its description,
+  deploy value, other files, full default, build time / runtime, and where to
+  change it. A key chip opens and scrolls to its row.
+- Rail order: participant view, developer, presentation, settings. The page
+  sits inside `DevScope` and follows the palettes (merged with
+  `dev-tools-theme`, then fast-forwarded into it at a7b821d).
+
+### Still to do
+
+- Look again at the copy: the deploy answers and finding messages are still
+  long in places, and the rows could drop words now that details are a click
+  away.
+- Editing (the write routes in the original plan, sections 3 and 4), if wanted.
+  Until then the page says where to change each setting.
+- `pnpm smile:check` (#65) on `config-schema.js` / `config-rules.js`: needs a
+  package export or a script that reads them, and `readBuildConfig` moved
+  somewhere a CLI can import.
+- The repo's own tracked `.env` with a plaintext `SMILE_DEV_PASSWORD`
+  (flagged as a risk on the page): move it to `.env.local` or Vercel.
+- The four unused settings (`VITE_RANDOM_SEED`, `VITE_UNPAID_STUDY`,
+  `VITE_CODE_NAME_DEPLOY_URL`, `VITE_GOOGLE_ANALYTICS`): remove from
+  `core/config.js`, or document what they're for.
