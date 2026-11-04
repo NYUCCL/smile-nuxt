@@ -150,8 +150,7 @@ const position = computed(() => allPages.value.findIndex(p => p.path === current
 const prevPage = computed(() => (position.value > 0 ? allPages.value[position.value - 1] : null))
 const nextPage = computed(() => (position.value >= 0 ? allPages.value[position.value + 1] || null : null))
 
-// ⌘K / Ctrl+K focuses the search, as on the website; a click elsewhere closes the results
-const searchBox = ref(null)
+// ⌘K / Ctrl+K focuses the search, as on the website
 const shortcutLabel = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘K' : 'Ctrl K'
 
 function onKeydown(e) {
@@ -162,13 +161,8 @@ function onKeydown(e) {
   }
 }
 
-function onPointerDown(e) {
-  if (query.value && !searchBox.value?.contains(e.target)) query.value = ''
-}
-
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
-  window.removeEventListener('pointerdown', onPointerDown)
   cancelAnimationFrame(scrollFrame)
   clearTimeout(searchTimer)
 })
@@ -185,7 +179,6 @@ function clearSearch() {
 
 onMounted(async () => {
   window.addEventListener('keydown', onKeydown)
-  window.addEventListener('pointerdown', onPointerDown)
   try {
     const data = await $fetch('/__smile/docs/index')
     // A build without the route answers with the app's HTML, not a 404
@@ -219,59 +212,6 @@ onMounted(async () => {
               label="SMILE docs"
               short="Docs"
             />
-            <div
-              ref="searchBox"
-              class="docs-search"
-            >
-              <Search class="docs-search-icon text-sd-text-muted" />
-              <input
-                ref="searchInput"
-                v-model="query"
-                type="search"
-                placeholder="Search the docs"
-                aria-label="Search the docs"
-                class="bg-sd-bg border border-sd-line text-sd-text"
-                data-testid="docs-search"
-                @keydown.esc="clearSearch"
-              >
-              <kbd
-                v-if="!query"
-                class="docs-search-key border border-sd-line text-sd-text-muted"
-              >{{ shortcutLabel }}</kbd>
-              <button
-                v-else
-                class="docs-search-clear text-sd-text-muted"
-                aria-label="Clear search"
-                @click="clearSearch"
-              >
-                <X class="size-3.5" />
-              </button>
-
-              <ul
-                v-if="query.trim()"
-                class="docs-results bg-sd-panel border border-sd-line"
-                data-testid="docs-results"
-              >
-                <li
-                  v-if="!results.length"
-                  class="docs-empty text-sd-text-muted"
-                >
-                  Nothing found.
-                </li>
-                <li
-                  v-for="(r, i) in results"
-                  :key="`${r.path}#${r.hash}-${i}`"
-                >
-                  <button
-                    class="docs-result hover:bg-sd-hover"
-                    @click="openResult(r)"
-                  >
-                    <span class="docs-result-title">{{ r.title }}<template v-if="r.heading"> › {{ r.heading }}</template></span>
-                    <span class="docs-result-snippet text-sd-text-muted">{{ r.snippet }}</span>
-                  </button>
-                </li>
-              </ul>
-            </div>
           </div>
           <Button
             v-if="page"
@@ -294,7 +234,58 @@ onMounted(async () => {
           aria-label="Docs pages"
         >
           <div
-            v-if="index"
+            class="docs-search"
+          >
+            <Search class="docs-search-icon text-sd-text-muted" />
+            <input
+              ref="searchInput"
+              v-model="query"
+              type="search"
+              placeholder="Search the docs"
+              aria-label="Search the docs"
+              class="bg-sd-bg border border-sd-line text-sd-text"
+              data-testid="docs-search"
+              @keydown.esc="clearSearch"
+            >
+            <kbd
+              v-if="!query"
+              class="docs-search-key border border-sd-line text-sd-text-muted"
+            >{{ shortcutLabel }}</kbd>
+            <button
+              v-else
+              class="docs-search-clear text-sd-text-muted"
+              aria-label="Clear search"
+              @click="clearSearch"
+            >
+              <X class="size-3.5" />
+            </button>
+          </div>
+          <ul
+            v-if="query.trim()"
+            class="docs-results"
+            data-testid="docs-results"
+          >
+            <li
+              v-if="!results.length"
+              class="docs-empty text-sd-text-muted"
+            >
+              Nothing found.
+            </li>
+            <li
+              v-for="(r, i) in results"
+              :key="`${r.path}#${r.hash}-${i}`"
+            >
+              <button
+                class="docs-result hover:bg-sd-hover"
+                @click="openResult(r)"
+              >
+                <span class="docs-result-title">{{ r.title }}<template v-if="r.heading"> › {{ r.heading }}</template></span>
+                <span class="docs-result-snippet text-sd-text-muted">{{ r.snippet }}</span>
+              </button>
+            </li>
+          </ul>
+          <div
+            v-else-if="index"
             class="docs-pages"
           >
             <section
@@ -485,16 +476,18 @@ onMounted(async () => {
   flex-direction: column;
   background: var(--sd-reading-bg);
 }
+/* Search, at the top of the page list; results take the list's place */
 .docs-search {
   position: relative;
-  width: 15rem;
+  flex-shrink: 0;
+  margin: 0.875rem 1.25rem 0.25rem;
 }
 .docs-search input {
   width: 100%;
-  height: 1.5rem;
-  border-radius: 0.375rem;
-  padding: 0 2.75rem 0 1.75rem;
-  font-size: 0.75rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  padding: 0 3rem 0 2rem;
+  font-size: 0.875rem;
   outline: none;
 }
 .docs-search input:focus {
@@ -505,42 +498,35 @@ onMounted(async () => {
 }
 .docs-search-icon {
   position: absolute;
-  left: 0.5rem;
+  left: 0.625rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 0.75rem;
-  height: 0.75rem;
+  width: 0.875rem;
+  height: 0.875rem;
   pointer-events: none;
 }
 .docs-search-key {
   position: absolute;
-  right: 0.375rem;
+  right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
   font-family: inherit;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   line-height: 1;
-  padding: 0.125rem 0.3125rem;
+  padding: 0.1875rem 0.375rem;
   border-radius: 0.25rem;
   pointer-events: none;
 }
 .docs-search-clear {
   position: absolute;
-  right: 0.375rem;
+  right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
 }
 .docs-results {
-  position: absolute;
-  top: calc(100% + 0.375rem);
-  left: 0;
-  z-index: 20;
-  width: min(36rem, calc(100vw - 22rem));
-  max-height: min(32rem, calc(100vh - 6rem));
+  flex: 1;
   overflow-y: auto;
-  padding: 0.375rem;
-  border-radius: 0.5rem;
-  box-shadow: var(--sd-float-shadow);
+  padding: 0.5rem 0.75rem 1rem;
 }
 .docs-result {
   display: block;
