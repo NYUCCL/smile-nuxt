@@ -16,6 +16,8 @@ a command: `:d` is enough for `dev`, and letters in order with gaps also match
 (`:cnsl` finds `console`). The best match is chosen as you type, so most
 commands are `:`, a letter or two, and `Enter`.
 
+![The command palette open over developer mode: a box near the top with a : prompt, the recent commands, then the commands by group, each with an icon, a short description and its keyboard shortcut.](/images/command-palette.png)
+
 ::: tip Only on your computer
 The command palette is part of the local dev server only. It isn't in a build,
 so participants never see it, even with the dev tools included in a deployment.
@@ -26,6 +28,8 @@ so participants never see it, even with the dev tools included in a deployment.
 Type `:`, then the start of a command. The list under the box shows up to eight
 matches, with the matched letters in bold, a short description and, where there
 is one, the keyboard shortcut that does the same thing.
+
+![The palette with co typed, in the dark theme: config and console first, with the matched letters in bold, then db, vars and docs, which match through their other names.](/images/command-palette-matching.png)
 
 | Key                          | What it does                                      |
 | ---------------------------- | ------------------------------------------------- |
