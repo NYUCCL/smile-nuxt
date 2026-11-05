@@ -17,6 +17,7 @@ import { provideDevScope } from '../../../composables/useDevScope'
 import { Button } from '../../ui/button'
 import DevModeLabel from '../navbar/DevModeLabel.vue'
 import DevScope from '../DevScope.vue'
+import { docsJump } from '../palette/bus'
 import './docs-prose.css'
 
 provideDevScope()
@@ -189,8 +190,20 @@ onMounted(async () => {
     unavailable.value = true
     return
   }
-  const known = index.value.sections.some(s => s.pages.some(p => p.path === current.value))
-  load(known ? current.value : FIRST_PAGE)
+  // A jump from the command palette's docs search, or the last page read
+  const jump = docsJump.value
+  docsJump.value = null
+  const target = jump?.path ?? current.value
+  const known = index.value.sections.some(s => s.pages.some(p => p.path === target))
+  load(known ? target : FIRST_PAGE, known ? jump?.hash || '' : '')
+})
+
+// The palette's docs search while Docs mode is open
+watch(docsJump, (jump) => {
+  if (!jump || !index.value) return
+  docsJump.value = null
+  if (jump.path === current.value && page.value) scrollTo(jump.hash || '')
+  else load(jump.path, jump.hash || '')
 })
 </script>
 

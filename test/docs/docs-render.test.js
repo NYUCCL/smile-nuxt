@@ -101,6 +101,20 @@ describe('docs renderer: the shipped pages', () => {
     expect(recruitment).toContain('class="sd-docs-figure"')
   })
 
+  it('serves screenshots saved as WebP, with their dark copies', () => {
+    const palette = rendered['coding/palette.md'].html
+    expect(palette).toContain('<img src="/__smile/docs/images/command-palette.webp"')
+    expect(palette).not.toContain('sd-docs-figure')
+    const webp = docs.image('command-palette.webp')
+    expect(Buffer.isBuffer(webp)).toBe(true)
+    expect(webp.subarray(8, 12).toString()).toBe('WEBP')
+    // with its dark copy, shown in dark mode
+    expect(palette).toMatch(/<img src="\/__smile\/docs\/images\/command-palette\.webp"[^>]* class="sd-fig-light/)
+    expect(palette).toMatch(/<img src="\/__smile\/docs\/images\/command-palette\.dark\.webp"[^>]* class="sd-fig-dark/)
+    expect(docs.image('command-palette.dark.webp').subarray(8, 12).toString()).toBe('WEBP')
+    expect(docs.image('nope.dark.webp')).toBeNull()
+  })
+
   it('gives each diagram a dark copy, and leaves the logo alone', () => {
     const timeline = rendered['coding/timeline.md'].html
     expect(timeline).toContain('<img src="/__smile/docs/images/timeline.svg" alt="')

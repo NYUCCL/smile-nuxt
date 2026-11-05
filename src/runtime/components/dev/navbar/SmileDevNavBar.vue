@@ -19,6 +19,7 @@ import LogoutButton from '../presentation/LogoutButton.vue'
 import { ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 import useAPI from '../../../composables/useAPI'
+import * as actions from '../devActions'
 
 // API composable
 
@@ -53,8 +54,8 @@ const showTemporaryNotification = (command, action, type = 'default') => {
 }
 
 /**
- * Developer mode keyboard shortcuts
- * These shortcuts are only active when developer mode is enabled
+ * Developer mode keyboard shortcuts. What each one does is in ../devActions.js,
+ * shared with the `:` command palette (../palette/).
  *
  * Navigation:
  * - ArrowUp: Go to previous view
@@ -65,175 +66,38 @@ const showTemporaryNotification = (command, action, type = 'default') => {
  * - Ctrl+`: Toggle console
  * - Ctrl+2: Cycle through sidebar tabs (Steps -> Random -> DB Info)
  * - Ctrl+3: Cycle through console tabs (Browse -> Log -> Config)
- * - Ctrl+R: Reset local state
+ * - Ctrl+R: Zap (reset) local state
  * - Ctrl+D: Connect to database
  * - Ctrl+A: Autofill current view (if available)
  * - Ctrl+P: Pin/unpin current route
  */
+const ctrlShortcuts = {
+  '1': ['Ctrl + 1', actions.toggleSideBar],
+  '`': ['Ctrl + `', actions.toggleConsole],
+  '2': ['Ctrl + 2', actions.cycleSideBarTab],
+  '3': ['Ctrl + 3', actions.cycleConsoleTab],
+  'r': ['Ctrl + R', actions.resetLocalState],
+  'd': ['Ctrl + D', actions.connectDatabase],
+  'a': ['Ctrl + A', actions.autofillView],
+  'p': ['Ctrl + P', actions.togglePinnedRoute],
+}
 
-/**
- * Navigate to previous view on ArrowUp key press
- */
 onKeyDown((e) => {
-  if (e.key === 'ArrowUp') {
+  // Previous / next view (no toast)
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
     e.preventDefault()
-    api.goToView(api.prevView()?.name, true)
+    if (e.key === 'ArrowUp') actions.goPrevView(api)
+    else actions.goNextView(api)
+    return
   }
-})
-
-/**
- * Navigate to next view on ArrowDown key press
- */
-onKeyDown((e) => {
-  if (e.key === 'ArrowDown') {
-    e.preventDefault()
-    api.goToView(api.nextView()?.name, true)
-  }
-})
-
-/**
- * Toggle sidebar on Ctrl+1 key press
- */
-onKeyDown((e) => {
-  if (e.ctrlKey && e.key === '1') {
-    e.preventDefault()
-
-    api.store.dev.showSideBar = !api.store.dev.showSideBar
-    showTemporaryNotification('Ctrl + 1', api.store.dev.showSideBar ? 'Showing Sidebar' : 'Hiding Sidebar')
-  }
-})
-
-/**
- * Toggle console on Ctrl+` key press
- */
-onKeyDown((e) => {
-  if (e.ctrlKey && e.key === '`') {
-    e.preventDefault()
-
-    api.store.dev.showConsoleBar = !api.store.dev.showConsoleBar
-    showTemporaryNotification('Ctrl + `', api.store.dev.showConsoleBar ? 'Showing Console' : 'Hiding Console')
-  }
-})
-
-/**
- * Cycle through sidebar tabs on Ctrl+2 key press
- */
-onKeyDown((e) => {
-  if (e.ctrlKey && e.key === '2') {
-    e.preventDefault()
-
-    if (!api.store.dev.showSideBar) {
-      showTemporaryNotification('Ctrl + 2', 'Sidebar is hidden', 'error')
-      return
-    }
-
-    const currentTab = api.store.dev.sideBarTab
-
-    if (currentTab === 'steps') {
-      api.store.dev.sideBarTab = 'randomization'
-      showTemporaryNotification('Ctrl + 2', 'Switched to Random Tab')
-    }
-    else if (currentTab === 'randomization') {
-      api.store.dev.sideBarTab = 'db'
-      showTemporaryNotification('Ctrl + 2', 'Switched to DB Info Tab')
-    }
-    else {
-      api.store.dev.sideBarTab = 'steps'
-      showTemporaryNotification('Ctrl + 2', 'Switched to Steps Tab')
-    }
-  }
-})
-
-/**
- * Cycle through console tabs on Ctrl+3 key press
- */
-onKeyDown((e) => {
-  if (e.ctrlKey && e.key === '3') {
-    e.preventDefault()
-
-    if (!api.store.dev.showConsoleBar) {
-      showTemporaryNotification('Ctrl + 3', 'Console is hidden', 'error')
-      return
-    }
-
-    const currentTab = api.store.dev.consoleBarTab
-
-    if (currentTab === 'browse') {
-      api.store.dev.consoleBarTab = 'log'
-      showTemporaryNotification('Ctrl + 3', 'Switched to Log Tab')
-    }
-    else if (currentTab === 'log') {
-      api.store.dev.consoleBarTab = 'config'
-      showTemporaryNotification('Ctrl + 3', 'Switched to Config Tab')
-    }
-    else {
-      api.store.dev.consoleBarTab = 'browse'
-      showTemporaryNotification('Ctrl + 3', 'Switched to Browse Tab')
-    }
-  }
-})
-
-/**
- * Reset local state on Ctrl+R key press
- */
-onKeyDown((e) => {
-  if (e.ctrlKey && e.key === 'r') {
-    e.preventDefault()
-    showTemporaryNotification('Ctrl + R', 'Resetting Local State')
-    setTimeout(() => {
-      api.resetLocalState()
-    }, 200)
-  }
-})
-
-/**
- * Connect to database on Ctrl+D key press
- */
-onKeyDown((e) => {
-  if (e.ctrlKey && e.key === 'd') {
-    e.preventDefault()
-    if (!api.store.cookieState.knownUser) {
-      api.setKnown()
-      api.setConsented()
-      showTemporaryNotification('Ctrl + D', 'Connected to Database')
-    }
-  }
-})
-
-/**
- * Autofill current view on Ctrl+A key press
- */
-onKeyDown((e) => {
-  if (e.ctrlKey && e.key === 'a') {
-    e.preventDefault()
-    if (api.hasAutofill()) {
-      api.autofill()
-      showTemporaryNotification('Ctrl + A', 'Autofilled Current View')
-    }
-    else {
-      showTemporaryNotification('Ctrl + A', 'No Autofill Available', 'error')
-    }
-  }
-})
-
-/**
- * Pin/unpin current route on Ctrl+P key press
- */
-onKeyDown((e) => {
-  if (e.ctrlKey && e.key === 'p') {
-    e.preventDefault()
-    const currentRoute = api.currentRouteName()
-    const isCurrentlyPinned = api.store.dev.pinnedRoute === currentRoute
-
-    if (isCurrentlyPinned) {
-      api.store.dev.pinnedRoute = null
-      showTemporaryNotification('Ctrl + P', 'Unpinned Route')
-    }
-    else {
-      api.store.dev.pinnedRoute = currentRoute
-      showTemporaryNotification('Ctrl + P', 'Pinned Current Route')
-    }
-  }
+  if (!e.ctrlKey) return
+  const shortcut = ctrlShortcuts[e.key]
+  if (!shortcut) return
+  e.preventDefault()
+  const [command, run] = shortcut
+  // Only a failure gets a toast; a success shows itself
+  const { action, type } = run(api)
+  if (type === 'error') showTemporaryNotification(command, action, type)
 })
 </script>
 

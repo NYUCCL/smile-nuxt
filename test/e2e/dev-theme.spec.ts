@@ -8,7 +8,7 @@ test('dev tools theme: system by default, and the button cycles back to system',
   await page.emulateMedia({ colorScheme: 'dark' })
   await page.goto('/dev/welcome')
   const html = page.locator('html')
-  const button = page.locator('[data-sidebar="footer"] button').first()
+  const button = page.getByRole('button', { name: 'Dev tools theme' })
   await expect(html).toHaveClass(/\bdark\b/) // system, which is dark here
   await button.click()
   await expect(html).toHaveClass(/\blight\b/)

@@ -64,6 +64,9 @@ The developer tools let you:
 - Perform "brain surgery" by forcing particular settings or events to happen to
   see how your experiment responds.
 
+On the local dev server, most of this is also a few keystrokes away: type `:` to
+open the [command palette](/coding/palette).
+
 ## Testing the build process
 
 You can also test the build process locally:

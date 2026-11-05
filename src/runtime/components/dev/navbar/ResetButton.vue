@@ -12,7 +12,7 @@ const api = useAPI()
 </script>
 
 <template>
-  <!-- Reset local state button with tooltip -->
+  <!-- Zap (reset) local state button with tooltip -->
   <TooltipProvider>
     <Tooltip>
       <TooltipTrigger as-child>
@@ -25,7 +25,7 @@ const api = useAPI()
         </Button>
       </TooltipTrigger>
       <TooltipContent side="bottom">
-        Reset local state (Ctrl + R)
+        Zap local state (Ctrl + R)
       </TooltipContent>
     </Tooltip>
   </TooltipProvider>

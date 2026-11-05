@@ -1,5 +1,14 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { clearState } from './helpers'
+
+/** Read a field of the dev store (store.dev) */
+function devStore(page: Page, key: string) {
+  return page.evaluate((k) => {
+    type NuxtRoot = Element & { __vue_app__: { config: { globalProperties: { $pinia: { _s: Map<string, { dev: Record<string, unknown> }> } } } } }
+    const app = (document.querySelector('#__nuxt') as NuxtRoot | null)?.__vue_app__
+    return app?.config.globalProperties.$pinia._s.get('smilestore')?.dev[k]
+  }, key)
+}
 
 test.describe('Dev mode', () => {
   test.beforeEach(async ({ page }) => {
@@ -155,16 +164,15 @@ test.describe('Dev mode', () => {
     await page.keyboard.press('Control+`')
     await expect(page.locator('.console')).toBeVisible()
 
-    // Cycle through tabs - we verify the notification text appears
+    // Cycle through tabs (a success shows no toast: the tab changes)
     await page.keyboard.press('Control+3')
-    // The notification should show "Switched to Log Tab"
-    await expect(page.getByText('Switched to Log Tab')).toBeVisible({ timeout: 2000 })
+    await expect.poll(() => devStore(page, 'consoleBarTab')).toBe('log')
 
     await page.keyboard.press('Control+3')
-    await expect(page.getByText('Switched to Config Tab')).toBeVisible({ timeout: 2000 })
+    await expect.poll(() => devStore(page, 'consoleBarTab')).toBe('config')
 
     await page.keyboard.press('Control+3')
-    await expect(page.getByText('Switched to Browse Tab')).toBeVisible({ timeout: 2000 })
+    await expect.poll(() => devStore(page, 'consoleBarTab')).toBe('browse')
   })
 
   test('console hide button closes the console', async ({ page }) => {
@@ -329,11 +337,11 @@ test.describe('Dev mode', () => {
 
   // ─── Keyboard Shortcut Notification ────────────────────────────────
 
-  test('keyboard shortcuts show notification overlay', async ({ page }) => {
-    // Ctrl+1 should show a notification
+  test('a shortcut that works shows no notification', async ({ page }) => {
+    // Only failures get a toast; Ctrl+1's result is the sidebar itself
     await page.keyboard.press('Control+1')
-    await expect(page.getByText('Ctrl + 1')).toBeVisible({ timeout: 2000 })
-    await expect(page.getByText('Showing Sidebar')).toBeVisible({ timeout: 2000 })
+    await expect(page.locator('.sidebar')).toBeVisible()
+    await expect(page.getByText('Showing Sidebar')).toHaveCount(0)
   })
 
   test('Ctrl+2 shows error notification when sidebar is hidden', async ({ page }) => {
@@ -345,13 +353,6 @@ test.describe('Dev mode', () => {
   test('Ctrl+3 shows error notification when console is hidden', async ({ page }) => {
     await page.keyboard.press('Control+3')
     await expect(page.getByText('Console is hidden')).toBeVisible({ timeout: 2000 })
-  })
-
-  // ─── Reset Button ─────────────────────────────────────────────────
-
-  test('Ctrl+R shows reset notification', async ({ page }) => {
-    await page.keyboard.press('Control+r')
-    await expect(page.getByText('Resetting Local State')).toBeVisible({ timeout: 2000 })
   })
 
   // ─── Both Sidebar and Console Open ─────────────────────────────────
@@ -496,12 +497,10 @@ test.describe('Dev mode', () => {
   test('Ctrl+P toggles pin state', async ({ page }) => {
     // Pin via keyboard
     await page.keyboard.press('Control+p')
-    await expect(page.getByText('Pinned Current Route')).toBeVisible({ timeout: 2000 })
     await expect(page.locator('nav').locator('svg.lucide-pin-off')).toBeVisible()
 
     // Unpin via keyboard
     await page.keyboard.press('Control+p')
-    await expect(page.getByText('Unpinned Route')).toBeVisible({ timeout: 2000 })
     await expect(page.locator('nav').locator('svg.lucide-pin')).toBeVisible()
   })
 
@@ -597,9 +596,7 @@ test.describe('Dev mode', () => {
     )
     expect(keyBefore).toBeTruthy()
 
-    // Notification appears first, then reset happens after 200ms delay
     await page.keyboard.press('Control+r')
-    await expect(page.getByText('Resetting Local State')).toBeVisible({ timeout: 2000 })
 
     // Wait for the reload triggered by the reset
     await page.waitForLoadState('load', { timeout: 10000 })

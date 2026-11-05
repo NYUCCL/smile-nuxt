@@ -18,6 +18,7 @@ export const sidebar = [
       { text: 'Overview', link: '/coding/overview' },
       { text: 'Project Organization', link: '/coding/organization' },
       { text: 'Developing', link: '/coding/developing' },
+      { text: 'Command palette', link: '/coding/palette' },
       { text: 'Configuring', link: '/coding/configuration' },
       { text: 'Components', link: '/coding/components' },
       { text: 'Views', link: '/coding/views' },

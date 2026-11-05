@@ -31,7 +31,9 @@ describe('docs: no unused images or videos', () => {
   })
 
   it('every media file is referenced', () => {
-    const unused = media.filter(f => !source.includes(basename(f))).map(f => relative(docsDir, f))
+    // x.dark.webp is used wherever x.webp is (darkFigures.mjs pairs them)
+    const used = f => source.includes(basename(f)) || source.includes(basename(f).replace(/\.dark\.webp$/, '.webp'))
+    const unused = media.filter(f => !used(f)).map(f => relative(docsDir, f))
     expect(unused, 'delete these, or use them on a page').toEqual([])
   })
 })

@@ -26,6 +26,10 @@ const hasDocs = import.meta.dev
 const SmileDevDocsView = import.meta.dev
   ? defineAsyncComponent(() => import('#smile-dev/docs/SmileDevDocsView.vue'))
   : null
+// The `:` command palette: local dev server only, like docs mode
+const DevCommandPalette = import.meta.dev
+  ? defineAsyncComponent(() => import('#smile-dev/palette/DevCommandPalette.vue'))
+  : null
 const { showAggressiveOverlay } = useWindowSizer({ useDeviceContainer: true })
 
 const height_pct = computed(() => `${api.store.dev.consoleBarHeight}px`)
@@ -55,6 +59,12 @@ applyDevPalette()
       position="top-left"
       :rich-colors="true"
       class="custom-toaster"
+    />
+
+    <!-- The `:` command palette (dev server only) -->
+    <DevCommandPalette
+      v-if="DevCommandPalette"
+      context="dev"
     />
 
     <!-- Main sidebar provider for developer tools -->
