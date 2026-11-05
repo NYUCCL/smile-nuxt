@@ -16,7 +16,7 @@ a command: `:d` is enough for `dev`, and letters in order with gaps also match
 (`:cnsl` finds `console`). The best match is chosen as you type, so most
 commands are `:`, a letter or two, and `Enter`.
 
-![The command palette open over developer mode: a box near the top with a : prompt, the recent commands, then the commands by group, each with an icon, a short description and its keyboard shortcut.](/images/command-palette.webp)
+![The command palette with nothing typed: a : prompt, the recent commands, then the commands by group, each with an icon, a short description and its keyboard shortcut.](/images/command-palette.webp)
 
 ::: tip Only on your computer
 The command palette is part of the local dev server only. It isn't in a build,
