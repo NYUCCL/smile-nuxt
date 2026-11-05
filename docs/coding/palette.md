@@ -29,7 +29,7 @@ Type `:`, then the start of a command. The list under the box shows up to eight
 matches, with the matched letters in bold, a short description and, where there
 is one, the keyboard shortcut that does the same thing.
 
-![The palette with co typed, in the dark theme: config and console first, with the matched letters in bold, then db, vars and docs, which match through their other names.](/images/command-palette-matching.webp)
+![The palette with co typed: config and console first, with the matched letters in bold, then db, vars and docs, which match through their other names.](/images/command-palette-matching.webp)
 
 | Key                          | What it does                                      |
 | ---------------------------- | ------------------------------------------------- |
