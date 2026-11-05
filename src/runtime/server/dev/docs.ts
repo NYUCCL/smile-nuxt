@@ -7,6 +7,7 @@
  *   /__smile/docs/page?path=a/b.md   one page: { title, html, headings, website, ... }
  *   /__smile/docs/search?q=words     matching sections, best first
  *   /__smile/docs/images/<name>.svg  a diagram
+ *   /__smile/docs/images/<name>.webp a screenshot
  */
 import { createError, defineEventHandler, getQuery, setResponseHeader } from 'h3'
 import { createDocs, loadHighlighter } from './renderDocs.js'
@@ -32,12 +33,12 @@ export default defineEventHandler(async (event) => {
 
   if (route === 'search') return service.search(String(query.q || ''))
 
-  const image = route.match(/^images\/([\w.-]+\.svg)$/)
+  const image = route.match(/^images\/([\w.-]+\.(svg|webp))$/)
   if (image) {
-    const svg = service.image(image[1])
-    if (svg) {
-      setResponseHeader(event, 'content-type', 'image/svg+xml')
-      return svg
+    const data = service.image(image[1]!)
+    if (data) {
+      setResponseHeader(event, 'content-type', image[2] === 'svg' ? 'image/svg+xml' : 'image/webp')
+      return data
     }
   }
 

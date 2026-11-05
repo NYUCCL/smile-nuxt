@@ -282,7 +282,7 @@ function createRenderer({ hasImage, hasDark, highlight }) {
       if (!hasDark(name)) return img(url, place)
       return img(url, `sd-fig-light ${place}`.trim()) + img(url.replace(/\.svg$/, '.dark.svg'), `sd-fig-dark ${place}`.trim())
     }
-    // Screenshots and other images don't ship: link to the page that has them.
+    // Other screenshots (PNG, JPEG) don't ship: link to the page that has them.
     return `<a class="sd-docs-figure" href="${websiteUrl(env.page)}" target="_blank" rel="noopener">`
       + `<span>Image${alt ? `: ${escapeHtml(alt)}` : ''}</span><span class="sd-docs-figure-hint">on the website</span></a>`
   }
@@ -328,7 +328,8 @@ export function createDocs(docsDir, { highlight = null } = {}) {
   const read = file => readFileSync(join(docsDir, file), 'utf8')
   const index = () => JSON.parse(read('index.json'))
   const pages = () => new Map(index().sections.flatMap(s => s.pages.map(p => [p.path, { ...p, section: s.section }])))
-  const hasImage = name => /\.svg$/i.test(name) && existsSync(join(docsDir, 'images', name))
+  // The images that ship: diagrams (SVG) and screenshots saved as WebP
+  const hasImage = name => /\.(?:svg|webp)$/i.test(name) && existsSync(join(docsDir, 'images', name))
   const example = (name) => {
     const file = join(docsDir, 'examples', `${name}.vue`)
     return /^[A-Z0-9]+$/i.test(name) && existsSync(file) ? readFileSync(file, 'utf8') : ''
@@ -337,7 +338,7 @@ export function createDocs(docsDir, { highlight = null } = {}) {
   // made when first asked for (by file mtime). null: not a diagram.
   const figureCache = new Map()
   function figure(name) {
-    if (!hasImage(name)) return null
+    if (!/\.svg$/i.test(name) || !hasImage(name)) return null
     const file = join(docsDir, 'images', name)
     const mtime = statSync(file).mtimeMs
     const hit = figureCache.get(name)

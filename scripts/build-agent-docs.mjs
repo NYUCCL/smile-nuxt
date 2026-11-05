@@ -105,8 +105,8 @@ export function indexMarkdown(sections, version) {
     '  `<GureckisLabText/>` is \'the Gureckis Lab\'. `<ComponentViewer>` and',
     '  tags ending in `Example` show live examples on the website; their code',
     '  is in `examples/` (for example `examples/ButtonVariantsExample.vue`).',
-    '- The diagrams (SVG) are in `images/`. Screenshots aren\'t included;',
-    '  the website has them.',
+    '- The diagrams (SVG) and a few screenshots (WebP) are in `images/`.',
+    '  Other screenshots aren\'t included; the website has them.',
     '- When a page and the code disagree, the code wins: it is in',
     '  `../runtime/` (composables in `composables/`, components in',
     '  `components/`).',
@@ -139,10 +139,11 @@ export async function buildAgentDocs({ docsDir = join(repoRoot, 'docs'), outDir 
     writeFileSync(join(outDir, 'examples', file), forReaders(readFileSync(join(docsDir, 'examples', file), 'utf8')))
   }
   // The diagrams: small, and drawn as SVG, so agents can read them too and
-  // the dev tools' Docs mode can show them offline. Screenshots stay out.
+  // the dev tools' Docs mode can show them offline. Screenshots saved as WebP
+  // (small) ship too, so Docs mode shows them; PNG/JPEG screenshots stay out.
   mkdirSync(join(outDir, 'images'), { recursive: true })
   for (const dir of ['images', 'public/images']) {
-    for (const file of readdirSync(join(docsDir, dir)).filter(f => f.endsWith('.svg'))) {
+    for (const file of readdirSync(join(docsDir, dir)).filter(f => /\.(?:svg|webp)$/.test(f))) {
       cpSync(join(docsDir, dir, file), join(outDir, 'images', file))
     }
   }
