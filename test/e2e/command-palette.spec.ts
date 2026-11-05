@@ -14,6 +14,7 @@ async function openPalette(page: Page) {
   await page.locator('.sd-palette-scope').waitFor({ state: 'attached' })
   await page.locator('body').press(':')
   await expect(palette(page)).toBeVisible()
+  await expect(paletteInput(page)).toBeFocused() // keys typed before this are lost
 }
 
 /** Read the dev store's main view */
@@ -103,6 +104,23 @@ test.describe('Command palette', () => {
     await expect(palette(page)).toBeHidden()
     await expect.poll(() => mainView(page)).toBe('docs')
     await expect(page.locator('.docs-view h1').first()).toContainText('Autofill')
+  })
+
+  test('/words opens the result while Docs mode is already open', async ({ page }) => {
+    await openPalette(page)
+    await page.keyboard.type('/autofill')
+    await expect(palette(page).locator('[role="option"]').first()).toContainText('Autofill')
+    await page.keyboard.press('Enter')
+    const title = page.locator('.docs-view h1').first()
+    await expect(title).toContainText('Autofill')
+    await expect(palette(page)).toBeHidden() // it fades out
+
+    // A second search from inside Docs mode goes to the new page
+    await openPalette(page)
+    await page.keyboard.type('/leveraging agents')
+    await expect(palette(page).locator('[role="option"]').first()).toContainText('Leveraging agents')
+    await page.keyboard.press('Enter')
+    await expect(title).toContainText('Leveraging agents')
   })
 
   test('a failed command says why and stays open', async ({ page }) => {

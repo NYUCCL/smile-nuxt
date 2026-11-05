@@ -37,12 +37,16 @@ const content = ref(null)
 const searchInput = ref(null)
 
 const current = computed(() => api.store.dev.docsPage || FIRST_PAGE)
+// The page on screen. Not `current`: the palette's search sets docsPage to
+// where it's going before this view has loaded it.
+const shownPath = ref(null)
 
 async function load(path, hash = '') {
   loading.value = true
   error.value = ''
   try {
     page.value = await $fetch('/__smile/docs/page', { query: { path } })
+    shownPath.value = path
     api.store.dev.docsPage = path
     await nextTick()
     scrollTo(hash)
@@ -119,7 +123,7 @@ function onContentClick(e) {
   const hash = link.dataset.docsHash || ''
   if (target) {
     e.preventDefault()
-    if (target === current.value) scrollTo(hash)
+    if (target === shownPath.value) scrollTo(hash)
     else load(target, hash)
   }
   else if (hash) {
@@ -202,7 +206,7 @@ onMounted(async () => {
 watch(docsJump, (jump) => {
   if (!jump || !index.value) return
   docsJump.value = null
-  if (jump.path === current.value && page.value) scrollTo(jump.hash || '')
+  if (jump.path === shownPath.value && page.value) scrollTo(jump.hash || '')
   else load(jump.path, jump.hash || '')
 })
 </script>
