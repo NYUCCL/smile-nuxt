@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { scoreText, matchItems, parseInput, highlight } from '../../src/runtime/components/dev/palette/match'
-import { COMMANDS, GROUPS, commandsFor, findCommand, timelineViews } from '../../src/runtime/components/dev/palette/commands'
+import { COMMANDS, GROUPS, commandNames, commandsFor, findCommand, fullName, timelineViews } from '../../src/runtime/components/dev/palette/commands'
 import { loadHistory, pushHistory, HISTORY_KEY, HISTORY_MAX } from '../../src/runtime/components/dev/palette/history'
 import { isOpenKey, isTypingTarget } from '../../src/runtime/components/dev/palette/keys'
 import { DEV_MODES } from '../../src/runtime/components/dev/menu/devModes'
@@ -164,6 +164,25 @@ describe('palette commands', () => {
     expect(findCommand('SIDEBAR').name).toBe('side')
     expect(findCommand('nope')).toBeNull()
     expect(findCommand('pin', commandsFor('participant'))).toBeNull()
+  })
+
+  it('panel tabs are named under their panel, and answer to both names', () => {
+    const steps = findCommand('steps')
+    expect(fullName(steps)).toBe('side steps')
+    expect(findCommand('side steps')).toBe(steps)
+    expect(findCommand('side  randomization').name).toBe('random')
+    expect(fullName(findCommand('log'))).toBe('console log')
+    expect(findCommand('console data').name).toBe('data')
+    expect(findCommand('side')).toBe(findCommand('sidebar')) // the panel itself
+  })
+
+  it('typing a panel lists its tabs after it; more words narrow them', () => {
+    const dev = commandsFor('dev')
+    const shown = q => matchItems(q, dev, commandNames).map(m => fullName(m.item))
+    expect(shown('side').slice(0, 4)).toEqual(['side', 'side steps', 'side random', 'side info'])
+    expect(shown('side st')).toEqual(['side steps'])
+    expect(shown('console').slice(0, 4)).toEqual(['console', 'console data', 'console log', 'console vars'])
+    expect(shown('steps')[0]).toBe('side steps')
   })
 
   it('lists the timeline views as the route jumper does', () => {

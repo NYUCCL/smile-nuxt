@@ -254,6 +254,7 @@ export const COMMANDS = [
   ].map(([name, aliases, icon, tab]) => ({
     name,
     aliases,
+    parent: 'side', // shown and typed as `side steps`; `steps` works too
     group: 'Panels',
     description: `Sidebar: ${actions.SIDEBAR_TABS[tab]} tab`,
     icon,
@@ -270,6 +271,7 @@ export const COMMANDS = [
   ].map(([name, aliases, icon, tab]) => ({
     name,
     aliases,
+    parent: 'console', // `console log`; `log` works too
     group: 'Panels',
     description: `Console: ${actions.CONSOLE_TABS[tab]} tab`,
     icon,
@@ -325,8 +327,33 @@ export function commandsFor(context) {
   return COMMANDS.filter(c => c.contexts.includes(context))
 }
 
-/** A command by its name or an alias, among those given */
+/**
+ * The name a command is shown as: a panel tab under its panel's command
+ * (`side steps`, `console log`), anything else by its name.
+ */
+export function fullName(command) {
+  return command.parent ? `${command.parent} ${command.name}` : command.name
+}
+
+/**
+ * Every name a command answers to, the shown one first: a tab's
+ * `side steps`, then `steps`, its aliases, and `side <alias>`.
+ */
+export function commandNames(command) {
+  if (!command.parent) return [command.name, ...command.aliases]
+  return [
+    fullName(command),
+    command.name,
+    ...command.aliases,
+    ...command.aliases.map(a => `${command.parent} ${a}`),
+  ]
+}
+
+/**
+ * A command by any of its names (`steps`, `side steps`, an alias), among
+ * those given. Spaces between words don't matter.
+ */
 export function findCommand(word, commands = COMMANDS) {
-  const w = word.toLowerCase()
-  return commands.find(c => c.name === w || c.aliases.includes(w)) ?? null
+  const w = word.toLowerCase().trim().replace(/\s+/g, ' ')
+  return commands.find(c => commandNames(c).includes(w)) ?? null
 }

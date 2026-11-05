@@ -95,6 +95,18 @@ test.describe('Command palette', () => {
     await expect(page.locator('.sidebar [role="tab"][data-state="active"]')).toContainText('Random')
   })
 
+  test('side lists its tabs, and side st opens Steps', async ({ page }) => {
+    await openPalette(page)
+    await page.keyboard.type('side')
+    const rows = palette(page).locator('[role="option"]')
+    await expect(rows.nth(0)).toHaveAttribute('data-command', 'side')
+    await expect(rows.nth(1)).toHaveAttribute('data-command', 'side steps')
+    await page.keyboard.type(' st')
+    await expect(rows.first()).toHaveAttribute('data-command', 'side steps')
+    await page.keyboard.press('Enter')
+    await expect(page.locator('.sidebar [role="tab"][data-state="active"]')).toContainText('Steps')
+  })
+
   test('/words searches the docs and opens the result', async ({ page }) => {
     await openPalette(page)
     await page.keyboard.type('/autofill')

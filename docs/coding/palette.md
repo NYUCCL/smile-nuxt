@@ -94,16 +94,21 @@ with the one you're on marked. Keep typing to narrow the list, then press
 
 ### Panels
 
-| Command   | Shortcut     | What it does                          |
-| --------- | ------------ | ------------------------------------- |
-| `side`    | `Ctrl 1`     | Show or hide the sidebar              |
-| `console` | `` Ctrl ` `` | Show or hide the console              |
-| `steps`   |              | The sidebar, on its Steps tab         |
-| `random`  |              | The sidebar, on its Random tab        |
-| `info`    |              | The sidebar, on its Info tab          |
-| `data`    |              | The console, on its Data Explorer tab |
-| `log`     |              | The console, on its Narrative Log tab |
-| `vars`    |              | The console, on its Configuration tab |
+| Command          | Shortcut     | What it does                          |
+| ---------------- | ------------ | ------------------------------------- |
+| `side`           | `Ctrl 1`     | Show or hide the sidebar              |
+| `side steps`     |              | The sidebar, on its Steps tab         |
+| `side random`    |              | The sidebar, on its Random tab        |
+| `side info`      |              | The sidebar, on its Info tab          |
+| `console`        | `` Ctrl ` `` | Show or hide the console              |
+| `console data`   |              | The console, on its Data Explorer tab |
+| `console log`    |              | The console, on its Narrative Log tab |
+| `console vars`   |              | The console, on its Configuration tab |
+
+Typing a panel's command lists its tabs under it (`:side` shows `side`,
+`side steps`, `side random` and `side info`), and more letters pick one
+(`:side st`). A tab's own name works too: `:steps` is `side steps`, and
+`:log` is `console log`.
 
 ### Search the docs
 

@@ -24,7 +24,7 @@ import { usePreferredDark } from '@vueuse/core'
 import useAPI from '../../../composables/useAPI'
 import { resolveColorMode, setColorMode } from '../../../composables/useColorMode'
 import { normalizeDevPalette } from '../../../composables/useDevPalette'
-import { GROUPS, commandsFor, findCommand, timelineViews } from './commands'
+import { GROUPS, commandNames, commandsFor, findCommand, fullName, timelineViews } from './commands'
 import { highlight, matchItems, parseInput } from './match'
 import { loadHistory, pushHistory } from './history'
 import { paletteRequests } from './bus'
@@ -59,15 +59,23 @@ let returnFocus = null
 // ---- Rows -----------------------------------------------------------------
 
 function commandRow(command, match = {}, extra = {}) {
+  const shown = fullName(command)
+  let { indices, alias = null } = match
+  // `steps` typed for `side steps`: bold it in the shown name, not as an alias
+  if (alias === command.name && shown !== command.name) {
+    const at = shown.length - command.name.length
+    indices = Array.from({ length: command.name.length }, (_, i) => at + i)
+    alias = null
+  }
   return {
     key: `cmd:${command.name}`,
     icon: command.icon,
-    name: highlight(command.name, match.indices),
-    alias: match.alias ?? null,
+    name: highlight(shown, indices),
+    alias,
     description: command.description,
     shortcut: command.shortcut,
     command,
-    entry: command.name,
+    entry: fullName(command),
     ...extra,
   }
 }
@@ -84,7 +92,7 @@ const rows = computed(() => {
     for (const entry of helpOpen.value ? [] : history.value) {
       if (recent.length >= MAX_RECENT) break
       const { head: word, arg: recentArg } = parseInput(entry)
-      const command = findCommand(word, available)
+      const command = findCommand(entry, available) ?? findCommand(word, available)
       if (!command || (command.arg && !recentArg)) continue
       recent.push(commandRow(command, {}, {
         key: `recent:${entry}`,
@@ -128,7 +136,9 @@ const rows = computed(() => {
     }))
   }
 
-  return matchItems(head, available, c => [c.name, ...c.aliases])
+  // The whole line, so `side st` finds `side steps`. A panel's command lists
+  // its tabs after it: `side` gives side, side steps, side random, side info
+  return matchItems(query.value.trim().replace(/\s+/g, ' '), available, commandNames)
     .slice(0, MAX_MATCHES)
     .map(m => commandRow(m.item, m))
 })
@@ -237,8 +247,12 @@ const env = {
 }
 
 async function runEntry(entry, pick = null) {
-  const { head, arg } = parseInput(entry)
-  const command = findCommand(head, commands.value)
+  // A whole line that names a command (`side steps`) runs it with no argument
+  const whole = findCommand(entry, commands.value)
+  const parsed = parseInput(entry)
+  const head = parsed.head
+  const arg = whole ? '' : parsed.arg
+  const command = whole ?? findCommand(head, commands.value)
   if (!command) {
     error.value = `Unknown command: ${head}`
     return
@@ -254,7 +268,7 @@ async function runEntry(entry, pick = null) {
     error.value = result.action
     return
   }
-  if (command.name !== 'help') history.value = pushHistory(command.arg ? `${command.name} ${arg}`.trim() : command.name)
+  if (command.name !== 'help') history.value = pushHistory(command.arg ? `${command.name} ${arg}`.trim() : fullName(command))
   if (!command.keepOpen) close()
 }
 
