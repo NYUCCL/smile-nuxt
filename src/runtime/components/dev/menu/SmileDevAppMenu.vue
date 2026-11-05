@@ -93,6 +93,7 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
           <TooltipTrigger as-child>
             <SidebarMenuButton
               class="sd-rail-btn hover:!bg-sd-hover"
+              aria-label="Dev tools theme"
               @click="toggleGlobalColorMode"
             >
               <Moon v-if="globalColorModeRaw === 'light'" />
