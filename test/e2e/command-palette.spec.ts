@@ -80,6 +80,47 @@ test.describe('Command palette', () => {
     await expect(page).toHaveURL(/\/dev\/consent/)
   })
 
+  test('the rail button opens it', async ({ page }) => {
+    await page.getByTestId('open-command-palette').click()
+    await expect(palette(page)).toBeVisible()
+    await expect(paletteInput(page)).toBeFocused()
+  })
+
+  test('a tab command opens its panel on that tab', async ({ page }) => {
+    await openPalette(page)
+    await page.keyboard.type('random')
+    await page.keyboard.press('Enter')
+    await expect(page.locator('.sidebar')).toBeVisible()
+    await expect(page.locator('.sidebar [role="tab"][data-state="active"]')).toContainText('Random')
+  })
+
+  test('/words searches the docs and opens the result', async ({ page }) => {
+    await openPalette(page)
+    await page.keyboard.type('/autofill')
+    const first = palette(page).locator('[role="option"]').first()
+    await expect(first).toContainText('Autofill')
+    await page.keyboard.press('Enter')
+    await expect(palette(page)).toBeHidden()
+    await expect.poll(() => mainView(page)).toBe('docs')
+    await expect(page.locator('.docs-view h1').first()).toContainText('Autofill')
+  })
+
+  test('a failed command says why and stays open', async ({ page }) => {
+    await openPalette(page)
+    await page.keyboard.type('go nowhere')
+    await page.keyboard.press('Enter')
+    await expect(palette(page)).toBeVisible()
+    await expect(page.getByTestId('command-palette-error')).toContainText('No view "nowhere"')
+    // Editing clears it; a success closes with no toast
+    await page.keyboard.press('Control+u')
+    await expect(page.getByTestId('command-palette-error')).toBeHidden()
+    await page.keyboard.type('side')
+    await page.keyboard.press('Enter')
+    await expect(palette(page)).toBeHidden()
+    await expect(page.locator('.sidebar')).toBeVisible()
+    await expect(page.locator('.notification')).toHaveCount(0)
+  })
+
   test('vim keys: Ctrl-j/k, then normal mode j/k/gg/G and q', async ({ page }) => {
     const selected = () => palette(page).locator('[role="option"][aria-selected="true"]')
     await openPalette(page)

@@ -76,10 +76,13 @@ export function matchItems(query, items, keys) {
 /**
  * Split what's typed into a command word and its argument: "go  welcome " ->
  * { head: 'go', arg: 'welcome', spaced: true }. spaced: a space follows the
- * command word (so `go ` lists views).
+ * command word (so `go ` lists views). A leading `/` is a word of its own:
+ * "/autofill" -> { head: '/', arg: 'autofill', spaced: true }.
  */
 export function parseInput(text) {
   const trimmed = text.trimStart()
+  // `/words`: Vim's search, no space needed
+  if (trimmed.startsWith('/')) return { head: '/', arg: trimmed.slice(1).trim(), spaced: true }
   const space = trimmed.search(/\s/)
   if (space < 0) return { head: trimmed, arg: '', spaced: false }
   return { head: trimmed.slice(0, space), arg: trimmed.slice(space).trim(), spaced: true }

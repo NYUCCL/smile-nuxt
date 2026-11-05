@@ -3,7 +3,7 @@
  * A small floating "local" tag at the top center of the page on the local dev
  * server (pnpm dev), so it's easy to tell from a deployed build. Hidden in
  * production builds. It looks like the "local" tag in the dev tools' toolbar;
- * hovered (or focused) it slides open into a little button bar: reset the
+ * hovered (or focused) it slides open into a little button bar: zap (reset) the
  * local state (the dev toolbar's lightning bolt) and open developer mode.
  *
  * - default: "Developer mode" opens /dev/ in developer mode (not whichever
@@ -45,11 +45,11 @@ async function openDevMode(event) {
     <span class="sd-local-pill-more">
       <button
         type="button"
-        title="Reset local state (Ctrl + R)"
+        title="Zap local state (Ctrl + R)"
         @click="api.resetLocalState()"
       >
         <Zap />
-        Reset
+        Zap
       </button>
       <a
         href="/dev/"

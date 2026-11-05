@@ -10,19 +10,23 @@
  * - description, icon (lucide), shortcut (the existing key, if any)
  * - contexts: where it's offered: 'dev' (the dev tools, /dev/) and/or
  *   'participant' (the participant view on the local dev server)
- * - arg: 'view' when it takes a view name (`go welcome`)
- * - run(env, arg): does it; returns the toast's { action, type }, or null for
+ * - arg: 'view' when it takes a view name (`go welcome`), 'docs' for words to
+ *   search the docs with (`/autofill`); argPrefix: what Tab completes it to
+ * - run(env, arg, pick): does it (pick: the docs search result chosen); returns { action, type } (type 'error': the palette
+ *   says action under its prompt and stays open), or null for
  *   none. env: { api, context, navigate(url), nextTick, setDevColorMode(mode),
- *   openHelp() }
+ *   openHelp(), searchDocs(words) }
  */
 import {
-  ArrowDown, ArrowUp, CircleHelp, Database, Moon, PanelBottom, PanelRight,
-  Pin, Route, Sun, UserRound, WandSparkles, Zap,
+  ArrowDown, ArrowUp, CircleHelp, Database, Dices, Info, ListTree, Maximize, Moon,
+  PanelBottom, PanelRight, Pin, RotateCcw, Route, Search, Settings, Sun, Terminal,
+  UserRound, WandSparkles, Zap,
 } from 'lucide-vue-next'
 import { DEV_MODES } from '../menu/devModes'
 import * as actions from '../devActions'
+import { docsJump } from './bus'
 
-export const GROUPS = ['Modes', 'Navigate', 'Actions', 'Panels', 'Help']
+export const GROUPS = ['Modes', 'Navigate', 'Actions', 'Panels', 'Docs', 'Help']
 
 const BOTH = ['dev', 'participant']
 const DEV = ['dev']
@@ -93,6 +97,7 @@ export const COMMANDS = [
     icon: Route,
     contexts: BOTH,
     arg: 'view',
+    argPrefix: 'go ',
     run({ api }, view) {
       if (!view) return { action: 'Which view? :go <view>', type: 'error' }
       if (!timelineViews(api).includes(view)) return { action: `No view "${view}"`, type: 'error' }
@@ -129,10 +134,10 @@ export const COMMANDS = [
   },
 
   {
-    name: 'reset',
-    aliases: [],
+    name: 'zap',
+    aliases: ['reset'],
     group: 'Actions',
-    description: 'Reset the local state and reload',
+    description: 'Zap the local state and reload',
     icon: Zap,
     shortcut: 'Ctrl R',
     contexts: BOTH,
@@ -194,6 +199,28 @@ export const COMMANDS = [
   },
 
   {
+    name: 'reload',
+    aliases: ['refresh'],
+    group: 'Actions',
+    description: 'Reload the page',
+    icon: RotateCcw,
+    shortcut: '⌘ R',
+    contexts: BOTH,
+    run: ({ api }) => actions.reloadPage(api),
+  },
+  {
+    name: 'full',
+    aliases: ['fullscreen', 'responsive'],
+    group: 'Actions',
+    description: 'Full screen or the responsive device preview',
+    icon: Maximize,
+    contexts: DEV,
+    run({ api }) {
+      showExperiment(api)
+      return actions.toggleFullscreen(api)
+    },
+  },
+  {
     name: 'side',
     aliases: ['sidebar'],
     group: 'Panels',
@@ -208,7 +235,7 @@ export const COMMANDS = [
   },
   {
     name: 'console',
-    aliases: ['log'],
+    aliases: [],
     group: 'Panels',
     description: 'Show or hide the console',
     icon: PanelBottom,
@@ -217,6 +244,64 @@ export const COMMANDS = [
     run({ api }) {
       showExperiment(api)
       return actions.toggleConsole(api)
+    },
+  },
+
+  ...[
+    ['steps', [], ListTree, 'steps'],
+    ['random', ['randomization'], Dices, 'randomization'],
+    ['info', ['dbinfo'], Info, 'db'],
+  ].map(([name, aliases, icon, tab]) => ({
+    name,
+    aliases,
+    group: 'Panels',
+    description: `Sidebar: ${actions.SIDEBAR_TABS[tab]} tab`,
+    icon,
+    contexts: DEV,
+    run({ api }) {
+      showExperiment(api)
+      return actions.showSideBarTab(api, tab)
+    },
+  })),
+  ...[
+    ['data', ['browse', 'explorer'], Database, 'browse'],
+    ['log', ['narrative'], Terminal, 'log'],
+    ['vars', ['configuration', 'env'], Settings, 'config'],
+  ].map(([name, aliases, icon, tab]) => ({
+    name,
+    aliases,
+    group: 'Panels',
+    description: `Console: ${actions.CONSOLE_TABS[tab]} tab`,
+    icon,
+    contexts: DEV,
+    run({ api }) {
+      showExperiment(api)
+      return actions.showConsoleTab(api, tab)
+    },
+  })),
+
+  {
+    name: 'search',
+    aliases: ['/', 's', 'find'],
+    group: 'Docs',
+    description: 'Search the docs: /words',
+    icon: Search,
+    contexts: BOTH,
+    arg: 'docs',
+    argPrefix: '/',
+    async run({ api, context, navigate, nextTick, searchDocs }, words, pick) {
+      if (!words && !pick) return { action: 'Search the docs: type words after /', type: 'error' }
+      const hit = pick ?? (await searchDocs(words))[0]
+      if (!hit) return { action: `No docs match "${words}"`, type: 'error' }
+      docsJump.value = { path: hit.path, hash: hit.hash || '' }
+      api.store.dev.docsPage = hit.path
+      api.store.dev.mainView = 'docs'
+      if (context === 'participant') {
+        await nextTick() // let the dev cookie be written, as for the modes
+        navigate('/dev/')
+        return null
+      }
+      return { action: `Docs: ${hit.title}` }
     },
   },
 

@@ -47,6 +47,11 @@ describe('palette matcher', () => {
     expect(top('p')).toBe('pres')
     expect(top('pa')).toBe('part')
     expect(top('fi')).toBe('fill')
+    expect(top('f')).toBe('fill')
+    expect(top('fu')).toBe('full')
+    expect(top('s')).toBe('search')
+    expect(top('l')).toBe('light')
+    expect(top('lo')).toBe('log')
   })
 
   it('fuzzy matches: letters in order with gaps', () => {
@@ -71,6 +76,8 @@ describe('palette matcher', () => {
     expect(parseInput('go')).toEqual({ head: 'go', arg: '', spaced: false })
     expect(parseInput('  dev')).toEqual({ head: 'dev', arg: '', spaced: false })
     expect(parseInput('')).toEqual({ head: '', arg: '', spaced: false })
+    expect(parseInput('/auto fill')).toEqual({ head: '/', arg: 'auto fill', spaced: true })
+    expect(parseInput('/')).toEqual({ head: '/', arg: '', spaced: true })
   })
 
   it('splits a name into bold and plain runs', () => {
@@ -121,7 +128,7 @@ describe('palette commands', () => {
   it('names and aliases are unique, lower case, without spaces', () => {
     const all = COMMANDS.flatMap(names)
     expect(new Set(all).size).toBe(all.length)
-    for (const n of all) expect(n).toMatch(/^[a-z?]+$/)
+    for (const n of all) expect(n).toMatch(/^([a-z]+|[?/])$/)
   })
 
   it('every command has a known group, a description, an icon and a run', () => {
@@ -136,7 +143,7 @@ describe('palette commands', () => {
 
   it('has the commands the brief names', () => {
     const dev = commandsFor('dev').map(c => c.name)
-    for (const n of ['dev', 'pres', 'config', 'part', 'go', 'next', 'prev', 'reset', 'fill', 'pin', 'db', 'dark', 'light', 'side', 'console', 'help']) {
+    for (const n of ['dev', 'pres', 'config', 'part', 'go', 'next', 'prev', 'zap', 'reload', 'full', 'fill', 'pin', 'db', 'dark', 'light', 'side', 'console', 'steps', 'random', 'info', 'data', 'log', 'vars', 'search', 'help']) {
       expect(dev).toContain(n)
     }
   })
@@ -148,8 +155,8 @@ describe('palette commands', () => {
 
   it('the participant view offers only what works there', () => {
     const part = commandsFor('participant').map(c => c.name)
-    expect(part).toEqual(expect.arrayContaining(['dev', 'pres', 'config', 'go', 'next', 'prev', 'reset', 'fill', 'help']))
-    for (const n of ['part', 'pin', 'db', 'dark', 'light', 'side', 'console']) expect(part).not.toContain(n)
+    expect(part).toEqual(expect.arrayContaining(['dev', 'pres', 'config', 'go', 'next', 'prev', 'zap', 'reload', 'fill', 'search', 'help']))
+    for (const n of ['part', 'pin', 'db', 'dark', 'light', 'side', 'console', 'full', 'steps', 'random', 'log', 'vars']) expect(part).not.toContain(n)
   })
 
   it('finds a command by name or alias', () => {
@@ -226,14 +233,48 @@ describe('palette commands', () => {
     expect(api.autofill).not.toHaveBeenCalled()
   })
 
-  it('reset resets after a moment', () => {
-    vi.useFakeTimers()
+  it('zap (alias reset) zaps the local state', () => {
     const api = fakeApi()
     findCommand('reset').run(env(api))
-    expect(api.resetLocalState).not.toHaveBeenCalled()
-    vi.advanceTimersByTime(250)
+    expect(findCommand('reset').name).toBe('zap')
     expect(api.resetLocalState).toHaveBeenCalled()
-    vi.useRealTimers()
+  })
+
+  it('reload and full do what the toolbar buttons do', () => {
+    const api = fakeApi({ reloadBrowser: vi.fn() })
+    findCommand('reload').run(env(api))
+    expect(api.reloadBrowser).toHaveBeenCalled()
+    api.store.dev.isFullscreen = false
+    expect(findCommand('full').run(env(api)).action).toBe('Full Screen')
+    expect(api.store.dev.isFullscreen).toBe(true)
+  })
+
+  it('tab commands open their panel on that tab', () => {
+    const api = fakeApi()
+    findCommand('random').run(env(api))
+    expect(api.store.dev.showSideBar).toBe(true)
+    expect(api.store.dev.sideBarTab).toBe('randomization')
+    findCommand('log').run(env(api))
+    expect(api.store.dev.showConsoleBar).toBe(true)
+    expect(api.store.dev.consoleBarTab).toBe('log')
+    findCommand('vars').run(env(api))
+    expect(api.store.dev.consoleBarTab).toBe('config')
+    expect(findCommand('dbinfo').name).toBe('info')
+  })
+
+  it('search opens Docs mode at the chosen result, or the top one', async () => {
+    const { docsJump } = await import('../../src/runtime/components/dev/palette/bus')
+    const api = fakeApi()
+    const e = { ...env(api), searchDocs: vi.fn(async () => [{ path: 'coding/autofill.md', hash: 'autofill-forms', title: 'Autofill' }]) }
+    expect((await findCommand('/').run(e, 'autofill')).action).toBe('Docs: Autofill')
+    expect(api.store.dev.mainView).toBe('docs')
+    expect(api.store.dev.docsPage).toBe('coding/autofill.md')
+    expect(docsJump.value).toEqual({ path: 'coding/autofill.md', hash: 'autofill-forms' })
+    await findCommand('s').run(e, 'x', { path: 'a.md', hash: '', title: 'A' })
+    expect(api.store.dev.docsPage).toBe('a.md')
+    e.searchDocs = vi.fn(async () => [])
+    expect((await findCommand('find').run(e, 'zzz')).type).toBe('error')
+    expect((await findCommand('search').run(e, '')).type).toBe('error')
   })
 
   it('dark / light set the dev tools\' theme', () => {

@@ -2,9 +2,10 @@
  * What the dev tools' keyboard shortcuts (navbar/SmileDevNavBar.vue) and the
  * `:` command palette (palette/) do, in one place so both call the same code.
  *
- * Each action takes the API (useAPI()) and returns what the toast
- * (navbar/KeyCommandNotification.vue) should say: { action, type }, where type
- * is 'default' or 'error'.
+ * Each action takes the API (useAPI()) and returns { action, type }: what
+ * happened, and type 'default' or 'error'. Only failures are shown: the
+ * navbar's toast (navbar/KeyCommandNotification.vue), or the palette's error
+ * line; a success shows itself.
  */
 
 /** Show or hide the dev tools' sidebar (Ctrl + 1) */
@@ -51,10 +52,41 @@ export function cycleConsoleTab(api) {
   return { action: 'Switched to Browse Tab' }
 }
 
-/** Reset the local state and reload, after a moment for the toast (Ctrl + R) */
-export function resetLocalState(api, delay = 200) {
-  setTimeout(() => api.resetLocalState(), delay)
-  return { action: 'Resetting Local State' }
+/** Zap (reset) the local state and reload (Ctrl + R) */
+export function resetLocalState(api) {
+  api.resetLocalState()
+  return { action: 'Zapping Local State' }
+}
+
+/** Reload the page (the toolbar's reload button) */
+export function reloadPage(api) {
+  api.reloadBrowser()
+  return { action: 'Reloading' }
+}
+
+/** Full screen or the responsive device preview (the toolbar's button) */
+export function toggleFullscreen(api) {
+  api.store.dev.isFullscreen = !api.store.dev.isFullscreen
+  return { action: api.store.dev.isFullscreen ? 'Full Screen' : 'Responsive Mode' }
+}
+
+/** The sidebar's tabs: store.dev.sideBarTab values and their labels */
+export const SIDEBAR_TABS = { steps: 'Steps', randomization: 'Random', db: 'Info' }
+/** The console's tabs: store.dev.consoleBarTab values and their labels */
+export const CONSOLE_TABS = { browse: 'Data Explorer', log: 'Narrative Log', config: 'Configuration' }
+
+/** Open the sidebar on a tab */
+export function showSideBarTab(api, tab) {
+  api.store.dev.showSideBar = true
+  api.store.dev.sideBarTab = tab
+  return { action: `Sidebar: ${SIDEBAR_TABS[tab]}` }
+}
+
+/** Open the console on a tab */
+export function showConsoleTab(api, tab) {
+  api.store.dev.showConsoleBar = true
+  api.store.dev.consoleBarTab = tab
+  return { action: `Console: ${CONSOLE_TABS[tab]}` }
 }
 
 /** Connect to the database: known and consented (Ctrl + D) */

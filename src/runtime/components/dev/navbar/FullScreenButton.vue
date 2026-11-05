@@ -2,6 +2,7 @@
 import { Maximize, Minimize } from 'lucide-vue-next'
 // UI components
 import useAPI from '../../../composables/useAPI'
+import { toggleFullscreen } from '../devActions'
 
 // API composable
 
@@ -19,7 +20,7 @@ const api = useAPI()
         <Button
           size="menu"
           variant="toolbar"
-          @click="api.store.dev.isFullscreen = !api.store.dev.isFullscreen"
+          @click="toggleFullscreen(api)"
         >
           <Maximize
             v-if="!api.store.dev.isFullscreen"

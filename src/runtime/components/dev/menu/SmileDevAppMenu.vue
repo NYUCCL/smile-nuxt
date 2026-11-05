@@ -1,9 +1,10 @@
 <script setup>
-import { Moon, Settings, Sun, SunMoon, UserRound } from 'lucide-vue-next'
+import { Moon, Settings, SquareChevronRight, Sun, SunMoon, UserRound } from 'lucide-vue-next'
 import { useSmileColorMode } from '../../../composables/useColorMode'
 import DevConfigPanel from './DevConfigPanel.vue'
 import useAPI from '../../../composables/useAPI'
 import { DEV_MODES as modes } from './devModes'
+import { openCommandPalette } from '../palette/bus'
 
 /**
  * The dev tools' app menu: a narrow rail on the left. The top holds the
@@ -19,6 +20,9 @@ const props = defineProps({
 })
 
 const api = useAPI()
+
+// The `:` command palette: dev server only, like the palette itself
+const hasPalette = import.meta.dev
 
 // Modes shown in the dev layout (store.dev.mainView): devModes.js, shared
 // with the `:` command palette
@@ -73,6 +77,17 @@ const { mode: globalColorModeRaw, toggle: toggleGlobalColorMode, system } = useS
     </SidebarContent>
 
     <SidebarFooter class="sd-rail-group pb-2">
+      <SidebarMenuButton
+        v-if="hasPalette"
+        class="sd-rail-btn hover:!bg-sd-hover"
+        tooltip="Command palette (:)"
+        aria-label="Command palette"
+        data-testid="open-command-palette"
+        @click="openCommandPalette"
+      >
+        <SquareChevronRight />
+      </SidebarMenuButton>
+
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger as-child>

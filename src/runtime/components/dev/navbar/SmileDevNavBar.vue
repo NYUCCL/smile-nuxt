@@ -95,8 +95,9 @@ onKeyDown((e) => {
   if (!shortcut) return
   e.preventDefault()
   const [command, run] = shortcut
+  // Only a failure gets a toast; a success shows itself
   const { action, type } = run(api)
-  showTemporaryNotification(command, action, type)
+  if (type === 'error') showTemporaryNotification(command, action, type)
 })
 </script>
 

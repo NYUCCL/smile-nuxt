@@ -24,10 +24,10 @@ import { usePreferredDark } from '@vueuse/core'
 import useAPI from '../../../composables/useAPI'
 import { resolveColorMode, setColorMode } from '../../../composables/useColorMode'
 import { normalizeDevPalette } from '../../../composables/useDevPalette'
-import KeyCommandNotification from '../navbar/KeyCommandNotification.vue'
 import { GROUPS, commandsFor, findCommand, timelineViews } from './commands'
 import { highlight, matchItems, parseInput } from './match'
 import { loadHistory, pushHistory } from './history'
+import { paletteRequests } from './bus'
 import { isOpenKey, isTypingTarget } from './keys'
 
 const props = defineProps({
@@ -114,9 +114,62 @@ const rows = computed(() => {
     }))
   }
 
+  // `/words`: the docs search's results
+  if (command?.arg === 'docs') {
+    return docs.value.results.slice(0, MAX_MATCHES).map(r => ({
+      key: `doc:${r.path}#${r.hash}`,
+      icon: command.icon,
+      name: [{ text: r.title, hit: false }],
+      sub: r.heading && r.heading !== r.title ? r.heading : '',
+      description: r.section,
+      command,
+      entry: `${command.name} ${arg}`,
+      pick: r,
+    }))
+  }
+
   return matchItems(head, available, c => [c.name, ...c.aliases])
     .slice(0, MAX_MATCHES)
     .map(m => commandRow(m.item, m))
+})
+
+// ---- Docs search (`/words`) ---------------------------------------------------
+
+async function searchDocs(words) {
+  try {
+    const res = await fetch(`/__smile/docs/search?q=${encodeURIComponent(words)}`)
+    const list = await res.json()
+    return Array.isArray(list) ? list : []
+  }
+  catch {
+    return [] // no docs route (a build) or a bad answer
+  }
+}
+
+const docs = ref({ words: '', results: [], loading: false })
+let docsTimer = null
+watch(query, () => {
+  const { head, arg, spaced } = parseInput(query.value)
+  const command = spaced ? findCommand(head, commands.value) : null
+  clearTimeout(docsTimer)
+  if (command?.arg !== 'docs' || !arg) {
+    docs.value = { words: '', results: [], loading: false }
+    return
+  }
+  docs.value = { ...docs.value, loading: true }
+  docsTimer = setTimeout(async () => {
+    const results = await searchDocs(arg)
+    if (parseInput(query.value).arg === arg) docs.value = { words: arg, results, loading: false }
+  }, 120)
+})
+
+// What the list says when it has no rows
+const emptyText = computed(() => {
+  const { head, arg, spaced } = parseInput(query.value)
+  const command = spaced ? findCommand(head, commands.value) : null
+  if (command?.arg !== 'docs') return 'No matching command'
+  if (!arg) return 'Search the docs: type words after /'
+  return docs.value.loading ? 'Searching…' : `No docs match "${arg}"`
 })
 
 // Grouped (empty line) lists show their group names
@@ -142,6 +195,7 @@ function open() {
   query.value = ''
   helpOpen.value = false
   normalMode.value = false
+  error.value = ''
   selected.value = rows.value[0]?.group === 'Recent' ? 0 : -1
   isOpen.value = true
   nextTick(() => input.value?.focus())
@@ -158,15 +212,12 @@ function close() {
 
 // ---- Running --------------------------------------------------------------
 
-const toast = ref({ show: false, command: '', action: '', type: 'default' })
-let toastTimer = null
-function showToast(command, action, type = 'default') {
-  toast.value = { show: true, command, action, type }
-  clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => {
-    toast.value = { ...toast.value, show: false }
-  }, 1500)
-}
+// A command that failed: said under the prompt, and the palette stays open
+// so you can fix what you typed. Success says nothing; you see the result.
+const error = ref('')
+watch(query, () => {
+  error.value = ''
+})
 
 const env = {
   api,
@@ -176,6 +227,7 @@ const env = {
     window.location.href = url
   },
   setDevColorMode: m => setColorMode('global', m),
+  searchDocs,
   openHelp: () => {
     query.value = ''
     helpOpen.value = true
@@ -184,32 +236,38 @@ const env = {
   },
 }
 
-async function runEntry(entry) {
+async function runEntry(entry, pick = null) {
   const { head, arg } = parseInput(entry)
   const command = findCommand(head, commands.value)
   if (!command) {
-    close()
-    showToast(`:${entry}`, 'Unknown command', 'error')
+    error.value = `Unknown command: ${head}`
     return
   }
-  if (!command.keepOpen) close()
-  if (command.name !== 'help') history.value = pushHistory(command.arg ? `${command.name} ${arg}`.trim() : command.name)
+  let result
   try {
-    const result = await command.run(env, arg)
-    if (result) showToast(`:${command.arg ? `${command.name} ${arg}` : command.name}`, result.action, result.type)
+    result = await command.run(env, arg, pick)
   }
   catch (err) {
-    showToast(`:${entry}`, `Failed: ${err?.message ?? err}`, 'error')
+    result = { action: `Failed: ${err?.message ?? err}`, type: 'error' }
   }
-}
-
-function runRow(row) {
-  // A command that takes a view, chosen without one: list the views
-  if (row.command.arg && row.entry === row.command.name) {
-    query.value = `${row.command.name} `
+  if (result?.type === 'error') {
+    error.value = result.action
     return
   }
-  runEntry(row.entry)
+  if (command.name !== 'help') history.value = pushHistory(command.arg ? `${command.name} ${arg}`.trim() : command.name)
+  if (!command.keepOpen) close()
+}
+
+/** What a command that takes an argument starts as: `go `, `/` */
+const argStart = command => command.argPrefix ?? `${command.name} `
+
+function runRow(row) {
+  // A command that takes an argument, chosen without one: ask for it
+  if (row.command.arg && row.entry === row.command.name) {
+    query.value = argStart(row.command)
+    return
+  }
+  runEntry(row.entry, row.pick)
 }
 
 function enter() {
@@ -222,7 +280,8 @@ function enter() {
 function complete() {
   const row = rows.value[Math.max(selected.value, 0)]
   if (!row) return
-  query.value = row.command.arg && row.entry === row.command.name ? `${row.entry} ` : row.entry
+  if (row.pick) return // a docs result: Enter opens it
+  query.value = row.command.arg && row.entry === row.command.name ? argStart(row.command) : row.entry
 }
 
 function move(step) {
@@ -332,8 +391,14 @@ if (typeof window !== 'undefined') {
 }
 onBeforeUnmount(() => {
   for (const type of KEY_EVENTS) window.removeEventListener(type, onKey, true)
-  clearTimeout(toastTimer)
 })
+
+// The rail's command palette button
+watch(paletteRequests, () => {
+  if (!isOpen.value) open()
+})
+
+onBeforeUnmount(() => clearTimeout(docsTimer))
 
 defineExpose({ open, close })
 </script>
@@ -384,6 +449,15 @@ defineExpose({ open, close })
             >NORMAL</span>
           </div>
 
+          <div
+            v-if="error"
+            class="sd-palette-error"
+            role="alert"
+            data-testid="command-palette-error"
+          >
+            {{ error }}
+          </div>
+
           <ul
             id="sd-palette-list"
             ref="listEl"
@@ -404,7 +478,7 @@ defineExpose({ open, close })
               <li
                 :id="`sd-palette-row-${i}`"
                 class="sd-palette-row"
-                :class="{ 'is-selected': i === selected, 'is-current': row.current }"
+                :class="{ 'is-selected': i === selected, 'is-current': row.current, 'is-doc': row.pick }"
                 role="option"
                 :aria-selected="i === selected"
                 :data-index="i"
@@ -425,6 +499,10 @@ defineExpose({ open, close })
                     <template v-else>{{ run.text }}</template>
                   </template>
                 </span>
+                <span
+                  v-if="row.sub"
+                  class="sd-palette-sub"
+                >› {{ row.sub }}</span>
                 <span
                   v-if="row.alias"
                   class="sd-palette-alias"
@@ -451,7 +529,7 @@ defineExpose({ open, close })
               v-if="!rows.length"
               class="sd-palette-empty"
             >
-              No matching command
+              {{ emptyText }}
             </li>
           </ul>
 
@@ -473,18 +551,11 @@ defineExpose({ open, close })
         </div>
       </div>
     </Transition>
-
-    <KeyCommandNotification
-      :show="toast.show"
-      :command="toast.command"
-      :action="toast.action"
-      :type="toast.type"
-    />
   </div>
 </template>
 
 <style scoped>
-/* Takes no space: a wrapper that gives the box and the toast the dev tools'
+/* Takes no space: a wrapper that gives the box the dev tools'
    theme (sd-root + the dev tools' light/dark), over any page */
 .sd-palette-scope {
   display: contents;
@@ -568,6 +639,14 @@ defineExpose({ open, close })
   color: var(--sd-text-muted);
 }
 
+.sd-palette-error {
+  padding: 6px 14px;
+  font-size: var(--sd-font-sm);
+  color: var(--sd-error);
+  background: var(--sd-error-bg);
+  border-bottom: 1px solid var(--sd-error-line);
+}
+
 .sd-palette-list {
   max-height: min(380px, 55vh);
   overflow-y: auto;
@@ -633,6 +712,11 @@ defineExpose({ open, close })
   white-space: pre;
 }
 
+.sd-palette-row.is-doc .sd-palette-name {
+  font-family: inherit;
+  color: var(--sd-text);
+}
+
 .sd-palette-name b {
   font-weight: 700;
   color: var(--sd-text);
@@ -640,6 +724,15 @@ defineExpose({ open, close })
 
 .sd-palette-row.is-selected .sd-palette-name,
 .sd-palette-row.is-current .sd-palette-name {
+  color: var(--sd-text);
+}
+
+.sd-palette-sub {
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   color: var(--sd-text);
 }
 
