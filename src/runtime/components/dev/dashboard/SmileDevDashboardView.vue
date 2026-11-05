@@ -222,9 +222,6 @@ onMounted(loadProjects)
 
 <template>
   <div class="dashboard bg-background text-foreground">
-    <!-- Striped local dev server banner (matches developer mode) -->
-    <LocalDevBanner inline />
-
     <!-- Header -->
     <div class="dash-header">
       <div class="flex items-center gap-2">

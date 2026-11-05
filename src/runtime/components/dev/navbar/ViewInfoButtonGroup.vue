@@ -150,7 +150,8 @@ const togglePin = () => {
         @update:open="handleDropdownOpenChange"
       >
         <DropdownMenuTrigger as-child>
-          <ButtonGroupItem :class="buttonstyle">
+          <!-- ml-1: a gap so the pinned (yellow) pin button doesn't touch it -->
+          <ButtonGroupItem :class="['ml-1', buttonstyle]">
             <div class="font-mono text-[0.65rem] font-medium min-w-[100px]">
               <!-- Route type icons -->
               <ArrowDown

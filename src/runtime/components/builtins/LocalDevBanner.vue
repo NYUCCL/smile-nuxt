@@ -4,20 +4,13 @@
  * server (pnpm dev), so it's easy to tell from a deployed build. Hidden in
  * production builds. It looks like the "local" tag in the dev tools' toolbar;
  * hovered (or focused) it slides open into a little button bar: zap (reset) the
- * local state (the dev toolbar's lightning bolt) and open developer mode.
- *
- * - default: "Developer mode" opens /dev/ in developer mode (not whichever
- *   view the dev tools were last left on)
- * - inline: inside the dev tools (e.g. the dashboard); switches back to
- *   developer mode instead of navigating
+ * local state (the dev toolbar's lightning bolt) and open developer mode
+ * (not whichever view the dev tools were last left on). Only on the
+ * participant view (layouts/experiment.vue), never inside the dev tools.
  */
 import { nextTick } from 'vue'
 import { BugPlay, Zap } from 'lucide-vue-next'
 import useAPI from '../../composables/useAPI'
-
-const props = defineProps({
-  inline: { type: Boolean, default: false },
-})
 
 const isDev = import.meta.dev
 const api = useAPI()
@@ -27,7 +20,6 @@ const api = useAPI()
 async function openDevMode(event) {
   event.preventDefault()
   api.store.dev.mainView = 'devmode'
-  if (props.inline) return
   await nextTick() // let the dev-sync watcher write the cookie
   window.location.href = '/dev/'
 }
@@ -66,7 +58,8 @@ async function openDevMode(event) {
 <style scoped>
 .sd-local-pill {
   position: fixed;
-  top: 6px;
+  /* clear of the top edge, where the cursor reveals a full-screen browser's URL bar */
+  top: 16px;
   left: 50%;
   z-index: 9999;
   transform: translateX(-50%);
