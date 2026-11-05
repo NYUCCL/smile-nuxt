@@ -278,9 +278,10 @@ function createRenderer({ hasImage, hasDark, highlight }) {
     const name = posix.basename(target.path || '')
     if (target.path && hasImage(name)) {
       const url = `/__smile/docs/images/${encodeURIComponent(name)}`
-      // A diagram has a dark copy (darkFigures.js); the page shows the one for its mode
+      // A diagram has a dark copy (darkFigures.js), a screenshot may have one
+      // (x.dark.webp); the page shows the one for its mode
       if (!hasDark(name)) return img(url, place)
-      return img(url, `sd-fig-light ${place}`.trim()) + img(url.replace(/\.svg$/, '.dark.svg'), `sd-fig-dark ${place}`.trim())
+      return img(url, `sd-fig-light ${place}`.trim()) + img(url.replace(/\.(svg|webp)$/, '.dark.$1'), `sd-fig-dark ${place}`.trim())
     }
     // Other screenshots (PNG, JPEG) don't ship: link to the page that has them.
     return `<a class="sd-docs-figure" href="${websiteUrl(env.page)}" target="_blank" rel="noopener">`
@@ -349,7 +350,10 @@ export function createDocs(docsDir, { highlight = null } = {}) {
     figureCache.set(name, { mtime, copies })
     return copies
   }
-  const hasDark = name => figure(name) !== null
+  // A screenshot's dark copy is a file next to it: x.webp and x.dark.webp
+  const darkShot = name => /\.webp$/i.test(name) && !/\.dark\.webp$/i.test(name)
+    && existsSync(join(docsDir, 'images', name.replace(/\.webp$/i, '.dark.webp')))
+  const hasDark = name => figure(name) !== null || darkShot(name)
   const md = createRenderer({ hasImage, hasDark, highlight })
   const cache = new Map()
 

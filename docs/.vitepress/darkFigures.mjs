@@ -2,7 +2,8 @@
 // has the color rule, ported from the CCM book).
 //
 //  - darkFiguresMarkdown: every diagram (an SVG in docs/images/ drawn in the book
-//    style) is written twice, the light one with class fig-light and a dark copy
+//    style) is written twice (so is a WebP screenshot with an x.dark.webp next
+//    to it, a real file), the light one with class fig-light and a dark copy
 //    pointing at `/images/<name>.dark.svg` with class fig-dark. CSS shows one.
 //  - darkFiguresVite: serves the dark copies in dev, derived on request.
 //  - writeDarkFigures: at the end of a build, writes the dark copies of the
@@ -25,6 +26,12 @@ function diagram(src) {
   return fs.existsSync(file) && darkFigure(fs.readFileSync(file, 'utf8')) ? name : null
 }
 
+// '/images/x.webp' → '/images/x.dark.webp', if that file exists
+function darkShot(src) {
+  const name = src.match(/^\/images\/([\w-]+)\.webp$/)?.[1]
+  return name && fs.existsSync(path.join(IMAGES, `${name}.dark.webp`)) ? `/images/${name}.dark.webp` : null
+}
+
 const addClass = (attrs, cls) => (/\bclass="/.test(attrs) ? attrs.replace(/\bclass="/, `class="${cls} `) : `${attrs} class="${cls}"`)
 
 // Each <img> of a diagram becomes a light and a dark copy. The dark src is bound
@@ -33,6 +40,13 @@ const addClass = (attrs, cls) => (/\bclass="/.test(attrs) ? attrs.replace(/\bcla
 function pairHtml(html) {
   return html.replace(/<img\b([^>]*?)\s*\/?>/g, (img, attrs) => {
     const src = attrs.match(/(?<![:\w-])src="([^"]+)"/)?.[1]
+    // A screenshot with a dark copy next to it (x.webp, x.dark.webp): a real
+    // file, so a plain src that Vite bundles like the light one
+    const shot = src && darkShot(src)
+    if (shot) {
+      const dark = attrs.replace(/(?<![:\w-])src="[^"]+"/, `src="${shot}"`)
+      return `<img${addClass(attrs, 'fig-light')}><img${addClass(dark, 'fig-dark')}>`
+    }
     const name = src && diagram(src)
     if (!name) return img
     used.add(name)
