@@ -1,5 +1,5 @@
 ---
-description: "How SMILE keeps the experiment's state across page reloads, so participants pick up where they left off, and how to reset it in the dev tools."
+description: "How SMILE keeps the experiment's state across page reloads, so participants pick up where they left off, and how to zap it in the dev tools."
 ---
 
 # Persistence
@@ -19,6 +19,7 @@ during development and during "live" data collection.
 The first is that if you reload the webpage in live or developer mode, it will
 tend to return to the same state as when it was left off.
 
-If you want to "reset" the state of the app completely (removing all
-persistence), then press the lightning bolt icon
-(<i-f7-bolt-fill class="inline vp-raw" />) in the developer tools.
+If you want to start the app over completely (removing all persistence), zap
+the local state: press the lightning bolt icon
+(<i-f7-bolt-fill class="inline vp-raw" />, "Zap local state") in the developer
+tools, or press `Ctrl` + `R`, or type `:zap` on the local dev server.

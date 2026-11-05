@@ -66,7 +66,7 @@ const showTemporaryNotification = (command, action, type = 'default') => {
  * - Ctrl+`: Toggle console
  * - Ctrl+2: Cycle through sidebar tabs (Steps -> Random -> DB Info)
  * - Ctrl+3: Cycle through console tabs (Browse -> Log -> Config)
- * - Ctrl+R: Reset local state
+ * - Ctrl+R: Zap (reset) local state
  * - Ctrl+D: Connect to database
  * - Ctrl+A: Autofill current view (if available)
  * - Ctrl+P: Pin/unpin current route
