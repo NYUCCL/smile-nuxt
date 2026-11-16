@@ -108,6 +108,7 @@
     "changelogen": "^0.6.2",
     "drizzle-kit": "^0.31.11",
     "eslint": "^10.14.0",
+    "fast-check": "^4.10.2",
     "happy-dom": "^21.0.4",
     "nuxt": "^4.6.3",
     "prettier": "^3.9.10",

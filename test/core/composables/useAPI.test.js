@@ -456,58 +456,41 @@ describe('useAPI composable', () => {
       expect(api.data.pageData_landing).toBeDefined()
     })
 
-    it('should reject arrays at top level (prevents nested arrays)', async () => {
+    // The Firebase-era rules (no nested arrays, no '.' '/' '[' ']' '*' in
+    // keys) are gone: SQLite stores any JSON (plans/sync_engine.md).
+    it('records an array passed as the whole argument', async () => {
       setMockRoute('/landing', 'landing')
-
       api.store.data.routeOrder = [{ route: 'landing', timestamp: Date.now() }]
-      const errorSpy = vi.spyOn(api.logStore, 'error')
 
-      const result = api.recordPageData([1, 2, 3])
-
-      expect(result).toBe(false)
-      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Data cannot be an array'))
-      expect(api.data.pageData_landing).toBeUndefined()
+      expect(api.recordPageData([1, 2, 3])).toBe(true)
+      expect(api.data.pageData_landing.visit_0.data[0]).toEqual([1, 2, 3])
     })
 
-    it('should reject nested arrays within objects', async () => {
+    it('records nested arrays', async () => {
       setMockRoute('/landing', 'landing')
-
       api.store.data.routeOrder = [{ route: 'landing', timestamp: Date.now() }]
-      const errorSpy = vi.spyOn(api.logStore, 'error')
 
-      const result = api.recordPageData({
-        items: [
-          [1, 2],
-          [3, 4],
-        ],
-      })
-
-      expect(result).toBe(false)
-      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Nested arrays are not allowed'))
+      expect(api.recordPageData({ items: [[1, 2], [3, 4]] })).toBe(true)
+      expect(api.data.pageData_landing.visit_0.data[0]).toEqual({ items: [[1, 2], [3, 4]] })
     })
 
-    it('should reject functions in data', async () => {
+    it('records keys with . / [ ] *', async () => {
       setMockRoute('/landing', 'landing')
-
       api.store.data.routeOrder = [{ route: 'landing', timestamp: Date.now() }]
-      const errorSpy = vi.spyOn(api.logStore, 'error')
 
-      const result = api.recordPageData({ callback: () => {} })
-
-      expect(result).toBe(false)
-      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Functions are not supported'))
+      expect(api.recordPageData({ 'a.b': 1, 'c/d': 2, 'e[0]': 3, 'f*': 4 })).toBe(true)
+      expect(api.data.pageData_landing.visit_0.data[0]).toEqual({ 'a.b': 1, 'c/d': 2, 'e[0]': 3, 'f*': 4 })
     })
 
-    it('should reject invalid key names', async () => {
+    it('drops a function, keeps the rest, and notes it in smileWarnings', async () => {
       setMockRoute('/landing', 'landing')
-
       api.store.data.routeOrder = [{ route: 'landing', timestamp: Date.now() }]
-      const errorSpy = vi.spyOn(api.logStore, 'error')
 
-      const result = api.recordPageData({ 'invalid.key': 'value' })
-
-      expect(result).toBe(false)
-      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid key name'))
+      expect(api.recordPageData({ callback: () => {}, rt: 512 })).toBe(true)
+      expect(api.data.pageData_landing.visit_0.data[0]).toEqual({ rt: 512 })
+      expect(api.data.smileWarnings).toEqual([
+        expect.objectContaining({ path: 'pageData_landing.visit_0.data[0].callback', issue: 'function dropped', count: 1 }),
+      ])
     })
 
     it('should allow valid nested objects with arrays of primitives', async () => {

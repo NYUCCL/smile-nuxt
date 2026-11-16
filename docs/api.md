@@ -286,17 +286,19 @@ api.goToStep('trial/block1/step2', false)
 ## Data Recording and Saving
 
 The following methods are used to record and save data in the experiment.
-Recorded data is checked before it's stored, and must follow these rules:
+Any value can be recorded: objects, arrays (including arrays of arrays), and
+keys with any characters. What's stored is plain JSON, so values JSON can't
+hold are converted when they're recorded, never refused:
 
-- Values are strings, numbers, booleans, `null`, dates, or arrays and objects
-  of these
-- No arrays directly inside arrays (e.g., `[[1, 2], [3, 4]]`); put them in an
-  object instead (`[{ a: [1, 2] }, { a: [3, 4] }]`)
-- No functions or symbols
-- Keys can't contain `.`, `/`, `[`, `]`, or `*`
+- `NaN` and `Infinity` become `null`; a `BigInt` becomes its digits as a string
+- Dates become ISO strings; a `Map` becomes an object and a `Set` an array
+- Functions, symbols and `undefined` are left out
+- A circular reference becomes `"[Circular]"`; a DOM element or Vue component
+  becomes a short description such as `"[Unserializable: HTMLDivElement]"`
 
-Convert anything else (class instances, objects with circular references)
-to plain data before recording it.
+Each conversion that loses or changes data is listed in the participant's
+record under `smileWarnings` (where, what, and how many times) and in the
+browser console, so you can see it in the data and fix the experiment.
 
 - `recordPageData(data, routeName?)`: **Recommended** - Records data organized
   by route/page name and visit number. Data is stored in `pageData_<routeName>`

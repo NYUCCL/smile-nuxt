@@ -19,6 +19,7 @@ import { defineStore } from 'pinia'
 import { useCookie, navigateTo } from '#imports'
 import appconfig from '../core/config.js'
 import useLog from './log.js'
+import { toPlainJSON, safeStringify, sendable, addWarnings } from '../utils/plainJSON.js'
 
 // Cookie max age: 30 days in seconds
 const COOKIE_MAX_AGE = 86400 * 30
@@ -375,12 +376,33 @@ export default defineStore('smilestore', {
       }
     },
 
+    /**
+     * A plain-JSON copy of `value` for the record (plans/sync_engine.md). Never
+     * throws. Anything changed on the way (a BigInt, a cycle, a DOM node...)
+     * is logged and counted in `data.smileWarnings`.
+     * @param {*} value - Anything experiment code passes in
+     * @param {string} path - Where it will be stored, for the warnings
+     * @returns {*} Plain JSON (undefined only for undefined, a function or a symbol)
+     */
+    cleanValue(value, path) {
+      const warnings = []
+      const cleaned = toPlainJSON(value, { path, warn: w => warnings.push(w) })
+      if (warnings.length) {
+        addWarnings(this.data, warnings)
+        const log = useLog()
+        for (const w of warnings.slice(0, 5)) log.warn(`SMILE: recorded value cleaned at ${w.path}: ${w.issue}`)
+        if (warnings.length > 5) log.warn(`SMILE: ...and ${warnings.length - 5} more (see data.smileWarnings)`)
+      }
+      return cleaned
+    },
+
     recordWindowEvent(type, event_data = null) {
       if (event_data) {
+        const index = Array.isArray(this.data.browserData) ? this.data.browserData.length : 0
         this.data.browserData.push({
           event_type: type,
           timestamp: Date.now(),
-          event_data,
+          event_data: this.cleanValue(event_data, `browserData[${index}].event_data`) ?? null,
         })
       }
       else {
@@ -452,12 +474,13 @@ export default defineStore('smilestore', {
     },
 
     recordData(data) {
-      this.data.studyData.push(JSON.parse(JSON.stringify(data)))
+      const index = this.data.studyData.length
+      this.data.studyData.push(this.cleanValue(data, `studyData[${index}]`) ?? null)
       this.browserEphemeral.unsavedChanges = true
     },
 
     recordProperty(name, data) {
-      this.data[name] = JSON.parse(JSON.stringify(data))
+      this.data[name] = this.cleanValue(data, String(name)) ?? null
       this.browserEphemeral.unsavedChanges = true
     },
 
@@ -522,7 +545,7 @@ export default defineStore('smilestore', {
               this.browserEphemeral.savedRev = rev
               this.data = result.data
             }
-            this.localState.approxDataSize = JSON.stringify(this.data).length
+            this.localState.approxDataSize = safeStringify(this.data).text.length
             this.setDataLoaded()
             this.writeDataBackup()
             if (restore) await this.saveData()
@@ -635,17 +658,19 @@ export default defineStore('smilestore', {
         try {
           await $fetch(`/api/participants/${this.cookieState.participantId}`, {
             method: 'PATCH',
-            body: { data: this.data },
+            // A value JSON can't hold (written to api.data directly) is
+            // cleaned here rather than stopping every later save
+            body: { data: sendable(this.data) },
           })
           this.browserEphemeral.savedRev = Math.max(this.browserEphemeral.savedRev, sentRev)
           this.writeDataBackup()
           if (this.localState.privateDataId) {
             await $fetch(`/api/participants/${this.cookieState.participantId}/private`, {
               method: 'PATCH',
-              body: { data: this.private },
+              body: { data: sendable(this.private) },
             })
           }
-          this.localState.approxDataSize = JSON.stringify(this.data).length
+          this.localState.approxDataSize = safeStringify(this.data).text.length
           this.localState.totalWrites += 1
           this.localState.lastWrite = Date.now()
           this.browserEphemeral.unsavedChanges = this.browserEphemeral.dataRev > this.browserEphemeral.savedRev
@@ -692,12 +717,12 @@ export default defineStore('smilestore', {
     writeDataBackup() {
       if (typeof localStorage === 'undefined' || !this.cookieState.participantId) return
       try {
-        localStorage.setItem(dataBackupKey, JSON.stringify({
+        localStorage.setItem(dataBackupKey, safeStringify({
           participantId: this.cookieState.participantId,
           rev: this.browserEphemeral.dataRev,
           savedRev: this.browserEphemeral.savedRev,
           data: this.data,
-        }))
+        }).text)
       }
       catch (err) {
         // e.g. quota exceeded: the DB save path still works, only reload safety is lost
@@ -721,7 +746,7 @@ export default defineStore('smilestore', {
     saveOnClose() {
       if (!this.isDataLoaded || !this.cookieState.participantId) return
       if (this.browserEphemeral.dataRev <= this.browserEphemeral.savedRev) return
-      const body = JSON.stringify({ data: this.data })
+      const body = safeStringify({ data: this.data }).text
       if (new TextEncoder().encode(body).length > KEEPALIVE_MAX_BYTES) return
       try {
         fetch(`/api/participants/${this.cookieState.participantId}`, {

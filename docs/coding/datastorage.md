@@ -76,10 +76,11 @@ api.recordPageData({ data: 'value' }, 'custom_page')
 </script>
 ```
 
-The data must be an object, not an array (wrap a list as `{ items: [...] }`).
-Inside it, arrays can't directly contain other arrays, keys can't contain `.`,
-`/`, `[`, `]` or `*`, and values can't be functions. See
-[Data Recording and Saving](/api#data-recording-and-saving) for the full rules.
+The data is usually an object, but any value works. Values plain JSON can't
+hold (a `BigInt`, a circular reference, a DOM element) are converted when
+they're recorded and noted in the participant's `smileWarnings`; recording
+never fails because of what's passed in. See
+[Data Recording and Saving](/api#data-recording-and-saving) for the details.
 
 Data is grouped by visit. If a participant comes back to the same page (or
 reloads it), each visit is kept separately:

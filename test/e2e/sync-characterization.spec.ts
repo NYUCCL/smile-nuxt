@@ -177,7 +177,6 @@ test.describe('Sync characterization (plans/sync_engine.md, step 0)', () => {
 
   test.describe('bad data from the page', () => {
     test('a BigInt in a window event does not stop saving', async ({ page }) => {
-      test.fail(KNOWN, 'today store.data holds the BigInt and every later save throws while serializing')
       participantId = await consent(page, db)
       await openStroop(page)
       await answerOne(page)
@@ -188,7 +187,6 @@ test.describe('Sync characterization (plans/sync_engine.md, step 0)', () => {
     })
 
     test('a circular value in persist does not stop the task or saving', async ({ page }) => {
-      test.fail(KNOWN, 'today Stepper.save() throws while serializing, inside goNextStep()')
       participantId = await consent(page, db)
       await openStroop(page)
       await answerOne(page)

@@ -251,32 +251,31 @@ describe('StepperSerializer', () => {
       expect(newStepper.states[1].id).toBe('child2')
     })
 
-    it('should throw error for invalid data', () => {
-      const invalidData = {
-        id: 'test',
-        // Missing required fields
-      }
-
+    it('refuses state with no list of steps', () => {
       const newStepper = new Stepper({ id: 'test', parent: root, store })
-      expect(() => StepperSerializer.deserialize(invalidData, newStepper, root)).toThrow(
+      expect(() => StepperSerializer.deserialize({ id: 'test' }, newStepper, root)).toThrow(
+        'Missing required fields in data',
+      )
+      expect(() => StepperSerializer.deserialize({ id: 'test', states: {} }, newStepper, root)).toThrow(
         'Missing required fields in data',
       )
     })
 
-    it('should throw error for invalid field types', () => {
-      const invalidData = {
-        id: true, // Should be string or number
-        currentIndex: '0', // Should be number
-        depth: '1', // Should be number
-        states: {}, // Should be array
-        shuffled: 'false', // Should be boolean
+    it('repairs bad field types instead of refusing the state', () => {
+      const damaged = {
+        id: true, // should be a string or number
+        currentIndex: '0', // a number as a string
+        depth: '1',
+        states: [{ id: 'a', currentIndex: 0, depth: 1, shuffled: false, states: [], data: { v: 1 } }],
+        shuffled: 'false',
         data: {},
       }
-
-      const newStepper = new Stepper({ id: 'test', parent: root, store })
-      expect(() => StepperSerializer.deserialize(invalidData, newStepper, root)).toThrow(
-        'Invalid id: Expected string or number but received boolean',
-      )
+      const restored = new Stepper({ id: '/', store })
+      expect(() => StepperSerializer.deserialize(damaged, restored, restored)).not.toThrow()
+      expect(restored.id).toBe('/')
+      expect(restored.index).toBe(0)
+      expect(restored.states.map(s => s.id)).toEqual(['a'])
+      expect(restored.states[0].data).toEqual({ v: 1 })
     })
 
     it('round-trips numeric ids (auto-assigned or explicit)', () => {

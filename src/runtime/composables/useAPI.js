@@ -476,88 +476,17 @@ export class SmileAPI {
   }
 
   /**
-   * Validates data structure for safe storage.
-   * Rejects:
-   * - Nested arrays (arrays containing arrays)
-   * - Functions or Symbols
-   * - Keys containing ".", "/", "[", "]", or "*"
-   *
-   * @param {*} value - The value to validate
-   * @param {string} [path] - Current path for error messages
-   * @returns {{valid: boolean, error: string|null}} Validation result
-   * @private
-   */
-  validateData(value, path = '') {
-    // Null/undefined are valid
-    if (value === null || value === undefined) {
-      return { valid: true, error: null }
-    }
-
-    // Primitives are valid
-    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' || value instanceof Date) {
-      return { valid: true, error: null }
-    }
-
-    // Check for unsupported types
-    if (typeof value === 'function') {
-      return { valid: false, error: `Functions are not supported at path: ${path || 'root'}` }
-    }
-    if (typeof value === 'symbol') {
-      return { valid: false, error: `Symbols are not supported at path: ${path || 'root'}` }
-    }
-
-    // Check arrays
-    if (Array.isArray(value)) {
-      for (let i = 0; i < value.length; i++) {
-        // Check for nested arrays
-        if (Array.isArray(value[i])) {
-          return {
-            valid: false,
-            error: `Nested arrays are not allowed at path: ${path}[${i}]`,
-          }
-        }
-        // Recursively validate array elements
-        const result = this.validateData(value[i], `${path}[${i}]`)
-        if (!result.valid) {
-          return result
-        }
-      }
-      return { valid: true, error: null }
-    }
-
-    // Check objects
-    if (typeof value === 'object') {
-      for (const [key, val] of Object.entries(value)) {
-        // Check for invalid key characters
-        if (/[./[\]*]/.test(key)) {
-          return {
-            valid: false,
-            error: `Invalid key name "${key}" at path: ${path || 'root'}. Keys cannot contain ".", "/", "[", "]", or "*"`,
-          }
-        }
-        // Recursively validate object values
-        const result = this.validateData(val, path ? `${path}.${key}` : key)
-        if (!result.valid) {
-          return result
-        }
-      }
-      return { valid: true, error: null }
-    }
-
-    return { valid: false, error: `Unsupported data type at path: ${path || 'root'}` }
-  }
-
-  /**
    * Records data associated with a specific page/route.
    * Data is organized by visit number using visit_N keys (visit_0, visit_1, etc.).
    * Multiple calls within the same visit append to that visit's timestamps and data arrays.
    *
-   * Note: Arrays at the top level are not allowed because they would create nested
-   * arrays when stored. Use an object wrapper instead.
+   * Any value can be recorded. Values plain JSON can't hold (a BigInt, a
+   * circular reference, a DOM node, NaN...) are cleaned before they're stored,
+   * never refused, and each change is noted in `data.smileWarnings`.
    *
-   * @param {object} data - The data to record for this page (must be an object, not an array)
+   * @param {*} data - The data to record for this page (usually an object)
    * @param {string} [routeName] - Optional route name override. Uses current route if not provided
-   * @returns {boolean} True if data was recorded successfully, false if validation failed
+   * @returns {boolean} True if data was recorded, false if there is no route to record it under
    *
    * @example
    * // Record data for current page (uses current route name)
@@ -571,30 +500,11 @@ export class SmileAPI {
    * //   visit_0: { timestamps: [...], data: [...] },
    * //   visit_1: { timestamps: [...], data: [...] }
    * // }
-   *
-   * // WRONG: Don't pass arrays directly (will be rejected)
-   * api.recordPageData([1, 2, 3]) // Error: use { items: [1, 2, 3] } instead
    */
   recordPageData(data, routeName = null) {
     const pageName = routeName || this.currentRouteName()
     if (!pageName) {
       this.logStore.error('SMILE API: recordPageData() - No route name available')
-      return false
-    }
-
-    // Validate that data is not an array (would create nested arrays)
-    if (Array.isArray(data)) {
-      this.logStore.error(
-        'SMILE API: recordPageData() - Data cannot be an array (would create nested arrays). '
-        + 'Wrap your array in an object, e.g., { items: [...] }',
-      )
-      return false
-    }
-
-    // Validate data structure
-    const validation = this.validateData(data)
-    if (!validation.valid) {
-      this.logStore.error(`SMILE API: recordPageData() - Invalid data: ${validation.error}`)
       return false
     }
 
@@ -622,7 +532,9 @@ export class SmileAPI {
 
     // Append timestamp and data to the current visit
     this.store.data[fieldName][visitKey].timestamps.push(Date.now())
-    this.store.data[fieldName][visitKey].data.push(JSON.parse(JSON.stringify(data)))
+    const visit = this.store.data[fieldName][visitKey]
+    const cleaned = this.store.cleanValue(data, `${fieldName}.${visitKey}.data[${visit.data.length}]`)
+    visit.data.push(cleaned === undefined ? null : cleaned)
     this.store.browserEphemeral.unsavedChanges = true
 
     this.logStore.debug(`SMILE API: recordPageData() recorded to ${fieldName}.${visitKey}`, data)

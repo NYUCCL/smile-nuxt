@@ -1,6 +1,6 @@
 # Sync engine, schema and telemetry (#36, then #72, #39, #40, #45)
 
-Status: plan, nothing built (2026-11-15). Branch `sync-engine`, off main at
+Status: step 1 done (2026-11-16); steps 2–7 to do. Branch `sync-engine`, off main at
 7f977fc. Everything here happens on that branch, in small commits with the
 tests passing at each, so any step can be reverted, or the branch dropped,
 without touching main.
@@ -340,6 +340,30 @@ browser ones as plain tests.
   replaces the participant's record; `null` gives a 500; invalid JSON gets 200.
 - Holding up: reloads at any point (all trials once), a lost response, and
   reloading while saves fail.
+
+### What step 1 did (2026-11-16)
+- `toPlainJSON` (`src/runtime/utils/plainJSON.js`), with `safeStringify`,
+  `sendable` and `addWarnings`. `recordPageData`, `recordProperty`,
+  `recordData`, `recordWindowEvent` and `Stepper.save()` go through it;
+  `validateData` and the Firebase rules are gone. Warnings go to the console and
+  `data.smileWarnings` (`{ path, issue, count, first }`, at most 100 entries).
+- `saveData`, the local backup and the closing save serialize with the
+  fallback, so a bad value written straight to `api.data` no longer stops
+  saving. (The snapshot in step 3 replaces these.)
+- Stepper state: `save()` never throws (damaged localStorage, a full quota);
+  duplicate checks don't throw on bad step data; loading repairs damaged
+  state (bad index, missing id, a child that isn't an object becomes an empty
+  step at its index) and refuses only a root with no `states` list.
+- Found on the way: a faker function lost its marker on the second save after
+  a reload (fixed: the rebuilt function carries it). `shuffle()` sets each
+  child's `currentIndex` to its new position; harmless in practice (leaves
+  don't use it, and `next()` resets a block's index when it enters the
+  block), so loading keeps a leaf's index as saved. Not changed.
+- Tests: `test/core/sync/plainJSON.test.js` (the table, warnings, fast-check
+  properties), `test/core/sync/stepperState.test.js` (round trips, corpus in
+  persist, fast-check damage). All 65 unit and 2 browser known failures from
+  step 0 that were about bad data now pass; the 11 browser ones left are for
+  steps 2 and 4 (retry, offline, server checks).
 
 Old clients: a project upgraded mid-collection has participants whose page
 still runs the old code until they reload. The server accepts the old body (no
