@@ -477,10 +477,6 @@ export class Stepper extends StepState {
     for (let i = this._states.length - 1; i > 0; i--) {
       const j = Math.floor(rng() * (i + 1))
       ;[this._states[i], this._states[j]] = [this._states[j], this._states[i]]
-
-      // Update indices for the swapped elements
-      this._states[i]._currentIndex = i
-      this._states[j]._currentIndex = j
     }
 
     // Mark as shuffled

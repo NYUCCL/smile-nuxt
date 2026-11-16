@@ -355,10 +355,11 @@ browser ones as plain tests.
   state (bad index, missing id, a child that isn't an object becomes an empty
   step at its index) and refuses only a root with no `states` list.
 - Found on the way: a faker function lost its marker on the second save after
-  a reload (fixed: the rebuilt function carries it). `shuffle()` sets each
-  child's `currentIndex` to its new position; harmless in practice (leaves
+  a reload (fixed: the rebuilt function carries it). `shuffle()` set each
+  child's `currentIndex` to its new position, which had no effect (leaves
   don't use it, and `next()` resets a block's index when it enters the
-  block), so loading keeps a leaf's index as saved. Not changed.
+  block) but was wrong. Fixed: shuffle leaves the indices alone, and loading
+  sets a leaf's index to 0, which also cleans state saved before the fix.
 - Tests: `test/core/sync/plainJSON.test.js` (the table, warnings, fast-check
   properties), `test/core/sync/stepperState.test.js` (round trips, corpus in
   persist, fast-check damage). All 65 unit and 2 browser known failures from

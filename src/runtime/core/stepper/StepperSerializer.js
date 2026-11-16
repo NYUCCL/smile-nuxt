@@ -197,9 +197,12 @@ export class StepperSerializer {
       currentIndex = 0
       if (data.currentIndex !== undefined) repaired.push('currentIndex')
     }
-    // Only a node with children navigates by its index. (A leaf's index is
-    // unused; shuffle() sets it to the leaf's position, so keep it as is.)
-    if (currentIndex < 0 || (states.length > 0 && currentIndex > states.length - 1)) {
+    // A leaf's index is unused and always 0. State saved before shuffle()
+    // stopped setting it to the leaf's position can hold other values.
+    if (states.length === 0) {
+      currentIndex = 0
+    }
+    else if (currentIndex < 0 || currentIndex > states.length - 1) {
       currentIndex = Math.min(Math.max(currentIndex, 0), Math.max(0, states.length - 1))
       repaired.push('currentIndex (out of range)')
     }

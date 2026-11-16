@@ -84,6 +84,39 @@ describe('round trips', () => {
     expect(back.currentData).toEqual(root.currentData)
   })
 
+  it('shuffle leaves every child index at 0', () => {
+    const root = newRoot()
+    root.append([{ id: 'b1' }, { id: 'b2' }, { id: 'b3' }, { id: 'b4' }])
+    for (const b of root.states) b.append([{ t: 1 }, { t: 2 }])
+    root.shuffle({ seed: 'xyz' })
+    expect(root.states.map(s => s.id)).not.toEqual(['b1', 'b2', 'b3', 'b4'])
+    for (const b of root.states) {
+      expect(b.index).toBe(0)
+      for (const leaf of b.states) expect(leaf.index).toBe(0)
+    }
+    advance(root, 3)
+    roundTrip(root)
+  })
+
+  it('loading sets a leaf index left by the old shuffle to 0, without a warning', () => {
+    const root = newRoot()
+    root.append([{ id: 'b1' }, { id: 'b2' }])
+    root.states[0].append([{ t: 1 }, { t: 2 }, { t: 3 }])
+    root.states[1].append([{ t: 4 }])
+    advance(root, 1)
+    const state = JSON.parse(JSON.stringify(root.json))
+    state.states[0].states.forEach((leaf, i) => {
+      leaf.currentIndex = i
+    })
+    const spy = vi.spyOn(root._log, 'warn')
+    spy.mockClear()
+    const back = new Stepper({ serializedState: state, store })
+    expect(back.states[0].states.map(l => l.index)).toEqual([0, 0, 0])
+    expect(back.currentPathString).toBe(root.currentPathString)
+    expect(spy).not.toHaveBeenCalled()
+    spy.mockRestore()
+  })
+
   it('persist values (gvars) of every plain kind', () => {
     const root = newRoot()
     root.append([{ t: 1 }, { t: 2 }])
