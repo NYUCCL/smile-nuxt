@@ -1,29 +1,28 @@
-import { eq } from 'drizzle-orm'
-import { defineEventHandler, readBody, createError, getRouterParam } from 'h3'
+import { defineEventHandler, createError, getRouterParam } from 'h3'
 import { useDB } from '../../utils/db'
-import { participants } from '../../database/schema'
+import { parseSaveBody, saveParticipant } from '../../utils/participant-save'
+import { readBodyText, throwRefusal } from '../../utils/read-body'
 
+/**
+ * Saves a participant's record: `{ data, resume?, rev? }`.
+ *
+ * A body the server can't use is refused with a 4xx that says why, and the
+ * stored row is left as it was: 400 (not JSON, or the wrong shape), 413 (too
+ * large), 409 (the row already has this rev or a newer one; the answer's
+ * `data.rev` is the row's).
+ */
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) {
     throw createError({ statusCode: 400, statusMessage: 'Missing participant id' })
   }
 
-  const body = await readBody(event)
-  const db = useDB()
+  const parsed = parseSaveBody(await readBodyText(event))
+  if (!parsed.ok) throwRefusal(parsed)
 
-  const existing = await db.select().from(participants).where(eq(participants.id, id)).get()
-  if (!existing) {
-    throw createError({ statusCode: 404, statusMessage: 'Participant not found' })
+  const result = await saveParticipant(useDB(), id, parsed.save)
+  if (!result.ok) {
+    throwRefusal(result, result.status === 409 ? { rev: result.rev } : undefined)
   }
-
-  await db
-    .update(participants)
-    .set({
-      data: body.data,
-      updatedAt: new Date(),
-    })
-    .where(eq(participants.id, id))
-
-  return { success: true }
+  return { success: true, rev: result.rev }
 })

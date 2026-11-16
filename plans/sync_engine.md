@@ -1,6 +1,6 @@
 # Sync engine, schema and telemetry (#36, then #72, #39, #40, #45)
 
-Status: step 1 done (2026-11-16); steps 2–7 to do. Branch `sync-engine`, off main at
+Status: steps 1 and 2 done (2026-11-16); steps 3–7 to do. Branch `sync-engine`, off main at
 7f977fc. Everything here happens on that branch, in small commits with the
 tests passing at each, so any step can be reverted, or the branch dropped,
 without touching main.
@@ -365,6 +365,51 @@ browser ones as plain tests.
   persist, fast-check damage). All 65 unit and 2 browser known failures from
   step 0 that were about bad data now pass; the 11 browser ones left are for
   steps 2 and 4 (retry, offline, server checks).
+
+### What step 2 did (2026-11-16)
+- **Migration `0001_sync_engine`** (`drizzle/`, bundled into
+  `server/database/migrations.ts`): `participants` gets `rev`, `resume` and the
+  status columns, with two indexes; `private_data.participant_id` becomes
+  unique (duplicate rows from a retried POST are removed first, keeping the
+  newest; every PATCH wrote to all of them, so they held the same data); the
+  `console_logs` and `interaction_chunks` tables. Existing rows get `rev = 0`
+  and status columns read from their record; a record that isn't a JSON
+  object, or a value of the wrong type, leaves them null.
+- **The migration runner** (`server/utils/migrate.ts`): a migration is applied
+  when its tag isn't recorded (older rows are matched by hash or timestamp and
+  given their tag), so one merged out of order still runs. Each runs in one
+  transaction with the row that records it, so it applies whole or not at
+  all. A second server starting at the same time waits and skips it. A
+  database with hand-made tables has only the first migration recorded as
+  applied (before, all of them were, which would have skipped this one).
+- **API requests wait for the migrations** (`middleware/00.database-ready.ts`):
+  Nitro doesn't wait for an async plugin, so a request during a cold start
+  could run before the schema was ready. If setup fails the answer is 503,
+  and setup is tried again on the next request.
+- **The save endpoint** (`server/utils/participant-save.ts`): 400 for a body
+  that isn't JSON or has the wrong shape (`data` must be an object), 413 over
+  4.5 MB, 409 with the row's `rev` for a save that isn't newer, 404 for an
+  unknown participant; the row is unchanged by a refused save. The same `rev`
+  with the same content (a resend after a lost response) succeeds without
+  writing. The rev check is in the UPDATE's WHERE, so two saves arriving
+  together can't both win. A save with no `rev` (today's client) is stored as
+  `rev + 1`. `GET` returns `{ data, rev, resume }`.
+- **Private data**: POST and PATCH are both upserts on the participant (one
+  row); a PATCH creates the row if the POST never arrived. Bad bodies get 400.
+- `deleteParticipant()` removes a participant and every row under them in one
+  transaction. Expired `dev_sessions` are deleted at login.
+- The client is unchanged in this step: it still sends `{ data }` with no
+  `rev`, which the server accepts.
+- Tests: `test/server/participant-save.test.ts` and `test/server/migrate.test.ts`
+  (a real SQLite file: 108 tests, with fast-check over bodies), and
+  `test/e2e/save-endpoint.spec.ts` over HTTP. The 8 browser known failures
+  about bad request bodies now pass; 3 are left for step 4 (saving during a
+  view, retrying, coming back online).
+- Not done here: the old tables' foreign keys still have no `ON DELETE
+  CASCADE` (SQLite needs the table rebuilt for that; `deleteParticipant()`
+  covers it). The migration has run on local SQLite only; Turso is step 7.
+- Also: the unit tests' setup now works on Node 25 and later, which define
+  their own `localStorage` (undefined by default) over happy-dom's.
 
 Old clients: a project upgraded mid-collection has participants whose page
 still runs the old code until they reload. The server accepts the old body (no

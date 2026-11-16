@@ -1,9 +1,11 @@
 import { randomUUID, createHmac } from 'node:crypto'
-import { defineEventHandler, readBody, setCookie, getRequestProtocol } from 'h3'
+import { defineEventHandler, setCookie, getRequestProtocol } from 'h3'
 import { useDB } from '../../utils/db'
 import { getAuthSecret } from '../../utils/dev-auth'
 import { participants, projects } from '../../database/schema'
 import { buildProjectId, getCurrentProjectInfo } from '../../utils/project'
+import { parseDataBody, statusFromData } from '../../utils/participant-save'
+import { readBodyText, throwRefusal } from '../../utils/read-body'
 
 function signParticipantToken(id: string, secret: string): string {
   const issuedAt = Math.floor(Date.now() / 1000)
@@ -12,7 +14,8 @@ function signParticipantToken(id: string, secret: string): string {
 }
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
+  const parsed = parseDataBody(await readBodyText(event))
+  if (!parsed.ok) throwRefusal(parsed)
   const db = useDB()
   const id = randomUUID()
   const now = new Date()
@@ -34,7 +37,9 @@ export default defineEventHandler(async (event) => {
   await db.insert(participants).values({
     id,
     projectId,
-    data: body.data || {},
+    data: parsed.data,
+    ...statusFromData(parsed.data),
+    dataBytes: Buffer.byteLength(JSON.stringify(parsed.data), 'utf8'),
     createdAt: now,
     updatedAt: now,
   })
@@ -49,5 +54,5 @@ export default defineEventHandler(async (event) => {
     maxAge: 86400 * 7,
   })
 
-  return { id }
+  return { id, rev: 0 }
 })

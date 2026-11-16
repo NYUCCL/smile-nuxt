@@ -9,6 +9,7 @@ import {
   signSessionToken,
   type Scope,
 } from '../../utils/dev-auth'
+import { lt } from 'drizzle-orm'
 import { devSessions } from '../../database/schema'
 
 export default defineEventHandler(async (event) => {
@@ -52,6 +53,15 @@ export default defineEventHandler(async (event) => {
     id,
     expiresAt,
   })
+
+  // Expired sessions are never used again: remove them. Not worth failing a
+  // login over.
+  try {
+    await db.delete(devSessions).where(lt(devSessions.expiresAt, new Date()))
+  }
+  catch (err) {
+    console.warn('[smile] Could not delete expired sessions:', err)
+  }
 
   setCookie(event, cookieNameForScope(scope), signSessionToken(id, scope), {
     httpOnly: true,

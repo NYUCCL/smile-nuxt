@@ -204,20 +204,19 @@ test.describe('Sync characterization (plans/sync_engine.md, step 0)', () => {
   test.describe('bad requests to the save endpoint', () => {
     // A save the server can't use is refused with a 4xx that says why, and
     // the stored row is left as it was. Never a 500.
-    const BAD_BODIES: { name: string, body: string, known?: string }[] = [
-      { name: 'invalid JSON', body: '{"data": {"a": 1', known: 'today: 200, nothing checked' },
-      { name: 'no data field', body: '{}', known: 'today: 200, nothing checked' },
-      { name: 'data is null', body: '{"data": null}', known: 'today: 500 (NOT NULL constraint)' },
-      { name: 'data is a string', body: '{"data": "text"}', known: 'today: stored, replacing the record' },
-      { name: 'data is an array', body: '{"data": [1, 2]}', known: 'today: stored, replacing the record' },
-      { name: 'data is a number', body: '{"data": 5}', known: 'today: stored, replacing the record' },
-      { name: 'body is an array', body: '[1, 2]', known: 'today: 200, nothing checked' },
-      { name: 'a 6 MB body', body: JSON.stringify({ data: { big: 'x'.repeat(6_000_000) } }), known: 'today: stored (Vercel would refuse it before the handler)' },
+    const BAD_BODIES: { name: string, body: string }[] = [
+      { name: 'invalid JSON', body: '{"data": {"a": 1' },
+      { name: 'no data field', body: '{}' },
+      { name: 'data is null', body: '{"data": null}' },
+      { name: 'data is a string', body: '{"data": "text"}' },
+      { name: 'data is an array', body: '{"data": [1, 2]}' },
+      { name: 'data is a number', body: '{"data": 5}' },
+      { name: 'body is an array', body: '[1, 2]' },
+      { name: 'a 6 MB body', body: JSON.stringify({ data: { big: 'x'.repeat(6_000_000) } }) },
     ]
 
     for (const bad of BAD_BODIES) {
       test(`${bad.name}: refused with a 4xx, row unchanged`, async ({ page }) => {
-        if (bad.known) test.fail(KNOWN, bad.known)
         participantId = await consent(page, db)
         const before = await getParticipant(db, participantId)
         const res = await page.request.patch(`/api/participants/${participantId}`, {
