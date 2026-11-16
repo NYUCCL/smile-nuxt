@@ -312,8 +312,8 @@ Each step is one or more commits on `sync-engine`, with all tests passing.
 5. **Two-tab handling.**
 6. **Docs**: data storage, the new API, the deprecations, what researchers see
    in `smileWarnings`.
-7. **#72's full suite** green on local SQLite and Turso. Then decide whether to
-   merge the branch.
+7. **#72's full suite** green on local SQLite and Turso, and the **live
+   tests** below. Then decide whether to merge the branch.
 8. After merging: append channels, #39, #40, then #45, each on its own branch.
 
 ### What step 0 found (2026-11-15)
@@ -369,6 +369,38 @@ browser ones as plain tests.
 Old clients: a project upgraded mid-collection has participants whose page
 still runs the old code until they reload. The server accepts the old body (no
 `rev`) as `rev = previous + 1` for a transition period, so they keep saving.
+
+### Live tests, at the end (Todd, 2026-11-16)
+Before deciding on the merge: a deployed build (Vercel and Turso, a test
+project) run with realistic data, to check the whole path is robust outside
+the test harness.
+- A long task with realistic trial records, run to the end by a scripted
+  browser and by hand, on a normal connection and a throttled one (slow 3G,
+  dropped connections, a phone).
+- **Streaming mouse data**: mouse positions recorded at a realistic rate for
+  the whole task, so the record grows the way a tracking study's does.
+- Measured: record size over time, bytes uploaded in total, save times, failed
+  and retried saves, and whether every trial and the full mouse stream are in
+  the database at the end.
+- The upload volume options below are decided on these numbers.
+
+## Open: upload volume (raised 2026-11-16)
+
+The sync loop sends the whole record on every send. For a long task that adds
+up: a 1 MB record sent every few seconds is hundreds of MB per participant,
+which matters on slow or metered connections. These are possibilities, not
+decisions; step 4 builds the loop so any of them can be added, and the live
+tests decide:
+
+- **Compress the body** (`CompressionStream('gzip')` in the browser, unzip on
+  the server). Trial data is repetitive JSON and should shrink several times
+  over. It also leaves more room under the 4 MB cap.
+- **Send less often as the record grows**: the minimum time between sends
+  rises with the body size (1 s for a small record, up to 30 s or so near the
+  cap). A view change, `api.sync()` and the page closing still send at once.
+- **Send only what's new** (the trials added since the last confirmed save).
+  The largest saving, but the server then has to merge, which is a new way
+  for saving to go wrong. Only if the first two aren't enough.
 
 ## Decisions (Todd, 2026-11-15)
 1. **Keys with `.` `/` `[` `]` `*` and nested arrays** are allowed. The Firebase
