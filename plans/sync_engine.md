@@ -316,6 +316,31 @@ Each step is one or more commits on `sync-engine`, with all tests passing.
    merge the branch.
 8. After merging: append channels, #39, #40, then #45, each on its own branch.
 
+### What step 0 found (2026-11-15)
+Tests: `test/core/sync/characterization.test.js` (unit, 65 known failures) and
+`test/e2e/sync-characterization.spec.ts` (browser, 13 known failures). Known
+failures run as `it.fails` / `test.fail()`; `SHOW_KNOWN_FAILURES=1` runs the
+browser ones as plain tests.
+
+- **Saving stops for good** after a BigInt, a circular reference, or a getter
+  or `toJSON` that throws reaches `store.data` (directly, or through
+  `recordWindowEvent`, which stores its argument as given). Every later save
+  throws while serializing, and the local backup stops being written too.
+- **The participant gets stuck**: a circular value in `persist` makes
+  `Stepper.save()` throw inside `goNextStep()`, so the trial never advances.
+- **Errors thrown into experiment code**: `recordProperty` and `Stepper.save()`
+  throw on these values; `recordPageData` overflows the stack on a cycle.
+- **Data refused and lost**: `recordPageData` refuses functions, symbols,
+  BigInt, dotted keys, nested arrays, and a whole-argument array.
+- **Damaged stepper state** starts the view over (useStepper catches the
+  error), even when only one child or the index is bad.
+- **No retry**: trials reach the database only on a view change; a failed save
+  waits for the next one, and coming back online sends nothing.
+- **The save endpoint checks nothing**: a string, number or array as `data`
+  replaces the participant's record; `null` gives a 500; invalid JSON gets 200.
+- Holding up: reloads at any point (all trials once), a lost response, and
+  reloading while saves fail.
+
 Old clients: a project upgraded mid-collection has participants whose page
 still runs the old code until they reload. The server accepts the old body (no
 `rev`) as `rev = previous + 1` for a transition period, so they keep saving.
