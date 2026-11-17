@@ -134,6 +134,7 @@ function syncLoop(store) {
         }
         store.browserEphemeral.sync = status
       },
+      onConflict: () => store.pauseForOtherTab('conflict'),
       onGone: () => {
         log.warn('SMILESTORE: Participant token invalid during save, resetting to new user')
         store.resetOrphanedUser()
@@ -284,6 +285,9 @@ const initBrowserEphemeral = {
   // The sync loop's state (core/sync/loop.js): status is 'saved', 'pending',
   // 'saving', 'offline' or 'error'; error is the last one, or null
   sync: { status: 'saved', error: null, retryAt: null },
+  // Another tab has the participant now ('newer-tab' or 'conflict'); this
+  // one has stopped saving. False otherwise. See pauseForOtherTab().
+  otherTab: false,
   urls: {
     prolific: '/welcome/prolific?PROLIFIC_PID=XXXX&STUDY_ID=XXXX&SESSION_ID=XXXXX',
     cloudresearch:
@@ -1057,6 +1061,34 @@ export default defineStore('smilestore', {
      * state is removed and the page reloaded (a reset), so that the write
      * made as the page closes doesn't put the old state back.
      */
+    /**
+     * Another tab (or window) of this browser has the participant now: this
+     * one stops writing the local snapshot and stops saving, and the page
+     * shows the notice (OtherTabNotice.vue). A reload makes it the
+     * participant's tab again, from the newest copy.
+     * @param {'newer-tab'|'conflict'} reason - A newer tab said hello, or
+     *   the server refused a save because it holds something newer (409)
+     */
+    pauseForOtherTab(reason) {
+      if (this.browserEphemeral.otherTab) return
+      const state = captureState(this)
+      this.browserEphemeral.otherTab = reason
+      useLog().warn('SMILESTORE: this study is open in another tab (' + reason + '); this tab has stopped saving')
+      this.stopSnapshots()
+      if (reason === 'conflict') {
+        // What this tab last wrote locally is older than the server's copy.
+        // Remove it (unless another tab has written since), so that a reload
+        // takes the server's.
+        try {
+          const storage = browserStorage()
+          if (storage && state.written && storage.getItem(snapshotKey) === state.written) storage.removeItem(snapshotKey)
+        }
+        catch {
+          // the reload compares the copies anyway
+        }
+      }
+    },
+
     stopSnapshots() {
       const state = captureState(this)
       state.stopped = true

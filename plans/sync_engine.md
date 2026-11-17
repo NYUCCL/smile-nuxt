@@ -1,6 +1,6 @@
 # Sync engine, schema and telemetry (#36, then #72, #39, #40, #45)
 
-Status: steps 1 to 4 done (2026-11-16); steps 5–7 to do. Branch `sync-engine`, off main at
+Status: steps 1 to 5 done (2026-11-17); steps 6–7 to do. Branch `sync-engine`, off main at
 7f977fc. Everything here happens on that branch, in small commits with the
 tests passing at each, so any step can be reverted, or the branch dropped,
 without touching main.
@@ -604,6 +604,39 @@ browser ones as plain tests.
     and ignore the answer. The Thanks page could wait on `sync()` and show
     `syncStatus`.
   - The docs still describe `autoSave` and the write limits (step 6).
+
+### What step 5 did (2026-11-17)
+- **The rule:** of the tabs of one browser that hold the participant's
+  record, the one opened last is the participant's. The others stop writing
+  the local snapshot, stop saving, and show a notice with a "Continue here"
+  button. The button reloads the tab, which makes it the newest: it starts
+  from the newest copy and the other tab gets the notice.
+- **How a tab finds out** (`core/sync/tabs.js`, plain functions; the channel
+  is passed in): a tab says `hello` (its id and start time) on a
+  `BroadcastChannel` once its record is loaded. An older tab that holds the
+  record pauses. A newer tab that hears an older one (two tabs restored
+  together, the older loading second) says `hello` back, so the older one
+  stops. Equal start times are settled by the id. A tab with no participant
+  (before consent) is left alone. Anything else on the channel is ignored.
+- **Without the channel, or when a tab was not told:** the server's 409
+  pauses the tab the same way (`pauseForOtherTab('conflict')`). That tab
+  also removes the local copy if it is still the one it wrote, so a reload
+  takes the server's copy and not its own older one.
+- **Different from the first plan:** a 409 does not reload the tab by itself.
+  The tab shows the notice and the participant chooses. One state and one
+  notice for both ways of finding out, and no way for two tabs to reload
+  each other in turn. The server already accepts a resent `rev` with the
+  same content, so a 409 always means another copy saved something else.
+- **The notice** (`OtherTabNotice.vue`): over the whole page in the
+  experiment layout; in place of the page in the dev tools.
+- Tests: `test/core/sync/tabs.test.js` (10), four store tests, and
+  `test/e2e/two-tabs.spec.ts` (with the channel, and with it removed).
+- Left open:
+  - The page under the notice keeps running (its timers, its key handlers);
+    nothing it records is written or sent.
+  - Two tabs that both consent make two participant rows; the second tab's
+    is the one that continues.
+  - The presentation layout has no notice.
 
 Old clients: a project upgraded mid-collection has participants whose page
 still runs the old code until they reload. The server accepts the old body (no

@@ -505,7 +505,7 @@ describe('the store\'s local snapshot', () => {
       expect(privatePatches()).toHaveLength(2)
     })
 
-    it.each([409, 400, 413, 500])('a save refused with %i does not throw and stays unsaved', async (statusCode) => {
+    it.each([400, 413, 500])('a save refused with %i does not throw and stays unsaved', async (statusCode) => {
       const store = connectedStore()
       fetchMock.mockImplementation(async () => {
         throw Object.assign(new Error('refused'), { statusCode, data: { data: { rev: 99 } } })
@@ -1010,6 +1010,74 @@ describe('the store\'s local snapshot', () => {
       expect(readSnapshot().data.big).toHaveLength(70_000)
       await vi.waitFor(() => expect(dataPatches()).toHaveLength(1))
       expect(keepalivePatches()).toHaveLength(0)
+    })
+  })
+
+  describe('the study open in another tab', () => {
+    const refuse409 = () => fetchMock.mockImplementation(async () => {
+      throw Object.assign(new Error('conflict'), { statusCode: 409, data: { data: { rev: 99 } } })
+    })
+
+    it('a newer tab: this one stops writing the local copy and stops saving', async () => {
+      const store = connectedStore()
+      store.data.studyData.push({ trial: 1 })
+      await store.sync()
+      const before = localStorage.getItem(snapshotKey)
+      const sent = fetchMock.mock.calls.length
+
+      store.pauseForOtherTab('newer-tab')
+      expect(store.browserEphemeral.otherTab).toBe('newer-tab')
+      // The newer tab reads and writes the same local copy: it is left as it is
+      expect(localStorage.getItem(snapshotKey)).toBe(before)
+
+      store.data.studyData.push({ trial: 'in the paused tab' })
+      store.requestSnapshot()
+      store.captureSnapshot()
+      store.saveOnClose()
+      store.networkChanged(true)
+      await vi.advanceTimersByTimeAsync(20_000)
+      expect(localStorage.getItem(snapshotKey)).toBe(before)
+      expect(fetchMock.mock.calls).toHaveLength(sent)
+      expect((await store.sync()).ok).toBe(false)
+      expect(fetchMock.mock.calls).toHaveLength(sent)
+    })
+
+    it('a save refused with 409 pauses this tab and removes the local copy it wrote', async () => {
+      const store = connectedStore()
+      refuse409()
+      store.data.studyData.push({ trial: 1 })
+      const result = await store.sync()
+      expect(result.ok).toBe(false)
+      expect(store.browserEphemeral.otherTab).toBe('conflict')
+      expect(store.browserEphemeral.sync.error.kind).toBe('conflict')
+      // so that a reload takes the server's copy, not this older one
+      expect(localStorage.getItem(snapshotKey)).toBeNull()
+
+      const sent = fetchMock.mock.calls.length
+      store.data.studyData.push({ trial: 2 })
+      store.requestSnapshot()
+      await vi.advanceTimersByTimeAsync(20_000)
+      expect(fetchMock.mock.calls).toHaveLength(sent)
+      expect(localStorage.getItem(snapshotKey)).toBeNull()
+    })
+
+    it('a 409 leaves a local copy that another tab has written since', async () => {
+      const store = connectedStore()
+      store.data.studyData.push({ trial: 1 })
+      store.captureSnapshot()
+      const other = JSON.stringify({ ...JSON.parse(localStorage.getItem(snapshotKey)), rev: 50 })
+      localStorage.setItem(snapshotKey, other) // the other tab's write
+      refuse409()
+      await store.sync()
+      expect(store.browserEphemeral.otherTab).toBe('conflict')
+      expect(localStorage.getItem(snapshotKey)).toBe(other)
+    })
+
+    it('pausing twice keeps the first reason', () => {
+      const store = connectedStore()
+      store.pauseForOtherTab('newer-tab')
+      store.pauseForOtherTab('conflict')
+      expect(store.browserEphemeral.otherTab).toBe('newer-tab')
     })
   })
 

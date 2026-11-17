@@ -15,6 +15,7 @@ import { defineNuxtPlugin } from '#imports'
 import { watch } from 'vue'
 import useSmileStore, { initDev, COOKIE_MAX_AGE } from '../stores/smilestore'
 import { RESUME_KEYS, LOCAL_KEYS } from '../core/sync/snapshot.js'
+import { createTabGuard } from '../core/sync/tabs.js'
 import appconfig from '../core/config.js'
 
 /** @type {import('#app').Plugin} */
@@ -113,6 +114,31 @@ export default defineNuxtPlugin((nuxtApp) => {
       console.warn(`[smile] VITE_MAX_WRITES is ${max}: data is now saved after every change (at most every 5 seconds), so a long study can reach it and stop saving by itself. Remove it to use the default (10000).`)
     }
   }
+
+  // --- 6. Two tabs: the one opened last is the participant's ---
+  // (core/sync/tabs.js). Without BroadcastChannel, the server's 409 stops
+  // the older tab at its next save.
+  let channel = null
+  try {
+    if (typeof BroadcastChannel !== 'undefined') channel = new BroadcastChannel(`smile-tabs-${appconfig.codeName}`)
+  }
+  catch {
+    channel = null
+  }
+  const tabs = createTabGuard({
+    channel,
+    id: globalThis.crypto?.randomUUID?.() ?? String(Math.random()).slice(2),
+    startedAt: Date.now(),
+    isActive: () => store.isDataLoaded && !store.browserEphemeral.otherTab,
+    onOtherTab: () => store.pauseForOtherTab('newer-tab'),
+  })
+  watch(
+    () => store.browserEphemeral.dataLoaded,
+    (loaded) => {
+      if (loaded) tabs.announce()
+    },
+    { immediate: true },
+  )
 
   window.addEventListener('online', () => store.networkChanged(true))
   window.addEventListener('offline', () => store.networkChanged(false))
