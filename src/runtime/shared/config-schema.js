@@ -112,18 +112,17 @@ export const SETTINGS = [
   {
     key: 'VITE_AUTO_SAVE_DATA', group: 'saving', type: 'bool', default: 'true', phase: 'build', change: 'build',
     configPath: 'autoSave',
-    description: 'Save participant data automatically as it changes. Only the value false turns it off; then nothing '
-      + 'is saved unless the design saves explicitly.',
+    description: 'Deprecated, no effect. Data is saved by itself about a second after every change.',
   },
   {
     key: 'VITE_MAX_WRITES', group: 'saving', type: 'int', default: '1000', phase: 'build', change: 'build',
     configPath: 'maxWrites',
-    description: 'Saves allowed per page load. After this many, saves stop.',
+    description: 'Deprecated, no effect. There is no limit on the number of saves.',
   },
   {
     key: 'VITE_MIN_WRITE_INTERVAL', group: 'saving', type: 'int', default: '2000', phase: 'build', change: 'build',
     configPath: 'minWriteInterval',
-    description: 'Milliseconds between saves. A save sooner than this is delayed, not dropped.',
+    description: 'Deprecated, no effect. A change is sent a second after the last one, at least every 5 seconds.',
   },
   {
     key: 'VITE_MAX_STEPS', group: 'saving', type: 'int', default: '5000', phase: 'build', change: 'build',

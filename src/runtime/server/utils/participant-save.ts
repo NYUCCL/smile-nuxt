@@ -137,6 +137,8 @@ export async function saveParticipant(db: DB, id: string, save: ParsedSave): Pro
     ...(save.resume !== undefined ? { resume: save.resume } : {}),
     ...statusFromData(save.data),
     dataBytes: Buffer.byteLength(dataText, 'utf8'),
+    oversize: false,
+    lastError: null,
     saveCount: sql`${participants.saveCount} + 1`,
     updatedAt: new Date(),
   }
@@ -168,13 +170,44 @@ export async function saveParticipant(db: DB, id: string, save: ParsedSave): Pro
 }
 
 /**
- * Stores a participant's private data, creating the row if there isn't one
- * (one row per participant). Returns the row's id, or null when the
- * participant doesn't exist.
+ * Whether a body is the client's report that its record is too large to
+ * send: `{ oversize: true, dataBytes }`, with no `data`.
  */
-export async function savePrivateData(db: DB, participantId: string, data: JsonObject, newId: string): Promise<string | null> {
+export function parseOversizeReport(body: JsonObject): { dataBytes: number | null } | null {
+  if (body.oversize !== true || body.data !== undefined) return null
+  const bytes = body.dataBytes
+  return { dataBytes: typeof bytes === 'number' && Number.isSafeInteger(bytes) && bytes >= 0 ? bytes : null }
+}
+
+/**
+ * Records that a participant's record is too large to be sent. The stored
+ * record and its `rev` are left as they are.
+ * @returns whether the participant exists
+ */
+export async function markOversize(db: DB, id: string, dataBytes: number | null): Promise<boolean> {
+  const updated = await db.update(participants)
+    .set({
+      oversize: true,
+      lastError: `The record${dataBytes === null ? '' : ` (${dataBytes} bytes)`} is over the size limit and was not sent`,
+      updatedAt: new Date(),
+    })
+    .where(eq(participants.id, id))
+    .returning({ id: participants.id })
+  return updated.length > 0
+}
+
+/**
+ * Stores a participant's private data, creating the row if there isn't one
+ * (one row per participant). The top-level parts sent replace the stored
+ * ones; parts not sent are kept. (A page that was reloaded may not know them
+ * all: the server never sends private data back to the browser.) Returns the
+ * row's id, or null when the participant doesn't exist.
+ */
+export async function savePrivateData(db: DB, participantId: string, incoming: JsonObject, newId: string): Promise<string | null> {
   const participant = await db.select({ id: participants.id }).from(participants).where(eq(participants.id, participantId)).get()
   if (!participant) return null
+  const existing = await db.select({ data: privateData.data }).from(privateData).where(eq(privateData.participantId, participantId)).get()
+  const data: JsonObject = { ...(isJsonObject(existing?.data) ? existing.data : {}), ...incoming }
   const now = new Date()
   const rows = await db.insert(privateData)
     .values({ id: newId, participantId, data, createdAt: now, updatedAt: now })

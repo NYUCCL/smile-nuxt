@@ -19,12 +19,13 @@ import { defineStore } from 'pinia'
 import { useCookie, navigateTo } from '#imports'
 import appconfig from '../core/config.js'
 import useLog from './log.js'
-import { toPlainJSON, sendable, addWarnings } from '../utils/plainJSON.js'
+import { toPlainJSON, addWarnings, safeStringify } from '../utils/plainJSON.js'
 import {
-  readLocalCopy, chooseCopy, repairData, buildResume, resumeForServer,
+  readLocalCopy, chooseCopy, repairData, buildResume, resumeForServer, privateParts,
   serializeParts, snapshotText, saveBodyText, legacyDataKey, isPlainObject,
   RESUME_KEYS, LOCAL_KEYS,
 } from '../core/sync/snapshot.js'
+import { createSyncLoop, classify } from '../core/sync/loop.js'
 
 // Cookie max age: 30 days in seconds
 const COOKIE_MAX_AGE = 86400 * 30
@@ -38,11 +39,8 @@ const COOKIE_MAX_AGE = 86400 * 30
  */
 const snapshotKey = appconfig.localStorageKey
 
-// Browsers cap the body of keepalive requests (the close-time save) at 64 KiB.
-const KEEPALIVE_MAX_BYTES = 60_000
-
-// A save deferred by minWriteInterval (at most one pending at a time).
-let deferredSaveTimer = null
+// How long a save may take before it counts as failed and is tried again
+const SEND_TIMEOUT = 30_000
 
 // The local snapshot is written a moment after a change, so that everything
 // one event does (a keypress sets the step's data, records the trial and moves
@@ -50,7 +48,8 @@ let deferredSaveTimer = null
 // wait is at least SNAPSHOT_MIN_DELAY ms and grows with what the last write
 // cost, so that writing a large record takes at most about a tenth of the
 // main thread's time. The page being hidden or closed, and every save to the
-// server, write at once.
+// server, write at once. Sending to the server is the sync loop's job
+// (core/sync/loop.js): it is told when a write found something new.
 const SNAPSHOT_MIN_DELAY = 4
 const SNAPSHOT_MAX_DELAY = 2000
 const SNAPSHOT_COST_FACTOR = 10
@@ -63,17 +62,92 @@ export const LOAD_RETRY_DELAYS = [300, 900]
 /**
  * Per store: the texts of the last snapshot captured, to tell whether
  * anything changed, and what was last written. Not reactive (the record's
- * text can be large).
+ * text can be large). Keyed by the store's state object, not the store: in
+ * development Pinia calls each action with a new wrapper around the store as
+ * `this`, and the state object is the same through all of them.
  */
 const captured = new WeakMap()
 
 function captureState(store) {
-  let state = captured.get(store)
+  let state = captured.get(store.$state)
   if (!state) {
-    state = { dataText: null, resumeText: null, written: null, warnedCleaned: false, warnedWrite: false }
-    captured.set(store, state)
+    state = { dataText: null, resumeText: null, privateText: null, privateSent: null, written: null, warnedCleaned: false, warnedWrite: false }
+    captured.set(store.$state, state)
   }
   return state
+}
+
+/**
+ * One request to the API, for the sync loop. Never throws.
+ * @param {string} url - The route
+ * @param {string} method - POST or PATCH
+ * @param {string} body - JSON text
+ * @param {boolean} [keepalive] - Whether the request may outlive the page
+ * @returns {Promise<{ status: number, result?: object, message?: string, serverRev?: number }>}
+ *   `status` is 0 when there was no answer
+ */
+async function request(url, method, body, keepalive = false) {
+  try {
+    const result = await $fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      ...(keepalive ? { keepalive: true } : { timeout: SEND_TIMEOUT }),
+    })
+    return { status: 200, result }
+  }
+  catch (err) {
+    return {
+      status: err?.statusCode ?? err?.status ?? 0,
+      message: String(err?.data?.statusMessage || err?.statusMessage || err),
+      serverRev: err?.data?.data?.rev,
+    }
+  }
+}
+
+/** The store's sync loop, made when first needed (client only). */
+function syncLoop(store) {
+  const state = captureState(store)
+  if (!state.loop) {
+    const log = useLog()
+    state.loop = createSyncLoop({
+      take: () => {
+        const snap = store.captureSnapshot()
+        if (!snap || !snap.includeData) return null
+        return {
+          rev: snap.rev,
+          savedRev: store.browserEphemeral.savedRev,
+          body: () => saveBodyText({ rev: snap.rev, dataText: snap.dataText, resumeText: snap.serverResumeText() }),
+        }
+      },
+      send: (body, options) => store.sendSnapshot(body, options),
+      onConfirmed: (rev) => {
+        store.browserEphemeral.savedRev = Math.max(store.browserEphemeral.savedRev, rev)
+        store.browserEphemeral.unsavedChanges = store.browserEphemeral.rev > store.browserEphemeral.savedRev
+        store.localState.totalWrites += 1
+        store.localState.lastWrite = Date.now()
+      },
+      onStatus: (status) => {
+        const before = store.browserEphemeral.sync
+        if (status.error && status.error.message !== before?.error?.message) {
+          log.error('SMILESTORE: save failed (' + status.error.kind + '): ' + status.error.message)
+        }
+        store.browserEphemeral.sync = status
+      },
+      onGone: () => {
+        log.warn('SMILESTORE: Participant token invalid during save, resetting to new user')
+        store.resetOrphanedUser()
+      },
+      onOversize: (bytes) => {
+        // Tell the server, so the dashboard can show it. Best effort.
+        const id = store.cookieState.participantId
+        if (id) request(`/api/participants/${id}`, 'PATCH', JSON.stringify({ oversize: true, dataBytes: bytes }))
+      },
+      isOnline: () => typeof navigator === 'undefined' || navigator.onLine !== false,
+      warn: message => log.warn('SMILESTORE: ' + message),
+    })
+  }
+  return state.loop
 }
 
 function browserStorage() {
@@ -159,7 +233,6 @@ const initCookieState = {
  * localStorage on load and watches for changes to write back.
  */
 const initLocalState = {
-  privateDataId: null,
   verifiedVisibility: false,
   reset: false,
   totalWrites: 0,
@@ -196,6 +269,9 @@ const initBrowserEphemeral = {
   loadFailed: false,
   // Why the last write of the local copy failed (null when it worked)
   localCopyError: null,
+  // The sync loop's state (core/sync/loop.js): status is 'saved', 'pending',
+  // 'saving', 'offline' or 'error'; error is the last one, or null
+  sync: { status: 'saved', error: null, retryAt: null },
   urls: {
     prolific: '/welcome/prolific?PROLIFIC_PID=XXXX&STUDY_ID=XXXX&SESSION_ID=XXXXX',
     cloudresearch:
@@ -539,37 +615,71 @@ export default defineStore('smilestore', {
     },
 
     async setKnown() {
-      const log = useLog()
       this.cookieState.knownUser = true
       this.data.seedID = this.cookieState.seedID
-      let id
-      try {
-        const created = await $fetch('/api/participants', {
-          method: 'POST',
-          body: { data: sendable(this.data) },
-        })
-        id = created.id
+      const created = await this.createParticipant()
+      if (created.status !== 200) {
+        useLog().error('SMILESTORE: could not create participant record (it will be tried again): ' + created.message)
       }
-      catch (err) {
-        log.error('SMILESTORE: could not create participant record: ' + err)
-        return
-      }
-      // The record exists from here on, whatever happens to the private one
-      this.cookieState.participantId = id
-      this.browserEphemeral.savedRev = 0
+      // The record in memory is this participant's from here on. If the
+      // request failed, the sync loop creates the row with its first save.
       this.setDataLoaded()
       this.captureSnapshot()
-      try {
-        const { id: privateId } = await $fetch(`/api/participants/${id}/private`, {
-          method: 'POST',
-          body: { data: sendable(this.private) },
-        })
-        this.localState.privateDataId = privateId
+      // The first save, with the private data (recruitment ids), goes now
+      // rather than a second from now. Not waited for.
+      this.sync()
+    },
+
+    /**
+     * Creates the participant's row on the server. One request at a time:
+     * a second call while one is in flight gets the same answer.
+     * @returns {Promise<{ status: number, message?: string }>} 200 when it exists
+     */
+    createParticipant() {
+      const state = captureState(this)
+      if (this.cookieState.participantId) return Promise.resolve({ status: 200 })
+      if (!state.creating) {
+        state.creating = request('/api/participants', 'POST', safeStringify({ data: this.data }).text)
+          .then((res) => {
+            state.creating = null
+            if (res.status !== 200) return res
+            if (typeof res.result?.id !== 'string') return { status: 0, message: 'the server gave no participant id' }
+            this.cookieState.participantId = res.result.id
+            this.browserEphemeral.savedRev = 0
+            return { status: 200 }
+          })
       }
-      catch (err) {
-        // The next save sends the private data again (the server creates the row)
-        log.error('SMILESTORE: could not create private data record: ' + err)
+      return state.creating
+    },
+
+    /**
+     * Sends one save for the sync loop: the record and the position, then
+     * the private data if it changed since it was last sent. Creates the
+     * participant's row first if the request at consent failed.
+     * @param {string} body - `{ rev, data, resume }` as JSON text
+     * @param {object} [options]
+     * @param {boolean} [options.keepalive] - The page is closing
+     * @returns {Promise<{ status: number, message?: string, serverRev?: number }>} Never rejects
+     */
+    async sendSnapshot(body, { keepalive = false } = {}) {
+      const state = captureState(this)
+      if (!this.cookieState.participantId) {
+        const created = await this.createParticipant()
+        if (created.status !== 200) return created
       }
+      const id = this.cookieState.participantId
+      const privateText = state.privateText
+      const saved = await request(`/api/participants/${id}`, 'PATCH', body, keepalive)
+      if (classify(saved.status) !== 'ok') return saved
+      // Sent once per page even when empty, so every participant has a row
+      if (privateText && privateText !== state.privateSent) {
+        const res = await request(`/api/participants/${id}/private`, 'PATCH', '{"data":' + privateText + '}', keepalive)
+        const result = classify(res.status)
+        if (result === 'ok') state.privateSent = privateText
+        else if (result === 'retry') return res
+        else useLog().error('SMILESTORE: error saving private data: ' + res.message)
+      }
+      return saved
     },
 
     /**
@@ -608,6 +718,11 @@ export default defineStore('smilestore', {
         if (Object.prototype.hasOwnProperty.call(local.local, key)) this.localState[key] = local.local[key]
       }
       if (local.resume) this.applyResume(local.resume)
+      if (local.private) {
+        for (const key of Object.keys(this.private)) {
+          if (isPlainObject(local.private[key])) this.private[key] = local.private[key]
+        }
+      }
       if (local.format === 'v1') {
         this.browserEphemeral.rev = local.rev
         this.browserEphemeral.savedRev = local.savedRev
@@ -622,9 +737,22 @@ export default defineStore('smilestore', {
      */
     async loadData() {
       const participantId = this.cookieState.participantId
-      if (!participantId) return
       const log = useLog()
       const storage = browserStorage()
+      if (!participantId) {
+        if (!this.cookieState.knownUser || this.browserEphemeral.dataLoaded) return
+        // Consented, but the request that creates the row failed and the
+        // page was reloaded. Go on from the local copy, if it has the
+        // record; the sync loop creates the row with its first save.
+        const local = storage ? readLocalCopy(storage, snapshotKey) : { format: 'none', notes: [] }
+        const choice = chooseCopy({ participantId: null, local, server: { ok: false } })
+        if (choice.data) this.data = repairData(choice.data, this.data).data
+        this.browserEphemeral.rev = choice.rev
+        this.browserEphemeral.savedRev = 0
+        this.setDataLoaded()
+        this.captureSnapshot()
+        return
+      }
       const hadFailed = this.browserEphemeral.loadFailed
 
       let choice
@@ -686,7 +814,8 @@ export default defineStore('smilestore', {
       }
       this.setDataLoaded()
       this.captureSnapshot()
-      if (choice.send) await this.saveData()
+      // Not waited for: the page shouldn't wait on the network to start
+      if (choice.send) this.sync()
     },
 
     /**
@@ -708,6 +837,8 @@ export default defineStore('smilestore', {
       this.browserEphemeral.rev = 0
       this.browserEphemeral.savedRev = 0
       this.browserEphemeral.loadFailed = false
+      this.browserEphemeral.dataLoaded = false
+      this.browserEphemeral.sync = { status: 'saved', error: null, retryAt: null }
 
       // Redirect to welcome
       navigateTo('/welcome')
@@ -738,94 +869,35 @@ export default defineStore('smilestore', {
       this.browserEphemeral.unsavedChanges = true
     },
 
-    async saveData(force = false) {
-      const log = useLog()
-      if (this.isDataLoaded) {
-        if (!force && this.localState.totalWrites >= appconfig.maxWrites) {
-          log.error(
-            'SMILESTORE: max writes reached. Data NOT saved. Call saveData() less frequently.',
-          )
-          return
-        }
-
-        if (
-          !force
-          && this.localState.lastWrite
-          && Date.now() - this.localState.lastWrite < appconfig.minWriteInterval
-        ) {
-          // Too soon after the last write: save once the interval has passed
-          // instead of dropping it. The data stays in memory (and the local
-          // backup) meanwhile, and one pending save covers any number of calls.
-          if (!deferredSaveTimer) {
-            const wait = appconfig.minWriteInterval - (Date.now() - this.localState.lastWrite)
-            log.log(`SMILESTORE: write interval too short, deferring save by ${wait}ms`)
-            deferredSaveTimer = setTimeout(() => {
-              deferredSaveTimer = null
-              this.saveData()
-            }, wait)
-          }
-          return
-        }
-
-        if (deferredSaveTimer) {
-          clearTimeout(deferredSaveTimer) // this save covers the pending one
-          deferredSaveTimer = null
-        }
-
-        // The snapshot as it is now: its rev, and exactly the text that rev
-        // names. Changes made while the request is in flight get a higher rev
-        // and stay unsaved.
-        const snap = this.captureSnapshot()
-        if (!snap || !snap.includeData) {
-          log.error('SMILESTORE: could not prepare the record for saving. Data NOT saved.')
-          return
-        }
-        const sentRev = snap.rev
-        const participantId = this.cookieState.participantId
-        try {
-          await $fetch(`/api/participants/${participantId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: saveBodyText({ rev: sentRev, dataText: snap.dataText, resumeText: snap.serverResumeText() }),
-          })
-          this.browserEphemeral.savedRev = Math.max(this.browserEphemeral.savedRev, sentRev)
-          this.localState.totalWrites += 1
-          this.localState.lastWrite = Date.now()
-          this.captureSnapshot() // records savedRev in the local copy
-          log.success('SMILESTORE: saveData() successful (force = ' + force + ')')
-        }
-        catch (err) {
-          if (err?.statusCode === 403) {
-            log.warn('SMILESTORE: Participant token invalid during save, resetting to new user')
-            this.resetOrphanedUser()
-          }
-          else if (err?.statusCode === 409) {
-            // Another copy of this participant (a second tab) saved something
-            // newer. Handling it is step 5 of plans/sync_engine.md.
-            log.error(`SMILESTORE: save refused, the server has a newer copy (rev ${err?.data?.data?.rev ?? '?'}, sent ${sentRev})`)
-          }
-          else {
-            log.error('SMILESTORE: error saving data: ' + err)
-          }
-          return
-        }
-        try {
-          // Always sent: the server creates the row if the first POST was lost
-          await $fetch(`/api/participants/${participantId}/private`, {
-            method: 'PATCH',
-            body: { data: sendable(this.private) },
-          })
-        }
-        catch (err) {
-          log.error('SMILESTORE: error saving private data: ' + err)
-        }
+    /**
+     * Sends the snapshot now and waits for the server's answer. The sync
+     * loop sends by itself after every change; this is for a point where the
+     * experiment needs to know the record has arrived (before sending the
+     * participant back to the recruitment site, for example). If the send
+     * fails the loop keeps trying after this resolves.
+     * @returns {Promise<{ ok: boolean, rev: number, error: string|null }>} Never rejects
+     */
+    async sync() {
+      if (typeof window === 'undefined') return { ok: false, rev: 0, error: 'not in a browser' }
+      if (!this.isDataLoaded) {
+        const consented = this.data.consented || this.cookieState.consented
+        const error = consented ? 'not connected to the server' : 'not consented'
+        const log = useLog()
+        if (consented) log.error('SMILESTORE: can\'t save data, not connected to server')
+        else log.log('SMILESTORE: not saving because not consented')
+        return { ok: false, rev: 0, error }
       }
-      else if (!this.data.consented && !this.cookieState.consented) {
-        log.log('SMILESTORE: not saving because not consented')
-      }
-      else {
-        log.error('SMILESTORE: can\'t save data, not connected to server')
-      }
+      const result = await syncLoop(this).sync()
+      if (result.ok) useLog().success('SMILESTORE: saved (rev ' + result.rev + ')')
+      return result
+    },
+
+    /**
+     * The older name for sync(). Saving no longer needs to be asked for.
+     * @returns {Promise<{ ok: boolean, rev: number, error: string|null }>} As sync()
+     */
+    saveData() {
+      return this.sync()
     },
 
     /**
@@ -854,14 +926,15 @@ export default defineStore('smilestore', {
       const started = now()
       const participantId = this.cookieState.participantId || null
       const loaded = this.browserEphemeral.dataLoaded
+      const known = !!participantId || this.cookieState.knownUser
       // A known participant whose stored copy hasn't been read yet: writing
       // now would replace it with the empty record the page starts with.
-      if (participantId && !loaded && !this.browserEphemeral.loadFailed) return null
+      if (known && !loaded && !this.browserEphemeral.loadFailed) return null
 
       const log = useLog()
       // The record is part of the snapshot once it's the participant's own
       // (created, or loaded). Before that only the position is kept.
-      const includeData = !!participantId && loaded
+      const includeData = known && loaded
       const resume = buildResume(this.cookieState.lastRoute, this.localState)
       const parts = serializeParts(includeData ? this.data : null, resume)
       if (!parts.ok) {
@@ -877,10 +950,15 @@ export default defineStore('smilestore', {
         log.warn('SMILESTORE: the record holds a value JSON can\'t store (written to api.data directly?); it is cleaned each time the record is saved')
       }
 
-      if (parts.dataText !== state.dataText || parts.resumeText !== state.resumeText) {
+      // Private data is sent with the record, so a change to it counts
+      const privateText = includeData ? safeStringify(privateParts(this.private)).text : null
+      const changed = parts.dataText !== state.dataText || parts.resumeText !== state.resumeText
+        || privateText !== state.privateText
+      if (changed) {
         this.browserEphemeral.rev += 1
         state.dataText = parts.dataText
         state.resumeText = parts.resumeText
+        state.privateText = privateText
       }
       if (includeData) this.localState.approxDataSize = parts.dataText.length
       const rev = this.browserEphemeral.rev
@@ -895,6 +973,7 @@ export default defineStore('smilestore', {
           local: this.localState,
           dataText: parts.dataText,
           resumeText: parts.resumeText,
+          privateText,
         })
         if (text !== state.written) {
           try {
@@ -920,6 +999,7 @@ export default defineStore('smilestore', {
       }
 
       state.cost = now() - started
+      if (changed && includeData) syncLoop(this).changed()
       return {
         rev,
         includeData,
@@ -963,13 +1043,15 @@ export default defineStore('smilestore', {
       state.stopped = true
       if (state.timer) clearTimeout(state.timer)
       state.timer = null
+      state.loop?.stop()
     },
 
     /** Removes the local snapshot (on reset or when the participant is cleared). */
     clearLocalSnapshot() {
-      const state = captured.get(this)
+      const state = captured.get(this.$state)
       if (state?.timer) clearTimeout(state.timer)
-      captured.delete(this)
+      state?.loop?.stop()
+      captured.delete(this.$state)
       const storage = browserStorage()
       if (!storage) return
       try {
@@ -982,30 +1064,22 @@ export default defineStore('smilestore', {
     },
 
     /**
-     * Best-effort save when the page is closing (pagehide). Uses a keepalive
-     * request so it can outlive the page. Browsers cap keepalive bodies at
-     * 64 KiB, so larger records are skipped; the local snapshot still has
-     * them if the participant comes back in this browser. Mobile browsers may
-     * not fire pagehide at all, so this is never the only safeguard.
+     * The page is hidden or closing: write the snapshot and send what's
+     * unsent, in a request that can outlive the page when it is small enough
+     * (browsers cap those at 64 KiB). A larger record stays in the local
+     * snapshot for the participant's return. Mobile browsers may not fire
+     * pagehide at all, so this is never the only safeguard.
      */
     saveOnClose() {
-      const snap = this.captureSnapshot()
-      if (!this.isDataLoaded || !this.cookieState.participantId) return
-      if (!snap || !snap.includeData) return
-      if (snap.rev <= this.browserEphemeral.savedRev) return
-      const body = saveBodyText({ rev: snap.rev, dataText: snap.dataText, resumeText: snap.serverResumeText() })
-      if (new TextEncoder().encode(body).length > KEEPALIVE_MAX_BYTES) return
-      try {
-        fetch(`/api/participants/${this.cookieState.participantId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body,
-          keepalive: true,
-        })
-      }
-      catch {
-        // nothing to do: the page is going away
-      }
+      if (typeof window === 'undefined' || !this.isDataLoaded) return
+      syncLoop(this).hidden()
+    },
+
+    /** The browser's online / offline events (the store-sync plugin). */
+    networkChanged(online) {
+      if (typeof window === 'undefined' || !this.isDataLoaded) return
+      if (online) syncLoop(this).online()
+      else syncLoop(this).offline()
     },
 
     /**

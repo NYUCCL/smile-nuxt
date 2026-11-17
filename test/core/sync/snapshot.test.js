@@ -193,11 +193,10 @@ describe('cleanResume', () => {
       randomizedRoutes: { a: ['x'] },
       possibleConditions: null,
       verifiedVisibility: 'yes',
-      privateDataId: 'abc',
       useSeed: false,
       somethingElse: 1,
     })
-    expect(resume).toEqual({ view: 'stroop', viewSteppers: {}, randomizedRoutes: { a: ['x'] }, privateDataId: 'abc', useSeed: false })
+    expect(resume).toEqual({ view: 'stroop', viewSteppers: {}, randomizedRoutes: { a: ['x'] }, useSeed: false })
     expect(notes).toHaveLength(3)
   })
 })
@@ -460,7 +459,6 @@ describe('the resume sent to the server', () => {
     randomizedRoutes: {},
     possibleConditions: {},
     verifiedVisibility: true,
-    privateDataId: 'priv',
     useSeed: true,
     routes: [{ name: 'not part of resume' }],
     totalWrites: 9,
@@ -468,7 +466,7 @@ describe('the resume sent to the server', () => {
 
   it('resume is the View and the parts of localState a reload restores', () => {
     const resume = buildResume('stroop', localState)
-    expect(Object.keys(resume).sort()).toEqual(['conditions', 'possibleConditions', 'privateDataId', 'randomizedRoutes', 'useSeed', 'verifiedVisibility', 'view', 'viewSteppers'])
+    expect(Object.keys(resume).sort()).toEqual(['conditions', 'possibleConditions', 'randomizedRoutes', 'useSeed', 'verifiedVisibility', 'view', 'viewSteppers'])
     expect(resume.view).toBe('stroop')
     expect(buildResume(undefined, localState).view).toBeNull()
   })
@@ -501,6 +499,7 @@ describe('the snapshot\'s text', () => {
       rev: 3,
       savedRev: 2,
       local: { totalWrites: 1 },
+      private: {},
       data,
       resume: JSON.parse(JSON.stringify(resume)),
     })

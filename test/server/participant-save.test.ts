@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm'
 import { seededDatabase, schema } from './db-helpers'
 import {
   MAX_BODY_BYTES, parseSaveBody, parseDataBody, parseJsonObject, statusFromData,
-  saveParticipant, savePrivateData, deleteParticipant,
+  saveParticipant, savePrivateData, deleteParticipant, parseOversizeReport, markOversize,
 } from '../../src/runtime/server/utils/participant-save'
 import { toPlainJSON } from '../../src/runtime/utils/plainJSON.js'
 import { BAD_VALUES } from '../fixtures/bad-values.js'
@@ -250,9 +250,51 @@ describe('private data', () => {
     expect(all[0]!.data).toEqual({ id: 'PROLIFIC1', more: true })
   })
 
+  it('parts not sent are kept: a page reloaded without its local copy cannot erase them', async () => {
+    await savePrivateData(t.db, 'p1', { recruitmentInfo: { prolific_id: 'abc' }, browserFingerprint: { ip: '1.2.3.4' } }, 'row-a')
+    // After a reload the page knows only what happened since
+    await savePrivateData(t.db, 'p1', { withdrawData: { reason: 'bored' } }, 'row-b')
+    expect((await rows())[0]!.data).toEqual({
+      recruitmentInfo: { prolific_id: 'abc' },
+      browserFingerprint: { ip: '1.2.3.4' },
+      withdrawData: { reason: 'bored' },
+    })
+    // A part that is sent replaces the stored one
+    await savePrivateData(t.db, 'p1', { browserFingerprint: { ip: '5.6.7.8' } }, 'row-c')
+    expect((await rows())[0]!.data).toMatchObject({ recruitmentInfo: { prolific_id: 'abc' }, browserFingerprint: { ip: '5.6.7.8' } })
+  })
+
   it('an unknown participant gets no row', async () => {
     expect(await savePrivateData(t.db, 'nobody', { a: 1 }, 'row-x')).toBe(null)
     expect(await t.db.select().from(schema.privateData).all()).toHaveLength(0)
+  })
+})
+
+describe('a record too large to send', () => {
+  it('recognizes the client\'s report, and only that', () => {
+    expect(parseOversizeReport({ oversize: true, dataBytes: 5_000_000 })).toEqual({ dataBytes: 5_000_000 })
+    expect(parseOversizeReport({ oversize: true })).toEqual({ dataBytes: null })
+    expect(parseOversizeReport({ oversize: true, dataBytes: 'big' })).toEqual({ dataBytes: null })
+    // A save is a save, whatever else it carries
+    expect(parseOversizeReport({ oversize: true, data: {} })).toBe(null)
+    expect(parseOversizeReport({ oversize: 'yes' })).toBe(null)
+    expect(parseOversizeReport({})).toBe(null)
+  })
+
+  it('is noted on the row without touching the record, and cleared by the next save', async () => {
+    await saveParticipant(t.db, 'p1', { data: { trials: [1, 2] }, rev: 3 })
+    expect(await markOversize(t.db, 'p1', 5_000_000)).toBe(true)
+    let stored = await row()
+    expect(stored).toMatchObject({ oversize: true, rev: 3, data: { trials: [1, 2] } })
+    expect(stored!.lastError).toContain('5000000')
+
+    await saveParticipant(t.db, 'p1', { data: { trials: [1] }, rev: 4 })
+    stored = await row()
+    expect(stored).toMatchObject({ oversize: false, lastError: null, rev: 4 })
+  })
+
+  it('an unknown participant is not found', async () => {
+    expect(await markOversize(t.db, 'nobody', 1)).toBe(false)
   })
 })
 

@@ -138,10 +138,10 @@ onBeforeUnmount(() => {
       <!-- Writes row -->
       <tr class="sd-table-row-base sd-table-row-even hidden sm:table-row">
         <td class="sd-table-cell-base sd-table-cell-left sd-label whitespace-nowrap">
-          Writes
+          Saves
         </td>
         <td class="sd-table-cell-base sd-table-cell-left sd-mono break-all">
-          {{ api.store.localState.totalWrites }} out of {{ api.config.maxWrites }} max
+          {{ api.store.localState.totalWrites }}
         </td>
       </tr>
       <!-- Last write row -->
@@ -153,13 +153,19 @@ onBeforeUnmount(() => {
           {{ last_write_time_string }}
         </td>
       </tr>
-      <!-- Auto save row -->
+      <!-- Sync status row -->
       <tr class="sd-table-row-base sd-table-row-even hidden sm:table-row">
         <td class="sd-table-cell-base sd-table-cell-left sd-label whitespace-nowrap">
-          Auto save
+          Sync
         </td>
-        <td class="sd-table-cell-base sd-table-cell-left sd-mono break-all">
-          {{ api.config.autoSave }}
+        <td
+          class="sd-table-cell-base sd-table-cell-left sd-mono break-all"
+          data-testid="sync-status"
+        >
+          {{ api.syncStatus.status }} (rev {{ api.store.browserEphemeral.savedRev }} of {{ api.store.browserEphemeral.rev }})
+          <template v-if="api.syncStatus.error">
+            <br>{{ api.syncStatus.error.message }}
+          </template>
         </td>
       </tr>
       <!-- Size row -->

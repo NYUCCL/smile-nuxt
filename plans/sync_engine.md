@@ -1,6 +1,6 @@
 # Sync engine, schema and telemetry (#36, then #72, #39, #40, #45)
 
-Status: steps 1 to 3 done (2026-11-16); steps 4–7 to do. Branch `sync-engine`, off main at
+Status: steps 1 to 4 done (2026-11-16); steps 5–7 to do. Branch `sync-engine`, off main at
 7f977fc. Everything here happens on that branch, in small commits with the
 tests passing at each, so any step can be reverted, or the branch dropped,
 without touching main.
@@ -65,8 +65,10 @@ Runs by itself on the client:
   off, 1 s doubling to 60 s, with jitter) and **stop** (400, 413: report, keep
   the snapshot locally, don't retry the same body). A 409 (the server has a
   newer `rev`) is handled as in "Two tabs" below.
-- Pauses while offline (`navigator.onLine`, `online`/`offline` events), and
-  sends at once when back.
+- Offline is a failed send like any other (the wait grows to 60 s); the
+  browser's `online` event sends at once. (First planned as a pause while
+  `navigator.onLine` is false; that flag can be wrong, and a send that fails
+  costs nothing.)
 - When the page is hidden or closing (`visibilitychange`, `pagehide`), sends
   at once with `keepalive` if the body fits (browsers cap keepalive bodies at
   64 KB); the local snapshot covers what doesn't.
@@ -116,8 +118,10 @@ another tab" notice, rather than both tabs overwriting each other. A
 - `api.syncStatus`: `saved` / `saving` / `offline` / `error`, with the last
   error. Shown in the dev tools; the experiment can show it too (on the
   thanks page, for example).
-- Deprecated, kept working with a warning: `autoSave`,
-  `VITE_MIN_WRITE_INTERVAL`, `VITE_MAX_WRITES`.
+- Deprecated: `VITE_AUTO_SAVE_DATA`, `VITE_MIN_WRITE_INTERVAL`,
+  `VITE_MAX_WRITES`. They are accepted and have no effect, with a warning in
+  the dev console and the config check. (A cap of 1000 writes would stop the
+  loop after an hour; `autoSave=false` would turn the engine off.)
 
 ## Bad data, layer by layer
 
@@ -421,7 +425,7 @@ browser ones as plain tests.
   separately by the stepper, and the data backup under `-data`).
   - `resume`: the current View (`view`), `viewSteppers`, `conditions`,
     `randomizedRoutes`, `possibleConditions`, `verifiedVisibility`,
-    `privateDataId`, `useSeed`.
+    `useSeed`.
   - `local`: values that stay on the device (`reset`, `totalWrites`,
     `lastWrite`, `approxDataSize`).
   - No longer stored: `routes` and `seqtimeline`, which the timeline rebuilds
@@ -491,12 +495,84 @@ browser ones as plain tests.
   which covers steps 2 and 3. It needs pnpm 10; under pnpm 12 the scaffolded
   project's install fails on esbuild's unapproved build script (not caused by
   this branch).
-- Left for step 4:
+- Left for later steps:
   - A participant whose creation request failed at consent has no record and
-    nothing is saved for them; nothing retries it.
+    nothing is saved for them; nothing retries it. (Done in step 4.)
   - A 404 on load still resets the participant and removes the local copy,
     as before.
   - Two tabs share the one local value and overwrite each other's (step 5).
+
+### What step 4 did (2026-11-16)
+- **Before it, a review of step 3** (Todd: "see if anything could be
+  simpler"): `chooseCopy` rewritten around one result builder, a redundant
+  field removed, and the stepper no longer asks for the snapshot itself (the
+  watcher already does). 44 lines fewer, same behavior.
+- **The loop** (`core/sync/loop.js`, plain functions and timers; the store
+  supplies `take` and `send`): a change is sent 1 s after the last one and at
+  most 5 s after the first unsent one; one request at a time, and what
+  changed meanwhile goes after it; at most 30 sends a minute.
+  - No answer, a timeout (30 s), 408, 429, 5xx: tried again after 1 s,
+    doubling to 60 s, with jitter (half to all of the wait).
+  - 400, 413 and other 4xx: that snapshot isn't sent again; the next change
+    is a new one and is tried.
+  - 409: nothing more is sent from this page (step 5 adds the reload and the
+    notice). A 409 for a send older than one already made is ignored.
+  - 403: the participant is reset, as before.
+  - Over 4 MB: not sent, kept locally, and the server is told
+    (`{ oversize: true, dataBytes }` sets the row's `oversize` and
+    `last_error`; the next save that fits clears them).
+  - Hidden or closing: what's unsent goes at once in a keepalive request when
+    it's under 60 KB, otherwise as an ordinary one.
+- **`saveData`'s throttle is gone** (the 2 s minimum, the 1000 write cap, the
+  deferred save). `api.sync()` sends now and resolves `{ ok, rev, error }`
+  with the server's answer, never rejecting; `saveData()` is the same
+  function. A View change calls it. `api.syncStatus` is
+  `{ status, error, retryAt }` with status `saved`, `pending`, `saving`,
+  `offline` or `error`; the dev tools' database panel shows it.
+- **Creating the participant**: if the request at consent fails, the
+  participant goes on, the record is kept in the local snapshot (with no
+  participant id), and the loop creates the row with its first save. A reload
+  in that state continues from the local copy.
+  The first save goes at consent, not a second later, so the private data
+  (recruitment ids) reaches the server at once. Not handled: a create whose
+  answer is lost after the server made the row leaves an empty row behind
+  (`rev` 0, `save_count` 0) when the loop creates another.
+- **Private data** (found while reading the save path; older than this
+  branch): after a reload the page's private data was empty, and the next
+  save replaced the server's copy with it, so recruitment ids, the
+  fingerprint and the withdraw form were erased by any reload. Now:
+  - the private data is in the local snapshot and is restored on reload (the
+    Thanks page builds the return link from it);
+  - the client sends only the parts that hold something, and the server
+    merges them into the stored row instead of replacing it;
+  - it is sent when it changes, not with every save (once per page load
+    even when empty, so every participant has a row); a change to it bumps
+    `rev` so the loop sends it.
+- **A step 3 bug, in development only**: Pinia's dev tools call each action
+  with a new wrapper object as `this`, and the store's snapshot bookkeeping
+  was keyed on it, so it was made again on every call: every snapshot looked
+  changed, `rev` rose with every write, and with the loop that became a save
+  per write. Keyed on the store's state object now, with a test that calls
+  actions the way Pinia does. Production builds were not affected. (Step 3's
+  figure of 10 writes per keypress was measured with this bug present.)
+- Removed: `privateDataId` (nothing read it; the server finds the row by
+  participant).
+- Tests: `test/core/sync/loop.test.js` (64, fake timers: timing, every status
+  class, backoff, offline, closing, the send limit, size, late and repeated
+  answers); the store's tests rewritten where they described the throttle
+  (private data, creating the participant, `sync()`); server tests for the
+  merge and the oversize report; `test/e2e/sync-loop.spec.ts` (8, in the
+  browser). The last 3 known failures from step 0 pass (saving during a View,
+  retrying, offline then online); none are left.
+- Left open:
+  - A 404 or 403 on load, and a 403 on save, still reset the participant and
+    remove the local copy (as before this branch). Creating a new row from
+    the local copy would keep the data; that changes what a wiped dev
+    database does, so it's Todd's call.
+  - The built-in Thanks, Withdraw and feedback views still call `saveData()`
+    and ignore the answer. The Thanks page could wait on `sync()` and show
+    `syncStatus`.
+  - The docs still describe `autoSave` and the write limits (step 6).
 
 Old clients: a project upgraded mid-collection has participants whose page
 still runs the old code until they reload. The server accepts the old body (no

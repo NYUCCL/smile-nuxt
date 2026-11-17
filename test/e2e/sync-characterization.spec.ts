@@ -8,19 +8,13 @@ import {
  * Step 0 of plans/sync_engine.md: how saving behaves today under reloads,
  * network trouble and bad data, in the real app.
  *
- * Each test states what the sync engine must do. Tests today's code fails are
- * marked `test.fail()` with the reason; when a later step makes one pass,
- * Playwright reports it as an unexpected pass: remove the mark.
+ * Each test states what the sync engine must do. The ones the code before
+ * the engine failed were marked `test.fail()`; steps 1, 2 and 4 made all of
+ * them pass, and the marks are gone.
  *
  * All of them use the Stroop view (9 trials) and check the participants
  * table, which is what researchers analyze.
  */
-
-/**
- * Known failures run as `test.fail()`. SHOW_KNOWN_FAILURES=1 runs them as
- * plain tests, to see why each one fails.
- */
-const KNOWN = !process.env.SHOW_KNOWN_FAILURES
 
 /** Run `body` inside the page with the smilestore */
 function inStore<T>(page: Page, body: string): Promise<T> {
@@ -116,7 +110,6 @@ test.describe('Sync characterization (plans/sync_engine.md, step 0)', () => {
 
   test.describe('network trouble', () => {
     test('trials reach the database during the view, without a view change', async ({ page }) => {
-      test.fail(KNOWN, 'today data is saved only on a view change or an explicit saveData()')
       participantId = await consent(page, db)
       await openStroop(page)
       for (let i = 0; i < 3; i++) await answerOne(page)
@@ -125,7 +118,6 @@ test.describe('Sync characterization (plans/sync_engine.md, step 0)', () => {
     })
 
     test('a save that fails is retried without anything else happening', async ({ page }) => {
-      test.fail(KNOWN, 'today a failed save is not retried; the data waits for the next save')
       participantId = await consent(page, db)
       await openStroop(page)
       await page.route(isDataSave(participantId), (route: Route) =>
@@ -165,7 +157,6 @@ test.describe('Sync characterization (plans/sync_engine.md, step 0)', () => {
     })
 
     test('offline mid-view, then online: the trials reach the database', async ({ page }) => {
-      test.fail(KNOWN, 'today nothing is sent when the connection comes back')
       participantId = await consent(page, db)
       await openStroop(page)
       await page.context().setOffline(true)

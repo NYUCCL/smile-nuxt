@@ -4,7 +4,7 @@
  *
  * One value in localStorage holds everything a reload needs:
  *
- *   { v, participantId, rev, savedRev, local, data, resume }
+ *   { v, participantId, rev, savedRev, local, private, data, resume }
  *
  * - `data`: the record (what analysis reads).
  * - `resume`: where the participant is: the current View, each view's stepper
@@ -12,6 +12,8 @@
  * - `rev`: goes up by one whenever `data` or `resume` changes. `savedRev` is
  *   the last `rev` the server confirmed.
  * - `local`: values that stay on this device (write counters, the reset flag).
+ * - `private`: the participant's private data (recruitment ids, the withdraw
+ *   form), so a reload doesn't lose it. The server has no way to read it back.
  *
  * `data` and `resume` are written together, in one `setItem`, so the record
  * and the position can't disagree after a reload.
@@ -31,7 +33,6 @@ export const RESUME_KEYS = [
   'randomizedRoutes',
   'possibleConditions',
   'verifiedVisibility',
-  'privateDataId',
   'useSeed',
 ]
 
@@ -58,7 +59,6 @@ const RESUME_CHECKS = {
   randomizedRoutes: isPlainObject,
   possibleConditions: isPlainObject,
   verifiedVisibility: v => typeof v === 'boolean',
-  privateDataId: v => v === null || typeof v === 'string' || typeof v === 'number',
   useSeed: v => typeof v === 'boolean',
 }
 
@@ -142,6 +142,7 @@ function readJSON(storage, key) {
  * @property {object|null} data - The record, or null when it can't be used
  * @property {object|null} resume - The usable parts of the position
  * @property {object} local - The device-only values
+ * @property {object|null} private - The private data (the parts that held something)
  * @property {string[]} notes - What was skipped, and why
  */
 
@@ -160,6 +161,7 @@ export function readLocalCopy(storage, key) {
     data: null,
     resume: null,
     local: {},
+    private: null,
     notes: [],
   }
   if (!storage || typeof storage.getItem !== 'function') return copy
@@ -181,6 +183,7 @@ export function readLocalCopy(storage, key) {
     copy.resume = cleaned.resume
     copy.notes.push(...cleaned.notes)
     copy.local = cleanLocal(value.local)
+    if (isPlainObject(value.private)) copy.private = value.private
     return copy
   }
 
@@ -393,6 +396,25 @@ export function resumeForServer(resume) {
 }
 
 /**
+ * The parts of the private data that hold something. Empty parts are left
+ * out so that a page that never learned them (a reload without the local
+ * copy) can't replace what the server has: the server merges what it's sent.
+ * @param {object} priv - store.private
+ * @returns {object} The parts to keep and send
+ */
+export function privateParts(priv) {
+  const parts = {}
+  if (!isPlainObject(priv)) return parts
+  for (const key of Object.keys(priv)) {
+    const value = priv[key]
+    if (value === null || value === undefined) continue
+    if (isPlainObject(value) && Object.keys(value).length === 0) continue
+    parts[key] = value
+  }
+  return parts
+}
+
+/**
  * JSON text for the two parts that carry a `rev`. Never throws.
  * @param {object} data - The record, or null when it isn't part of the snapshot yet
  * @param {object} resume - The position
@@ -423,14 +445,16 @@ export function serializeParts(data, resume) {
  * @param {object} parts.local - The device-only values (others are left out)
  * @param {string} parts.dataText - The record's JSON text
  * @param {string} parts.resumeText - The position's JSON text
+ * @param {string} [parts.privateText] - The private data's JSON text
  * @returns {string} JSON text
  */
-export function snapshotText({ participantId, rev, savedRev, local, dataText, resumeText }) {
+export function snapshotText({ participantId, rev, savedRev, local, dataText, resumeText, privateText }) {
   return '{"v":' + SNAPSHOT_VERSION
     + ',"participantId":' + JSON.stringify(typeof participantId === 'string' ? participantId : null)
     + ',"rev":' + (isCount(rev) ? rev : 0)
     + ',"savedRev":' + (isCount(savedRev) ? savedRev : 0)
     + ',"local":' + safeStringify(cleanLocal(local)).text
+    + ',"private":' + (privateText || '{}')
     + ',"data":' + dataText
     + ',"resume":' + resumeText
     + '}'

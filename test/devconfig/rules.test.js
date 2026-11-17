@@ -97,8 +97,12 @@ describe('deploySummary', () => {
     expect(line({ deploy: { SMILE_PUBLIC_PRESENTATION: 'true' } }, 'presentation').status).toBe('check')
   })
 
-  it('auto-save off is a risk; a Turso URL in tracked files is ok', () => {
-    expect(line({ deploy: { VITE_AUTO_SAVE_DATA: 'false' } }, 'saving').status).toBe('risk')
+  it('the old saving settings have no effect and are named; a Turso URL in tracked files is ok', () => {
+    const saving = line({ deploy: { VITE_AUTO_SAVE_DATA: 'false', VITE_MAX_WRITES: '10' } }, 'saving')
+    expect(saving.status).toBe('ok')
+    expect(saving.explanation).toContain('VITE_AUTO_SAVE_DATA, VITE_MAX_WRITES no longer have an effect')
+    expect(saving.recommendation).toBe('Remove VITE_AUTO_SAVE_DATA, VITE_MAX_WRITES.')
+    expect(line({ deploy: {} }, 'saving').recommendation).toBeUndefined()
     expect(line({ deploy: { TURSO_DATABASE_URL: 'libsql://x.turso.io' } }, 'database').status).toBe('ok')
   })
 })

@@ -754,12 +754,34 @@ export class SmileAPI {
   }
 
   /**
-   * Saves the current data
-   * @param {boolean} force - Whether to force save
-   * @returns {void}
+   * Sends the participant's data to the server now and waits for the answer.
+   * Data is saved by itself about a second after every change, so this is
+   * only for a point where the experiment needs to know the data has arrived
+   * (before sending the participant back to the recruitment site, for
+   * example). Never throws.
+   * @returns {Promise<{ ok: boolean, rev: number, error: string|null }>} `ok`
+   *   is true when the server has everything recorded so far
    */
-  saveData(force) {
-    this.store.saveData(force)
+  sync() {
+    return this.store.sync()
+  }
+
+  /**
+   * The older name for sync(). Saving no longer needs to be asked for.
+   * @returns {Promise<{ ok: boolean, rev: number, error: string|null }>} As sync()
+   */
+  saveData() {
+    return this.store.sync()
+  }
+
+  /**
+   * Whether the participant's data has reached the server (reactive):
+   * `{ status, error, retryAt }` with status 'saved', 'pending' (a change is
+   * waiting to be sent), 'saving', 'offline' or 'error'.
+   * @returns {{ status: string, error: object|null, retryAt: number|null }} The sync loop's state
+   */
+  get syncStatus() {
+    return this.store.browserEphemeral.sync
   }
 
   /**

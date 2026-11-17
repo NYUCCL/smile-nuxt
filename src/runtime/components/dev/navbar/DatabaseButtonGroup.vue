@@ -30,7 +30,11 @@ const database_tooltip = computed(() => {
   else {
     msg += 'No record yet | '
   }
-  if (api.store.browserEphemeral.unsavedChanges) {
+  const sync = api.syncStatus
+  if (sync.error) {
+    msg += (sync.status === 'offline' ? 'Offline: ' : 'Save failed: ') + sync.error.message + ' '
+  }
+  else if (api.store.browserEphemeral.unsavedChanges) {
     msg += 'Unsaved changes '
   }
   else {

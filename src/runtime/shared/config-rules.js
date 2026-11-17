@@ -192,21 +192,15 @@ export function deploySummary(ctx) {
     recommendation: 'Set SMILE_AUTH_SECRET in Vercel to a long random string (e.g. openssl rand -hex 32).',
   })
 
-  const autoSave = norm(d.VITE_AUTO_SAVE_DATA) !== 'false'
-  const interval = Number(d.VITE_MIN_WRITE_INTERVAL ?? 2000)
-  const writes = Number(d.VITE_MAX_WRITES ?? 1000)
-  lines.push(autoSave
-    ? {
-        id: 'saving', question: 'Does data save?', status: 'ok', keys: ['VITE_AUTO_SAVE_DATA', 'VITE_MIN_WRITE_INTERVAL', 'VITE_MAX_WRITES'],
-        answer: 'Yes, automatically.',
-        explanation: `At most one save every ${Number.isFinite(interval) ? interval : 2000} ms, and up to ${Number.isFinite(writes) ? writes : 1000} saves per visit.`,
-      }
-    : {
-        id: 'saving', question: 'Does data save?', status: 'risk', keys: ['VITE_AUTO_SAVE_DATA'],
-        answer: 'Only where the design saves explicitly.',
-        explanation: 'VITE_AUTO_SAVE_DATA is false, so nothing is saved as participants go.',
-        recommendation: 'Remove VITE_AUTO_SAVE_DATA (or set it to true) unless your design calls api.saveData() itself.',
-      })
+  const oldSaving = ['VITE_AUTO_SAVE_DATA', 'VITE_MAX_WRITES', 'VITE_MIN_WRITE_INTERVAL'].filter(key => d[key] !== undefined && d[key] !== '')
+  lines.push({
+    id: 'saving', question: 'Does data save?', status: 'ok', keys: oldSaving,
+    answer: 'Yes, automatically.',
+    explanation: 'A change is sent to the server a second after the last one, and at least every 5 seconds while changes keep coming. '
+      + 'A failed save is tried again.'
+      + (oldSaving.length ? ` ${oldSaving.join(', ')} no longer ${oldSaving.length > 1 ? 'have' : 'has'} an effect.` : ''),
+    ...(oldSaving.length ? { recommendation: `Remove ${oldSaving.join(', ')}.` } : {}),
+  })
 
   return lines
 }

@@ -202,8 +202,11 @@ test.describe('Snapshot and resume (plans/sync_engine.md, step 3)', () => {
     test.setTimeout(90_000)
     participantId = await consent(page, db)
     await openStroop(page)
-    await answerTrials(page, 3) // not saved: the old code saved on a view change
+    await answerTrials(page, 3)
     const word = await currentWord(page)
+    // This page stands in for the old code: it sends nothing more from here
+    await inStore(page, 'return store.sync()')
+    await inStore(page, 'store.stopSnapshots()')
 
     // What the old code kept: localState under the key, the data backup
     // beside it, and a server row with no rev and no resume
@@ -214,7 +217,8 @@ test.describe('Snapshot and resume (plans/sync_engine.md, step 3)', () => {
       [key]: JSON.stringify({ ...oldLocalState, ...snapshot.local, routes: [], seqtimeline: [] }),
       [`${key}-data`]: JSON.stringify({ participantId, rev: 6, savedRev: 1, data: snapshot.data }),
     }
-    await db.execute({ sql: 'UPDATE participants SET rev = 0, resume = NULL WHERE id = ?', args: [participantId] })
+    // The old code saved on a view change, so the server has none of the trials
+    await db.execute({ sql: 'UPDATE participants SET rev = 0, resume = NULL, data = json_remove(data, \'$.pageData_stroop\') WHERE id = ?', args: [participantId] })
 
     const other = await sameParticipant(browser, page, baseURL!, entries)
     await other.goto('/stroop')

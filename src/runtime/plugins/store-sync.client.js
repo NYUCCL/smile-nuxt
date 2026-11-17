@@ -67,6 +67,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   watch(
     () => [
       store.data,
+      store.private,
       store.cookieState.lastRoute,
       store.cookieState.participantId,
       store.browserEphemeral.dataLoaded,
@@ -78,8 +79,8 @@ export default defineNuxtPlugin((nuxtApp) => {
     { deep: true },
   )
 
-  // --- 5. When the page is hidden or closing ---
-  // Write the snapshot at once, then a best-effort save to the server.
+  // --- 5. When the page is hidden or closing, or the network changes ---
+  // Write the snapshot at once and send what's unsent (core/sync/loop.js).
   const captureNow = () => {
     try {
       store.captureSnapshot()
@@ -88,11 +89,27 @@ export default defineNuxtPlugin((nuxtApp) => {
       console.warn('[store-sync] Could not write the local snapshot:', e)
     }
   }
-  window.addEventListener('pagehide', () => {
+  const hidden = () => {
     captureNow()
-    store.saveOnClose()
-  })
+    try {
+      store.saveOnClose()
+    }
+    catch (e) {
+      console.warn('[store-sync] Could not send the snapshot:', e)
+    }
+  }
+  window.addEventListener('pagehide', hidden)
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') captureNow()
+    if (document.visibilityState === 'hidden') hidden()
   })
+  // Settings from before the sync loop, which no longer do anything
+  if (import.meta.dev) {
+    const old = ['VITE_AUTO_SAVE_DATA', 'VITE_MAX_WRITES', 'VITE_MIN_WRITE_INTERVAL'].filter(key => import.meta.env[key] !== undefined && import.meta.env[key] !== '')
+    if (old.length) {
+      console.warn(`[smile] ${old.join(', ')} no longer ${old.length > 1 ? 'have' : 'has'} an effect: data is saved by itself about a second after every change. Remove ${old.length > 1 ? 'them' : 'it'} from your env files.`)
+    }
+  }
+
+  window.addEventListener('online', () => store.networkChanged(true))
+  window.addEventListener('offline', () => store.networkChanged(false))
 })
