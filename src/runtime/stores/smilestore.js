@@ -19,23 +19,24 @@ import { defineStore } from 'pinia'
 import { useCookie, navigateTo } from '#imports'
 import appconfig from '../core/config.js'
 import useLog from './log.js'
-import { toPlainJSON, safeStringify, sendable, addWarnings } from '../utils/plainJSON.js'
+import { toPlainJSON, sendable, addWarnings } from '../utils/plainJSON.js'
+import {
+  readLocalCopy, chooseCopy, repairData, buildResume, resumeForServer,
+  serializeParts, snapshotText, saveBodyText, legacyDataKey, isPlainObject,
+  RESUME_KEYS, LOCAL_KEYS,
+} from '../core/sync/snapshot.js'
 
 // Cookie max age: 30 days in seconds
 const COOKIE_MAX_AGE = 86400 * 30
 
 /**
- * localStorage key for the local backup of store.data (#42).
- *
- * store.data only reaches the database when saveData() runs (on navigation
- * between views, or explicitly). Without a local copy, anything recorded since
- * the last save (e.g. stepper trials) was lost on reload: loadData() replaced
- * it with the older DB copy. The backup is { participantId, rev, savedRev, data }:
- * every change to store.data bumps rev, a successful save records the rev it
- * sent as savedRev, and on load a backup with rev > savedRev (unsaved changes)
- * for the same participant wins over the DB copy and is saved immediately.
+ * localStorage key of the participant's snapshot (core/sync/snapshot.js):
+ * `{ v, participantId, rev, savedRev, local, data, resume }`, the record and
+ * the position together in one value. Every change to either bumps `rev`
+ * and rewrites the value; on load the copy with the higher `rev`, local or
+ * server, is used.
  */
-const dataBackupKey = `${appconfig.localStorageKey}-data`
+const snapshotKey = appconfig.localStorageKey
 
 // Browsers cap the body of keepalive requests (the close-time save) at 64 KiB.
 const KEEPALIVE_MAX_BYTES = 60_000
@@ -43,14 +44,44 @@ const KEEPALIVE_MAX_BYTES = 60_000
 // A save deferred by minWriteInterval (at most one pending at a time).
 let deferredSaveTimer = null
 
-function readDataBackup() {
-  if (typeof localStorage === 'undefined') return null
+// The local snapshot is written a moment after a change, so that everything
+// one event does (a keypress sets the step's data, records the trial and moves
+// to the next step, in several separate microtasks) ends in one write. The
+// wait is at least SNAPSHOT_MIN_DELAY ms and grows with what the last write
+// cost, so that writing a large record takes at most about a tenth of the
+// main thread's time. The page being hidden or closed, and every save to the
+// server, write at once.
+const SNAPSHOT_MIN_DELAY = 4
+const SNAPSHOT_MAX_DELAY = 2000
+const SNAPSHOT_COST_FACTOR = 10
+
+const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now())
+
+// Waits (ms) before asking the server again when a load found no copy at all
+export const LOAD_RETRY_DELAYS = [300, 900]
+
+/**
+ * Per store: the texts of the last snapshot captured, to tell whether
+ * anything changed, and what was last written. Not reactive (the record's
+ * text can be large).
+ */
+const captured = new WeakMap()
+
+function captureState(store) {
+  let state = captured.get(store)
+  if (!state) {
+    state = { dataText: null, resumeText: null, written: null, warnedCleaned: false, warnedWrite: false }
+    captured.set(store, state)
+  }
+  return state
+}
+
+function browserStorage() {
   try {
-    const raw = localStorage.getItem(dataBackupKey)
-    return raw ? JSON.parse(raw) : null
+    return typeof localStorage === 'undefined' ? null : localStorage
   }
   catch {
-    return null
+    return null // storage blocked by the browser's settings
   }
 }
 
@@ -143,6 +174,13 @@ const initLocalState = {
   randomizedRoutes: {},
 }
 
+/**
+ * A new copy of the defaults. They hold objects (viewSteppers, conditions),
+ * which must not be shared between a store and the one that replaces it
+ * after a reset.
+ */
+const freshLocalState = () => structuredClone(initLocalState)
+
 const initBrowserEphemeral = {
   currentViewDone: false,
   forceNavigate: false,
@@ -150,10 +188,14 @@ const initBrowserEphemeral = {
   steppers: {},
   dataLoaded: false,
   unsavedChanges: true,
-  // Revision counters for the local data backup (see dataBackupKey):
-  // dataRev counts changes to store.data; savedRev is the last rev saved to the DB.
-  dataRev: 0,
+  // The snapshot's counters (see snapshotKey): rev goes up with every change
+  // to the record or the position; savedRev is the last rev the server has.
+  rev: 0,
   savedRev: 0,
+  // A known participant's load was tried and neither copy could be read
+  loadFailed: false,
+  // Why the last write of the local copy failed (null when it worked)
+  localCopyError: null,
   urls: {
     prolific: '/welcome/prolific?PROLIFIC_PID=XXXX&STUDY_ID=XXXX&SESSION_ID=XXXXX',
     cloudresearch:
@@ -169,7 +211,7 @@ const initBrowserEphemeral = {
 }
 
 // Export initial values so plugins can reference them
-export { initCookieState, initLocalState, initDev, COOKIE_MAX_AGE, dataBackupKey }
+export { initCookieState, initLocalState, initDev, COOKIE_MAX_AGE, snapshotKey }
 
 /**
  * @module smilestore
@@ -203,12 +245,12 @@ export default defineStore('smilestore', {
     }
 
     // Tier 2: plain defaults; client sync plugin patches from localStorage and writes back
-    const localState = { ...initLocalState }
+    const localState = freshLocalState()
 
     return {
       cookieState,
       localState,
-      browserEphemeral: { ...initBrowserEphemeral },
+      browserEphemeral: structuredClone(initBrowserEphemeral),
       dev: useCookie(`smile_${appconfig.codeName}_dev`, { default: () => ({ ...initDev }), maxAge: 86400 * 365 }).value ?? { ...initDev },
       private: {
         recruitmentInfo: {},
@@ -500,74 +542,151 @@ export default defineStore('smilestore', {
       const log = useLog()
       this.cookieState.knownUser = true
       this.data.seedID = this.cookieState.seedID
+      let id
       try {
-        const { id } = await $fetch('/api/participants', {
+        const created = await $fetch('/api/participants', {
           method: 'POST',
-          body: { data: this.data },
+          body: { data: sendable(this.data) },
         })
-        this.cookieState.participantId = id
-        const { id: privateId } = await $fetch(`/api/participants/${id}/private`, {
-          method: 'POST',
-          body: { data: this.private },
-        })
-        this.localState.privateDataId = privateId
-        this.setDataLoaded()
+        id = created.id
       }
       catch (err) {
         log.error('SMILESTORE: could not create participant record: ' + err)
+        return
+      }
+      // The record exists from here on, whatever happens to the private one
+      this.cookieState.participantId = id
+      this.browserEphemeral.savedRev = 0
+      this.setDataLoaded()
+      this.captureSnapshot()
+      try {
+        const { id: privateId } = await $fetch(`/api/participants/${id}/private`, {
+          method: 'POST',
+          body: { data: sendable(this.private) },
+        })
+        this.localState.privateDataId = privateId
+      }
+      catch (err) {
+        // The next save sends the private data again (the server creates the row)
+        log.error('SMILESTORE: could not create private data record: ' + err)
       }
     },
 
+    /**
+     * Puts a stored `resume` into the store: the stepper states, conditions
+     * and the other values a reload restores, and the current View.
+     * @param {object} resume - As cleaned by core/sync/snapshot.js
+     */
+    applyResume(resume) {
+      if (!isPlainObject(resume)) return
+      for (const key of RESUME_KEYS) {
+        if (Object.prototype.hasOwnProperty.call(resume, key)) this.localState[key] = resume[key]
+      }
+      // The cookie's View is a hint for server rendering; the snapshot's wins
+      if (typeof resume.view === 'string' && resume.view) this.cookieState.lastRoute = resume.view
+    },
+
+    /**
+     * Reads the local snapshot when the page starts (the store-sync plugin)
+     * and restores the position from it. The record itself is restored by
+     * loadData(), once the server's copy can be compared with it. A copy that
+     * can't be read, or belongs to another participant, is skipped.
+     */
+    restoreLocal() {
+      const storage = browserStorage()
+      if (!storage) return
+      const log = useLog()
+      const local = readLocalCopy(storage, snapshotKey)
+      for (const note of local.notes) log.warn('SMILESTORE: ' + note)
+      if (local.format === 'none' || local.format === 'bad') return
+      const participantId = this.cookieState.participantId || null
+      if (local.resumeParticipantId !== undefined && local.resumeParticipantId !== participantId) {
+        log.warn('SMILESTORE: the local copy belongs to another participant, starting without it')
+        return
+      }
+      for (const key of LOCAL_KEYS) {
+        if (Object.prototype.hasOwnProperty.call(local.local, key)) this.localState[key] = local.local[key]
+      }
+      if (local.resume) this.applyResume(local.resume)
+      if (local.format === 'v1') {
+        this.browserEphemeral.rev = local.rev
+        this.browserEphemeral.savedRev = local.savedRev
+      }
+    },
+
+    /**
+     * Loads a known participant's record when the page starts: reads the
+     * local copy and the server's, and uses the one with the higher `rev`,
+     * record and position together (core/sync/snapshot.js, chooseCopy). A
+     * copy that is missing or damaged is skipped. Never throws.
+     */
     async loadData() {
-      if (this.cookieState.participantId) {
+      const participantId = this.cookieState.participantId
+      if (!participantId) return
+      const log = useLog()
+      const storage = browserStorage()
+      const hadFailed = this.browserEphemeral.loadFailed
+
+      let choice
+      for (let attempt = 0; ; attempt += 1) {
+        let server
         try {
-          const result = await $fetch(`/api/participants/${this.cookieState.participantId}`)
-          if (result?.data) {
-            // Prefer the local backup if it holds changes the DB never got
-            // (e.g. trials recorded before a reload). This browser is the only
-            // writer for this participant, so an unsaved backup is newer (#42).
-            const backup = readDataBackup()
-            const restore = backup
-              && backup.participantId === this.cookieState.participantId
-              && backup.rev > backup.savedRev
-              && backup.data
-            if (restore) {
-              useLog().warn(
-                `SMILESTORE: restoring unsaved data from local backup (rev ${backup.rev}, last saved ${backup.savedRev})`,
-              )
-              this.browserEphemeral.dataRev = backup.rev
-              this.browserEphemeral.savedRev = backup.savedRev
-              this.data = backup.data
-            }
-            else {
-              const rev = backup?.participantId === this.cookieState.participantId ? backup.rev : 0
-              this.browserEphemeral.dataRev = rev
-              this.browserEphemeral.savedRev = rev
-              this.data = result.data
-            }
-            this.localState.approxDataSize = safeStringify(this.data).text.length
-            this.setDataLoaded()
-            this.writeDataBackup()
-            if (restore) await this.saveData()
-          }
-          else {
-            // Record exists but has no data — treat as orphaned
-            this.resetOrphanedUser()
-          }
+          const result = await $fetch(`/api/participants/${participantId}`)
+          server = { ok: true, data: result?.data, rev: result?.rev, resume: result?.resume }
         }
         catch (err) {
           if (err?.statusCode === 404 || err?.statusCode === 403) {
             // User in cookie but not in DB or token invalid — reset everything
-            const log = useLog()
             log.warn('SMILESTORE: Participant not found or token invalid, resetting to new user')
             this.resetOrphanedUser()
+            return
           }
-          else {
-            const log = useLog()
-            log.error('SMILESTORE: could not load participant data: ' + err)
-          }
+          log.error('SMILESTORE: could not load participant data: ' + err)
+          server = { ok: false }
         }
+        const local = storage ? readLocalCopy(storage, snapshotKey) : { format: 'none', notes: [] }
+        choice = chooseCopy({ participantId, local, server })
+        // With no copy at all, try the server again before giving up
+        if (choice.source !== 'none' || attempt >= LOAD_RETRY_DELAYS.length) break
+        await new Promise(resolve => setTimeout(resolve, LOAD_RETRY_DELAYS[attempt]))
       }
+      // The participant was reset, or loaded another way, while this waited
+      if (this.cookieState.participantId !== participantId || this.browserEphemeral.dataLoaded) return
+
+      for (const note of choice.notes) log.warn('SMILESTORE: ' + note)
+
+      if (choice.source === 'none') {
+        // Nothing to load from. The page goes on (the next navigation tries
+        // again); the local copy keeps the position but not this record, so
+        // it can never be taken for the participant's real one.
+        this.browserEphemeral.loadFailed = true
+        return
+      }
+
+      if (hadFailed && typeof window !== 'undefined') {
+        // The page went on without the record after an earlier failure.
+        // Start it again from the copy that has now been read, so the record
+        // and the position on screen agree.
+        log.warn('SMILESTORE: participant data loaded after an earlier failure, reloading the page')
+        window.location.reload()
+        return
+      }
+
+      if (choice.data) {
+        const repaired = repairData(choice.data, this.data)
+        for (const note of repaired.notes) log.warn('SMILESTORE: loaded record repaired: ' + note)
+        this.data = repaired.data
+      }
+      if (choice.resume) this.applyResume(choice.resume)
+      this.browserEphemeral.rev = choice.rev
+      this.browserEphemeral.savedRev = choice.savedRev
+      this.browserEphemeral.loadFailed = false
+      if (choice.source === 'local' && choice.send) {
+        log.warn(`SMILESTORE: using the local copy (rev ${choice.rev}); the server has rev ${choice.savedRev}`)
+      }
+      this.setDataLoaded()
+      this.captureSnapshot()
+      if (choice.send) await this.saveData()
     },
 
     /**
@@ -581,14 +700,14 @@ export default defineStore('smilestore', {
       // Reset cookie state to defaults
       this.clearSmileCookies()
 
-      // Clear localStorage
-      if (typeof localStorage !== 'undefined') {
-        localStorage.removeItem(appconfig.localStorageKey)
-      }
-      this.clearDataBackup()
+      // Clear the local copy
+      this.clearLocalSnapshot()
 
       // Reset local state to defaults
-      Object.assign(this.localState, { ...initLocalState })
+      Object.assign(this.localState, freshLocalState())
+      this.browserEphemeral.rev = 0
+      this.browserEphemeral.savedRev = 0
+      this.browserEphemeral.loadFailed = false
 
       // Redirect to welcome
       navigateTo('/welcome')
@@ -653,27 +772,26 @@ export default defineStore('smilestore', {
           deferredSaveTimer = null
         }
 
-        // Changes made while the request is in flight stay unsaved (rev > sentRev).
-        const sentRev = this.browserEphemeral.dataRev
+        // The snapshot as it is now: its rev, and exactly the text that rev
+        // names. Changes made while the request is in flight get a higher rev
+        // and stay unsaved.
+        const snap = this.captureSnapshot()
+        if (!snap || !snap.includeData) {
+          log.error('SMILESTORE: could not prepare the record for saving. Data NOT saved.')
+          return
+        }
+        const sentRev = snap.rev
+        const participantId = this.cookieState.participantId
         try {
-          await $fetch(`/api/participants/${this.cookieState.participantId}`, {
+          await $fetch(`/api/participants/${participantId}`, {
             method: 'PATCH',
-            // A value JSON can't hold (written to api.data directly) is
-            // cleaned here rather than stopping every later save
-            body: { data: sendable(this.data) },
+            headers: { 'Content-Type': 'application/json' },
+            body: saveBodyText({ rev: sentRev, dataText: snap.dataText, resumeText: snap.serverResumeText() }),
           })
           this.browserEphemeral.savedRev = Math.max(this.browserEphemeral.savedRev, sentRev)
-          this.writeDataBackup()
-          if (this.localState.privateDataId) {
-            await $fetch(`/api/participants/${this.cookieState.participantId}/private`, {
-              method: 'PATCH',
-              body: { data: sendable(this.private) },
-            })
-          }
-          this.localState.approxDataSize = safeStringify(this.data).text.length
           this.localState.totalWrites += 1
           this.localState.lastWrite = Date.now()
-          this.browserEphemeral.unsavedChanges = this.browserEphemeral.dataRev > this.browserEphemeral.savedRev
+          this.captureSnapshot() // records savedRev in the local copy
           log.success('SMILESTORE: saveData() successful (force = ' + force + ')')
         }
         catch (err) {
@@ -681,9 +799,25 @@ export default defineStore('smilestore', {
             log.warn('SMILESTORE: Participant token invalid during save, resetting to new user')
             this.resetOrphanedUser()
           }
+          else if (err?.statusCode === 409) {
+            // Another copy of this participant (a second tab) saved something
+            // newer. Handling it is step 5 of plans/sync_engine.md.
+            log.error(`SMILESTORE: save refused, the server has a newer copy (rev ${err?.data?.data?.rev ?? '?'}, sent ${sentRev})`)
+          }
           else {
             log.error('SMILESTORE: error saving data: ' + err)
           }
+          return
+        }
+        try {
+          // Always sent: the server creates the row if the first POST was lost
+          await $fetch(`/api/participants/${participantId}/private`, {
+            method: 'PATCH',
+            body: { data: sendable(this.private) },
+          })
+        }
+        catch (err) {
+          log.error('SMILESTORE: error saving private data: ' + err)
         }
       }
       else if (!this.data.consented && !this.cookieState.consented) {
@@ -695,58 +829,171 @@ export default defineStore('smilestore', {
     },
 
     /**
-     * Called (by the store-sync plugin) whenever store.data changes.
-     * An in-place change is a new, unsaved revision; a replaced object (from
-     * loadData) is not. Either way the local backup is refreshed.
-     * @param {object} opts
-     * @param {boolean} opts.replaced - store.data was swapped for a new object
+     * Takes the snapshot as it is now and writes it to localStorage as one
+     * value, now. Changes ask for it with requestSnapshot(), which waits a
+     * moment so one event ends in one write; this is called directly when the
+     * page is hidden or closing and before anything is sent.
+     *
+     * `rev` goes up by one when the record or the position differs from the
+     * last snapshot taken, so calling this again without a change does
+     * nothing. Never throws: a full or blocked localStorage is reported and
+     * the copy in memory is still sent to the server.
+     *
+     * @returns {{ rev: number, includeData: boolean, dataText: string,
+     *   resumeText: string, serverResumeText: Function }|null} The snapshot's
+     *   texts, or null when nothing was taken
      */
-    noteDataChanged({ replaced }) {
-      if (!replaced) {
-        this.browserEphemeral.dataRev += 1
-        this.browserEphemeral.unsavedChanges = true
+    captureSnapshot() {
+      if (typeof window === 'undefined') return null
+      const state = captureState(this)
+      if (state.stopped) return null
+      if (state.timer) {
+        clearTimeout(state.timer) // this write covers the one that was waiting
+        state.timer = null
       }
-      this.writeDataBackup()
+      const started = now()
+      const participantId = this.cookieState.participantId || null
+      const loaded = this.browserEphemeral.dataLoaded
+      // A known participant whose stored copy hasn't been read yet: writing
+      // now would replace it with the empty record the page starts with.
+      if (participantId && !loaded && !this.browserEphemeral.loadFailed) return null
+
+      const log = useLog()
+      // The record is part of the snapshot once it's the participant's own
+      // (created, or loaded). Before that only the position is kept.
+      const includeData = !!participantId && loaded
+      const resume = buildResume(this.cookieState.lastRoute, this.localState)
+      const parts = serializeParts(includeData ? this.data : null, resume)
+      if (!parts.ok) {
+        // Keep the last snapshot that worked
+        if (!state.warnedFailed) {
+          state.warnedFailed = true
+          log.error('SMILESTORE: the record could not be turned into JSON; keeping the last snapshot that could')
+        }
+        return null
+      }
+      if (parts.cleaned && !state.warnedCleaned) {
+        state.warnedCleaned = true
+        log.warn('SMILESTORE: the record holds a value JSON can\'t store (written to api.data directly?); it is cleaned each time the record is saved')
+      }
+
+      if (parts.dataText !== state.dataText || parts.resumeText !== state.resumeText) {
+        this.browserEphemeral.rev += 1
+        state.dataText = parts.dataText
+        state.resumeText = parts.resumeText
+      }
+      if (includeData) this.localState.approxDataSize = parts.dataText.length
+      const rev = this.browserEphemeral.rev
+      this.browserEphemeral.unsavedChanges = rev > this.browserEphemeral.savedRev
+
+      const storage = browserStorage()
+      if (storage) {
+        const text = snapshotText({
+          participantId,
+          rev,
+          savedRev: this.browserEphemeral.savedRev,
+          local: this.localState,
+          dataText: parts.dataText,
+          resumeText: parts.resumeText,
+        })
+        if (text !== state.written) {
+          try {
+            storage.setItem(snapshotKey, text)
+            state.written = text
+            state.warnedWrite = false
+            if (this.browserEphemeral.localCopyError) this.browserEphemeral.localCopyError = null
+            if (!state.legacyRemoved) {
+              state.legacyRemoved = true
+              storage.removeItem(legacyDataKey(snapshotKey)) // the old data backup
+            }
+          }
+          catch (err) {
+            // e.g. quota exceeded: saving to the server still works, only reload safety is lost
+            state.written = null
+            this.browserEphemeral.localCopyError = String(err)
+            if (!state.warnedWrite) {
+              state.warnedWrite = true
+              log.warn('SMILESTORE: could not write the local copy: ' + err)
+            }
+          }
+        }
+      }
+
+      state.cost = now() - started
+      return {
+        rev,
+        includeData,
+        dataText: parts.dataText,
+        resumeText: parts.resumeText,
+        serverResumeText: () => serializeParts(null, resumeForServer(resume)).resumeText,
+      }
     },
 
     /**
-     * Writes store.data and its save state to the local backup (#42).
-     * Only for a participant with a DB record; before consent there is
-     * nothing to restore into.
+     * Asks for the snapshot to be written soon: once, a few milliseconds
+     * after the first of a run of changes (longer when writing is slow; see
+     * SNAPSHOT_MIN_DELAY). Called by the store-sync plugin's watcher on
+     * every change to the record or the position, and by the stepper each
+     * time it saves its state, which is once per assignment to step data.
+     * captureSnapshot() writes at once and cancels the wait.
      */
-    writeDataBackup() {
-      if (typeof localStorage === 'undefined' || !this.cookieState.participantId) return
-      try {
-        localStorage.setItem(dataBackupKey, safeStringify({
-          participantId: this.cookieState.participantId,
-          rev: this.browserEphemeral.dataRev,
-          savedRev: this.browserEphemeral.savedRev,
-          data: this.data,
-        }).text)
-      }
-      catch (err) {
-        // e.g. quota exceeded: the DB save path still works, only reload safety is lost
-        useLog().warn('SMILESTORE: could not write local data backup: ' + err)
-      }
+    requestSnapshot() {
+      if (typeof window === 'undefined') return
+      const state = captureState(this)
+      if (state.timer || state.stopped) return
+      const delay = Math.min(SNAPSHOT_MAX_DELAY, Math.max(SNAPSHOT_MIN_DELAY, (state.cost || 0) * SNAPSHOT_COST_FACTOR))
+      state.timer = setTimeout(() => {
+        state.timer = null
+        try {
+          this.captureSnapshot()
+        }
+        catch (err) {
+          useLog().warn('SMILESTORE: could not write the local copy: ' + err)
+        }
+      }, delay)
     },
 
-    /** Removes the local data backup (on reset or when the participant is cleared). */
-    clearDataBackup() {
-      if (typeof localStorage === 'undefined') return
-      localStorage.removeItem(dataBackupKey)
+    /**
+     * Stops writing the snapshot, for good. Called just before the stored
+     * state is removed and the page reloaded (a reset), so that the write
+     * made as the page closes doesn't put the old state back.
+     */
+    stopSnapshots() {
+      const state = captureState(this)
+      state.stopped = true
+      if (state.timer) clearTimeout(state.timer)
+      state.timer = null
+    },
+
+    /** Removes the local snapshot (on reset or when the participant is cleared). */
+    clearLocalSnapshot() {
+      const state = captured.get(this)
+      if (state?.timer) clearTimeout(state.timer)
+      captured.delete(this)
+      const storage = browserStorage()
+      if (!storage) return
+      try {
+        storage.removeItem(snapshotKey)
+        storage.removeItem(legacyDataKey(snapshotKey))
+      }
+      catch {
+        // nothing more to do
+      }
     },
 
     /**
      * Best-effort save when the page is closing (pagehide). Uses a keepalive
      * request so it can outlive the page. Browsers cap keepalive bodies at
-     * 64 KiB, so larger records are skipped; the local backup still restores
+     * 64 KiB, so larger records are skipped; the local snapshot still has
      * them if the participant comes back in this browser. Mobile browsers may
      * not fire pagehide at all, so this is never the only safeguard.
      */
     saveOnClose() {
+      const snap = this.captureSnapshot()
       if (!this.isDataLoaded || !this.cookieState.participantId) return
-      if (this.browserEphemeral.dataRev <= this.browserEphemeral.savedRev) return
-      const body = safeStringify({ data: this.data }).text
+      if (!snap || !snap.includeData) return
+      if (snap.rev <= this.browserEphemeral.savedRev) return
+      const body = saveBodyText({ rev: snap.rev, dataText: snap.dataText, resumeText: snap.serverResumeText() })
       if (new TextEncoder().encode(body).length > KEEPALIVE_MAX_BYTES) return
       try {
         fetch(`/api/participants/${this.cookieState.participantId}`, {
@@ -776,7 +1023,7 @@ export default defineStore('smilestore', {
      */
     resetLocal() {
       this.clearSmileCookies()
-      this.clearDataBackup()
+      this.clearLocalSnapshot()
       this.$reset()
     },
 

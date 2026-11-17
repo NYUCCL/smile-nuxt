@@ -27,8 +27,19 @@ export async function getParticipant(db: DB, id: string) {
 }
 
 export async function cleanupParticipant(db: DB, id: string) {
-  await db.execute({ sql: 'DELETE FROM private_data WHERE participant_id = ?', args: [id] })
-  await db.execute({ sql: 'DELETE FROM participants WHERE id = ?', args: [id] })
+  // A save still on its way from the page can add the private row between
+  // the two deletes; the foreign key then refuses the second. Try again.
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await db.execute({ sql: 'DELETE FROM private_data WHERE participant_id = ?', args: [id] })
+      await db.execute({ sql: 'DELETE FROM participants WHERE id = ?', args: [id] })
+      return
+    }
+    catch (err) {
+      if (attempt >= 4) throw err
+      await new Promise(resolve => setTimeout(resolve, 200))
+    }
+  }
 }
 
 /** All Stroop trial records in the DB row, across every visit to the view. */
@@ -62,19 +73,35 @@ export async function consent(page: Page, db: DB): Promise<string> {
   return (await latestParticipantId(db))!
 }
 
+/** The local snapshot (the one `smilestore-*` value), or null */
+export function readSnapshot(page: Page): Promise<any> {
+  return page.evaluate(() => {
+    const key = Object.keys(localStorage).find(k => k.startsWith('smilestore-'))
+    if (!key) return null
+    try {
+      return JSON.parse(localStorage.getItem(key)!)
+    }
+    catch {
+      return null
+    }
+  })
+}
+
 /**
  * Mark the participant as having reached Stroop, then load it (non-dev route).
- * Setting the lastRoute cookie stands in for "has progressed to Stroop"; the
- * guards allow a participant onto their own last route, which is the path a
- * real participant's reload takes.
+ * Setting the store's last route stands in for "has progressed to Stroop" (the
+ * store writes it to the cookie and to the local snapshot); the guards allow a
+ * participant onto their own last route, which is the path a real
+ * participant's reload takes.
  */
 export async function openStroop(page: Page) {
-  const cookies = await page.context().cookies()
-  const lastRoute = cookies.find(c => /^smile_.*_lastRoute$/.test(c.name))
-  expect(lastRoute, 'lastRoute cookie should exist after consent').toBeTruthy()
-  // Keep the cookie's existing encoding (useCookie may JSON-quote string values).
-  const value = lastRoute!.value.replace(/demograph|consent|welcome\w*/, 'stroop')
-  await page.context().addCookies([{ ...lastRoute!, value }])
+  await page.evaluate(() => {
+    const app = (document.querySelector('#__nuxt') as any).__vue_app__
+    app.config.globalProperties.$pinia._s.get('smilestore').setLastRoute('stroop')
+  })
+  await expect.poll(async () => (await readSnapshot(page))?.resume?.view, {
+    message: 'the local snapshot should record the new last route',
+  }).toBe('stroop')
 
   await page.goto('/stroop')
   await expect(page).toHaveURL(/\/stroop$/)

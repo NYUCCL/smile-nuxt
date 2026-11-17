@@ -637,29 +637,17 @@ export class Stepper extends StepState {
     }
     const stepperData = { data: { stepperState } }
 
-    // Update localStorage directly (guarded for SSR)
-    if (typeof localStorage !== 'undefined') {
-      try {
-        let existing
-        try {
-          existing = JSON.parse(localStorage.getItem(this._store.config.localStorageKey) || '{}')
-        }
-        catch {
-          existing = null
-        }
-        if (!existing || typeof existing !== 'object' || Array.isArray(existing)) existing = {}
-        if (!existing.viewSteppers || typeof existing.viewSteppers !== 'object') existing.viewSteppers = {}
-        existing.viewSteppers[targetPage] = stepperData
-        localStorage.setItem(this._store.config.localStorageKey, JSON.stringify(existing))
-      }
-      catch (err) {
-        // e.g. quota exceeded: the store copy below is still written
-        this._log.warn('Stepper: could not write state to localStorage: ' + err)
-      }
-    }
-
-    // Also update the store for consistency
     this._store.localState.viewSteppers[targetPage] = stepperData
+
+    // The store writes the snapshot a moment from now: the position and the
+    // record go to localStorage together, as one value
+    // (core/sync/snapshot.js). A failed write is reported by the store.
+    try {
+      this._store.requestSnapshot?.()
+    }
+    catch (err) {
+      this._log.warn('Stepper: could not ask for the local snapshot: ' + err)
+    }
 
     return true
   }

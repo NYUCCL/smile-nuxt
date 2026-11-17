@@ -9,7 +9,8 @@
 import seedrandom from 'seedrandom'
 import { v4 as uuidv4 } from 'uuid'
 import { defineNuxtRouteMiddleware, useNuxtApp, navigateTo } from '#imports'
-import useSmileStore, { dataBackupKey } from '../stores/smilestore'
+import useSmileStore from '../stores/smilestore'
+import { legacyDataKey } from '../core/sync/snapshot.js'
 import useLog from '../stores/log'
 import { getQueryParams, processQuery, initService } from '../utils/utils'
 
@@ -384,9 +385,10 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     resetLocalState: () => {
       // Clear persistence then hard-navigate. Don't touch the store —
       // watchers would re-write defaults back to storage before navigation.
+      store.stopSnapshots?.() // or the write made as the page closes puts the state back
       if (typeof localStorage !== 'undefined') {
         localStorage.removeItem(store.config.localStorageKey)
-        localStorage.removeItem(dataBackupKey)
+        localStorage.removeItem(legacyDataKey(store.config.localStorageKey))
       }
       if (typeof document !== 'undefined') {
         const prefix = `smile_${store.config.codeName}_`

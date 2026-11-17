@@ -32,7 +32,8 @@ function newRoot() {
 
 /** What save() wrote to localStorage for this view */
 function savedState(page = 'trial') {
-  return JSON.parse(localStorage.getItem(appconfig.localStorageKey)).viewSteppers[page].data.stepperState
+  store.captureSnapshot() // save() asks for it; it is written before the task ends
+  return JSON.parse(localStorage.getItem(appconfig.localStorageKey)).resume.viewSteppers[page].data.stepperState
 }
 
 /** save, load into a new stepper, save again: both saves must match */
@@ -204,25 +205,35 @@ describe('bad values in step data and persist', () => {
     expect(root.save()).toBe(true)
     expect(savedState().states[0].id).toBe('a')
 
+    // Damaged again later: the next change writes the whole snapshot over it
     localStorage.setItem(appconfig.localStorageKey, '[1,2]')
+    root.append([{ id: 'b' }])
     expect(root.save()).toBe(true)
+    expect(savedState().states.map(s => s.id)).toEqual(['a', 'b'])
     localStorage.setItem(appconfig.localStorageKey, '{"viewSteppers":"x"}')
+    root.append([{ id: 'c' }])
     expect(root.save()).toBe(true)
-    expect(savedState().states[0].id).toBe('a')
+    expect(savedState().states.map(s => s.id)).toEqual(['a', 'b', 'c'])
   })
 
   it('a full localStorage does not stop a save (the store copy is kept)', () => {
     const root = newRoot()
     root.append([{ id: 'a' }])
-    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-      throw new DOMException('quota', 'QuotaExceededError')
+    vi.stubGlobal('localStorage', {
+      getItem: () => null,
+      removeItem: () => {},
+      setItem: () => {
+        throw new DOMException('quota', 'QuotaExceededError')
+      },
     })
     try {
       expect(root.save()).toBe(true)
+      expect(() => store.captureSnapshot()).not.toThrow()
       expect(store.localState.viewSteppers.trial.data.stepperState.states[0].id).toBe('a')
+      expect(store.browserEphemeral.localCopyError).toMatch(/quota/i)
     }
     finally {
-      setItem.mockRestore()
+      vi.unstubAllGlobals()
     }
   })
 })

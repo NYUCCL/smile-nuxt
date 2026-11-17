@@ -1,6 +1,6 @@
 # Sync engine, schema and telemetry (#36, then #72, #39, #40, #45)
 
-Status: steps 1 and 2 done (2026-11-16); steps 3–7 to do. Branch `sync-engine`, off main at
+Status: steps 1 to 3 done (2026-11-16); steps 4–7 to do. Branch `sync-engine`, off main at
 7f977fc. Everything here happens on that branch, in small commits with the
 tests passing at each, so any step can be reverted, or the branch dropped,
 without touching main.
@@ -45,9 +45,11 @@ kept locally, and doesn't stop anything else from saving.
   anything else in `localState` resume reads.
 - `rev`: bumped on every change to either.
 
-The snapshot is written to localStorage **synchronously, as one value**, on
-every change. Data and position can't disagree, because they're never saved
-separately.
+The snapshot is written to localStorage **as one value**, a few milliseconds
+after a change (at once when the page is hidden or closing, and before every
+save). Data and position can't disagree, because they're never saved
+separately. (Not synchronously on every change, as first planned: see "What
+step 3 did".)
 
 The cookie keeps only what server-side rendering needs (participant id, gate
 flags); the View in it stays as a hint and `resume` wins.
@@ -411,6 +413,91 @@ browser ones as plain tests.
 - Also: the unit tests' setup now works on Node 25 and later, which define
   their own `localStorage` (undefined by default) over happy-dom's.
 
+### What step 3 did (2026-11-16)
+- **One local value** (`core/sync/snapshot.js`, plain functions; the store's
+  `captureSnapshot()`): `{ v, participantId, rev, savedRev, local, data,
+  resume }` under the existing key `smilestore-<codeName>`. It replaces the two
+  values kept before (`localState` under that key, written by a watcher and
+  separately by the stepper, and the data backup under `-data`).
+  - `resume`: the current View (`view`), `viewSteppers`, `conditions`,
+    `randomizedRoutes`, `possibleConditions`, `verifiedVisibility`,
+    `privateDataId`, `useSeed`.
+  - `local`: values that stay on the device (`reset`, `totalWrites`,
+    `lastWrite`, `approxDataSize`).
+  - No longer stored: `routes` and `seqtimeline`, which the timeline rebuilds
+    on every load.
+- **`rev`** goes up by one when the record or the position differs from the
+  last snapshot taken (the texts are compared), so it doesn't depend on when
+  a watcher runs: a save sends exactly the text its `rev` names.
+- **When it's written**: a change asks for a write, which happens 4 ms later,
+  so everything one event does ends in one write. Measured before this: one
+  Stroop keypress wrote the whole snapshot 10 times, because the stepper saves
+  on each assignment to step data and the keypress is handled over several
+  microtasks. The wait grows to ten times what the last write took (at most
+  2 s), so writing a large record uses about a tenth of the main thread at
+  most. The page being hidden or closing, and every save, write at once.
+- **A full or blocked localStorage** doesn't throw; it's reported once
+  (`browserEphemeral.localCopyError`) and saving to the server goes on.
+- **Saves** send `{ rev, data, resume }`, the text of the snapshot. The
+  `resume` sent has only the current View's stepper (stepper state holds
+  every step's data; the steppers of finished Views would be uploaded again
+  with each save). The local copy keeps all of them. Private data is sent with
+  every save, whether or not its row was created (the server creates it).
+  `saveData()`'s timing is unchanged (step 4 replaces it). A 409 is logged;
+  handling it is step 5.
+- **On load** (`chooseCopy`): the copy with the higher `rev`, record and
+  position together; equal revs use the local one and send nothing.
+  - Local copy missing, unparseable, with the wrong shape, or from another
+    participant: the server's is used, with its position. A participant whose
+    localStorage is gone comes back to the same trial from the server copy.
+  - Server not reached: the local copy is used and a save is tried.
+  - Server record unusable (not an object): the local copy is used, with a
+    `rev` above the server's.
+  - Neither usable: the record starts again, the position that could be read
+    is kept, and the reason is logged.
+  - Server not reached and no local copy: asked twice more (0.3 s, 0.9 s), then
+    the page goes on without the record and the next navigation tries again.
+    While in that state the record isn't written locally, so an empty one
+    can't be taken for the participant's. When the record does arrive, the
+    page reloads so the record and what's on screen agree.
+  - The View in the snapshot wins over the cookie's.
+  - A loaded record is repaired where the code appends to it (`studyData`,
+    `routeOrder`, `pageData_*` and so on must be lists or objects).
+- **Old-format copies** (a participant mid-study when the project upgrades):
+  the position is read from the old `localState`; the old data backup wins
+  over the server when it has unsaved changes (its counter can't be compared
+  with the server's `rev`, so the old rule is kept), with a `rev` above the
+  server's. After the first write there is one value in the new format.
+- Found on the way:
+  - The default `viewSteppers`, `conditions` and stepper registry objects were
+    shared between a store and the one after a reset, so a participant reset
+    as "not found on the server" kept the previous steppers and conditions.
+    Each store now gets its own.
+  - A failed private-data POST at consent left the participant unconnected
+    until the next navigation. The record is now connected as soon as its row
+    exists.
+  - A reset removes the stored state and reloads; the write made as the page
+    closes would have put it back. Writing stops when a reset begins.
+- Tests: `test/core/sync/snapshot.test.js` (104: reading, choosing between
+  every combination of copies, repair, the corpus in the snapshot, fast-check
+  over arbitrary stored text and server answers), `snapshotStore.test.js`
+  (106: the store's writes, saves, loads, old format; replaces the #42 backup
+  tests, whose cases are all in it), `test/e2e/resume.spec.ts` (10, in the
+  browser: resume from the server copy alone, damaged local copies, another
+  participant's copy, an old-format participant, the server unreachable at
+  load).
+- Consumer install (`pnpm test:starter`: the packed module in a scaffolded
+  project outside the workspace, built, its own browser tests run): passes,
+  which covers steps 2 and 3. It needs pnpm 10; under pnpm 12 the scaffolded
+  project's install fails on esbuild's unapproved build script (not caused by
+  this branch).
+- Left for step 4:
+  - A participant whose creation request failed at consent has no record and
+    nothing is saved for them; nothing retries it.
+  - A 404 on load still resets the participant and removes the local copy,
+    as before.
+  - Two tabs share the one local value and overwrite each other's (step 5).
+
 Old clients: a project upgraded mid-collection has participants whose page
 still runs the old code until they reload. The server accepts the old body (no
 `rev`) as `rev = previous + 1` for a transition period, so they keep saving.
@@ -443,6 +530,12 @@ tests decide:
 - **Send less often as the record grows**: the minimum time between sends
   rises with the body size (1 s for a small record, up to 30 s or so near the
   cap). A view change, `api.sync()` and the page closing still send at once.
+- Already done in step 3: the `resume` sent has only the current View's
+  stepper.
+- For the live tests to measure as well: the local write. Each one serializes
+  the whole record and writes it to localStorage (about 5 MB per origin in
+  most browsers, so a record near the 4 MB cap may not fit; the failure is
+  reported and saving goes on). Step 3 spaces the writes by their cost.
 - **Send only what's new** (the trials added since the last confirmed save).
   The largest saving, but the server then has to merge, which is a new way
   for saving to go wrong. Only if the first two aren't enough.

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import useSmileStore, { dataBackupKey } from '../../../src/runtime/stores/smilestore'
+import useSmileStore, { snapshotKey } from '../../../src/runtime/stores/smilestore'
 import useLog from '../../../src/runtime/stores/log'
 import { SmileAPI } from '../../../src/runtime/composables/useAPI'
 import { Stepper } from '../../../src/runtime/core/stepper/Stepper'
@@ -122,7 +122,7 @@ describe('saving after a bad value reaches store.data', () => {
       await store.saveData(true)
       expect(dataPatches()).toHaveLength(1)
       // What the server got is plain JSON and still has the good value
-      const sent = JSON.parse(JSON.stringify(dataPatches()[0][1].body))
+      const sent = JSON.parse(dataPatches()[0][1].body)
       expect(sent.data.good).toBe('kept')
     })
 
@@ -130,8 +130,8 @@ describe('saving after a bad value reaches store.data', () => {
       const store = connectedStore()
       store.data.bad = bad.make()
       store.data.good = 'kept'
-      store.noteDataChanged({ replaced: false })
-      const backup = JSON.parse(localStorage.getItem(dataBackupKey))
+      store.captureSnapshot()
+      const backup = JSON.parse(localStorage.getItem(snapshotKey))
       expect(backup?.data?.good).toBe('kept')
     })
   }
@@ -159,8 +159,9 @@ describe('stepper state with a bad value in step data', () => {
       expect(ok).toBe(true)
 
       // What reached localStorage parses, and loads back at the same step
+      store.captureSnapshot()
       const saved = JSON.parse(localStorage.getItem(appconfig.localStorageKey))
-      const state = saved.viewSteppers.trial.data.stepperState
+      const state = saved.resume.viewSteppers.trial.data.stepperState
       const reloaded = new Stepper({ serializedState: state, store })
       expect(reloaded.currentPathString).toBe(root.currentPathString)
       expect(reloaded.currentData.id).toBe('b')

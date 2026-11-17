@@ -17,7 +17,8 @@
 
 import { reactive } from 'vue'
 import { useRoute, useRouter, useRuntimeConfig, useNuxtApp } from '#imports'
-import useSmileStore, { dataBackupKey } from '../stores/smilestore'
+import useSmileStore from '../stores/smilestore'
+import { legacyDataKey } from '../core/sync/snapshot.js'
 import useLog from '../stores/log'
 import useTimeline from './useTimeline'
 import seedrandom from 'seedrandom'
@@ -294,9 +295,10 @@ export class SmileAPI {
     // We do NOT call store.resetLocal() / $reset() because that would trigger
     // the store-sync watchers which re-write default values back to cookies
     // and localStorage, undoing our cleanup.
+    this.store.stopSnapshots?.() // or the write made as the page closes puts the state back
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem(this.config.localStorageKey)
-      localStorage.removeItem(dataBackupKey)
+      localStorage.removeItem(legacyDataKey(this.config.localStorageKey))
     }
     if (typeof document !== 'undefined') {
       const prefix = `smile_${this.config.codeName}_`
