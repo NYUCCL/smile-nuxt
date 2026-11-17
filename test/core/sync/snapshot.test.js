@@ -65,7 +65,7 @@ describe('readLocalCopy', () => {
 
   it('reads a snapshot', () => {
     const copy = localV1()
-    expect(copy).toMatchObject({ format: 'v1', participantId: PID, resumeParticipantId: PID, rev: 5, savedRev: 3 })
+    expect(copy).toMatchObject({ format: 'v1', participantId: PID, rev: 5, savedRev: 3 })
     expect(copy.data.from).toBe('local')
     expect(copy.resume.view).toBe('stroop')
     expect(copy.resume.viewSteppers.stroop.data.stepperState.currentIndex).toBe(4)
@@ -75,7 +75,7 @@ describe('readLocalCopy', () => {
 
   it('reads a snapshot written before the participant has a record', () => {
     const copy = localV1({ participantId: null, data: null })
-    expect(copy).toMatchObject({ format: 'v1', participantId: null, resumeParticipantId: null, data: null })
+    expect(copy).toMatchObject({ format: 'v1', participantId: null, data: null })
     expect(copy.resume.view).toBe('stroop')
     expect(copy.notes).toEqual([])
   })
@@ -130,7 +130,6 @@ describe('readLocalCopy', () => {
     it('reads localState and the data backup', () => {
       const copy = oldFormat({ backup: { participantId: PID, rev: 9, savedRev: 6, data: { from: 'backup' } } })
       expect(copy).toMatchObject({ format: 'old', participantId: PID, rev: 9, savedRev: 6 })
-      expect(copy.resumeParticipantId).toBeUndefined()
       expect(copy.data.from).toBe('backup')
       expect(copy.resume.viewSteppers.stroop.data.stepperState.currentIndex).toBe(2)
       expect(copy.resume.view).toBeUndefined()

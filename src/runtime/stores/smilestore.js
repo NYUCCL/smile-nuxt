@@ -600,7 +600,7 @@ export default defineStore('smilestore', {
       for (const note of local.notes) log.warn('SMILESTORE: ' + note)
       if (local.format === 'none' || local.format === 'bad') return
       const participantId = this.cookieState.participantId || null
-      if (local.resumeParticipantId !== undefined && local.resumeParticipantId !== participantId) {
+      if (local.format === 'v1' && local.participantId !== participantId) {
         log.warn('SMILESTORE: the local copy belongs to another participant, starting without it')
         return
       }

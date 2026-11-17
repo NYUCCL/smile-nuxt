@@ -135,9 +135,8 @@ function readJSON(storage, key) {
  * @typedef {object} LocalCopy
  * @property {'none'|'v1'|'old'|'bad'} format - 'old' is what was stored before
  *   the snapshot: `localState` under the key and the data backup next to it
- * @property {string|null} participantId - Whose `data` this is
- * @property {string|null|undefined} resumeParticipantId - Whose `resume` this
- *   is; undefined when the copy doesn't say (the old format)
+ * @property {string|null} participantId - Whose copy this is. In the old
+ *   format only `data` says; its `resume` could be anyone's
  * @property {number} rev - Its rev (0 when it has none)
  * @property {number} savedRev - The last rev it says the server confirmed
  * @property {object|null} data - The record, or null when it can't be used
@@ -156,7 +155,6 @@ export function readLocalCopy(storage, key) {
   const copy = {
     format: 'none',
     participantId: null,
-    resumeParticipantId: undefined,
     rev: 0,
     savedRev: 0,
     data: null,
@@ -174,7 +172,6 @@ export function readLocalCopy(storage, key) {
     copy.format = 'v1'
     if (typeof value.participantId === 'string' && value.participantId) copy.participantId = value.participantId
     else if (value.participantId !== null && value.participantId !== undefined) copy.notes.push('local copy: participantId has the wrong type')
-    copy.resumeParticipantId = copy.participantId
     if (isCount(value.rev)) copy.rev = value.rev
     else copy.notes.push('local copy: rev is not a count, using 0')
     copy.savedRev = isCount(value.savedRev) ? Math.min(value.savedRev, copy.rev) : 0
@@ -252,18 +249,16 @@ export function chooseCopy({ participantId, local, server }) {
   const notes = [...(local?.notes || [])]
 
   // --- what can be used from each copy ---
-  let localData = null
-  let localResume = null
-  if (local && local.format !== 'none' && local.format !== 'bad') {
-    if (local.data && local.participantId === participantId) localData = local.data
-    else if (local.data) notes.push('local copy belongs to another participant, not used')
-    if (local.resume) {
-      if (local.resumeParticipantId === undefined || local.resumeParticipantId === participantId) localResume = local.resume
-      else if (!local.data) notes.push('local copy belongs to another participant, not used')
-    }
+  // An old-format position doesn't say whose it is; everything else must
+  // belong to this participant.
+  const readable = !!local && (local.format === 'v1' || local.format === 'old')
+  const mine = readable && local.participantId === participantId
+  const localData = mine && local.data ? local.data : null
+  const localResume = readable && local.resume && (mine || local.format === 'old') ? local.resume : null
+  if (readable && !mine && (local.data || (local.resume && !localResume))) {
+    notes.push('local copy belongs to another participant, not used')
   }
   const localRev = localData ? local.rev : 0
-  const localSavedRev = localData ? local.savedRev : 0
 
   const reached = !!server?.ok
   const serverData = reached && isPlainObject(server.data) ? server.data : null
@@ -276,72 +271,40 @@ export function chooseCopy({ participantId, local, server }) {
     if (!serverData) notes.push('server copy: data is not an object')
   }
 
-  const fromLocal = (rev, savedRev, send) => ({
-    source: 'local',
-    data: localData,
-    resume: localResume || serverResume,
+  // Once the server has answered, what it has is its own rev
+  const choice = (source, rev) => ({
+    source,
+    data: source === 'local' ? localData : source === 'server' ? serverData : null,
+    resume: source === 'server' ? serverResume || localResume : localResume || serverResume,
     rev,
-    savedRev,
-    send,
+    savedRev: reached ? serverRev : (localData ? local.savedRev : 0),
+    send: reached ? rev > serverRev : source === 'local',
     notes,
   })
-  const fromServer = () => {
-    if (!serverResume && localResume) notes.push('server copy has no resume, keeping the local position')
-    return {
-      source: 'server',
-      data: serverData,
-      resume: serverResume || localResume,
-      rev: serverRev,
-      savedRev: serverRev,
-      send: false,
-      notes,
-    }
-  }
 
-  // --- the server couldn't be reached ---
   if (!reached) {
-    if (localData) {
-      notes.push('server not reached, using the local copy')
-      return fromLocal(localRev, localSavedRev, true)
-    }
-    notes.push('server not reached and no local copy')
-    return { source: 'none', data: null, resume: localResume, rev: 0, savedRev: 0, send: false, notes }
+    notes.push(localData ? 'server not reached, using the local copy' : 'server not reached and no local copy')
+    return localData ? choice('local', localRev) : choice('none', 0)
   }
-
-  // --- the server's data can't be used ---
   if (!serverData) {
-    if (localData) return fromLocal(Math.max(localRev, serverRev + 1), Math.min(localSavedRev, serverRev), true)
+    if (localData) return choice('local', Math.max(localRev, serverRev + 1))
     notes.push('neither copy could be used: the record starts again and the current View restarts')
-    return {
-      source: 'fresh',
-      data: null,
-      resume: localResume || serverResume,
-      rev: serverRev + 1,
-      savedRev: serverRev,
-      send: true,
-      notes,
-    }
+    return choice('fresh', serverRev + 1)
   }
-
-  // --- only the server's ---
-  if (!localData) return fromServer()
-
-  // --- both ---
-  if (local.format === 'old') {
+  if (localData && local.format === 'old') {
     // The old backup counted changes and the server counted saves, so the
     // two numbers can't be compared. The old rule: unsaved changes win.
-    if (localRev > localSavedRev) {
+    if (localRev > local.savedRev) {
       notes.push('local copy (old format) has unsaved changes, using it')
-      return fromLocal(Math.max(localRev, serverRev + 1), serverRev, true)
+      return choice('local', Math.max(localRev, serverRev + 1))
     }
-    return fromServer()
   }
-  if (localRev > serverRev) return fromLocal(localRev, Math.min(localSavedRev, serverRev), true)
-  if (localRev < serverRev) {
-    notes.push(`server copy is newer (rev ${serverRev}, local ${localRev}), using it`)
-    return fromServer()
+  else if (localData && localRev >= serverRev) {
+    return choice('local', localRev)
   }
-  return fromLocal(localRev, localRev, false)
+  if (localData) notes.push(`server copy is newer (rev ${serverRev}, local ${localRev}), using it`)
+  if (!serverResume && localResume) notes.push('server copy has no resume, keeping the local position')
+  return choice('server', serverRev)
 }
 
 /**

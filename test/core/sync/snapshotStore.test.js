@@ -276,12 +276,17 @@ describe('the store\'s local snapshot', () => {
       const { setItem } = stubStorage()
 
       // What a keypress does: the step's data is set (the stepper saves on
-      // each assignment), the trial is recorded, the position moves on
+      // each assignment), the trial is recorded, the position moves on. The
+      // store-sync plugin's watcher asks for a snapshot after each change.
       root.save()
+      store.requestSnapshot()
       root.save()
+      store.requestSnapshot()
       store.data.pageData_stroop = { visit_0: { timestamps: [1], data: [{ id: 'a', rt: 300 }] } }
+      store.requestSnapshot()
       root.next()
       root.save()
+      store.requestSnapshot()
       expect(setItem).not.toHaveBeenCalled()
 
       // A moment later: one write, the record and the position together
@@ -360,16 +365,6 @@ describe('the store\'s local snapshot', () => {
       vi.advanceTimersByTime(5000)
       expect(store.captureSnapshot()).toBeNull() // what pagehide calls
       expect(localStorage.getItem(snapshotKey)).toBeNull()
-    })
-
-    it('a failed write of the snapshot does not stop a step from being saved', () => {
-      const store = connectedStore()
-      const root = stepperAt(store, [{ id: 'a' }])
-      store.requestSnapshot = () => {
-        throw new Error('boom')
-      }
-      expect(root.save()).toBe(true)
-      expect(store.localState.viewSteppers.stroop.data.stepperState.states[0].id).toBe('a')
     })
   })
 

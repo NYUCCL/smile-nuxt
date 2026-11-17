@@ -639,15 +639,8 @@ export class Stepper extends StepState {
 
     this._store.localState.viewSteppers[targetPage] = stepperData
 
-    // The store writes the snapshot a moment from now: the position and the
-    // record go to localStorage together, as one value
-    // (core/sync/snapshot.js). A failed write is reported by the store.
-    try {
-      this._store.requestSnapshot?.()
-    }
-    catch (err) {
-      this._log.warn('Stepper: could not ask for the local snapshot: ' + err)
-    }
+    // The store-sync plugin watches this and writes it to localStorage with
+    // the record, as one value (core/sync/snapshot.js).
 
     return true
   }
