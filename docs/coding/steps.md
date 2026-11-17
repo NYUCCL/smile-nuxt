@@ -363,16 +363,16 @@ the participant's data.
   `recordPageData()`)
 
 `api.recordStep()` adds the step's data to the participant's data in the
-browser, where it's also backed up to local storage, so it survives a page
-reload. It's sent to the database at the next save, which by default happens
-when the participant moves to the next View (see
-[When data is saved](/coding/datastorage#when-data-is-saved)). Recording many
-steps and saving them together keeps the number of requests down. For a long
-View, you can save along the way with `api.saveData()`.
+browser, where it's also copied to local storage, so it survives a page
+reload. It's sent to the database by itself about a second later (see
+[When data is saved](/coding/datastorage#when-data-is-saved)); steps recorded
+within the same second go in one request. There's nothing to call, even in a
+long View.
 
 ## Persisting data for the view (not just a step)
 
-All the data for the steps are persisted in the browser's local storage. This
+All the data for the steps are persisted in the browser's local storage, and
+the participant's position is saved to the database with their data. This
 means that if the subject reloads the page, or navigates to a different site and
 then returns, the task will resume from the same step. This is nice because it
 helps ensure that subjects are always completing the set of steps/trials

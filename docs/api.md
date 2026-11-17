@@ -342,16 +342,23 @@ browser console, so you can see it in the data and fix the experiment.
   [Understanding the Visit Structure](/analysis#understanding-the-visit-structure).
 
 - `recordProperty(name, data)`: Saves `data` (following the rules above) at
-  the top level of the data object. This does not save the data to the database,
-  but it does record it in the local state. The next call to `saveData()` will
-  save the data to the database.
-- `recordStep()`: Records the current step data using `recordPageData()`. This
-  does not save the data to the database, but it does record it in the local
-  state. The next call to `saveData()` will save the data to the database.
+  the top level of the data object. Like every change to the data, it is sent
+  to the database by itself about a second later.
+- `recordStep()`: Records the current step data using `recordPageData()`. It
+  is sent to the database by itself about a second later.
 - `recordWindowEvent(type, event_data = null)`: Records a window event. The
   event_data must follow the rules above if provided.
-- `saveData(force)`: Saves the current data to the database (force save if
-  specified).
+- `sync()`: Sends everything recorded so far to the database now and waits for
+  the answer. Returns a promise of `{ ok, rev, error }` and never throws; `ok`
+  is true when the database has everything. Saving happens by itself (about a
+  second after each change, with retries), so this is only for a point where
+  the experiment needs to know the data has arrived, such as before sending
+  the participant back to the recruitment site. See
+  [When data is saved](/coding/datastorage#when-data-is-saved).
+- `syncStatus`: Reactive `{ status, error, retryAt }`. `status` is `saved`,
+  `pending`, `saving`, `offline` or `error`; `error.kind` is `retrying`,
+  `refused`, `oversize`, `limit` or `conflict`.
+- `saveData()`: The older name for `sync()`. Its `force` argument is ignored.
 - `computeCompletionCode()`: Generates a unique completion code by hashing all
   `pageData_*` fields (falls back to `studyData` for backward compatibility).
 

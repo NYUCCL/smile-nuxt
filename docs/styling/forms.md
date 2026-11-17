@@ -110,16 +110,15 @@ experimental phase:
 ```javascript
 function finish() {
   api.recordPageData(api.persist.forminfo)
-  api.saveData(true) // force a data save
   api.goNextView()
 }
 ```
 
 The `recordPageData` method automatically organizes the data by route name
 (e.g., `pageData_feedback`), making it easy to locate this data during analysis.
-The forced data save ensures that the form responses are immediately persisted
-to the backend, preventing any data loss. Only after the data is safely recorded
-does the function navigate to the next view in the experimental sequence.
+There is no save to call: recorded data is sent to the database by itself, and
+moving to the next view sends whatever is still unsent (see
+[When data is saved](/coding/datastorage#when-data-is-saved)).
 
 ### Development and Testing Support
 

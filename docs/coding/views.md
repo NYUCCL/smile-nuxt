@@ -74,12 +74,10 @@ most important are the methods which help navigate between views.
 - `api.prevView()`: Returns the previous view object in the navigation sequence.
 
 There is more information on view navigation in the
-[timeline](/coding/timeline.html#navigating-between-views) section. One
-important point is that `goNextView()`, `goPrevView()`, and `goToView()` also
-automatically call `saveData()` on the global store prior to View changes. So as
-a result, you can trust that your data will be saved/synchronized with the
-persistent store (Turso/libsql, see [Data Storage](/coding/datastorage))
-whenever you navigate between Views.
+[timeline](/coding/timeline.html#navigating-between-views) section. Data is
+saved to the database by itself about a second after each change, and
+`goNextView()`, `goPrevView()`, and `goToView()` also send whatever is unsent
+when the View changes (see [Data Storage](/coding/datastorage)).
 
 ## Persisting data for the view
 

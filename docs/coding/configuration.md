@@ -59,10 +59,6 @@ api.setRuntimeConfig('windowsizerAggressive', true)
 api.setRuntimeConfig('anonymousMode', false)
 api.setRuntimeConfig('labURL', 'https://gureckislab.org')
 api.setRuntimeConfig('brandLogoFn', 'universitylogo.png')
-
-api.setRuntimeConfig('maxWrites', 1000)
-api.setRuntimeConfig('minWriteInterval', 2000)
-api.setRuntimeConfig('autoSave', true)
 ```
 
 You can also add **your own** keys here. For example, a pay rate string:
@@ -158,12 +154,15 @@ want to ship two builds of the same experiment with different defaults.
 | `VITE_ANONYMOUS_MODE`          | `false`                     | Hide default lab/branding text — useful for double-blind paper submissions.                                                                        |
 | `VITE_LAB_URL`                 | `https://gureckislab.org`   | Lab homepage URL used in headers.                                                                                                                  |
 | `VITE_BRAND_LOGO_FN`           | `universitylogo.png`        | Filename of the brand logo. Place the file in `public/`.                                                                                           |
-| `VITE_AUTO_SAVE_DATA`          | `true`                      | Auto-call `saveData()` between View transitions.                                                                                                   |
-| `VITE_MAX_WRITES`              | `1000`                      | Cap on participant data writes per session. Guards against runaway loops more than against hosting cost.                                           |
-| `VITE_MIN_WRITE_INTERVAL`      | `2000`                      | Minimum milliseconds between writes.                                                                                                               |
+| `VITE_MAX_WRITES`              | `10000`                     | The most saves one participant's browser sends, so a page left running can't send forever. Set at build time. See [The limit on saves](/coding/datastorage#the-limit-on-saves). |
 | `VITE_MAX_STEPS`               | `5000`                      | Maximum number of steps any one View component can contain.                                                                                        |
 | `VITE_RANDOM_SEED`             | `100012`                    | Seed for the deterministic PRNG used in condition assignment and randomization. The dev sidebar's seed control is easier during interactive work.  |
 | `VITE_GOOGLE_ANALYTICS`        | _(unset)_                   | Google Analytics ID, if you want analytics on the deployed site.                                                                                   |
+
+`VITE_AUTO_SAVE_DATA` and `VITE_MIN_WRITE_INTERVAL`, from earlier versions, no
+longer do anything: data is saved by itself about a second after each change
+(see [When data is saved](/coding/datastorage#when-data-is-saved)). Remove them
+from `.env`; the config check lists them if they're still there.
 
 ### Recruitment service variables (SONA)
 

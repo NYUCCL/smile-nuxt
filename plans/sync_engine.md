@@ -1,6 +1,6 @@
 # Sync engine, schema and telemetry (#36, then #72, #39, #40, #45)
 
-Status: steps 1 to 5 done (2026-11-17); steps 6–7 to do. Branch `sync-engine`, off main at
+Status: steps 1 to 6 done (2026-11-17); step 7 to do. Branch `sync-engine`, off main at
 7f977fc. Everything here happens on that branch, in small commits with the
 tests passing at each, so any step can be reverted, or the branch dropped,
 without touching main.
@@ -582,7 +582,8 @@ browser ones as plain tests.
   hours. A value under 2000 is a warning in the config check and the dev
   console (older templates set 1000, which is 83 minutes of constant
   change). The limit is the client's own; the server does not refuse a
-  participant with a high `save_count`.
+  participant with a high `save_count`. Todd, 2026-11-17: client only is
+  fine.
 - **Two fixes found while testing the limit (2026-11-17)**, both in the case
   where the request at consent failed and the row doesn't exist yet. The
   browser test for that case had failed now and then; it was put down to the
@@ -627,6 +628,7 @@ browser ones as plain tests.
   notice for both ways of finding out, and no way for two tabs to reload
   each other in turn. The server already accepts a resent `rev` with the
   same content, so a 409 always means another copy saved something else.
+  Todd, 2026-11-17: keep the button.
 - **The notice** (`OtherTabNotice.vue`): over the whole page in the
   experiment layout; in place of the page in the dev tools.
 - Tests: `test/core/sync/tabs.test.js` (10), four store tests, and
@@ -637,6 +639,23 @@ browser ones as plain tests.
   - Two tabs that both consent make two participant rows; the second tab's
     is the one that continues.
   - The presentation layout has no notice.
+
+### What step 6 did (2026-11-17)
+- `docs/coding/datastorage.md`: "When data is saved" rewritten (saved by
+  itself about a second after each change, the browser's copy, retries,
+  leaving the page), with new sections for `api.sync()` and `api.syncStatus`,
+  what happens when a save fails (by `error.kind`), the limit on saves
+  (`VITE_MAX_WRITES`), the settings that no longer do anything, and two tabs.
+  Also: the 4 MB size limit, the row's new columns, that the browser's copy
+  includes the private data, the store table.
+- `docs/api.md`: `sync()`, `syncStatus`, `saveData()` as the older name.
+- `configuration.md`, `concepts.md`, `testing.md`, `views.md`, `timeline.md`,
+  `steps.md`, `persistence.md`, `styling/forms.md`: the text about auto-save
+  on View changes, the write interval and forced saves replaced.
+- The template's test comment about throttled saves.
+- The docs site builds; it describes the two-tab notice with the button.
+- Not done: a page for people upgrading a project mid-collection; the dev
+  tools page doesn't describe the save status in the Database panel.
 
 Old clients: a project upgraded mid-collection has participants whose page
 still runs the old code until they reload. The server accepts the old body (no

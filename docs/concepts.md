@@ -241,13 +241,11 @@ resulting data to a new property in the `api.stepData` object called
 
 Then we call `api.recordStep()` to record the step data. This persists the
 data so that it will be written to the database record for this participant.
-It's worth mentioning that this doesn't mean the data is immediately written
-to the remote database — <SmileText/> throttles writes (see `maxWrites` and
-`minWriteInterval` in [Configuration](/coding/configuration#client-visible-defaults-ui-branding-data-saving))
-to guard against runaway loops. `api.recordStep()` buffers your participant's
-trial data so it is safely written at the next opportunity. In addition, even
-if the subject reloads the browser at this point, the data for that trial is
-restored for later syncing, limiting data loss.
+The data isn't written to the remote database at that instant:
+<SmileText/> sends it by itself about a second later, and tries again if the
+request fails (see [When data is saved](/coding/datastorage#when-data-is-saved)).
+In the meantime it is also kept in the browser, so even if the subject reloads
+the page at this point, the data for that trial is restored and sent.
 
 **What this section reveals is that Smile's API goes beyond basic Vue components
 to provide ways to define steps or trials in an experiment, save data to a

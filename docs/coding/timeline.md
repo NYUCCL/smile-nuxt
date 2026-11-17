@@ -734,14 +734,12 @@ function finish() {
 </template>
 ```
 
-:::warning IMPORTANT (and helpful!)
+:::info Saving
 
-One important feature of these navigation functions are that they calls
-`saveData()` on the global store prior to View changes. So as a result, you can
-trust that your data will be saved/synchronized with the persistent store
-(Turso/libsql) whenever you navigate between sequential Views. See the data
-storage docs on [automatic saving](/coding/datastorage#when-data-is-saved).
-This only works if you use the API to advance between Views.
+Data is saved to the database by itself about a second after each change, in
+any View and however you navigate. These navigation functions also send
+whatever is unsent at the moment the View changes. See the data storage docs on
+[when data is saved](/coding/datastorage#when-data-is-saved).
 
 :::
 

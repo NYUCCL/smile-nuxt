@@ -17,7 +17,10 @@ Persistence has several important effects on how Smile applications behave both
 during development and during "live" data collection.
 
 The first is that if you reload the webpage in live or developer mode, it will
-tend to return to the same state as when it was left off.
+tend to return to the same state as when it was left off. The state is kept in
+the browser's local storage and, with each save, in the database, so a
+participant comes back to the same place even if their local storage was
+cleared (see [Data Storage](/coding/datastorage#how-state-works-in-smile)).
 
 If you want to start the app over completely (removing all persistence), zap
 the local state: press the lightning bolt icon
