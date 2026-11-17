@@ -25,6 +25,9 @@ import { SETTINGS, SETTINGS_BY_KEY } from './config-schema.js'
 const TRUE = ['include', 'true', '1', 'yes', 'on']
 const FALSE = ['exclude', 'false', '0', 'no', 'off']
 
+// Under this, a page that changes all the time stops saving within 3 hours
+const LOW_MAX_WRITES = 2000
+
 const norm = v => (typeof v === 'string' ? v.trim().toLowerCase() : '')
 const isSet = v => (v && typeof v === 'object' ? !!v.set : v !== undefined && v !== '')
 
@@ -192,12 +195,12 @@ export function deploySummary(ctx) {
     recommendation: 'Set SMILE_AUTH_SECRET in Vercel to a long random string (e.g. openssl rand -hex 32).',
   })
 
-  const oldSaving = ['VITE_AUTO_SAVE_DATA', 'VITE_MAX_WRITES', 'VITE_MIN_WRITE_INTERVAL'].filter(key => d[key] !== undefined && d[key] !== '')
+  const oldSaving = ['VITE_AUTO_SAVE_DATA', 'VITE_MIN_WRITE_INTERVAL'].filter(key => d[key] !== undefined && d[key] !== '')
   lines.push({
-    id: 'saving', question: 'Does data save?', status: 'ok', keys: oldSaving,
+    id: 'saving', question: 'Does data save?', status: 'ok', keys: ['VITE_MAX_WRITES', ...oldSaving],
     answer: 'Yes, automatically.',
     explanation: 'A change is sent to the server a second after the last one, and at least every 5 seconds while changes keep coming. '
-      + 'A failed save is tried again.'
+      + 'A failed save is tried again. One participant\'s browser sends at most VITE_MAX_WRITES saves (default 10000).'
       + (oldSaving.length ? ` ${oldSaving.join(', ')} no longer ${oldSaving.length > 1 ? 'have' : 'has'} an effect.` : ''),
     ...(oldSaving.length ? { recommendation: `Remove ${oldSaving.join(', ')}.` } : {}),
   })
@@ -305,11 +308,11 @@ export function checkConfig(ctx) {
     add('info', 'allow-repeats', ['VITE_ALLOW_REPEATS'],
       'VITE_ALLOW_REPEATS is true: someone who finished can take the study again from the same browser.')
   }
-  const interval = Number(d.VITE_MIN_WRITE_INTERVAL)
-  if (d.VITE_MIN_WRITE_INTERVAL !== undefined && Number.isFinite(interval) && interval < 500) {
-    add('info', 'fast-writes', ['VITE_MIN_WRITE_INTERVAL'],
-      `VITE_MIN_WRITE_INTERVAL is ${interval} ms: busy views can send a save request for nearly every change.`,
-      'The default (2000 ms) delays saves without losing any.')
+  const maxWrites = Number(d.VITE_MAX_WRITES)
+  if (d.VITE_MAX_WRITES !== undefined && d.VITE_MAX_WRITES !== '' && Number.isFinite(maxWrites) && maxWrites < LOW_MAX_WRITES) {
+    add('warn', 'low-max-writes', ['VITE_MAX_WRITES'],
+      `VITE_MAX_WRITES is ${maxWrites}: a page that keeps changing sends a save every 5 seconds and would stop saving by itself after about ${Math.max(1, Math.round(maxWrites / 12))} minutes.`,
+      'Remove it to use the default (10000), or set it higher. Older templates set it to 1000.')
   }
 
   const order = { error: 0, warn: 1, info: 2 }

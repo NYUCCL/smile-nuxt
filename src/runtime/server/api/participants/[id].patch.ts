@@ -1,6 +1,6 @@
 import { defineEventHandler, createError, getRouterParam } from 'h3'
 import { useDB } from '../../utils/db'
-import { parseJsonObject, parseOversizeReport, markOversize, parseSaveBody, saveParticipant } from '../../utils/participant-save'
+import { parseJsonObject, parseOversizeReport, markOversize, parseLimitReport, markSendLimit, parseSaveBody, saveParticipant } from '../../utils/participant-save'
 import { readBodyText, throwRefusal } from '../../utils/read-body'
 
 /**
@@ -12,7 +12,8 @@ import { readBodyText, throwRefusal } from '../../utils/read-body'
  * `data.rev` is the row's).
  *
  * `{ oversize: true, dataBytes }` with no `data` is the client's report that
- * its record is over the size limit and wasn't sent.
+ * its record is over the size limit and wasn't sent; `{ limit: true, sends }`
+ * that it has reached its limit of sends.
  */
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
@@ -27,6 +28,14 @@ export default defineEventHandler(async (event) => {
   const report = body.ok ? parseOversizeReport(body.body) : null
   if (report) {
     if (!await markOversize(useDB(), id, report.dataBytes)) {
+      throw createError({ statusCode: 404, statusMessage: 'Participant not found' })
+    }
+    return { success: true }
+  }
+
+  const limit = body.ok ? parseLimitReport(body.body) : null
+  if (limit) {
+    if (!await markSendLimit(useDB(), id, limit.sends)) {
       throw createError({ statusCode: 404, statusMessage: 'Participant not found' })
     }
     return { success: true }

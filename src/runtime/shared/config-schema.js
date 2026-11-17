@@ -115,9 +115,11 @@ export const SETTINGS = [
     description: 'Deprecated, no effect. Data is saved by itself about a second after every change.',
   },
   {
-    key: 'VITE_MAX_WRITES', group: 'saving', type: 'int', default: '1000', phase: 'build', change: 'build',
+    key: 'VITE_MAX_WRITES', group: 'saving', type: 'int', default: '10000', phase: 'build', change: 'build',
     configPath: 'maxWrites',
-    description: 'Deprecated, no effect. There is no limit on the number of saves.',
+    description: 'The most saves one participant\'s browser sends, so that a page left running can\'t send forever. '
+      + 'After that changes are kept in the browser and not sent by themselves; api.sync() still sends, up to twice this number. '
+      + 'A busy page sends at most one save every 5 seconds (720 an hour).',
   },
   {
     key: 'VITE_MIN_WRITE_INTERVAL', group: 'saving', type: 'int', default: '2000', phase: 'build', change: 'build',

@@ -41,7 +41,7 @@ describe('config: data saving settings (#35)', () => {
       VITE_MAX_STEPS: '',
     })
     expect(config.autoSave).toBe(true)
-    expect(config.maxWrites).toBe(1000)
+    expect(config.maxWrites).toBe(10_000)
     expect(config.minWriteInterval).toBe(2000)
     expect(config.maxSteps).toBe(5000)
   })

@@ -22,6 +22,8 @@ function setup(options = {}) {
     gone: 0,
     conflicts: [],
     oversize: [],
+    count: 0, // sends so far, as the store keeps it
+    limits: [],
   }
   world.answer = (...answers) => world.answers.push(...answers)
   /** A send that stays in flight until `release(answer)` is called. */
@@ -53,6 +55,11 @@ function setup(options = {}) {
     },
     onConflict: rev => world.conflicts.push(rev),
     onOversize: bytes => world.oversize.push(bytes),
+    sent: () => world.count,
+    onSend: () => {
+      world.count += 1
+    },
+    onLimit: n => world.limits.push(n),
     isOnline: () => world.online,
     warn: m => world.warnings.push(m),
     random: () => 1, // no jitter: the full wait
@@ -492,6 +499,74 @@ describe('the sync loop', () => {
       await expect(w.loop.sync()).resolves.toMatchObject({ ok: true, rev: 3 })
     })
 
+    it('stops sending by itself after maxSends sends, and reports it once', async () => {
+      const w = setup({ debounce: 100, maxSends: 3, maxPerMinute: 1000 })
+      for (let i = 0; i < 6; i += 1) {
+        w.change()
+        await tick(200)
+      }
+      expect(w.sent).toHaveLength(3)
+      expect(w.count).toBe(3)
+      expect(w.limits).toEqual([3])
+      expect(w.loop.status).toMatchObject({ status: 'error', error: { kind: 'limit' } })
+      expect(w.warnings.filter(m => m.includes('most allowed'))).toHaveLength(1)
+
+      // Nothing more by itself: not on a change, a hidden page, or coming back online
+      w.change()
+      w.loop.hidden()
+      w.loop.online()
+      await tick(120_000)
+      expect(w.sent).toHaveLength(3)
+      expect(w.limits).toEqual([3])
+    })
+
+    it('sync() still sends past maxSends, up to twice as many, then nothing is sent', async () => {
+      const w = setup({ debounce: 100, maxSends: 2, maxPerMinute: 1000 })
+      for (let i = 0; i < 3; i += 1) {
+        w.change()
+        await tick(200)
+      }
+      expect(w.sent).toHaveLength(2)
+      await expect(w.loop.sync()).resolves.toMatchObject({ ok: true, rev: 3 })
+      expect(w.loop.status.status).toBe('saved')
+      w.change()
+      await tick(1000)
+      expect(w.sent).toHaveLength(3) // the change is not sent by itself
+      expect(w.loop.status.error.kind).toBe('limit')
+      await expect(w.loop.sync()).resolves.toMatchObject({ ok: true, rev: 4 })
+      w.rev += 1
+      const last = await w.loop.sync()
+      expect(last).toMatchObject({ ok: false, rev: 5 })
+      expect(last.error).toContain('most allowed')
+      expect(w.sent).toHaveLength(4)
+    })
+
+    it('counts failed sends and close-time sends, and the count the caller starts with', async () => {
+      const w = setup({ maxSends: 4, backoffStart: 100, backoffMax: 100 })
+      w.count = 1 // from before a reload
+      w.answer({ status: 500 }, { status: 500 })
+      w.change()
+      await tick(1000) // sent, fails
+      await tick(150) // tried again, fails
+      expect(w.count).toBe(3)
+      w.loop.hidden()
+      await tick(0)
+      expect(w.count).toBe(4)
+      expect(w.sent).toHaveLength(3)
+      w.change()
+      await tick(10_000)
+      expect(w.sent).toHaveLength(3)
+      expect(w.limits).toEqual([4])
+    })
+
+    it('a count that can\'t be read doesn\'t stop saving', async () => {
+      const w = setup()
+      w.count = NaN
+      w.change()
+      await tick(1000)
+      expect(w.sent).toHaveLength(1)
+    })
+
     it('a record over the size limit is not sent, and is reported once per snapshot', async () => {
       const w = setup({ maxBytes: 1000 })
       w.text = 'x'.repeat(2000)
@@ -518,7 +593,7 @@ describe('the sync loop', () => {
     })
 
     it('the defaults are the ones decided', () => {
-      expect(SYNC_DEFAULTS).toMatchObject({ debounce: 1000, maxWait: 5000, maxPerMinute: 30, backoffMax: 60_000, maxBytes: 4_000_000 })
+      expect(SYNC_DEFAULTS).toMatchObject({ debounce: 1000, maxWait: 5000, maxPerMinute: 30, maxSends: 10_000, backoffMax: 60_000, maxBytes: 4_000_000 })
     })
   })
 

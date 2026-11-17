@@ -566,6 +566,29 @@ describe('the store\'s local snapshot', () => {
       expect(localStorage.getItem(snapshotKey)).toBeNull()
     })
 
+    it('counts every send in the local copy, and stops at the limit with a report to the server', async () => {
+      const store = connectedStore()
+      store.localState.totalSends = 9_999 // from earlier pages
+      store.data.studyData.push({ trial: 1 })
+      expect((await store.sync()).ok).toBe(true)
+      expect(store.localState.totalSends).toBe(10_000)
+      expect(JSON.parse(localStorage.getItem(snapshotKey)).local.totalSends).toBe(10_000)
+      const before = dataPatches().length
+
+      store.data.studyData.push({ trial: 2 })
+      store.requestSnapshot()
+      await vi.advanceTimersByTimeAsync(10_000)
+      expect(store.browserEphemeral.sync.error.kind).toBe('limit')
+      const after = dataPatches().slice(before)
+      expect(after).toHaveLength(1) // only the report
+      expect(JSON.parse(after[0][1].body)).toEqual({ limit: true, sends: 10_000 })
+      expect(store.browserEphemeral.unsavedChanges).toBe(true)
+
+      // Asked for, it is still sent
+      expect((await store.sync()).ok).toBe(true)
+      expect(store.browserEphemeral.unsavedChanges).toBe(false)
+    })
+
     it('a record over the size limit is kept locally, reported, and not sent', async () => {
       const store = connectedStore()
       store.data.big = 'x'.repeat(4_100_000)
@@ -967,6 +990,17 @@ describe('the store\'s local snapshot', () => {
       store.saveOnClose()
       await Promise.resolve()
       expect(dataPatches()).toHaveLength(1)
+    })
+
+    it('does not create the participant\'s row from a closing page (its answer would never be read)', async () => {
+      const store = useSmileStore()
+      store.cookieState.knownUser = true // consented; the request that makes the row failed
+      store.setDataLoaded()
+      store.data.studyData.push({ trial: 'last' })
+      store.saveOnClose()
+      await vi.advanceTimersByTimeAsync(50)
+      expect(fetchMock.mock.calls.filter(([, opts]) => opts?.method === 'POST')).toHaveLength(0)
+      expect(readSnapshot().data.studyData).toEqual([{ trial: 'last' }])
     })
 
     it('a record too large for such a request is sent the ordinary way (and the local copy has it)', async () => {

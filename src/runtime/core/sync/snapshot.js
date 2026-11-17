@@ -37,7 +37,7 @@ export const RESUME_KEYS = [
 ]
 
 /** Parts of `localState` kept on this device only. */
-export const LOCAL_KEYS = ['reset', 'totalWrites', 'lastWrite', 'approxDataSize']
+export const LOCAL_KEYS = ['reset', 'totalWrites', 'totalSends', 'lastWrite', 'approxDataSize']
 
 /** The key the data backup used before the snapshot (#42), next to the main key. */
 export function legacyDataKey(key) {
@@ -65,6 +65,7 @@ const RESUME_CHECKS = {
 const LOCAL_CHECKS = {
   reset: v => typeof v === 'boolean',
   totalWrites: isCount,
+  totalSends: isCount,
   lastWrite: v => v === null || (typeof v === 'number' && Number.isFinite(v)),
   approxDataSize: isCount,
 }

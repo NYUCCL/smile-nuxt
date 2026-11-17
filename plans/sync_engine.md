@@ -118,10 +118,13 @@ another tab" notice, rather than both tabs overwriting each other. A
 - `api.syncStatus`: `saved` / `saving` / `offline` / `error`, with the last
   error. Shown in the dev tools; the experiment can show it too (on the
   thanks page, for example).
-- Deprecated: `VITE_AUTO_SAVE_DATA`, `VITE_MIN_WRITE_INTERVAL`,
-  `VITE_MAX_WRITES`. They are accepted and have no effect, with a warning in
-  the dev console and the config check. (A cap of 1000 writes would stop the
-  loop after an hour; `autoSave=false` would turn the engine off.)
+- Deprecated: `VITE_AUTO_SAVE_DATA`, `VITE_MIN_WRITE_INTERVAL`. They are
+  accepted and have no effect, with a warning in the dev console and the
+  config check. (`autoSave=false` would turn the engine off.)
+- `VITE_MAX_WRITES` stays a real limit (Todd, 2026-11-17: "i do want a max
+  though (can be high) because i don't want clients in the wild running crazy
+  and saending data indefinitely"). Default 10000, was 1000. See "The send
+  limit" under step 4.
 
 ## Bad data, layer by layer
 
@@ -564,6 +567,34 @@ browser ones as plain tests.
   merge and the oversize report; `test/e2e/sync-loop.spec.ts` (8, in the
   browser). The last 3 known failures from step 0 pass (saving during a View,
   retrying, offline then online); none are left.
+- **The send limit** (added 2026-11-17, after Todd asked for a max):
+  `VITE_MAX_WRITES`, default 10000, is the most sends one participant's
+  browser makes. Every send counts whatever its answer (failed ones and
+  close-time ones too), in `localState.totalSends`, which is in the local
+  snapshot, so a reload doesn't start the count again. At the limit nothing
+  more is sent by itself: changes stay in the local snapshot, `syncStatus` is
+  `error` with kind `limit`, and the browser tells the server once
+  (`PATCH { limit: true, sends }` sets the row's `last_error`). `api.sync()`
+  (which page navigation also calls) still sends, up to twice the limit, so
+  the end of a long study is saved; past that nothing is sent at all. A busy
+  page sends at most one save every 5 s, so 10000 is about 14 hours of
+  constant change; runaway code at the 30 a minute cap reaches it in 5.5
+  hours. A value under 2000 is a warning in the config check and the dev
+  console (older templates set 1000, which is 83 minutes of constant
+  change). The limit is the client's own; the server does not refuse a
+  participant with a high `save_count`.
+- **Two fixes found while testing the limit (2026-11-17)**, both in the case
+  where the request at consent failed and the row doesn't exist yet. The
+  browser test for that case had failed now and then; it was put down to the
+  dev server reloading, which was wrong.
+  - A page that closes or reloads no longer tries to create the row. The
+    close-time save did, the page never read the answer, the server made a
+    row, and the next page made a second one. The local copy has the record;
+    the next page creates the row.
+  - The server's render of a page never runs the sync loop, and doesn't take
+    the "no row yet" path of `loadData()` (only the browser has the local
+    copy). Before, the server marked the record loaded, and could start a
+    loop with timers inside the server process.
 - Left open:
   - A 404 or 403 on load, and a 403 on save, still reset the participant and
     remove the local copy (as before this branch). Creating a new row from

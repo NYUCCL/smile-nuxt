@@ -138,6 +138,16 @@ function syncLoop(store) {
         log.warn('SMILESTORE: Participant token invalid during save, resetting to new user')
         store.resetOrphanedUser()
       },
+      sent: () => store.localState.totalSends,
+      onSend: () => {
+        store.localState.totalSends += 1
+      },
+      onLimit: (sends) => {
+        // Tell the server, so the dashboard can show it. Best effort, and
+        // one more request than the limit.
+        const id = store.cookieState.participantId
+        if (id) request(`/api/participants/${id}`, 'PATCH', JSON.stringify({ limit: true, sends }))
+      },
       onOversize: (bytes) => {
         // Tell the server, so the dashboard can show it. Best effort.
         const id = store.cookieState.participantId
@@ -145,6 +155,7 @@ function syncLoop(store) {
       },
       isOnline: () => typeof navigator === 'undefined' || navigator.onLine !== false,
       warn: message => log.warn('SMILESTORE: ' + message),
+      options: appconfig.maxWrites > 0 ? { maxSends: appconfig.maxWrites } : {},
     })
   }
   return state.loop
@@ -235,7 +246,8 @@ const initCookieState = {
 const initLocalState = {
   verifiedVisibility: false,
   reset: false,
-  totalWrites: 0,
+  totalWrites: 0, // saves the server confirmed
+  totalSends: 0, // saves sent, whatever the answer (the VITE_MAX_WRITES count)
   lastWrite: null,
   approxDataSize: 0,
   useSeed: true,
@@ -664,6 +676,9 @@ export default defineStore('smilestore', {
     async sendSnapshot(body, { keepalive = false } = {}) {
       const state = captureState(this)
       if (!this.cookieState.participantId) {
+        // A closing page would never read the answer: the server would make
+        // a row, and the next page another. The local copy has the record.
+        if (keepalive) return { status: 0, message: 'no participant row yet' }
         const created = await this.createParticipant()
         if (created.status !== 200) return created
       }
@@ -741,6 +756,9 @@ export default defineStore('smilestore', {
       const storage = browserStorage()
       if (!participantId) {
         if (!this.cookieState.knownUser || this.browserEphemeral.dataLoaded) return
+        // Only the browser has the local copy. (On the server this would
+        // mark the record loaded, and the page would keep the empty one.)
+        if (typeof window === 'undefined') return
         // Consented, but the request that creates the row failed and the
         // page was reloaded. Go on from the local copy, if it has the
         // record; the sync loop creates the row with its first save.
@@ -999,7 +1017,8 @@ export default defineStore('smilestore', {
       }
 
       state.cost = now() - started
-      if (changed && includeData) syncLoop(this).changed()
+      // Browser only: the server's render of a page never saves
+      if (changed && includeData && typeof window !== 'undefined') syncLoop(this).changed()
       return {
         rev,
         includeData,

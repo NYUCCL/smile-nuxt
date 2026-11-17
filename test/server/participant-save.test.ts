@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm'
 import { seededDatabase, schema } from './db-helpers'
 import {
   MAX_BODY_BYTES, parseSaveBody, parseDataBody, parseJsonObject, statusFromData,
-  saveParticipant, savePrivateData, deleteParticipant, parseOversizeReport, markOversize,
+  saveParticipant, savePrivateData, deleteParticipant, parseOversizeReport, markOversize, parseLimitReport, markSendLimit,
 } from '../../src/runtime/server/utils/participant-save'
 import { toPlainJSON } from '../../src/runtime/utils/plainJSON.js'
 import { BAD_VALUES } from '../fixtures/bad-values.js'
@@ -291,6 +291,24 @@ describe('a record too large to send', () => {
     await saveParticipant(t.db, 'p1', { data: { trials: [1] }, rev: 4 })
     stored = await row()
     expect(stored).toMatchObject({ oversize: false, lastError: null, rev: 4 })
+  })
+
+  it('the report that the browser reached its limit of sends is noted the same way', async () => {
+    expect(parseLimitReport({ limit: true, sends: 10_000 })).toEqual({ sends: 10_000 })
+    expect(parseLimitReport({ limit: true, sends: -1 })).toEqual({ sends: null })
+    expect(parseLimitReport({ limit: true, data: {} })).toBe(null)
+    expect(parseLimitReport({ limit: 1 })).toBe(null)
+
+    await saveParticipant(t.db, 'p1', { data: { trials: [1, 2] }, rev: 3 })
+    expect(await markSendLimit(t.db, 'p1', 10_000)).toBe(true)
+    let stored = await row()
+    expect(stored).toMatchObject({ rev: 3, data: { trials: [1, 2] } })
+    expect(stored!.lastError).toContain('10000')
+    expect(await markSendLimit(t.db, 'nobody', 1)).toBe(false)
+
+    await saveParticipant(t.db, 'p1', { data: { trials: [1] }, rev: 4 })
+    stored = await row()
+    expect(stored!.lastError).toBe(null)
   })
 
   it('an unknown participant is not found', async () => {

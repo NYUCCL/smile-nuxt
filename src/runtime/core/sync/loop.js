@@ -13,6 +13,9 @@
  * - Offline is a failed send like any other (the wait grows to a minute);
  *   the browser's `online` event sends at once.
  * - No more than `maxPerMinute` sends a minute.
+ * - No more than `maxSends` sends for one participant, counting every send
+ *   whatever its answer. After that nothing is sent by itself; `sync()`
+ *   still sends, up to twice `maxSends`, and then nothing is sent at all.
  *
  * Plain functions and timers: no Vue, no Pinia, no fetch. The store supplies
  * `take` (the snapshot as it is now) and `send`. Nothing here throws.
@@ -22,6 +25,9 @@ export const SYNC_DEFAULTS = {
   debounce: 1000,
   maxWait: 5000,
   maxPerMinute: 30,
+  // All the sends one participant's browser makes (VITE_MAX_WRITES). One
+  // every 5 s, the most a busy page sends, reaches it after about 14 hours.
+  maxSends: 10_000,
   backoffStart: 1000,
   backoffMax: 60_000,
   // The largest body sent. Vercel refuses bodies over 4.5 MB.
@@ -62,7 +68,7 @@ export function byteSize(text, limit) {
  * @property {'saved'|'pending'|'saving'|'offline'|'error'} status - 'pending':
  *   a change is waiting to be sent
  * @property {object|null} error - The last error: `{ kind, status, message }`
- *   with kind 'retrying' | 'refused' | 'oversize' | 'conflict'
+ *   with kind 'retrying' | 'refused' | 'oversize' | 'conflict' | 'limit'
  * @property {number|null} retryAt - When the next try is (ms since the epoch)
  */
 
@@ -77,6 +83,10 @@ export function byteSize(text, limit) {
  * @param {Function} [deps.onGone] - The server no longer accepts this participant (403)
  * @param {Function} [deps.onConflict] - (serverRev): another copy saved something newer
  * @param {Function} [deps.onOversize] - (bytes): the record is over `maxBytes`
+ * @param {Function} [deps.sent] - () => how many sends this participant's
+ *   browser has made so far (kept by the caller, so it survives a reload)
+ * @param {Function} [deps.onSend] - () => void: one more send was made
+ * @param {Function} [deps.onLimit] - (sends): `maxSends` was reached
  * @param {Function} [deps.isOnline] - () => boolean
  * @param {Function} [deps.warn] - (message) => void
  * @param {Function} [deps.random] - () => [0, 1), for the retry jitter
@@ -87,6 +97,7 @@ export function createSyncLoop(deps) {
   const {
     take, send, onConfirmed,
     onStatus = () => {}, onGone = () => {}, onConflict = () => {}, onOversize = () => {},
+    sent = () => 0, onSend = () => {}, onLimit = () => {},
     isOnline = () => true, warn = () => {}, random = Math.random,
   } = deps
   const o = { ...SYNC_DEFAULTS, ...deps.options }
@@ -103,6 +114,7 @@ export function createSyncLoop(deps) {
   let stopped = false
   let sends = [] // when each send of the last minute started
   let warnedRunaway = false
+  let limitReported = false
   let current = { status: 'saved', error: null, retryAt: null }
 
   const setStatus = (status, error = null, retryAt = null) => {
@@ -145,10 +157,51 @@ export function createSyncLoop(deps) {
 
   const outcome = (ok, rev, error = null) => ({ ok, rev, error })
 
+  const sentSoFar = () => {
+    try {
+      return Number(sent()) || 0
+    }
+    catch {
+      return 0
+    }
+  }
+
+  const countSend = () => {
+    try {
+      onSend()
+    }
+    catch {
+      // the count is the caller's
+    }
+  }
+
+  /** Nothing more is sent by itself: `maxSends` sends have been made. */
+  const atLimit = () => sentSoFar() >= o.maxSends
+
+  const limitReached = () => {
+    const message = `this browser has sent ${sentSoFar()} saves, the most allowed (${o.maxSends}); what changes now is kept in this browser and not sent`
+    if (current.error?.kind !== 'limit') setStatus('error', { kind: 'limit', status: 0, message })
+    if (!limitReported) {
+      limitReported = true
+      warn(message)
+      try {
+        onLimit(sentSoFar())
+      }
+      catch {
+        // reporting it is best effort
+      }
+    }
+    return message
+  }
+
   /** After a request ends: is there something newer to send? */
   const after = () => {
     const snap = snapshot()
     if (snap && snap.rev > snap.savedRev && snap.rev !== refusedRev) {
+      if (atLimit()) {
+        limitReached()
+        return
+      }
       if (firstChange === null) firstChange = Date.now()
       setStatus('pending')
       schedule(o.debounce)
@@ -158,7 +211,7 @@ export function createSyncLoop(deps) {
     }
   }
 
-  async function attempt({ force = false } = {}) {
+  async function attempt({ force = false, asked = false } = {}) {
     if (stopped) return outcome(false, 0, 'stopped')
     if (inFlight) return outcome(false, 0, 'a save is in progress')
     clear()
@@ -172,6 +225,7 @@ export function createSyncLoop(deps) {
     }
     if (halted) return outcome(false, snap.rev, current.error?.message || 'conflict')
     if (snap.rev === refusedRev) return outcome(false, snap.rev, current.error?.message || 'refused')
+    if (sentSoFar() >= (asked ? o.maxSends * 2 : o.maxSends)) return outcome(false, snap.rev, limitReached())
     const started = Date.now()
     sends = sends.filter(t => started - t < 60_000)
     if (!force && sends.length >= o.maxPerMinute) {
@@ -207,6 +261,7 @@ export function createSyncLoop(deps) {
     }
 
     sends.push(started)
+    countSend()
     firstChange = null
     highestSent = Math.max(highestSent, snap.rev)
     setStatus('saving')
@@ -282,6 +337,10 @@ export function createSyncLoop(deps) {
     /** The snapshot changed. */
     changed() {
       if (stopped || halted || taking) return
+      if (atLimit()) {
+        limitReached()
+        return
+      }
       const t = Date.now()
       if (firstChange === null) firstChange = t
       // In flight: sent when the request ends. Failing: sent at the next try.
@@ -297,7 +356,7 @@ export function createSyncLoop(deps) {
     async sync() {
       try {
         while (inFlight) await inFlight
-        return await attempt({ force: true })
+        return await attempt({ force: true, asked: true })
       }
       catch (err) {
         return outcome(false, 0, String(err))
@@ -309,7 +368,7 @@ export function createSyncLoop(deps) {
      * that can outlive the page when the body is small enough for one.
      */
     hidden() {
-      if (stopped || halted) return
+      if (stopped || halted || atLimit()) return
       const snap = snapshot()
       if (!snap || snap.rev <= snap.savedRev || snap.rev === refusedRev) return
       let body
@@ -325,6 +384,7 @@ export function createSyncLoop(deps) {
         return
       }
       highestSent = Math.max(highestSent, snap.rev)
+      countSend()
       Promise.resolve()
         .then(() => send(body, { rev: snap.rev, keepalive: true }))
         .then((res) => {

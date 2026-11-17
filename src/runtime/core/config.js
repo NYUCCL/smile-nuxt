@@ -75,7 +75,7 @@ function parseWidthHeight(value) {
  * @property {string} github.commitURL - URL to last commit
  * @property {boolean} allowRepeats - Whether to allow repeat participants
  * @property {boolean} autoSave - Whether to auto-save data
- * @property {number} maxWrites - Maximum number of writes allowed
+ * @property {number} maxWrites - The most saves one participant's browser sends
  * @property {number} minWriteInterval - Minimum interval between writes
  * @property {number} maxSteps - Maximum rows in stepper tables
  * @property {number} dataSizeReference - Reference size for the dev tools' data meter (see DATA_SIZE_REFERENCE)
@@ -117,7 +117,7 @@ export default {
   // On unless set to 'false'. (The raw string 'false' is truthy, so setting
   // VITE_AUTO_SAVE_DATA=false used to leave auto-save on.)
   autoSave: import.meta.env.VITE_AUTO_SAVE_DATA !== 'false',
-  maxWrites: envNumber(import.meta.env.VITE_MAX_WRITES, 1000),
+  maxWrites: envNumber(import.meta.env.VITE_MAX_WRITES, 10_000),
   minWriteInterval: envNumber(import.meta.env.VITE_MIN_WRITE_INTERVAL, 2000),
   maxSteps: envNumber(import.meta.env.VITE_MAX_STEPS, 5000),
   dataSizeReference: DATA_SIZE_REFERENCE,

@@ -197,6 +197,33 @@ export async function markOversize(db: DB, id: string, dataBytes: number | null)
 }
 
 /**
+ * Whether a body is the client's report that it has made all the sends it
+ * is allowed (VITE_MAX_WRITES) and has stopped saving by itself:
+ * `{ limit: true, sends }`, with no `data`.
+ */
+export function parseLimitReport(body: JsonObject): { sends: number | null } | null {
+  if (body.limit !== true || body.data !== undefined) return null
+  const sends = body.sends
+  return { sends: typeof sends === 'number' && Number.isSafeInteger(sends) && sends >= 0 ? sends : null }
+}
+
+/**
+ * Records that a participant's browser reached its limit of sends. The
+ * stored record and its `rev` are left as they are.
+ * @returns whether the participant exists
+ */
+export async function markSendLimit(db: DB, id: string, sends: number | null): Promise<boolean> {
+  const updated = await db.update(participants)
+    .set({
+      lastError: `The browser reached its limit of saves${sends === null ? '' : ` (${sends})`} and stopped saving by itself`,
+      updatedAt: new Date(),
+    })
+    .where(eq(participants.id, id))
+    .returning({ id: participants.id })
+  return updated.length > 0
+}
+
+/**
  * Stores a participant's private data, creating the row if there isn't one
  * (one row per participant). The top-level parts sent replace the stored
  * ones; parts not sent are kept. (A page that was reloaded may not know them

@@ -104,9 +104,13 @@ export default defineNuxtPlugin((nuxtApp) => {
   })
   // Settings from before the sync loop, which no longer do anything
   if (import.meta.dev) {
-    const old = ['VITE_AUTO_SAVE_DATA', 'VITE_MAX_WRITES', 'VITE_MIN_WRITE_INTERVAL'].filter(key => import.meta.env[key] !== undefined && import.meta.env[key] !== '')
+    const old = ['VITE_AUTO_SAVE_DATA', 'VITE_MIN_WRITE_INTERVAL'].filter(key => import.meta.env[key] !== undefined && import.meta.env[key] !== '')
     if (old.length) {
       console.warn(`[smile] ${old.join(', ')} no longer ${old.length > 1 ? 'have' : 'has'} an effect: data is saved by itself about a second after every change. Remove ${old.length > 1 ? 'them' : 'it'} from your env files.`)
+    }
+    const max = Number(import.meta.env.VITE_MAX_WRITES)
+    if (import.meta.env.VITE_MAX_WRITES && max > 0 && max < 2000) {
+      console.warn(`[smile] VITE_MAX_WRITES is ${max}: data is now saved after every change (at most every 5 seconds), so a long study can reach it and stop saving by itself. Remove it to use the default (10000).`)
     }
   }
 

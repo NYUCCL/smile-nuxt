@@ -98,10 +98,10 @@ describe('deploySummary', () => {
   })
 
   it('the old saving settings have no effect and are named; a Turso URL in tracked files is ok', () => {
-    const saving = line({ deploy: { VITE_AUTO_SAVE_DATA: 'false', VITE_MAX_WRITES: '10' } }, 'saving')
+    const saving = line({ deploy: { VITE_AUTO_SAVE_DATA: 'false', VITE_MIN_WRITE_INTERVAL: '10', VITE_MAX_WRITES: '10' } }, 'saving')
     expect(saving.status).toBe('ok')
-    expect(saving.explanation).toContain('VITE_AUTO_SAVE_DATA, VITE_MAX_WRITES no longer have an effect')
-    expect(saving.recommendation).toBe('Remove VITE_AUTO_SAVE_DATA, VITE_MAX_WRITES.')
+    expect(saving.explanation).toContain('VITE_AUTO_SAVE_DATA, VITE_MIN_WRITE_INTERVAL no longer have an effect')
+    expect(saving.recommendation).toBe('Remove VITE_AUTO_SAVE_DATA, VITE_MIN_WRITE_INTERVAL.')
     expect(line({ deploy: {} }, 'saving').recommendation).toBeUndefined()
     expect(line({ deploy: { TURSO_DATABASE_URL: 'libsql://x.turso.io' } }, 'database').status).toBe('ok')
   })
@@ -137,12 +137,20 @@ describe('checkConfig', () => {
     expect(f.find(x => x.id === 'local-only:VITE_GIT_HASH')).toBeUndefined()
   })
 
-  it('plaintext passwords, Turso without a token, repeats, fast writes, the legacy flag', () => {
+  it('a low VITE_MAX_WRITES (older templates set 1000) is a warning', () => {
+    const f = checkConfig({ local: {}, deploy: { VITE_MAX_WRITES: '1000' } }).find(x => x.id === 'low-max-writes')
+    expect(f).toMatchObject({ level: 'warn' })
+    expect(f.message ?? f.text ?? JSON.stringify(f)).toContain('83 minutes')
+    expect(ids({ local: {}, deploy: { VITE_MAX_WRITES: '10000' } })).not.toContain('low-max-writes')
+    expect(ids({ local: {}, deploy: {} })).not.toContain('low-max-writes')
+  })
+
+  it('plaintext passwords, Turso without a token, repeats, the legacy flag', () => {
     const f = ids({
       local: { SMILE_DEV_PASSWORD: { set: true, kind: 'plaintext' }, TURSO_DATABASE_URL: 'libsql://x', SMILE_PUBLIC_PRESENTATION: 'true' },
-      deploy: { VITE_ALLOW_REPEATS: 'true', VITE_MIN_WRITE_INTERVAL: '100' },
+      deploy: { VITE_ALLOW_REPEATS: 'true' },
     })
-    expect(f).toEqual(expect.arrayContaining(['plaintext:SMILE_DEV_PASSWORD', 'turso-no-token', 'allow-repeats', 'fast-writes', 'legacy-public-presentation']))
+    expect(f).toEqual(expect.arrayContaining(['plaintext:SMILE_DEV_PASSWORD', 'turso-no-token', 'allow-repeats', 'legacy-public-presentation']))
     expect(ids({ local: { SMILE_DEV_PASSWORD: { set: true, kind: 'bcrypt' } }, deploy: { SMILE_DEV_TOOLS: 'include' } }))
       .not.toContain('plaintext:SMILE_DEV_PASSWORD')
   })
