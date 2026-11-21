@@ -657,6 +657,19 @@ browser ones as plain tests.
 - Not done: a page for people upgrading a project mid-collection; the dev
   tools page doesn't describe the save status in the Database panel.
 
+### Step 7 so far (2026-11-21)
+- The browser tests open the database the dev server uses
+  (`test/e2e/db-client.ts`: `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` when
+  set, otherwise the local file), so the same suite runs against Turso.
+- Full browser suite on local SQLite: 190 passed.
+- Full browser suite on a new, empty Turso database (`smile-sync-test`, made
+  with the turso CLI; the server applied every migration to it at start):
+  190 passed in 8.5 minutes.
+- `pnpm test:starter` (the packed module in a scaffolded project outside the
+  workspace): passes, its 8 browser tests included.
+- `smile-sync-test` is kept for the live tests (Todd).
+- To do: the live tests below, the merge decision.
+
 Old clients: a project upgraded mid-collection has participants whose page
 still runs the old code until they reload. The server accepts the old body (no
 `rev`) as `rev = previous + 1` for a transition period, so they keep saving.

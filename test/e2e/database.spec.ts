@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
-import { createClient } from '@libsql/client'
+import type { createClient } from '@libsql/client'
+import { openTestDB, TEST_DB_IS_LOCAL } from './db-client'
 import { clearState, fillDemographicsPage1, fillDemographicsPage2, fillDemographicsPage3 } from './helpers'
 
 /**
@@ -7,7 +8,7 @@ import { clearState, fillDemographicsPage1, fillDemographicsPage2, fillDemograph
  * The dev server writes to .data/experiment.db by default.
  */
 function getDB() {
-  return createClient({ url: 'file:.data/experiment.db' })
+  return openTestDB()
 }
 
 /** Count rows in participants table */
@@ -66,7 +67,7 @@ test.describe('Database persistence', () => {
     db = getDB()
     // The dev server writes to the same SQLite file; wait for its lock
     // instead of failing with "database is locked".
-    await db.execute('PRAGMA busy_timeout = 5000')
+    if (TEST_DB_IS_LOCAL) await db.execute('PRAGMA busy_timeout = 5000')
   })
 
   test.beforeEach(async ({ page }) => {

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { expect, type Page } from '@playwright/test'
-import { createClient } from '@libsql/client'
+import type { createClient } from '@libsql/client'
+import { openTestDB, TEST_DB_IS_LOCAL } from './db-client'
 import { clearState } from './helpers'
 
 /**
@@ -13,10 +14,10 @@ export const N_TRIALS = 9
 
 export type DB = ReturnType<typeof createClient>
 
-/** The dev server's local database. Waits for its lock instead of failing. */
+/** The dev server's database. A local file waits for its lock instead of failing. */
 export async function getDB(): Promise<DB> {
-  const db = createClient({ url: 'file:.data/experiment.db' })
-  await db.execute('PRAGMA busy_timeout = 5000')
+  const db = openTestDB()
+  if (TEST_DB_IS_LOCAL) await db.execute('PRAGMA busy_timeout = 5000')
   return db
 }
 

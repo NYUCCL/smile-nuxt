@@ -1,9 +1,10 @@
 import { test, expect, type Page } from '@playwright/test'
-import { createClient } from '@libsql/client'
+import type { createClient } from '@libsql/client'
+import { openTestDB, TEST_DB_IS_LOCAL } from './db-client'
 import { clearState } from './helpers'
 
 function getDB() {
-  return createClient({ url: 'file:.data/experiment.db' })
+  return openTestDB()
 }
 
 async function cleanupParticipants(db: ReturnType<typeof createClient>, ids: string[]) {
@@ -34,7 +35,7 @@ test.describe('Project creation on participant consent', () => {
 
   test.beforeAll(async () => {
     db = getDB()
-    await db.execute('PRAGMA busy_timeout = 5000')
+    if (TEST_DB_IS_LOCAL) await db.execute('PRAGMA busy_timeout = 5000')
   })
 
   test.beforeEach(async ({ page }) => {
@@ -201,7 +202,7 @@ test.describe('Project API auth and scoping', () => {
 
   test.beforeAll(async () => {
     db = getDB()
-    await db.execute('PRAGMA busy_timeout = 5000')
+    if (TEST_DB_IS_LOCAL) await db.execute('PRAGMA busy_timeout = 5000')
   })
 
   test.afterAll(async () => {
