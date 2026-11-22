@@ -147,7 +147,8 @@ You don't save data yourself. <SmileText/> sends the participant's data to the
 database about **one second after each change** to it: a call to
 `recordPageData()` or `recordStep()`, a change of page, a browser event. While
 changes keep coming (a task that records constantly), a save goes out at least
-every 5 seconds. Each save sends the participant's whole `data` object.
+every 5 seconds. Each save sends the participant's whole `data` object,
+compressed (gzip) in browsers that can, which is every current one.
 
 Three more things keep data from being lost:
 

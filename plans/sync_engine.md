@@ -686,8 +686,57 @@ browser ones as plain tests.
   `deploy.sh`). Local production build, one trial a second: every trial and
   all 14,889 mouse samples in the database, 136 sends, none failed, a 407 KB
   record, 36.7 MB uploaded in 6 minutes.
-- To do: the live tests below (waiting on the Vercel project), the merge
-  decision.
+- **Live runs (2026-11-21)**: the project deployed to Vercel
+  (`gureckislab/smile-sync-live`, https://smile-sync-live.vercel.app) with
+  `smile-sync-test` as its database. Scripted browser, 300 trials at one a
+  second, the mouse moving throughout (about 15,300 samples), about 6 minutes
+  each. In all three every trial and every mouse sample was in the database
+  at the end, with no `smileWarnings`, `oversize` or `last_error`.
+
+  | Connection | Sends (failed) | Uploaded | Save time, median / 95% / longest | Record |
+  |---|---|---|---|---|
+  | normal | 133 (0) | 37.0 MB | 0.17 s / 0.28 s / 1.3 s | 420 KB |
+  | slow 3G (400 ms latency, 400 kbit/s) | 59 (0) | 13.3 MB | 4.6 s / 10.2 s / 10.5 s | 417 KB |
+  | slow 3G, offline 8 s of every 30 | 95 (43) | 24.7 MB | 4.0 s / 10.0 s / 10.5 s | 416 KB |
+
+  ("Uploaded" is the size of the request bodies the page started, failed
+  ones included.) The largest single send was about 505 KB for a 420 KB
+  record: the position (the stepper's state for 300 steps) is the rest.
+  On slow 3G one send of this record takes about 10 s, so the uplink is in
+  use nearly all the time. Not tested: a record several times larger, where
+  one send would take longer than the 30 s timeout on this connection and
+  so might never complete; by hand; a phone.
+- **Compression (2026-11-21; Todd: "the compression seems a good idea")**:
+  the browser gzips a save of 1 KB or more (`core/sync/compress.js`,
+  `CompressionStream`); the save made as the page closes, and every save in
+  a browser that can't compress, stay text. The server recognises gzip by
+  the body's first two bytes and unzips it with `DecompressionStream`
+  (`server/utils/read-body.ts`): the web API, so it also runs on edge
+  runtimes and doesn't hold the thread (Todd asked whether unzipping could
+  be a problem on Vercel). The unzipped text keeps the 4.5 MB limit and
+  reading stops when it is passed (413); gzip that can't be unzipped is a
+  400. The client's 4 MB cap is still on the text, not the gzipped size.
+  Tests: `test/core/sync/compress.test.js` (13), one store test with
+  compression on (the other store tests run as a browser without
+  `CompressionStream`, so they can read the bodies). Browser suite: 191
+  passed. The same three live runs with it:
+
+  | Connection | Sends (failed) | Uploaded, before → after | Largest send, before → after | Save time median / longest, after |
+  |---|---|---|---|---|
+  | normal | 137 (0) | 37.0 → 6.7 MB | 507 → 92 KB | 0.14 s / 0.36 s |
+  | slow 3G | 105 (0) | 13.3 → 4.5 MB | 504 → 91 KB | 1.2 s / 2.3 s (was 4.6 s / 10.5 s) |
+  | slow 3G, offline 8 s of every 30 | 121 (42) | 24.7 → 5.7 MB | 503 → 91 KB | 1.2 s / 3.1 s |
+
+  Every trial and mouse sample was in the database in all three. The record
+  shrinks about 5.5 times, so on slow 3G the 30 s timeout is now reached at
+  a record of roughly 8 MB of text, above the 4 MB cap.
+- **A mistake to avoid:** `pnpm pack` run while the repo's dev server was
+  starting wrote the build into `src/` (the dev server makes `dist/runtime`
+  a link to `src/runtime`). Restored from git; nothing was committed. Pack
+  only with no dev server or browser suite running here.
+- `StepperPerformance.test.js` ("1000 flat leaf nodes quickly") fails when
+  the machine is busy and passes alone.
+- To do: by-hand and phone runs (Todd), the merge decision.
 
 Old clients: a project upgraded mid-collection has participants whose page
 still runs the old code until they reload. The server accepts the old body (no
@@ -715,8 +764,8 @@ which matters on slow or metered connections. These are possibilities, not
 decisions; step 4 builds the loop so any of them can be added, and the live
 tests decide:
 
-- **Compress the body** (`CompressionStream('gzip')` in the browser, unzip on
-  the server). Trial data is repetitive JSON and should shrink several times
+- **Compress the body** (done 2026-11-21, see "Step 7 so far")
+  (`CompressionStream('gzip')` in the browser, unzip on the server). Trial data is repetitive JSON and should shrink several times
   over. It also leaves more room under the 4 MB cap.
 - **Send less often as the record grows**: the minimum time between sends
   rises with the body size (1 s for a small record, up to 30 s or so near the

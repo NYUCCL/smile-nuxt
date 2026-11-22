@@ -5,6 +5,9 @@ import useLog from '../../../src/runtime/stores/log'
 import { Stepper } from '../../../src/runtime/core/stepper/Stepper'
 import { legacyDataKey, SNAPSHOT_VERSION } from '../../../src/runtime/core/sync/snapshot.js'
 import { BAD_VALUES } from '../../fixtures/bad-values.js'
+import { decodeBody } from '../../../src/runtime/server/utils/read-body'
+
+const RealCompressionStream = globalThis.CompressionStream
 
 /**
  * Step 3 of plans/sync_engine.md: the store keeps one local snapshot (the
@@ -84,6 +87,10 @@ describe('the store\'s local snapshot', () => {
     localStorage.clear()
     fetchMock = vi.fn(async () => ({}))
     vi.stubGlobal('$fetch', fetchMock)
+    // As a browser without CompressionStream: the bodies are sent as text, so
+    // the tests can read them. The gzip path has its own test below and
+    // test/core/sync/compress.test.js.
+    vi.stubGlobal('CompressionStream', undefined)
     // Fake timers that keep pace with the clock, so the sync loop's timers
     // (core/sync/loop.js) end with each test
     vi.useFakeTimers({ shouldAdvanceTime: true })
@@ -546,6 +553,33 @@ describe('the store\'s local snapshot', () => {
       store.data.studyData.push({ trial: 1 })
       await expect(store.saveData(true)).resolves.toMatchObject({ ok: true })
       expect(dataPatches()).toHaveLength(1)
+    })
+
+    it('a browser that can compress sends the record gzipped; the page-closing save and short bodies stay text', async () => {
+      vi.stubGlobal('CompressionStream', RealCompressionStream)
+      const store = connectedStore()
+      for (let i = 0; i < 200; i++) store.data.studyData.push({ trial: i, stimulus: 'table', response: 'f', rt: 500 + i })
+      await expect(store.sync()).resolves.toMatchObject({ ok: true })
+      const [, opts] = dataPatches()[0]
+      expect(opts.body).toBeInstanceOf(Uint8Array)
+      expect(opts.headers).toMatchObject({ 'Content-Type': 'application/json', 'Content-Encoding': 'gzip' })
+      const decoded = await decodeBody(opts.body)
+      expect(decoded.ok).toBe(true)
+      const sent = JSON.parse(decoded.text)
+      expect(sent.rev).toBe(store.browserEphemeral.rev)
+      expect(sent.data.studyData).toHaveLength(200)
+      expect(opts.body.length).toBeLessThan(decoded.text.length / 3)
+      // The private data's body is short: text
+      expect(typeof privatePatches()[0][1].body).toBe('string')
+
+      // The save made as the page closes is text too
+      store.data.studyData.push({ trial: 200 })
+      store.saveOnClose()
+      await vi.advanceTimersByTimeAsync(50)
+      const closing = dataPatches().at(-1)[1]
+      expect(closing.keepalive).toBe(true)
+      expect(typeof closing.body).toBe('string')
+      expect(closing.headers['Content-Encoding']).toBeUndefined()
     })
 
     it('sync() before consent sends nothing and says why', async () => {

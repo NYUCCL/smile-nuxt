@@ -54,6 +54,8 @@ beforeEach(() => {
   localStorage.clear()
   fetchMock = serializingFetch()
   vi.stubGlobal('$fetch', fetchMock)
+  // Bodies as text (a browser without CompressionStream), so they can be read here
+  vi.stubGlobal('CompressionStream', undefined)
 })
 
 afterEach(() => {

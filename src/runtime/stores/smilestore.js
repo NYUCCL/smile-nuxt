@@ -19,6 +19,7 @@ import { defineStore } from 'pinia'
 import { useCookie, navigateTo } from '#imports'
 import appconfig from '../core/config.js'
 import useLog from './log.js'
+import { gzipText } from '../core/sync/compress.js'
 import { toPlainJSON, addWarnings, safeStringify } from '../utils/plainJSON.js'
 import {
   readLocalCopy, chooseCopy, repairData, buildResume, resumeForServer, privateParts,
@@ -81,17 +82,22 @@ function captureState(store) {
  * One request to the API, for the sync loop. Never throws.
  * @param {string} url - The route
  * @param {string} method - POST or PATCH
- * @param {string} body - JSON text
+ * @param {string} body - JSON text; sent gzipped when the browser can (core/sync/compress.js)
  * @param {boolean} [keepalive] - Whether the request may outlive the page
  * @returns {Promise<{ status: number, result?: object, message?: string, serverRev?: number }>}
  *   `status` is 0 when there was no answer
  */
 async function request(url, method, body, keepalive = false) {
   try {
+    // A closing page sends the text as it is: compressing takes a moment the
+    // page may not have, and those bodies are small (the loop's keepalive cap)
+    const zipped = keepalive ? null : await gzipText(body)
     const result = await $fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
-      body,
+      headers: zipped
+        ? { 'Content-Type': 'application/json', 'Content-Encoding': 'gzip' }
+        : { 'Content-Type': 'application/json' },
+      body: zipped ?? body,
       ...(keepalive ? { keepalive: true } : { timeout: SEND_TIMEOUT }),
     })
     return { status: 200, result }
