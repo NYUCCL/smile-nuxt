@@ -53,6 +53,7 @@ SMILE's composables are auto-imported in `.vue` and `.js` files, so
 
 - Composables: `useAPI()`, `useViewAPI()`, `useTimeline()`, `useStepper()`,
   `useSmileStore()`, `useLog()`, `useSmileColorMode()`, `Timeline`
+- Functions: `getColorMode()`, `setColorMode()`, `cn()`
 
 Components are global in templates, with no import needed:
 
@@ -125,10 +126,19 @@ Full reference: `api.md`, `coding/steps.md`, `coding/autofill.md`,
 
 ## Recorded data
 
-Values are strings, numbers, booleans, `null`, dates, or arrays and objects
-of these. No arrays directly inside arrays, no functions or symbols, and keys
-can't contain `.`, `/`, `[`, `]` or `*`. Locally the data is in
-`.data/experiment.db` (SQLite). More: `coding/datastorage.md`.
+Any value can be recorded: objects, arrays (including arrays of arrays), and
+keys with any characters. What's stored is plain JSON, so values JSON can't
+hold are converted when they're recorded, never refused: `NaN` and `Infinity`
+become `null`, dates become ISO strings, a `Map` becomes an object and a `Set`
+an array, and functions, symbols and `undefined` are left out. Each conversion
+that loses or changes data is listed in the participant's `smileWarnings`.
+
+Saving is automatic, about a second after each change. Use `await api.sync()`
+where the experiment needs to know the data has arrived (it returns
+`{ ok, rev, error }`), and `api.syncStatus` for the current state.
+
+Locally the data is in `.data/experiment.db` (SQLite). More:
+`coding/datastorage.md`.
 
 ## Overriding built-ins
 

@@ -77,13 +77,16 @@ There is more information on view navigation in the
 [timeline](/coding/timeline.html#navigating-between-views) section. Data is
 saved to the database by itself about a second after each change, and
 `goNextView()`, `goPrevView()`, and `goToView()` also send whatever is unsent
-when the View changes (see [Data Storage](/coding/datastorage)).
+when the View changes, without waiting for the server's answer. Use
+`await api.sync()` where the experiment needs to wait for it (see
+[Data Storage](/coding/datastorage)).
 
 ## Persisting data for the view
 
 The ViewAPI object provides a `.persist` object that can be used to
 [persist](/coding/persistence) data for the view. This data is stored in the
-browser's local storage and is available even after the page is reloaded.
+browser's local storage and is available even after the page is reloaded. While
+the View is the current one, it is also saved to the database with each save.
 
 ```js
 api.persist.myVar = 'value'

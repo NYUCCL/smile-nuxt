@@ -736,7 +736,135 @@ browser ones as plain tests.
   only with no dev server or browser suite running here.
 - `StepperPerformance.test.js` ("1000 flat leaf nodes quickly") fails when
   the machine is busy and passes alone.
-- To do: by-hand and phone runs (Todd), the merge decision.
+- **Reloads** (2026-11-21, deployed build with compression). The live task
+  got Word / Not a word buttons and finger tracking so it can be done on a
+  phone.
+  - Scripted, four reloads straight after answering trials 40, 120, 121 and
+    250, on a normal connection and on slow 3G: the page came back on the
+    next trial each time; 300 of 300 trials and every mouse sample in the
+    database in both.
+  - Todd by hand on a desktop: one run without reloads and one with 8
+    reloads (7 of them within 25 seconds): 300 of 300 trials, in order, in
+    both; row marked done.
+  - Found in these runs: data recorded with `recordPageData` under a custom
+    name stayed under `visit_0` while the view's own data went to `visit_1`
+    to `visit_8` (not looked into). A record too large for the closing-page
+    send (over 60 KB) loses its last change when the browser closes within a
+    few seconds of it, until the participant returns (seen as a stale saved
+    position on slow 3G; the data was already saved). The test task's `NaN`
+    chunk number was stored as `null` with a `smileWarnings` entry and the
+    save went through.
+- **Decided (Todd, 2026-11-22):** the private data stays in the browser copy
+  as it is, unencrypted. Considered and not done: keeping only the
+  recruitment ids there, clearing it when the study ends, encrypting it.
+- The run on a real phone moved to #78 (the template's views aren't designed
+  for phones; the size check blocked it). An emulated phone completed the
+  task with every trial saved.
+- **Save indicators** (2026-11-22). One mapping from the loop's state to what
+  is shown (`core/sync/display.js`), used everywhere:
+  - participants: a small muted cloud icon in the status bar
+    (`SyncIndicator.vue`); nothing before there is a record;
+  - dev tools: the nav bar's sync icon, the side bar's progress and its
+    Database table, which also shows the seconds to the next try, sends
+    against the limit, what the last send cost (bytes sent, before gzip, ms)
+    and the record's size against the 4 MB that stops sending (it used to
+    compare against 4.5 MB, which nothing enforces).
+- **Code review** (2026-11-22): six independent reviews (three areas, two
+  models each). Fixed from them, with Todd's go-ahead:
+  1. **A 403 or 404 no longer wipes the browser's copy by itself.** The
+     server marks its own two answers (`shared/save-answers.js`); an unmarked
+     403/404 (a firewall, a proxy, a deploy being swapped) is tried again.
+     A marked 404 (the row is gone) still resets to a new user. A marked 403
+     (the token is refused) keeps the record and saves it as a new row, with
+     the old id in `data.previousParticipantIds`; with no local copy it
+     resets. The token now lasts 30 days (it was 7; the cookies last 30), is
+     issued again when a day old, and allows 5 minutes between servers'
+     clocks.
+  2. A reset clears the record and private data in memory (the next consent
+     used to create a row from the previous participant's).
+  3. The Thanks page waits up to 15 s for the last save and then shows the
+     code either way (Todd: participants are paid for their time even when
+     saving fails), with a note while a failed save is still being retried.
+     The built-in views call `api.sync()`.
+  4. A closing page's save is gzipped when the text is over 60 KB (best
+     effort: compressing is asynchronous), and the private data is sent
+     alongside without waiting for the record's answer.
+  5. A save counts only when the answer is the save route's own
+     (`{ success: true, rev }` with the rev sent).
+  6. A save without `rev` (a page running the old code) is refused with 409
+     once a save with a position has been stored for the row.
+  - Also corrected: the docs and the config warning said one save every 5
+    seconds at most; the loop sends up to 30 a minute, so 10,000 sends is
+    about 5.5 hours at the most, not 14, and 1,000 is 33 minutes.
+- **The rest of the review** (2026-11-22, Todd: go through the full report):
+  - Sync: a 4xx stops a body only with the save route's own mark (`refused`);
+    any other 4xx is tried again. A gzipped save refused with 400 or 415 is
+    sent again as text, and so are that page's later saves. The send window
+    uses a clock that doesn't follow the system clock. The oversize report is
+    sent again only when the record has grown by a tenth. Conditions and
+    randomized routes are taken from the record when a row has no saved
+    position and there is no local copy. When the browser copy can't be
+    written, the older copy is replaced by the position alone, so it can't be
+    taken for the record. The server reads each save body once. Local SQLite
+    gets its lock wait set again after a migration's transaction.
+  - **The migration.** Timed on Turso with rows saved by the old code: 300
+    records of 207 KB took 11.5 s, and 1,000 of 311 KB took 100.8 s, inside
+    one transaction that every request waits for. The fill of the status
+    columns and `data_bytes` is now outside the migration
+    (`backfillStatusColumns`): 25 rows a statement, in the background, with
+    its progress recorded so it goes on after a stop. The same 1,000 records:
+    2.8 s for the migration, 41.5 s for the fill.
+  - Module and API (useAPI, useViewAPI, useTimeline, module.ts): `useViewAPI`
+    imports `useRuntimeConfig` (preloading was off in an installed project);
+    `api.data`, `private`, `config`, `urls`, `all_data`, `all_config` are
+    getters, so a long-lived API object follows a reloaded record; URLs and
+    the reset redirect use the app's base URL; `goToView()` sends unsent
+    data; the reset, consent and connect logic is in one module
+    (`core/participant-actions.js`) used by the API and the middleware (the
+    middleware's copy had drifted); `autoSave` and `minWriteInterval` are out
+    of the config; dev login and the QR route answer 400, not 500, for bad
+    input; the log store's history is capped at 2,000 entries.
+  - Docs: every finding corrected (api.md, datastorage.md, configuration.md,
+    persistence.md, steps.md, views.md, timeline.md, the template's
+    AGENTS.md). The build and deploy settings page describes the token and
+    the save rate as they are now.
+  - A finding that was wrong: `localState.seqtimeline` and `routes` are read
+    by the dev palette's route jumper; they stay.
+- **Todd's decisions on what was held back** (2026-11-22), all done:
+  - **Reconnecting screen** (`ReconnectingNotice.vue`): when a returning
+    participant's record can't be loaded and the browser has no copy, the
+    page waits there, tries again every 3 s and when the browser is back
+    online, and goes on from the record once it loads.
+  - **A 409 with no newer tab known**: the notice says "Your progress was
+    saved somewhere else" (the newer-tab case keeps its wording). The copy
+    the server refused is set aside under `<key>_conflict` in local storage,
+    not deleted, and the next load adds an entry to `smileWarnings`.
+  - **Stepper methods with no stepper**: left as they are.
+  - **Dependencies**: `lodash`, `clipboard` and `uuid` removed; `crypto-js`
+    and `json-stable-stringify` replaced by `utils/sha256.js` and
+    `utils/stableStringify.js` and kept as dev dependencies for a test that
+    compares the two on fixed and generated data (completion codes are the
+    same); `@codenamize/codenamize` is a dev dependency.
+  - **`@pinia/nuxt`** is installed by the module (`moduleDependencies`).
+  - **Private data** travels in the save's own body (`private`), so a closing
+    page needs one request; the `/private` routes remain for older pages.
+  - **Size**: a body over 4 MB as text is gzipped by the loop and sent when
+    that fits 4 MB; the server takes up to 20 MB once unzipped
+    (`MAX_TEXT_BYTES`), and still 4.5 MB on the wire. Local storage holds
+    about 5 MB: past that the browser copy keeps the position only.
+  - **The engine is out of the store**: `core/sync/engine.js` (803 lines)
+    holds it as functions that take the store; `smilestore.js` went from
+    1,294 to 495 lines, each engine action a one-line call; the initial
+    state is in `stores/initial-state.js`. The engine's private state is
+    declared in one place.
+  - **Type checking**: `loop.js`, `snapshot.js`, `tabs.js`, `compress.js`,
+    `display.js`, `utils/plainJSON.js` and `shared/save-answers.js` are
+    `// @ts-check` under the project's strict settings (156 errors to none,
+    by annotations).
+  - Left as notes: every page load sends one save (a reload records a new
+    visit anyway); `maxPerMinute` of 0 would make the loop spin (nothing
+    lets a project set it); the `@types/node` version is still `latest`.
+- To do: the merge decision.
 
 Old clients: a project upgraded mid-collection has participants whose page
 still runs the old code until they reload. The server accepts the old body (no

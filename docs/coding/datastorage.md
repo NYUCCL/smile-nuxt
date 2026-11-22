@@ -39,7 +39,7 @@ deployed database too.
 | Table | One row per | What's in it |
 |---|---|---|
 | `projects` | version of your experiment | `id` is `owner:repo:branch:mode`. `mode` is `test` for data from `pnpm dev` and `live` for data from a deployed build. |
-| `participants` | participant | `data`: the participant's whole `data` object as JSON (everything you record). `project_id` says which project it belongs to. Also a few columns about the row itself, for looking through a study without reading every `data` object: `consented`, `done`, `withdrawn`, `recruitment_service`, `started_at`, `ended_at`, `rev` and `save_count` (how many changes and saves), `data_bytes`, `oversize` and `last_error` (see [When a save fails](#when-a-save-fails)). |
+| `participants` | participant | `data`: the participant's whole `data` object as JSON (everything you record). `project_id` says which project it belongs to. `resume`: where the participant is, as JSON (the current View, the state of that View's steps, conditions), which a reload uses when the browser's copy is missing; it is kept apart from `data` so exports of `data` don't include it. Also a few columns about the row itself, for looking through a study without reading every `data` object: `consented`, `done`, `withdrawn`, `recruitment_service`, `started_at`, `ended_at`, `rev` and `save_count` (how many changes and saves), `data_bytes`, `oversize` and `last_error` (see [When a save fails](#when-a-save-fails)). |
 | `private_data` | participant | `data`: the participant's `private` object (for example recruitment IDs), kept apart so it can be left out of shared datasets. |
 
 The project id comes from your git repository and branch (see
@@ -157,11 +157,17 @@ Three more things keep data from being lost:
   position in the experiment. If the page reloads or the browser crashes
   before a save arrives, the copy is read back and sent.
 - **Retries.** A save that fails because of the network or the server (no
-  answer, a timeout, a 5xx error) is tried again after 1 second, then 2, 4 and
-  so on up to once a minute, until it arrives. When the browser reports it is
+  answer, a timeout, a 5xx error) is tried again after about 1 second, then
+  about 2, 4 and so on up to once a minute, until it arrives. When the browser reports it is
   back online, a save is tried at once.
 - **Leaving the page.** When the participant switches tabs, closes the tab or
-  navigates away, whatever hasn't been sent is sent at once.
+  navigates away, whatever hasn't been sent is sent at once, private data
+  included, in one request. A closing page
+  can only send about 60 KB, so the save is compressed first; a record that
+  is still larger than that (roughly 300 KB of data or more) may not get out
+  of a closing tab. It stays in the browser's copy and is sent when the
+  participant comes back, so end your experiment with a page that waits for
+  `await api.sync()`, as the built-in Thanks page does.
 
 ### Checking that the data has arrived
 
@@ -179,7 +185,9 @@ if (!result.ok) {
 ```
 
 It resolves to `{ ok, rev, error }` and never throws. Page changes made with
-the API (`api.goNextView()` and friends) call it for you.
+the API (`api.goNextView()`, `api.goPrevView()` and `api.goToView()`) start a
+save of whatever is unsent, but they don't wait for the server's answer. Where
+the experiment needs to wait, call `await api.sync()` yourself.
 
 `api.syncStatus` is a reactive object you can show to the participant or
 watch: `{ status, error, retryAt }`, where `status` is one of
@@ -192,12 +200,41 @@ watch: `{ status, error, retryAt }`, where `status` is one of
 | `offline` | The browser is offline; the save will be tried when it is back.            |
 | `error`   | The last save failed. `error.kind` says how (below); `retryAt` is the time of the next try, when there is one. |
 
-The dev tools' Database panel shows the same status.
+### What the participant sees
+
+The [status bar](/coding/builtin-views#status-bar) has a small cloud icon, to
+the left of its buttons, that follows this status. It is muted and has no
+text, so it doesn't compete with the task; the words are in its tooltip.
+
+| Icon                 | When                                                                  |
+| -------------------- | --------------------------------------------------------------------- |
+| none                 | Before the participant has a record (before consent).                 |
+| cloud with an arrow  | A change is waiting or a save is on its way (shown for about a second). |
+| cloud with a check   | Everything is saved.                                                  |
+| cloud crossed out    | Offline, or the last save failed and will be tried again.             |
+| cloud with a warning | Saving has stopped (see [When a save fails](#when-a-save-fails)).     |
+
+The icon is the `SyncIndicator` component. A project with its own `StatusBar`
+can place `<SyncIndicator />` in it, or leave it out.
+
+### What the dev tools show
+
+The same status appears in three places, with the same colors (sky: saved;
+amber: a change waiting or on its way; red: the data isn't reaching the
+server):
+
+- the sync icon on the nav bar's database button, which turns while a save is
+  on its way; its tooltip has the error's message;
+- the third stage of the side bar's progress (known user, record created,
+  saved);
+- the side bar's Database table: the status in words, the seconds until the
+  next try, the saves confirmed and sent against the limit, and a "Browser
+  copy" row when the copy in the browser couldn't be written.
 
 ::: info `api.saveData()`
 `api.saveData()` still works: it is another name for `api.sync()`. Older
 experiments called it to save in the middle of a long task. That is no longer
-needed, and its `force` argument is ignored.
+needed. It takes no arguments; an argument passed by older code is ignored.
 :::
 
 ### When a save fails
@@ -207,11 +244,29 @@ participant goes on, and the data stays in the browser's copy.
 
 | `error.kind` | What happened | What <SmileText/> does |
 | --- | --- | --- |
-| `retrying` | No answer, a timeout, or a server error. | Tries again (1 second, doubling to 60). |
-| `refused`  | The server rejected that save (a 4xx answer). | Doesn't send the same content again. The next change is sent as a new save. |
-| `oversize` | The data is over 4 MB (see [How much data a participant can have](#how-much-data-a-participant-can-have)). | Doesn't send it; keeps it in the browser; marks the participant's row (`oversize`, `last_error`). |
+| `retrying` | No answer, a timeout, a server error, or an answer that isn't the save route's own (a wifi sign-in page, a firewall's 403). | Tries again (about 1 second, doubling to 60). |
+| `refused`  | The server rejected that save (a 400 or 413). | Doesn't send the same content again. The next change is sent as a new save. |
+| `oversize` | The save is over 4 MB compressed, or the data over 20 MB (see [How much data a participant can have](#how-much-data-a-participant-can-have)). | Doesn't send it; keeps it in the browser; marks the participant's row (`oversize`, `last_error`). |
 | `limit`    | The browser reached `VITE_MAX_WRITES` saves (below). | Stops saving by itself; marks the row's `last_error`. |
 | `conflict` | Another tab of the same browser saved something newer. | Stops saving from this tab and shows a notice (see [Two tabs](#two-tabs)). |
+
+The `oversize` and `last_error` marks on a participant's row are cleared by
+the next save the server accepts.
+
+Two answers from the server mean the participant's row can't be saved to any
+more, and each is handled without losing what the browser holds unless you
+removed the row yourself:
+
+- **The row is gone** (you deleted the participant, or the site now points at
+  another database). The browser starts over as a new participant.
+- **The participant's token is refused.** The server gives each browser a
+  signed token for its own row. It lasts 30 days from the participant's last
+  visit, and it stops working if the signing secret changes
+  (`SMILE_AUTH_SECRET`, or the Turso token when that isn't set). The record
+  in the browser is kept and saved as a **new row**, whose
+  `data.previousParticipantIds` lists the old row's id so you can match them.
+  Set `SMILE_AUTH_SECRET` so that rotating the Turso token during data
+  collection doesn't do this to every participant.
 
 ### The limit on saves
 
@@ -219,18 +274,21 @@ participant goes on, and the data stays in the browser's copy.
 participant's browser will send. It exists so a bug in an experiment, or a tab
 left open for days, can't send requests forever.
 
-A page that changes constantly sends one save every 5 seconds, so 10000 is
-about 14 hours of constant change; ordinary experiments use a few hundred at
-most. At the limit, nothing more is sent by itself. The data stays in the
+By itself a page sends at most 30 saves a minute. A task with a change every
+two seconds reaches that rate, and 10000 saves is then about five and a half
+hours; a page that changes constantly sends one save every 5 seconds, which
+is about 14 hours. Ordinary experiments use a few hundred at most. At the limit, nothing more is sent by itself. The data stays in the
 browser's copy, and `api.sync()` (so also page changes made with the API)
 still sends, up to twice the limit, so the end of a long study is still saved.
 
 The config check and the dev console warn about a value under 2000. Projects
 made from older templates have `VITE_MAX_WRITES = 1000` in `.env`; with
-automatic saving that is 83 minutes of constant change. Raise it or remove the
-line.
+automatic saving a task can reach that in as little as 33 minutes. Raise it or
+remove the line.
 
-Separately, a page can send at most 30 saves a minute, whatever its code does.
+The 30 a minute applies to the saves the page makes by itself. `api.sync()`
+(and so a page change made with the API) always sends, and counts toward
+`VITE_MAX_WRITES`.
 
 ::: warning Settings that no longer do anything
 `VITE_AUTO_SAVE_DATA` and `VITE_MIN_WRITE_INTERVAL` are accepted and ignored
@@ -246,21 +304,48 @@ tab opened last is theirs. The other tab stops saving and shows a notice
 reloads that tab from the newest data and makes it the participant's tab
 again. This keeps two tabs from overwriting each other's data.
 
+In a browser where tabs can't tell each other they exist, the older tab finds
+out when the server refuses its save as out of date. It then shows "Your
+progress was saved somewhere else" with a **Continue** button that loads the
+newest data. What that tab had not saved is not merged in; it is set aside in
+the browser's local storage, and the participant's `smileWarnings` gets an
+entry saying a copy was set aside and at which save.
+
+### When the record can't be loaded
+
+When a returning participant's page can't reach the server and the browser has
+no copy of their data (it was cleared, or the browser blocks local storage),
+the page shows a "Reconnecting" screen in place of the experiment. It tries
+again every few seconds and continues from where the participant left off as
+soon as the data loads. Nothing can be recorded in that state, so nothing is
+lost.
+
 ### How much data a participant can have
 
 The database itself has no practical size limit for one participant. The limit
 that matters is your host's maximum request size, because every save sends the
-whole `data` object. On Vercel, the default deploy target, a request body can be
-at most 4.5 MB, so <SmileText/> doesn't send a save over **4 MB**. The data
-stays in the browser, the participant's row is marked `oversize`, and
-`api.syncStatus` reports it; nothing recorded after that point reaches the
-database unless the data gets smaller.
+whole `data` object. On Vercel, the default deploy target, a request body can
+be at most 4.5 MB, so <SmileText/> doesn't send a save over **4 MB as it goes
+over the network**. Saves are compressed, and a record usually shrinks about
+five times, so in practice a participant's data can reach roughly 15 to
+20 MB of JSON before a save no longer fits. Two other limits apply:
 
-The dev tools show the participant's current data size against this 4.5 MB
-reference: in the database button's tooltip and progress ring, and in the
-sidebar's Database panel. The number is the length of the data as JSON, which
-is close to its size in bytes. It's there so you notice a task that records far
-more than you expected (for example, every mouse movement) before you run it.
+- **20 MB of JSON** is the most the server accepts once a save is unpacked.
+- **About 5 MB** is what a browser's local storage holds. Past that, the
+  browser's copy keeps the participant's position but not the data, so a
+  reload relies on what the server has.
+- A browser that can't compress (rare, old ones) sends plain text and stops at
+  4 MB of JSON.
+
+When a save doesn't fit, the data stays in the page, the participant's row is
+marked `oversize`, and `api.syncStatus` reports it; nothing recorded after
+that point reaches the database unless the data gets smaller.
+
+The dev tools show the participant's data size as JSON and what the last save
+weighed on the network against the 4 MB limit: in the database button's
+tooltip and progress ring, and in the sidebar's Database panel. It's there so
+you notice a task that records far more than you expected (for example, every
+mouse movement) before you run it.
 
 ## Looking at your data
 
@@ -339,14 +424,19 @@ crash:
 - The participant's `data` and `private` objects are saved to the database (see
   [When data is saved](#when-data-is-saved)).
 - A copy of both, together with the participant's position (the current View,
-  each stepper's place and its `persist` values, conditions, the timeline), is
+  each View's stepper place and its `persist` values, conditions), is
   kept as one value in the browser's
   [local storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage).
-  The database also gets the position with each save. On a reload,
-  <SmileText/> reads both copies and uses the newer one, so a participant
-  whose local storage was cleared still comes back to the same trial.
-- A few small values the server needs before the page loads, such as the
-  participant id and whether they consented, are kept in cookies.
+  The database also gets the position with each save, but with the stepper of
+  the current View only. On a reload, <SmileText/> reads both copies and uses
+  the newer one, so a participant whose local storage was cleared still comes
+  back to the same trial of the View they were on. The timeline itself isn't
+  saved anywhere; it is built again from `design.js` on each load.
+- A few small values that recognize a returning participant, such as the
+  participant id and whether they consented, are kept in cookies. The app is
+  rendered in the browser, and only the browser reads these cookies. The
+  server reads one cookie of its own, `smile_participant`, which holds the
+  participant's signed token and which page code can't read (it is httpOnly).
 
 ::: warning The browser's copy includes private data
 The copy in local storage holds the participant's `private` object too
@@ -356,7 +446,7 @@ after they finish, until the state is reset or the browser's site data is
 cleared.
 :::
 
-![Components keep local state and read and write the SMILE store. The store's data and private parts are saved to the database; cookieState and localState are kept in the browser; browserEphemeral is in memory only.](/images/storage-statediagram.svg)
+![Components keep local state and read and write the SMILE store. The store's data and private parts are saved to the database and copied to the browser's local storage; cookieState is kept in cookies and localState in local storage, both in the browser, and the position in localState is also sent to the database; browserEphemeral is in memory only.](/images/storage-statediagram.svg)
 
 ## The SMILE store
 
@@ -386,7 +476,7 @@ edited from your project; to change behavior, use the API or
 | `data` | database (`participants`) | The participant's data: everything you record, plus `consented`, `done`, `withdrawn`, `starttime`/`endtime` (and local-time versions and time zone), `recruitmentService`, `routeOrder`, `conditions`, `randomizedRoutes`, `browserData`, `smileConfig`, `seedID`. |
 | `private` | database (`private_data`) | `recruitmentInfo` (for example Prolific IDs), `withdrawData`, `browserFingerprint`. |
 | `cookieState` | cookies | What's needed to recognize a returning participant: `participantId`, `knownUser`, `consented`, `withdrawn`, `done`, `lastRoute`, `completionCode`, `seedID`, `seedSet`. |
-| `localState` | local storage (in the one saved copy, with `data` and `private`) | `conditions`, `randomizedRoutes`, `seqtimeline`, `viewSteppers`, `totalWrites`, `totalSends`, `lastWrite`, `approxDataSize`, and similar bookkeeping. |
+| `localState` | local storage (in the one saved copy, with `data` and `private`); the position parts also go to the database (`participants.resume`) | `conditions`, `randomizedRoutes`, `viewSteppers`, `totalWrites`, `totalSends`, `lastWrite`, `approxDataSize`, and similar bookkeeping. Also `seqtimeline` and `routes`, which are not saved anywhere and are built again on each load. |
 | `browserEphemeral` | memory only | Resets on reload: whether data has loaded, the save status (`sync`), whether another tab has taken over (`otherTab`), window-too-small, steppers. |
 | `dev` | cookie, dev tools only | The dev tools' own settings (open panels, sizes, filters, device preview). |
 | `config` | none | The app's configuration, from the `VITE_*` settings in `.env` (see [Configuration](/coding/configuration)). |
@@ -415,8 +505,9 @@ Commonly used actions (most have an API equivalent you should prefer):
 
 ### Good to know
 
-1. **Size:** each save sends the whole `data` object, so keep it under your
-   host's request size limit (4.5 MB on Vercel). See
+1. **Size:** each save sends the whole `data` object, compressed, and a save
+   over 4 MB on the network isn't sent (Vercel's own request limit is 4.5 MB).
+   See
    [How much data a participant can have](#how-much-data-a-participant-can-have).
 2. **Saving is automatic:** about a second after each change, with retries.
    `await api.sync()` waits for the server's answer when you need to be sure.

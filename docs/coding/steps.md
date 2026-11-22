@@ -19,7 +19,8 @@ Keynote/Powerpoint presentation while a step is like a build or animation
 :::
 
 A key feature of stepped Views is that their state persists in the browser
-through the use of local storage. This means that if the subject reloads the
+through the use of local storage. The state of the current View's steps is also
+saved to the database with each save. This means that if the subject reloads the
 page, or navigates to a different site and then returns, the task will resume
 from the same step. This is nice because it helps ensure that subjects are
 always completing the set of steps/trials assigned to them and are not able to
@@ -372,7 +373,8 @@ long View.
 ## Persisting data for the view (not just a step)
 
 All the data for the steps are persisted in the browser's local storage, and
-the participant's position is saved to the database with their data. This
+the participant's position in the current View is saved to the database with
+each save. This
 means that if the subject reloads the page, or navigates to a different site and
 then returns, the task will resume from the same step. This is nice because it
 helps ensure that subjects are always completing the set of steps/trials
@@ -381,7 +383,8 @@ biased data from practice effects or exposure to different manipulations).
 
 The ViewAPI object provides a `.persist` object that can be used to persist data
 for the view that is not associated with a step. This data is stored in the
-browser's local storage and is available even after the page is reloaded.
+browser's local storage and is available even after the page is reloaded. While
+the View is the current one, it is also saved to the database with each save.
 
 ```js
 api.persist.myVar = 'value'

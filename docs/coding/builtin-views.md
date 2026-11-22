@@ -504,7 +504,10 @@ and participant controls that are always accessible such as the lab logo
 (i.e., the git commit hash for debugging purposes, along with the current mode
 (development, testing, presentation)), a shortened user ID. It also provides two
 buttons (After the user consents) which allow users to review the informed
-consent information, or to withdraw from the study. The Status Bar automatically
+consent information, or to withdraw from the study. Next to them is a small
+cloud icon that shows whether the participant's progress is saved (the
+`SyncIndicator` component; see
+[Data Storage](/coding/datastorage#what-the-participant-sees)). The Status Bar automatically
 adapts to different screen sizes, showing abbreviated labels on smaller screens
 and hiding certain information on very narrow displays.
 

@@ -708,7 +708,8 @@ View to the next?
 In each View, we need to tell the Timeline when that component is "finished,"
 allowing the Timeline to pass control to the next View in the sequence. To do
 this, the [API](/api) includes three navigation functions: `goNextView()`,
-`goPrevView()`, and `goToView(view_name)`.
+`goPrevView()`, and `goToView(view_name)`. Each one also sends any unsent data,
+without waiting for the server's answer.
 
 Here is a complete, simple SFC component that imports the API and uses it to
 advance to the next route in the sequence when the user clicks a button (calling
@@ -738,7 +739,8 @@ function finish() {
 
 Data is saved to the database by itself about a second after each change, in
 any View and however you navigate. These navigation functions also send
-whatever is unsent at the moment the View changes. See the data storage docs on
+whatever is unsent at the moment the View changes. They don't wait for the
+server's answer; `await api.sync()` does. See the data storage docs on
 [when data is saved](/coding/datastorage#when-data-is-saved).
 
 :::
