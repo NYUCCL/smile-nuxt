@@ -141,7 +141,7 @@ test.describe('Project creation on participant consent', () => {
     expect(project.mode).toBe('test')
   })
 
-  test('multiple participants share the same project record', async ({ page, context }) => {
+  test('multiple participants share the same project record', async ({ page, browser }) => {
     // First participant
     await readyButton(page).click()
     await page.getByRole('switch').click()
@@ -157,10 +157,12 @@ test.describe('Project creation on participant consent', () => {
     const firstProjectId = firstParticipant.project_id as string
     createdProjectIds.push(firstProjectId)
 
-    // Second participant in a fresh page
-    const page2 = await context.newPage()
-    await page2.goto('/welcome')
-    await clearState(page2)
+    // Second participant: another browser, with its own cookies and storage.
+    // (A second tab in the same browser would load the first participant,
+    // and a loaded page writes its copy back when it is left, so clearing
+    // the storage under it doesn't reliably make a new participant.)
+    const context2 = await browser.newContext()
+    const page2 = await context2.newPage()
     await page2.goto('/welcome')
     await expect(readyButton(page2)).toBeVisible({ timeout: 10_000 })
 
@@ -187,7 +189,7 @@ test.describe('Project creation on participant consent', () => {
     })
     expect(Number(projectCount.rows[0]!.count)).toBe(1)
 
-    await page2.close()
+    await context2.close()
   })
 })
 
