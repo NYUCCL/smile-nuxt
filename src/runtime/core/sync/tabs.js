@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * @module sync/tabs
  * @description Two tabs of the same experiment (plans/sync_engine.md, step 5).
@@ -24,6 +25,18 @@ export function isNewer(a, b) {
   return a.id > b.id
 }
 
+/**
+ * The channel the guard uses: the parts of a BroadcastChannel it touches.
+ * @typedef {Pick<BroadcastChannel, 'postMessage'|'onmessage'> & Partial<Pick<BroadcastChannel, 'close'>>} TabChannel
+ */
+
+/**
+ * Reads a `hello` from what arrived on the channel.
+ * @param {{ type?: unknown, id?: unknown, startedAt?: unknown }|null|undefined} message -
+ *   What arrived. It can be anything; the fields named here are the ones read
+ * @returns {{ id: string, startedAt: number }|null} The tab that said hello,
+ *   or null when the message is not a usable hello
+ */
 function readHello(message) {
   if (message === null || typeof message !== 'object' || message.type !== 'hello') return null
   if (typeof message.id !== 'string' || !message.id) return null
@@ -33,15 +46,15 @@ function readHello(message) {
 
 /**
  * @param {object} deps - What the guard works with
- * @param {object|null} deps.channel - A BroadcastChannel (`postMessage`,
+ * @param {TabChannel|null} deps.channel - A BroadcastChannel (`postMessage`,
  *   `onmessage`), or null where there is none: the guard then does nothing,
  *   and the server's 409 is what stops the older tab
  * @param {string} deps.id - This tab's id
  * @param {number} deps.startedAt - When this tab's page started
- * @param {Function} deps.isActive - () => boolean: this tab holds the
+ * @param {() => boolean} deps.isActive - This tab holds the
  *   participant's record and has not been paused
- * @param {Function} deps.onOtherTab - A newer tab holds the record now
- * @returns {{ announce: Function, close: Function }} `announce()` when this
+ * @param {() => void} deps.onOtherTab - A newer tab holds the record now
+ * @returns {{ announce: () => void, close: () => void }} `announce()` when this
  *   tab's record is loaded
  */
 export function createTabGuard({ channel, id, startedAt, isActive, onOtherTab }) {

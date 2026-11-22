@@ -245,6 +245,24 @@ describe('useTimeline composable', () => {
     expect(mockSmilestore.sync).toHaveBeenCalled()
   })
 
+  it('goToView sends the data at once, once the participant has a record', async () => {
+    mockSmilestore.isDataLoaded = true
+
+    await wrapper.vm.timeline.goToView('about')
+
+    expect(mockSmilestore.sync).toHaveBeenCalledTimes(1)
+    expect(navigateTo).toHaveBeenCalledWith('/about')
+  })
+
+  it('goToView sends nothing before the participant has a record', async () => {
+    mockSmilestore.isDataLoaded = false
+
+    await wrapper.vm.timeline.goToView('about')
+
+    expect(mockSmilestore.sync).not.toHaveBeenCalled()
+    expect(navigateTo).toHaveBeenCalledWith('/about')
+  })
+
   it('sends nothing on a View change before the participant has a record', async () => {
     mockSmilestore.isDataLoaded = false
 

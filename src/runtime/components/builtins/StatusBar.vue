@@ -3,6 +3,7 @@ import { CircleX, Hand, Search } from 'lucide-vue-next'
 import { ref } from 'vue'
 import useSmileStore from '../../stores/smilestore'
 import useAPI from '../../composables/useAPI'
+import SyncIndicator from './SyncIndicator.vue'
 
 const smilestore = useSmileStore() // get the global store
 const api = useAPI() // get the api
@@ -95,7 +96,11 @@ function submitWithdraw() {
       id="infobar"
       class="flex-grow flex-shrink-0 flex items-stretch z-10"
     >
-      <div class="flex justify-end ml-auto items-stretch">
+      <div class="flex justify-end ml-auto items-stretch gap-3">
+        <!-- Whether the participant's progress is being saved -->
+        <div class="flex items-center pt-1">
+          <SyncIndicator />
+        </div>
         <div
           v-if="!api.config.anonymousMode"
           class="flex items-center pt-1"

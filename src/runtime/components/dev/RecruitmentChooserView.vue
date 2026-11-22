@@ -4,6 +4,7 @@ import { ref, computed } from 'vue'
 import useViewAPI from '../../composables/useViewAPI'
 import useSmileStore from '../../stores/smilestore'
 import { provideDevScope } from '../../composables/useDevScope'
+import { copyText } from '../../utils/clipboard.js'
 
 // Dev tools UI: its menus and tooltips use the dev tools' colors
 provideDevScope()
@@ -46,26 +47,11 @@ const devUrls = computed(() => {
 // Clipboard helper
 const copied = ref('')
 async function copyToClipboard(text, label) {
-  try {
-    await navigator.clipboard.writeText(text)
-    copied.value = label
-    copied.value = label
-    setTimeout(() => {
-      copied.value = ''
-    }, 2000)
-  }
-  catch {
-    const el = document.createElement('textarea')
-    el.value = text
-    document.body.appendChild(el)
-    el.select()
-    document.execCommand('copy')
-    document.body.removeChild(el)
-    copied.value = label
-    setTimeout(() => {
-      copied.value = ''
-    }, 2000)
-  }
+  await copyText(text)
+  copied.value = label
+  setTimeout(() => {
+    copied.value = ''
+  }, 2000)
 }
 
 // Service definitions with card styling + info content

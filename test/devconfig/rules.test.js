@@ -140,7 +140,7 @@ describe('checkConfig', () => {
   it('a low VITE_MAX_WRITES (older templates set 1000) is a warning', () => {
     const f = checkConfig({ local: {}, deploy: { VITE_MAX_WRITES: '1000' } }).find(x => x.id === 'low-max-writes')
     expect(f).toMatchObject({ level: 'warn' })
-    expect(f.message ?? f.text ?? JSON.stringify(f)).toContain('83 minutes')
+    expect(f.message ?? f.text ?? JSON.stringify(f)).toContain('33 minutes')
     expect(ids({ local: {}, deploy: { VITE_MAX_WRITES: '10000' } })).not.toContain('low-max-writes')
     expect(ids({ local: {}, deploy: {} })).not.toContain('low-max-writes')
   })

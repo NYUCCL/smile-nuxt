@@ -114,6 +114,93 @@ test.describe('The sync loop (plans/sync_engine.md, step 4)', () => {
     expect(stroopTrials(await getParticipant(db, participantId))).toHaveLength(2)
   })
 
+  test('the participant\'s icon follows it: none before a record, saved, offline, saved', async ({ page }) => {
+    const indicator = page.getByTestId('sync-indicator')
+    await page.goto('/')
+    await expect(page.locator('#infobar')).toBeVisible()
+    await expect(indicator).toHaveCount(0)
+    participantId = await consent(page, db)
+    await openStroop(page)
+    await expect(indicator).toHaveAttribute('data-state', 'saved', { timeout: 10_000 })
+    await page.context().setOffline(true)
+    await answerTrials(page, 2)
+    await expect(indicator).toHaveAttribute('data-state', 'offline', { timeout: 10_000 })
+    await page.context().setOffline(false)
+    await expect(indicator).toHaveAttribute('data-state', 'saved', { timeout: 10_000 })
+  })
+
+  test('the Thanks page shows the code when the last save fails, says saving is still going on, and saves when it can', async ({ page }) => {
+    test.setTimeout(60_000)
+    participantId = await consent(page, db)
+    await expect.poll(async () => (await syncStatus(page)).status).toBe('saved')
+    // Saves fail from here on (the server can't be reached)
+    await page.route('**/api/participants/**', route => (route.request().method() === 'PATCH' ? route.abort() : route.continue()))
+    await page.evaluate(() => {
+      const app = (document.querySelector('#__nuxt') as any).__vue_app__
+      const store = app.config.globalProperties.$pinia._s.get('smilestore')
+      store.data.done = true
+      store.browserEphemeral.forceNavigate = true
+      app.config.globalProperties.$router.push('/thanks')
+    })
+    await expect(page.getByText('Uploading Your Data')).toBeVisible({ timeout: 10_000 })
+    // Not held back: after the wait (15 s) the page shows, with the note
+    const note = page.getByTestId('thanks-still-saving')
+    await expect(note).toBeVisible({ timeout: 25_000 })
+    await expect(page.getByText('Uploading Your Data')).toHaveCount(0)
+    const code = await inStore<string>(page, 'return store.cookieState.completionCode')
+    expect(code).toBeTruthy()
+
+    // The server is back: the loop's next try gets through and the note goes
+    await page.unrouteAll({ behavior: 'ignoreErrors' })
+    await expect(note).toHaveCount(0, { timeout: 70_000 })
+    expect((await getParticipant(db, participantId!)).done).toBe(true)
+  })
+
+  test('a returning participant whose record can\'t be loaded waits on the Reconnecting screen, then goes on', async ({ page }) => {
+    participantId = await consent(page, db)
+    await openStroop(page)
+    await answerTrials(page, 2)
+    await expect.poll(async () => (await syncStatus(page)).status).toBe('saved')
+
+    // The browser's copy is gone and the server can't be reached
+    await page.addInitScript(() => {
+      if (!sessionStorage.getItem('cleared')) {
+        localStorage.clear()
+        sessionStorage.setItem('cleared', '1')
+      }
+    })
+    await inStore(page, 'store.stopSnapshots()')
+    await page.route('**/api/participants/**', route => (route.request().method() === 'GET' ? route.abort() : route.continue()))
+    await page.reload()
+    const notice = page.getByTestId('reconnecting-notice')
+    await expect(notice).toBeVisible({ timeout: 15_000 })
+    await expect(notice).toContainText('Reconnecting')
+
+    // The server is back: the page loads the record and goes on from the third trial
+    await page.unrouteAll({ behavior: 'ignoreErrors' })
+    await expect(notice).toHaveCount(0, { timeout: 15_000 })
+    await expect(page.locator('#prompt')).toBeVisible({ timeout: 15_000 })
+    expect(stroopTrials(await getParticipant(db, participantId!))).toHaveLength(2)
+    await answerTrials(page, 1)
+    await expect.poll(async () => stroopTrials(await getParticipant(db, participantId!)).length, { timeout: 10_000 }).toBe(3)
+  })
+
+  test('the dev tools\' icon shows the same states', async ({ page }) => {
+    await page.goto('/dev/stroop')
+    const icon = page.getByTestId('nav-sync-icon')
+    await expect(icon).toHaveAttribute('data-state', 'none', { timeout: 10_000 })
+    // The states are set by hand here: this checks what the icon shows for each
+    const set = (sync: object) => inStore(page, `store.browserEphemeral.dataLoaded = true; store.browserEphemeral.savedRev = store.browserEphemeral.rev; store.browserEphemeral.unsavedChanges = false; store.browserEphemeral.sync = ${JSON.stringify(sync)}`)
+    await set({ status: 'saved', error: null, retryAt: null })
+    await expect(icon).toHaveAttribute('data-state', 'saved')
+    await set({ status: 'saving', error: null, retryAt: null })
+    await expect(icon).toHaveAttribute('data-state', 'saving')
+    await set({ status: 'error', error: { kind: 'retrying', status: 500, message: 'Server error' }, retryAt: Date.now() + 5000 })
+    await expect(icon).toHaveAttribute('data-state', 'retrying')
+    await set({ status: 'error', error: { kind: 'limit', status: 0, message: 'limit reached' }, retryAt: null })
+    await expect(icon).toHaveAttribute('data-state', 'stopped')
+  })
+
   test('the participant\'s row is created later when the request at consent fails', async ({ page }) => {
     const before = await latestId(db)
     await page.goto('/welcome')

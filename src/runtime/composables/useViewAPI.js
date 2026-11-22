@@ -11,12 +11,28 @@ import useSmileStore from '../stores/smilestore'
 import { useStepper } from './useStepper'
 import { onKeyDown, onKeyPressed, onKeyUp, useMouse, useMousePressed } from '@vueuse/core'
 import useTimeline from './useTimeline'
-import { useRoute, useRouter } from '#imports'
+import { useRoute, useRouter, useRuntimeConfig } from '#imports'
 import useLog from '../stores/log'
 import config from '../core/config'
 
 // Singleton instance
 let viewAPIInstance = null
+
+/**
+ * Whether a step's path matches a path filter. The filter matches from the
+ * start of the path, and `*` in it stands for any characters.
+ * @param {string} path - The step's path string, e.g. 'trial/block1/step2'
+ * @param {string|null} filter - The filter, e.g. 'trial/block*'; none matches every path
+ * @returns {boolean} True if the path matches
+ */
+function matchesFilter(path, filter) {
+  if (!filter) return true
+
+  let pattern = filter.replace(/\*/g, '.*')
+  pattern = pattern.replace(/[+?^${}()|[\]\\]/g, '\\$&')
+  const regex = new RegExp(`^${pattern}`)
+  return regex.test(path)
+}
 
 /**
  * ViewAPI class extends SmileAPI with view-specific functionality
@@ -54,7 +70,6 @@ class ViewAPI extends SmileAPI {
     this._path = ref(null)
     this._pathString = ref('')
     this._index = ref(null)
-    this._stateMachine = ref(null)
     this._gvars = ref({})
 
     // Component registry (deprecated - now stored on the Stepper's _componentRegistry)
@@ -453,13 +468,13 @@ class ViewAPI extends SmileAPI {
    */
   isTimerStarted(name = 'default') {
     const timerKey = `startTime_${name}`
-    return this.persist.isDefined(timerKey) ? this.persist[timerKey] : false
+    return this.persist.isDefined(timerKey) && Boolean(this.persist[timerKey])
   }
 
   /**
    * Gets the elapsed time in milliseconds since a named timer was started
    * @param {string} [name] - The name of the timer to check
-   * @returns {number} Elapsed time in milliseconds
+   * @returns {number} Elapsed time in milliseconds, or NaN if the timer was never started
    * @memberof ViewAPI
    * @instance
    */
@@ -470,7 +485,7 @@ class ViewAPI extends SmileAPI {
   /**
    * Gets the elapsed time in seconds since a named timer was started
    * @param {string} [name] - The name of the timer to check
-   * @returns {number} Elapsed time in seconds
+   * @returns {number} Elapsed time in seconds, or NaN if the timer was never started
    * @memberof ViewAPI
    * @instance
    */
@@ -481,7 +496,7 @@ class ViewAPI extends SmileAPI {
   /**
    * Gets the elapsed time in minutes since a named timer was started
    * @param {string} [name] - The name of the timer to check
-   * @returns {number} Elapsed time in minutes
+   * @returns {number} Elapsed time in minutes, or NaN if the timer was never started
    * @memberof ViewAPI
    * @instance
    */
@@ -714,15 +729,6 @@ class ViewAPI extends SmileAPI {
    * const trialData = api.queryStepDataLeaf('trial/block*')
    */
   queryStepDataLeaf(pathFilter = null) {
-    const matchesFilter = (path, filter) => {
-      if (!filter) return true
-
-      let pattern = filter.replace(/\*/g, '.*')
-      pattern = pattern.replace(/[+?^${}()|[\]\\]/g, '\\$&')
-      const regex = new RegExp(`^${pattern}`)
-      return regex.test(path)
-    }
-
     const getLeafData = (state) => {
       if (state.isLeaf) {
         if (matchesFilter(state.pathString, pathFilter)) {
@@ -751,15 +757,6 @@ class ViewAPI extends SmileAPI {
    * const trialData = api.queryStepData('trial/block*')
    */
   queryStepData(pathFilter = null) {
-    const matchesFilter = (path, filter) => {
-      if (!filter) return true
-
-      let pattern = filter.replace(/\*/g, '.*')
-      pattern = pattern.replace(/[+?^${}()|[\]\\]/g, '\\$&')
-      const regex = new RegExp(`^${pattern}`)
-      return regex.test(path)
-    }
-
     const getLeafData = (state) => {
       if (state.isLeaf) {
         if (matchesFilter(state.pathString, pathFilter)) {
@@ -835,7 +832,6 @@ class ViewAPI extends SmileAPI {
    * These methods handle updating and saving the reactive state properties of the view:
    * - _updateStepperState: Updates internal reactive refs from stepper data
    * - updateStepper: Public method to trigger stepper state update
-   * - _visualizeStateMachine: Creates clean visualization of state machine
    * - _saveStepperState: Persists current stepper state to store
    *
    * The utility functions maintain consistency between the stepper state machine
@@ -880,11 +876,10 @@ class ViewAPI extends SmileAPI {
     this._path.value = data.currentPath
     this._index.value = data.index
     this._gvars.value = reactive(data.data?.gvars || {})
-    // The picture of the whole tree (_visualizeStateMachine) is not built
-    // here: nothing reads it (the dev tools use steps.visualize()), and
-    // building it on every step and every data change read every state
-    // through the stepper's proxy: about 0.6 s of main-thread time a step
-    // with 300 steps.
+    // No picture of the whole tree is built here (the dev tools call
+    // steps.visualize() when they need one): building it on every step and
+    // every data change reads every state through the stepper's proxy, about
+    // 0.6 s of main-thread time a step with 300 steps.
     if (save) {
       this._saveStepperState()
     }
@@ -899,36 +894,6 @@ class ViewAPI extends SmileAPI {
   updateStepper() {
     this._updateStepperState(this._stepper.value)
   }
-
-  /**
-   * Creates a clean visualization of the state machine structure
-   * @private
-   * @returns {object} Processed state machine representation
-   * @memberof ViewAPI
-   * @instance
-   */
-  _visualizeStateMachine() {
-    const processState = (state, level = 0) => {
-      const cleanState = {
-        data: state.data,
-        path: state.pathString,
-        index: state.index,
-        isLeaf: state.isLeaf,
-        isFirstLeaf: state.isFirstLeaf,
-        rows: [],
-      }
-
-      if (state.rows) {
-        state.rows.forEach((childState) => {
-          cleanState.rows.push(processState(childState, level + 1))
-        })
-      }
-
-      return cleanState
-    }
-
-    return processState(this._stepper.value)
-  }
 }
 
 /**
@@ -942,8 +907,7 @@ export default function useViewAPI() {
     const router = useRouter()
     const store = useSmileStore()
     const logStore = useLog()
-    // eslint-disable-next-line no-undef
-    const runtimeConfig = typeof useRuntimeConfig === 'function' ? useRuntimeConfig() : {}
+    const runtimeConfig = useRuntimeConfig()
     const timeline = { goNextView, goPrevView, goToView, nextView, prevView }
     // A detached scope: the instance is shared by every view and the dev tools,
     // so its computeds and watchers must outlive the component that happened to

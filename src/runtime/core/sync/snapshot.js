@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * @module sync/snapshot
  * @description The participant's snapshot (plans/sync_engine.md, step 3).
@@ -26,6 +27,34 @@ import { safeStringify } from '../../utils/plainJSON.js'
 
 export const SNAPSHOT_VERSION = 1
 
+/**
+ * The record: what analysis reads. Its fields are the experiment's.
+ * @typedef {Record<string, unknown>} DataRecord
+ */
+
+/**
+ * Where the participant is, as cleanResume returns it: each part is there
+ * only when it was stored with the right type.
+ * @typedef {object} Resume
+ * @property {string} [view] - The current View
+ * @property {Record<string, unknown>} [viewSteppers] - Each View's stepper state, by View
+ * @property {Record<string, unknown>} [conditions] - The assigned conditions
+ * @property {Record<string, unknown>} [randomizedRoutes] - The order of randomized routes
+ * @property {Record<string, unknown>} [possibleConditions] - The conditions that can be assigned
+ * @property {boolean} [verifiedVisibility] - The window's visibility was checked
+ * @property {boolean} [useSeed] - Randomization is seeded
+ */
+
+/**
+ * The values that stay on this device.
+ * @typedef {object} LocalValues
+ * @property {boolean} [reset] - A reset was asked for
+ * @property {number} [totalWrites] - How many times the record was written
+ * @property {number} [totalSends] - How many sends this browser has made
+ * @property {number|null} [lastWrite] - When the record was last written
+ * @property {number} [approxDataSize] - The record's size, roughly, in bytes
+ */
+
 /** Parts of `localState` that are part of `resume` (with `view`, the current View). */
 export const RESUME_KEYS = [
   'viewSteppers',
@@ -36,22 +65,51 @@ export const RESUME_KEYS = [
   'useSeed',
 ]
 
-/** Parts of `localState` kept on this device only. */
+/**
+ * Parts of `localState` kept on this device only.
+ * @type {Array<keyof LocalValues>}
+ */
 export const LOCAL_KEYS = ['reset', 'totalWrites', 'totalSends', 'lastWrite', 'approxDataSize']
 
-/** The key the data backup used before the snapshot (#42), next to the main key. */
+/**
+ * Where a copy the server refused as out of date is kept (a 409: the server
+ * held something newer). It is not read back by the app; it is there so the
+ * work in it can be recovered by hand. One copy: a later conflict replaces it.
+ * @param {string} key - The snapshot's key
+ * @returns {string} The key of the set-aside copy
+ */
+export function conflictCopyKey(key) {
+  return key + '_conflict'
+}
+
+/**
+ * The key the data backup used before the snapshot (#42), next to the main key.
+ * @param {string} key - The snapshot's key
+ * @returns {string} The key of the old data backup
+ */
 export function legacyDataKey(key) {
   return `${key}-data`
 }
 
+/**
+ * @param {unknown} value - Anything
+ * @returns {value is Record<string, unknown>} True for an object that is not null and not a list
+ */
 export function isPlainObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
 
+/**
+ * @param {any} value - Anything. Typed `any` because Number.isSafeInteger does
+ *   not tell the type checker that the value is a number, and the comparison
+ *   after it needs one
+ * @returns {value is number} True for a whole number, 0 or more
+ */
 function isCount(value) {
   return Number.isSafeInteger(value) && value >= 0
 }
 
+/** @type {Record<keyof Resume, (v: unknown) => boolean>} */
 const RESUME_CHECKS = {
   view: v => typeof v === 'string' && v.length > 0,
   viewSteppers: isPlainObject,
@@ -62,6 +120,7 @@ const RESUME_CHECKS = {
   useSeed: v => typeof v === 'boolean',
 }
 
+/** @type {Record<keyof LocalValues, (v: unknown) => boolean>} */
 const LOCAL_CHECKS = {
   reset: v => typeof v === 'boolean',
   totalWrites: isCount,
@@ -73,29 +132,35 @@ const LOCAL_CHECKS = {
 /**
  * The usable parts of a stored `resume`. A part with the wrong type is left
  * out (the store keeps its own value for it) and named in `notes`.
- * @param {*} raw - What was stored
+ * @param {unknown} raw - What was stored
  * @param {string} [label] - Which copy, for the notes
- * @returns {{ resume: object|null, notes: string[] }} `resume` is null when
+ * @returns {{ resume: Resume|null, notes: string[] }} `resume` is null when
  *   nothing in it could be used
  */
 export function cleanResume(raw, label = 'resume') {
+  /** @type {string[]} */
   const notes = []
   if (raw === null || raw === undefined) return { resume: null, notes }
   if (!isPlainObject(raw)) {
     notes.push(`${label} is not an object`)
     return { resume: null, notes }
   }
+  /** @type {Resume} */
   const resume = {}
-  for (const key of Object.keys(RESUME_CHECKS)) {
+  // The casts below add parentheses only. Object.keys is typed as string[];
+  // these are RESUME_CHECKS's keys.
+  for (const key of /** @type {Array<keyof Resume>} */ (Object.keys(RESUME_CHECKS))) {
     if (!Object.prototype.hasOwnProperty.call(raw, key)) continue
     if (!RESUME_CHECKS[key](raw[key])) {
       notes.push(`${label}.${key} has the wrong type`)
       continue
     }
-    resume[key] = raw[key]
+    // The value passed the check for this key, which the type checker can't follow
+    /** @type {Record<string, unknown>} */ (resume)[key] = raw[key]
   }
   if (resume.viewSteppers) {
     // One damaged entry must not take the others with it
+    /** @type {Record<string, unknown>} */
     const steppers = {}
     for (const view of Object.keys(resume.viewSteppers)) {
       if (isPlainObject(resume.viewSteppers[view])) steppers[view] = resume.viewSteppers[view]
@@ -106,15 +171,31 @@ export function cleanResume(raw, label = 'resume') {
   return { resume: Object.keys(resume).length ? resume : null, notes }
 }
 
+/**
+ * The usable device-only values of what was stored.
+ * @param {unknown} raw - What was stored
+ * @returns {LocalValues} The values with the right type (others are left out)
+ */
 function cleanLocal(raw) {
+  /** @type {LocalValues} */
   const local = {}
   if (!isPlainObject(raw)) return local
   for (const key of LOCAL_KEYS) {
-    if (Object.prototype.hasOwnProperty.call(raw, key) && LOCAL_CHECKS[key](raw[key])) local[key] = raw[key]
+    // The cast adds parentheses only: the value passed the check for this
+    // key, which the type checker can't follow
+    if (Object.prototype.hasOwnProperty.call(raw, key) && LOCAL_CHECKS[key](raw[key])) /** @type {Record<string, unknown>} */ (local)[key] = raw[key]
   }
   return local
 }
 
+/**
+ * Reads one key and parses it. Never throws.
+ * @param {Pick<Storage, 'getItem'>} storage - localStorage (or anything with getItem)
+ * @param {string} key - The key
+ * @returns {{ readonly found: boolean, readonly value?: unknown, readonly error?: string }}
+ *   `found` is false when nothing is stored there; `error` when it couldn't
+ *   be read or parsed
+ */
 function readJSON(storage, key) {
   let raw
   try {
@@ -140,20 +221,21 @@ function readJSON(storage, key) {
  *   format only `data` says; its `resume` could be anyone's
  * @property {number} rev - Its rev (0 when it has none)
  * @property {number} savedRev - The last rev it says the server confirmed
- * @property {object|null} data - The record, or null when it can't be used
- * @property {object|null} resume - The usable parts of the position
- * @property {object} local - The device-only values
- * @property {object|null} private - The private data (the parts that held something)
+ * @property {DataRecord|null} data - The record, or null when it can't be used
+ * @property {Resume|null} resume - The usable parts of the position
+ * @property {LocalValues} local - The device-only values
+ * @property {Record<string, unknown>|null} private - The private data (the parts that held something)
  * @property {string[]} notes - What was skipped, and why
  */
 
 /**
  * Reads the local copy. Never throws.
- * @param {Storage} storage - localStorage (or anything with getItem)
+ * @param {Pick<Storage, 'getItem'>|null|undefined} storage - localStorage (or anything with getItem)
  * @param {string} key - The snapshot's key
  * @returns {LocalCopy} What could be read
  */
 export function readLocalCopy(storage, key) {
+  /** @type {LocalCopy} */
   const copy = {
     format: 'none',
     participantId: null,
@@ -228,8 +310,8 @@ export function readLocalCopy(storage, key) {
  *   from. 'fresh': neither copy's data could be used, so the store keeps the
  *   record it started with. 'none': the server couldn't be reached and there
  *   is no local copy, so nothing is loaded and the load is tried again later.
- * @property {object|null} data - The record to use
- * @property {object|null} resume - The position to use
+ * @property {DataRecord|null} data - The record to use
+ * @property {Resume|null} resume - The position to use
  * @property {number} rev - The rev to go on from
  * @property {number} savedRev - The rev the server has
  * @property {boolean} send - The chosen copy is ahead of the server
@@ -245,7 +327,7 @@ export function readLocalCopy(storage, key) {
  * @param {object} args
  * @param {string} args.participantId - The participant this page belongs to
  * @param {LocalCopy} args.local - From readLocalCopy
- * @param {{ ok: boolean, data?: *, rev?: *, resume?: * }} args.server - The
+ * @param {{ ok: boolean, data?: unknown, rev?: unknown, resume?: unknown }} args.server - The
  *   server's answer; `ok: false` when it couldn't be reached
  * @returns {Choice} The copy to use
  */
@@ -267,6 +349,7 @@ export function chooseCopy({ participantId, local, server }) {
   const reached = !!server?.ok
   const serverData = reached && isPlainObject(server.data) ? server.data : null
   const serverRev = reached && isCount(server.rev) ? server.rev : 0
+  /** @type {Resume|null} */
   let serverResume = null
   if (reached) {
     const cleaned = cleanResume(server.resume, 'server copy: resume')
@@ -276,6 +359,11 @@ export function chooseCopy({ participantId, local, server }) {
   }
 
   // Once the server has answered, what it has is its own rev
+  /**
+   * @param {Choice['source']} source - Where `data` comes from
+   * @param {number} rev - The rev to go on from
+   * @returns {Choice} The choice
+   */
   const choice = (source, rev) => ({
     source,
     data: source === 'local' ? localData : source === 'server' ? serverData : null,
@@ -316,11 +404,13 @@ export function chooseCopy({ participantId, local, server }) {
  * object the starting record has must still be one, and `pageData_*` fields
  * must have the shape recordPageData writes. A part with the wrong shape is
  * replaced by an empty one. The rest of the record is left as it is.
- * @param {object} data - A loaded record (changed in place)
- * @param {object} template - The record a new participant starts with
- * @returns {{ data: object, notes: string[] }} The record, and what was replaced
+ * @param {unknown} data - A loaded record (changed in place)
+ * @param {DataRecord} template - The record a new participant starts with
+ * @returns {{ data: DataRecord|null, notes: string[] }} The record, and what
+ *   was replaced. `data` is null when what was passed is not an object
  */
 export function repairData(data, template) {
+  /** @type {string[]} */
   const notes = []
   if (!isPlainObject(data)) return { data: null, notes: ['record is not an object'] }
   for (const key of Object.keys(template || {})) {
@@ -368,11 +458,14 @@ export function repairData(data, template) {
 
 /**
  * `resume` from the store's state.
- * @param {string} view - The current View (the cookie's lastRoute)
- * @param {object} localState - store.localState
- * @returns {object} The resume object
+ * @param {unknown} view - The current View (the cookie's lastRoute); anything
+ *   that is not a string is stored as null
+ * @param {Record<string, unknown>|null|undefined} localState - store.localState
+ * @returns {Record<string, unknown>} The resume object: `view` and the
+ *   RESUME_KEYS parts, as the store has them (not checked)
  */
 export function buildResume(view, localState) {
+  /** @type {Record<string, unknown>} */
   const resume = { view: typeof view === 'string' ? view : null }
   for (const key of RESUME_KEYS) resume[key] = localState?.[key]
   return resume
@@ -383,12 +476,13 @@ export function buildResume(view, localState) {
  * View's stepper. Stepper state holds every step's data, and the steppers of
  * Views already finished would be uploaded again with each save. The local
  * copy keeps them all.
- * @param {object} resume - The whole resume
- * @returns {object} The part to send
+ * @param {unknown} resume - The whole resume
+ * @returns {Record<string, unknown>} The part to send (empty when `resume` is not an object)
  */
 export function resumeForServer(resume) {
   if (!isPlainObject(resume)) return {}
   const steppers = isPlainObject(resume.viewSteppers) ? resume.viewSteppers : {}
+  /** @type {Record<string, unknown>} */
   const viewSteppers = {}
   if (typeof resume.view === 'string' && Object.prototype.hasOwnProperty.call(steppers, resume.view)) {
     viewSteppers[resume.view] = steppers[resume.view]
@@ -400,10 +494,11 @@ export function resumeForServer(resume) {
  * The parts of the private data that hold something. Empty parts are left
  * out so that a page that never learned them (a reload without the local
  * copy) can't replace what the server has: the server merges what it's sent.
- * @param {object} priv - store.private
- * @returns {object} The parts to keep and send
+ * @param {unknown} priv - store.private
+ * @returns {Record<string, unknown>} The parts to keep and send
  */
 export function privateParts(priv) {
+  /** @type {Record<string, unknown>} */
   const parts = {}
   if (!isPlainObject(priv)) return parts
   for (const key of Object.keys(priv)) {
@@ -417,7 +512,7 @@ export function privateParts(priv) {
 
 /**
  * JSON text for the two parts that carry a `rev`. Never throws.
- * @param {object} data - The record, or null when it isn't part of the snapshot yet
+ * @param {object|null|undefined} data - The record, or null when it isn't part of the snapshot yet
  * @param {object} resume - The position
  * @returns {{ ok: boolean, dataText: string, resumeText: string, cleaned: boolean }}
  *   `ok` is false when a part didn't come out as a JSON object (the caller
@@ -443,7 +538,7 @@ export function serializeParts(data, resume) {
  * @param {string|null} parts.participantId - Whose snapshot it is
  * @param {number} parts.rev - Its rev
  * @param {number} parts.savedRev - The last rev the server confirmed
- * @param {object} parts.local - The device-only values (others are left out)
+ * @param {unknown} parts.local - The device-only values (others are left out)
  * @param {string} parts.dataText - The record's JSON text
  * @param {string} parts.resumeText - The position's JSON text
  * @param {string} [parts.privateText] - The private data's JSON text
@@ -462,13 +557,16 @@ export function snapshotText({ participantId, rev, savedRev, local, dataText, re
 }
 
 /**
- * The body of a save: `{ rev, data, resume }`.
+ * The body of a save: `{ rev, data, resume }`, with `private` when the
+ * private data is to go with it.
  * @param {object} parts - What goes into the body
  * @param {number} parts.rev - The snapshot's rev
  * @param {string} parts.dataText - The record's JSON text
  * @param {string} parts.resumeText - The position's JSON text
+ * @param {string|null} [parts.privateText] - The private data's JSON text, or null to leave it out
  * @returns {string} JSON text
  */
-export function saveBodyText({ rev, dataText, resumeText }) {
-  return '{"rev":' + rev + ',"data":' + dataText + ',"resume":' + resumeText + '}'
+export function saveBodyText({ rev, dataText, resumeText, privateText = null }) {
+  return '{"rev":' + rev + ',"data":' + dataText + ',"resume":' + resumeText
+    + (privateText ? ',"private":' + privateText : '') + '}'
 }

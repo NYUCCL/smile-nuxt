@@ -147,6 +147,10 @@ applyDevPalette()
                         v-if="api.store.browserEphemeral.otherTab"
                         inline
                       />
+                      <ReconnectingNotice
+                        v-else-if="api.store.browserEphemeral.loadFailed"
+                        inline
+                      />
                       <WindowSizerView
                         v-else-if="showAggressiveOverlay"
                         triggered

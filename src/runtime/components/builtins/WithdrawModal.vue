@@ -63,7 +63,7 @@ const withdrawOptions = [
  */
 function withdraw() {
   api.setWithdrawn(forminfo) // set withdraw data fields
-  api.saveData(true) // force a data save
+  api.sync() // send the withdrawal now, not a second from now
   emit('submitWithdraw')
 }
 

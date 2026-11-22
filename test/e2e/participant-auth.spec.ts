@@ -237,59 +237,54 @@ test.describe('Participant auth in experiment flow', () => {
     expect(parts[0]).toBe(participant!.id)
   })
 
-  test('invalid participant cookie resets user to welcome', async ({ page }) => {
-    // Consent to create a participant
-    await readyButton(page).click()
-    await page.getByRole('switch').click()
-    await page.getByRole('button', { name: /Let's start/i }).click()
-    await expect(page).toHaveURL(/\/demograph/)
-    await page.waitForTimeout(1000)
+  /** Rows whose record names `previous` as the row it went on from. */
+  async function rowsContinuing(previous: string) {
+    const result = await db.execute('SELECT id, data FROM participants ORDER BY created_at DESC, rowid DESC LIMIT 10')
+    return result.rows
+      .map(r => ({ id: r.id as string, data: JSON.parse(r.data as string) }))
+      .filter(r => Array.isArray(r.data.previousParticipantIds) && r.data.previousParticipantIds.includes(previous))
+  }
 
-    const participant = await getLatestParticipant(db)
-    expect(participant).not.toBeNull()
-    createdIds.push(participant!.id)
+  /**
+   * The server refuses the browser's token for its row (here: tampered with,
+   * or gone). The browser still has the participant's record, so nothing is
+   * thrown away: the participant stays where they were and the record is
+   * saved as a new row that names the old one.
+   */
+  for (const [name, breakToken] of [
+    ['an invalid participant cookie', async (page: Page) => {
+      await page.context().addCookies([{ name: 'smile_participant', value: 'fake-uuid.fake-signature', domain: 'localhost', path: '/', httpOnly: true }])
+    }],
+    ['a cleared participant cookie', async (page: Page) => {
+      const cookies = await page.context().cookies()
+      await page.context().clearCookies()
+      await page.context().addCookies(cookies.filter(c => c.name !== 'smile_participant'))
+    }],
+  ] as const) {
+    test(`${name}: the participant goes on, saved as a new row`, async ({ page }) => {
+      await readyButton(page).click()
+      await page.getByRole('switch').click()
+      await page.getByRole('button', { name: /Let's start/i }).click()
+      await expect(page).toHaveURL(/\/demograph/)
+      await page.waitForTimeout(1500)
 
-    // Tamper with the participant cookie (keep participantId cookie so store thinks user is known)
-    await page.context().addCookies([{
-      name: 'smile_participant',
-      value: 'fake-uuid.fake-signature',
-      domain: 'localhost',
-      path: '/',
-      httpOnly: true,
-    }])
+      const participant = await getLatestParticipant(db)
+      expect(participant).not.toBeNull()
+      createdIds.push(participant!.id)
 
-    // Reload — the store will try to loadData() which should get 403 and reset
-    await page.reload()
-    await page.waitForTimeout(2000)
+      await breakToken(page)
+      await page.reload()
 
-    // Should be redirected to welcome (resetOrphanedUser)
-    await expect(page).toHaveURL(/\/welcome/)
-  })
-
-  test('cleared participant cookie resets user to welcome', async ({ page }) => {
-    // Consent to create a participant
-    await readyButton(page).click()
-    await page.getByRole('switch').click()
-    await page.getByRole('button', { name: /Let's start/i }).click()
-    await expect(page).toHaveURL(/\/demograph/)
-    await page.waitForTimeout(1000)
-
-    const participant = await getLatestParticipant(db)
-    expect(participant).not.toBeNull()
-    createdIds.push(participant!.id)
-
-    // Delete only the participant auth cookie (keep participantId so store tries to load)
-    const cookies = await page.context().cookies()
-    const nonParticipantCookies = cookies.filter(c => c.name !== 'smile_participant')
-    await page.context().clearCookies()
-    for (const cookie of nonParticipantCookies) {
-      await page.context().addCookies([cookie])
-    }
-
-    // Reload — loadData should 403 and reset
-    await page.reload()
-    await page.waitForTimeout(2000)
-
-    await expect(page).toHaveURL(/\/welcome/)
-  })
+      // Still on the same page, not sent back to the start
+      await expect(page).toHaveURL(/\/demograph/)
+      await expect.poll(async () => (await rowsContinuing(participant!.id)).length, { timeout: 10_000 }).toBe(1)
+      const [next] = await rowsContinuing(participant!.id)
+      createdIds.push(next!.id)
+      expect(next!.id).not.toBe(participant!.id)
+      expect(next!.data.consented).toBe(true)
+      // The browser has a working token again, for the new row
+      const token = (await page.context().cookies()).find(c => c.name === 'smile_participant')
+      expect(token!.value.split('.')[0]).toBe(next!.id)
+    })
+  }
 })

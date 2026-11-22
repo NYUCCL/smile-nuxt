@@ -3,7 +3,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import useSmileStore, { snapshotKey, LOAD_RETRY_DELAYS } from '../../../src/runtime/stores/smilestore'
 import useLog from '../../../src/runtime/stores/log'
 import { Stepper } from '../../../src/runtime/core/stepper/Stepper'
-import { legacyDataKey, SNAPSHOT_VERSION } from '../../../src/runtime/core/sync/snapshot.js'
+import { legacyDataKey, conflictCopyKey, SNAPSHOT_VERSION } from '../../../src/runtime/core/sync/snapshot.js'
 import { BAD_VALUES } from '../../fixtures/bad-values.js'
 import { decodeBody } from '../../../src/runtime/server/utils/read-body'
 
@@ -78,6 +78,22 @@ function storedSnapshot(overrides = {}) {
   }
 }
 
+/**
+ * The server's answers, as the routes give them: a save answers with the rev
+ * it stored (the client counts a save only when the answer carries it).
+ */
+async function saveRoute(url, opts) {
+  if (opts?.method === 'PATCH' && !String(url).endsWith('/private')) {
+    const text = typeof opts.body === 'string' ? opts.body : (await decodeBody(opts.body)).text
+    const body = JSON.parse(text)
+    if (typeof body.rev === 'number') return { success: true, rev: body.rev }
+  }
+  return { success: true }
+}
+
+/** An error as $fetch throws it for the server's own 403 or 404 (shared/save-answers.js) */
+const marked = (statusCode, smile) => Object.assign(new Error('refused'), { statusCode, data: { data: { smile } } })
+
 describe('the store\'s local snapshot', () => {
   let fetchMock
   const savedDelays = [...LOAD_RETRY_DELAYS]
@@ -85,7 +101,7 @@ describe('the store\'s local snapshot', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorage.clear()
-    fetchMock = vi.fn(async () => ({}))
+    fetchMock = vi.fn(saveRoute)
     vi.stubGlobal('$fetch', fetchMock)
     // As a browser without CompressionStream: the bodies are sent as text, so
     // the tests can read them. The gzip path has its own test below and
@@ -111,6 +127,34 @@ describe('the store\'s local snapshot', () => {
   const sentBody = (n = 0) => JSON.parse(dataPatches()[n][1].body)
 
   describe('writing', () => {
+    it('when the copy can no longer be written, the older copy is not left to be taken for the record', () => {
+      const store = connectedStore()
+      store.cookieState.lastRoute = 'stroop'
+      store.data.studyData.push({ trial: 1 })
+      store.captureSnapshot()
+      expect(readSnapshot().data.studyData).toHaveLength(1)
+
+      // The record has grown past what the browser will store
+      const real = globalThis.localStorage
+      vi.stubGlobal('localStorage', {
+        getItem: key => real.getItem(key),
+        removeItem: key => real.removeItem(key),
+        setItem: (key, value) => {
+          if (value.includes('"studyData"')) throw new Error('QuotaExceededError')
+          real.setItem(key, value)
+        },
+      })
+      store.data.studyData.push({ trial: 2 })
+      store.captureSnapshot()
+      vi.unstubAllGlobals()
+
+      const stored = readSnapshot()
+      expect(stored.data).toBeNull()
+      expect(stored.rev).toBe(store.browserEphemeral.rev)
+      expect(stored.resume.view).toBe('stroop')
+      expect(store.browserEphemeral.localCopyError).toContain('QuotaExceededError')
+    })
+
     it('writes the record and the position together, as one value', () => {
       const store = connectedStore()
       store.cookieState.lastRoute = 'stroop'
@@ -231,6 +275,7 @@ describe('the store\'s local snapshot', () => {
     it('a full localStorage does not throw, is reported once, and saving still works', async () => {
       const store = connectedStore()
       const warn = vi.spyOn(useLog(), 'warn')
+      warn.mockClear() // the spy keeps calls from earlier tests
       const storage = stubStorage({ failing: new DOMException('quota', 'QuotaExceededError') })
       vi.stubGlobal('$fetch', fetchMock)
       store.data.studyData.push({ trial: 1 })
@@ -448,33 +493,32 @@ describe('the store\'s local snapshot', () => {
       expect(store.browserEphemeral.unsavedChanges).toBe(true)
     })
 
-    it('sends the private data once, and again only when it changes', async () => {
+    it('sends the private data in the save\'s own body: once, and again only when it changes', async () => {
       const store = connectedStore()
       await store.sync()
       // Nothing in it yet: sent empty, so the participant has a row (the server merges)
-      expect(privatePatches()).toHaveLength(1)
-      expect(JSON.parse(privatePatches()[0][1].body)).toEqual({ data: {} })
+      expect(sentBody(0).private).toEqual({})
+      expect(privatePatches()).toHaveLength(0) // no second request
 
       store.private.recruitmentInfo = { prolific_id: 'abc' }
       await store.sync()
-      expect(privatePatches()).toHaveLength(2)
-      expect(JSON.parse(privatePatches()[1][1].body)).toEqual({ data: { recruitmentInfo: { prolific_id: 'abc' } } })
+      expect(sentBody(1).private).toEqual({ recruitmentInfo: { prolific_id: 'abc' } })
 
       store.data.studyData.push({ trial: 1 })
       await store.sync()
       expect(dataPatches()).toHaveLength(3)
-      expect(privatePatches()).toHaveLength(2)
+      expect(sentBody(2)).not.toHaveProperty('private')
 
       store.private.withdrawData = { reason: 'bored' }
       await store.sync()
-      expect(privatePatches()).toHaveLength(3)
+      expect(sentBody(3).private).toEqual({ recruitmentInfo: { prolific_id: 'abc' }, withdrawData: { reason: 'bored' } })
     })
 
     it('never sends the empty parts of the private data (a reloaded page may not know them)', async () => {
       const store = connectedStore()
       store.private.withdrawData = { reason: 'bored' }
       await store.sync()
-      expect(JSON.parse(privatePatches()[0][1].body)).toEqual({ data: { withdrawData: { reason: 'bored' } } })
+      expect(sentBody(0).private).toEqual({ withdrawData: { reason: 'bored' } })
     })
 
     it('keeps the private data in the local copy and restores it after a reload', async () => {
@@ -491,13 +535,13 @@ describe('the store\'s local snapshot', () => {
       expect(reloaded.private.withdrawData).toEqual({})
     })
 
-    it('a failed private save is tried again until it arrives', async () => {
+    it('the private data goes again with each try until a save is confirmed', async () => {
       vi.useFakeTimers()
       const store = connectedStore()
       let failing = true
-      fetchMock.mockImplementation(async (url) => {
-        if (String(url).endsWith('/private') && failing) throw new Error('private failed')
-        return {}
+      fetchMock.mockImplementation(async (url, opts) => {
+        if (failing) throw new Error('fetch failed')
+        return saveRoute(url, opts)
       })
       store.private.recruitmentInfo = { prolific_id: 'abc' }
       store.data.studyData.push({ trial: 1 })
@@ -509,7 +553,14 @@ describe('the store\'s local snapshot', () => {
       await vi.advanceTimersByTimeAsync(1100)
       expect(store.browserEphemeral.savedRev).toBe(store.browserEphemeral.rev)
       expect(store.browserEphemeral.sync).toMatchObject({ status: 'saved', error: null })
-      expect(privatePatches()).toHaveLength(2)
+      expect(dataPatches()).toHaveLength(2)
+      expect(sentBody(0).private).toEqual({ recruitmentInfo: { prolific_id: 'abc' } })
+      expect(sentBody(1).private).toEqual({ recruitmentInfo: { prolific_id: 'abc' } })
+
+      // Confirmed: not sent again with the next save
+      store.data.studyData.push({ trial: 2 })
+      await store.sync()
+      expect(sentBody(2)).not.toHaveProperty('private')
     })
 
     it.each([400, 413, 500])('a save refused with %i does not throw and stays unsaved', async (statusCode) => {
@@ -569,9 +620,6 @@ describe('the store\'s local snapshot', () => {
       expect(sent.rev).toBe(store.browserEphemeral.rev)
       expect(sent.data.studyData).toHaveLength(200)
       expect(opts.body.length).toBeLessThan(decoded.text.length / 3)
-      // The private data's body is short: text
-      expect(typeof privatePatches()[0][1].body).toBe('string')
-
       // The save made as the page closes is text too
       store.data.studyData.push({ trial: 200 })
       store.saveOnClose()
@@ -582,22 +630,115 @@ describe('the store\'s local snapshot', () => {
       expect(closing.headers['Content-Encoding']).toBeUndefined()
     })
 
+    it('when a gzipped save is refused on the way, it is sent again as text, and so are the later ones', async () => {
+      vi.stubGlobal('CompressionStream', RealCompressionStream)
+      const store = connectedStore()
+      for (let i = 0; i < 200; i++) store.data.studyData.push({ trial: i, stimulus: 'table', response: 'f', rt: 500 + i })
+      fetchMock.mockImplementation(async (url, opts) => {
+        if (opts.headers?.['Content-Encoding'] === 'gzip') throw Object.assign(new Error('Unsupported Media Type'), { statusCode: 415 })
+        return saveRoute(url, opts)
+      })
+      await expect(store.sync()).resolves.toMatchObject({ ok: true })
+      expect(dataPatches().map(([, opts]) => typeof opts.body)).toEqual(['object', 'string'])
+      expect(JSON.parse(dataPatches()[1][1].body).data.studyData).toHaveLength(200)
+
+      store.data.studyData.push({ trial: 200 })
+      await expect(store.sync()).resolves.toMatchObject({ ok: true })
+      expect(dataPatches()).toHaveLength(3)
+      expect(typeof dataPatches()[2][1].body).toBe('string')
+    })
+
     it('sync() before consent sends nothing and says why', async () => {
       const store = useSmileStore()
       await expect(store.sync()).resolves.toEqual({ ok: false, rev: 0, error: 'not consented' })
       expect(fetchMock).not.toHaveBeenCalled()
     })
 
-    it('a 403 resets the participant, as before', async () => {
+    it('a 403 or 404 that is not the server\'s own is tried again: the participant and the local copy are kept', async () => {
+      vi.useFakeTimers()
+      for (const statusCode of [403, 404]) {
+        const store = connectedStore()
+        let blocked = true
+        fetchMock.mockImplementation(async (url, opts) => {
+          if (blocked) throw Object.assign(new Error('blocked on the way'), { statusCode })
+          return saveRoute(url, opts)
+        })
+        store.data.studyData.push({ trial: statusCode })
+        expect((await store.sync()).ok).toBe(false)
+        expect(store.cookieState.participantId).toBe(PID)
+        expect(readSnapshot().data.studyData).toEqual([{ trial: statusCode }])
+        expect(store.browserEphemeral.sync.error.kind).toBe('retrying')
+
+        blocked = false
+        await vi.advanceTimersByTimeAsync(1100)
+        expect(store.browserEphemeral.sync.status).toBe('saved')
+        store.clearLocalSnapshot()
+        setActivePinia(createPinia())
+      }
+    })
+
+    it('the server refuses the token: the record is kept and saved as a new row', async () => {
+      vi.useFakeTimers()
       const store = connectedStore()
       store.cookieState.knownUser = true
-      fetchMock.mockImplementation(async () => {
-        throw Object.assign(new Error('forbidden'), { statusCode: 403 })
+      store.private.recruitmentInfo = { prolific_id: 'abc' }
+      const posts = []
+      fetchMock.mockImplementation(async (url, opts) => {
+        if (opts?.method === 'POST') {
+          posts.push(JSON.parse(opts.body))
+          return { id: 'new-row', rev: 0 }
+        }
+        if (String(url).includes(PID)) throw marked(403, 'bad-token')
+        return saveRoute(url, opts)
       })
       store.data.studyData.push({ trial: 1 })
       await store.sync()
+      await vi.advanceTimersByTimeAsync(1100)
+
+      expect(posts).toHaveLength(1)
+      expect(posts[0].data.studyData).toEqual([{ trial: 1 }])
+      expect(posts[0].data.previousParticipantIds).toEqual([PID])
+      expect(store.cookieState.participantId).toBe('new-row')
+      expect(store.browserEphemeral.sync.status).toBe('saved')
+      expect(store.browserEphemeral.savedRev).toBe(store.browserEphemeral.rev)
+      expect(readSnapshot()).toMatchObject({ participantId: 'new-row', data: { studyData: [{ trial: 1 }] } })
+      // The private data goes to the new row too
+      const [lastUrl, lastOpts] = dataPatches().at(-1)
+      expect(lastUrl).toBe('/api/participants/new-row')
+      expect(JSON.parse(lastOpts.body).private).toEqual({ recruitmentInfo: { prolific_id: 'abc' } })
+    })
+
+    it('the server says the row is gone: reset to a new user, with an empty record', async () => {
+      const store = connectedStore()
+      store.cookieState.knownUser = true
+      store.private.recruitmentInfo = { prolific_id: 'abc' }
+      fetchMock.mockImplementation(async () => {
+        throw marked(404, 'no-participant')
+      })
+      store.data.studyData.push({ trial: 1 })
+      store.data.pageData_stroop = { visit_0: { timestamps: [1], data: [{ id: 'a' }] } }
+      await store.sync()
       expect(store.cookieState.participantId).toBeNull()
       expect(localStorage.getItem(snapshotKey)).toBeNull()
+      // The next participant's row is created from the record in memory
+      expect(store.data.studyData).toEqual([])
+      expect(store.data.pageData_stroop).toBeUndefined()
+      expect(store.private.recruitmentInfo).toEqual({})
+    })
+
+    it('a 200 that is not the save route\'s answer does not count as saved', async () => {
+      vi.useFakeTimers()
+      const store = connectedStore()
+      let portal = true
+      fetchMock.mockImplementation(async (url, opts) => (portal ? '<html>Sign in to the wifi</html>' : saveRoute(url, opts)))
+      store.data.studyData.push({ trial: 1 })
+      expect((await store.sync()).ok).toBe(false)
+      expect(store.browserEphemeral.savedRev).toBeLessThan(store.browserEphemeral.rev)
+      expect(store.browserEphemeral.sync.error.kind).toBe('retrying')
+
+      portal = false
+      await vi.advanceTimersByTimeAsync(1100)
+      expect(store.browserEphemeral.savedRev).toBe(store.browserEphemeral.rev)
     })
 
     it('counts every send in the local copy, and stops at the limit with a report to the server', async () => {
@@ -638,7 +779,7 @@ describe('the store\'s local snapshot', () => {
   describe('creating the participant', () => {
     it('creates the row at consent and sends the first save by itself', async () => {
       vi.useFakeTimers()
-      fetchMock.mockImplementation(async (url, opts) => (opts?.method === 'POST' ? { id: PID, rev: 0 } : {}))
+      fetchMock.mockImplementation(async (url, opts) => (opts?.method === 'POST' ? { id: PID, rev: 0 } : saveRoute(url, opts)))
       const store = useSmileStore()
       store.private.recruitmentInfo = { prolific_id: 'abc' }
       await store.setKnown()
@@ -650,7 +791,7 @@ describe('the store\'s local snapshot', () => {
 
       await vi.advanceTimersByTimeAsync(1100)
       expect(dataPatches()).toHaveLength(1)
-      expect(privatePatches()).toHaveLength(1)
+      expect(sentBody(0).private).toEqual({ recruitmentInfo: { prolific_id: 'abc' } })
       expect(store.browserEphemeral.savedRev).toBe(store.browserEphemeral.rev)
     })
 
@@ -664,7 +805,7 @@ describe('the store\'s local snapshot', () => {
           posts.push(JSON.parse(opts.body))
           return { id: PID, rev: 0 }
         }
-        return {}
+        return saveRoute(url, opts)
       })
       const store = useSmileStore()
       await store.setKnown()
@@ -701,7 +842,7 @@ describe('the store\'s local snapshot', () => {
       first.stopSnapshots()
 
       setActivePinia(createPinia())
-      fetchMock.mockImplementation(async (url, opts) => (opts?.method === 'POST' ? { id: PID, rev: 0 } : {}))
+      fetchMock.mockImplementation(async (url, opts) => (opts?.method === 'POST' ? { id: PID, rev: 0 } : saveRoute(url, opts)))
       const store = useSmileStore()
       store.cookieState.knownUser = true
       store.restoreLocal()
@@ -788,7 +929,7 @@ describe('the store\'s local snapshot', () => {
     function loadingStore({ local, server }) {
       if (local) writeSnapshot(local)
       fetchMock.mockImplementation(async (url, opts) => {
-        if (opts?.method) return {}
+        if (opts?.method) return saveRoute(url, opts)
         if (server instanceof Error) throw server
         return structuredClone(server)
       })
@@ -892,7 +1033,7 @@ describe('the store\'s local snapshot', () => {
     it('a second try that reaches the server loads normally', async () => {
       let calls = 0
       fetchMock.mockImplementation(async (url, opts) => {
-        if (opts?.method) return {}
+        if (opts?.method) return saveRoute(url, opts)
         calls += 1
         if (calls === 1) throw new Error('not ready')
         return { data: { ...serverData(), studyData: [{ t: 1 }] }, rev: 2, resume: null }
@@ -990,8 +1131,49 @@ describe('the store\'s local snapshot', () => {
       })
     })
 
-    it('resets to a new user when the server no longer has the participant', async () => {
-      const store = loadingStore({ local: storedSnapshot(), server: Object.assign(new Error('gone'), { statusCode: 404 }) })
+    it('resets to a new user when the server says it no longer has the participant', async () => {
+      const store = loadingStore({ local: storedSnapshot(), server: marked(404, 'no-participant') })
+      await store.loadData()
+      expect(store.cookieState.participantId).toBeNull()
+      expect(store.isDataLoaded).toBe(false)
+      expect(localStorage.getItem(snapshotKey)).toBeNull()
+    })
+
+    it('a 403 or 404 that is not the server\'s own is "no answer": the local copy is used', async () => {
+      for (const statusCode of [403, 404]) {
+        const store = loadingStore({ local: storedSnapshot(), server: Object.assign(new Error('blocked on the way'), { statusCode }) })
+        await store.loadData()
+        expect(store.cookieState.participantId).toBe(PID)
+        expect(store.isDataLoaded).toBe(true)
+        expect(store.data.pageData_stroop.visit_0.data).toHaveLength(4)
+        store.stopSnapshots()
+        setActivePinia(createPinia())
+      }
+    })
+
+    it('the token is refused on load: the local copy goes on as a new row', async () => {
+      const posts = []
+      const store = loadingStore({ local: storedSnapshot(), server: marked(403, 'bad-token') })
+      fetchMock.mockImplementation(async (url, opts) => {
+        if (opts?.method === 'POST') {
+          posts.push(JSON.parse(opts.body))
+          return { id: 'new-row', rev: 0 }
+        }
+        if (String(url).includes(PID)) throw marked(403, 'bad-token')
+        return saveRoute(url, opts)
+      })
+      await store.loadData()
+      expect(store.isDataLoaded).toBe(true)
+      expect(store.data.pageData_stroop.visit_0.data).toHaveLength(4)
+      expect(store.localState.viewSteppers.stroop.data.stepperState.currentIndex).toBe(4)
+      await vi.waitFor(() => expect(store.cookieState.participantId).toBe('new-row'))
+      expect(posts[0].data.previousParticipantIds).toEqual([PID])
+      expect(posts[0].data.pageData_stroop.visit_0.data).toHaveLength(4)
+      await vi.waitFor(() => expect(store.browserEphemeral.savedRev).toBe(store.browserEphemeral.rev))
+    })
+
+    it('the token is refused on load and there is no local copy: reset to a new user', async () => {
+      const store = loadingStore({ server: marked(403, 'bad-token') })
       await store.loadData()
       expect(store.cookieState.participantId).toBeNull()
       expect(store.isDataLoaded).toBe(false)
@@ -1016,6 +1198,33 @@ describe('the store\'s local snapshot', () => {
       expect(body.resume).toBeTruthy()
       // The page was only hidden: the answer is recorded
       await vi.waitFor(() => expect(store.browserEphemeral.savedRev).toBe(body.rev))
+    })
+
+    it('the closing request carries the private data that changed, in the same body', async () => {
+      const store = connectedStore()
+      store.private.withdrawData = { reason: 'too long' }
+      store.data.withdrawn = true
+      store.saveOnClose()
+      await vi.waitFor(() => expect(keepalivePatches()).toHaveLength(1))
+      const body = JSON.parse(keepalivePatches()[0][1].body)
+      expect(body.data.withdrawn).toBe(true)
+      expect(body.private).toEqual({ withdrawData: { reason: 'too long' } })
+      expect(privatePatches()).toHaveLength(0)
+    })
+
+    it('a record too large to send as text when closing goes gzipped in the closing request', async () => {
+      vi.stubGlobal('CompressionStream', RealCompressionStream)
+      const store = connectedStore()
+      for (let i = 0; i < 2000; i++) store.data.studyData.push({ trial: i, stimulus: 'table', response: 'f', rt: 500 + i })
+      store.saveOnClose()
+      await vi.waitFor(() => expect(keepalivePatches()).toHaveLength(1))
+      const [, opts] = keepalivePatches()[0]
+      expect(opts.body).toBeInstanceOf(Uint8Array)
+      expect(opts.body.length).toBeLessThanOrEqual(60_000)
+      expect(opts.headers['Content-Encoding']).toBe('gzip')
+      const sent = JSON.parse((await decodeBody(opts.body)).text)
+      expect(sent.data.studyData).toHaveLength(2000)
+      expect(JSON.stringify(sent).length).toBeGreaterThan(60_000)
     })
 
     it('does nothing when everything is saved', async () => {
@@ -1086,6 +1295,8 @@ describe('the store\'s local snapshot', () => {
       expect(store.browserEphemeral.sync.error.kind).toBe('conflict')
       // so that a reload takes the server's copy, not this older one
       expect(localStorage.getItem(snapshotKey)).toBeNull()
+      // It held work the server never got: set aside, not deleted
+      expect(JSON.parse(localStorage.getItem(conflictCopyKey(snapshotKey))).data.studyData).toEqual([{ trial: 1 }])
 
       const sent = fetchMock.mock.calls.length
       store.data.studyData.push({ trial: 2 })
@@ -1105,6 +1316,32 @@ describe('the store\'s local snapshot', () => {
       await store.sync()
       expect(store.browserEphemeral.otherTab).toBe('conflict')
       expect(localStorage.getItem(snapshotKey)).toBe(other)
+    })
+
+    it('the next load notes the set-aside copy in the record, once, and a reset removes it', async () => {
+      localStorage.setItem(conflictCopyKey(snapshotKey), JSON.stringify(storedSnapshot({ rev: 7 })))
+      const load = async () => {
+        setActivePinia(createPinia())
+        fetchMock.mockImplementation(async (url, opts) => (opts?.method ? saveRoute(url, opts) : { data: { consented: true, smileWarnings: store?.data.smileWarnings }, rev: 9, resume: null }))
+        const next = useSmileStore()
+        next.cookieState.knownUser = true
+        next.cookieState.participantId = PID
+        next.restoreLocal()
+        await next.loadData()
+        next.stopSnapshots()
+        return next
+      }
+      let store = null
+      store = await load()
+      expect(store.data.smileWarnings).toHaveLength(1)
+      expect(store.data.smileWarnings[0]).toMatchObject({ path: '(save)', count: 1 })
+      expect(store.data.smileWarnings[0].issue).toContain('rev 7')
+      expect(store.data.smileWarnings[0].issue).toContain('rev 9')
+      store = await load()
+      expect(store.data.smileWarnings[0].count).toBe(1)
+
+      store.clearLocalSnapshot()
+      expect(localStorage.getItem(conflictCopyKey(snapshotKey))).toBeNull()
     })
 
     it('pausing twice keeps the first reason', () => {

@@ -1,17 +1,12 @@
-import { randomUUID, createHmac } from 'node:crypto'
-import { defineEventHandler, setCookie, getRequestProtocol } from 'h3'
+import { randomUUID } from 'node:crypto'
+import { defineEventHandler } from 'h3'
 import { useDB } from '../../utils/db'
 import { getAuthSecret } from '../../utils/dev-auth'
 import { participants, projects } from '../../database/schema'
 import { buildProjectId, getCurrentProjectInfo } from '../../utils/project'
 import { parseDataBody, statusFromData } from '../../utils/participant-save'
 import { readBodyText, throwRefusal } from '../../utils/read-body'
-
-function signParticipantToken(id: string, secret: string): string {
-  const issuedAt = Math.floor(Date.now() / 1000)
-  const sig = createHmac('sha256', secret).update(`${id}.${issuedAt}`).digest('hex')
-  return `${id}.${issuedAt}.${sig}`
-}
+import { setParticipantCookie } from '../../utils/participant-token'
 
 export default defineEventHandler(async (event) => {
   const parsed = parseDataBody(await readBodyText(event))
@@ -44,15 +39,7 @@ export default defineEventHandler(async (event) => {
     updatedAt: now,
   })
 
-  const signedToken = signParticipantToken(id, getAuthSecret())
-
-  setCookie(event, 'smile_participant', signedToken, {
-    httpOnly: true,
-    secure: getRequestProtocol(event, { xForwardedProto: true }) === 'https', // HTTPS-only on deploys; plain HTTP still works locally
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 86400 * 7,
-  })
+  setParticipantCookie(event, id, getAuthSecret())
 
   return { id, rev: 0 }
 })

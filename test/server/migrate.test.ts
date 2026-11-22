@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { tempDatabase, MIGRATIONS } from './db-helpers'
-import { runMigrations, hashMigration } from '../../src/runtime/server/utils/migrate'
+import { runMigrations, hashMigration, backfillStatusColumns, BACKFILL_TAG } from '../../src/runtime/server/utils/migrate'
 
 /**
  * Migrations run when a deployed server starts, against databases that hold
@@ -93,6 +93,15 @@ describe('a database with rows saved by earlier code', () => {
         await record()
       })
 
+      it('the fill of older rows goes on from where it stopped', async () => {
+        await runMigrations(t.db, MIGRATIONS)
+        const ids = (await all('SELECT rowid FROM participants ORDER BY rowid')).map(r => Number(r.rowid))
+        // As if an earlier run stopped after the second row
+        await t.client.execute({ sql: `INSERT INTO __drizzle_migrations (hash, created_at, tag) VALUES (?, 1, '${BACKFILL_TAG}')`, args: [String(ids[1])] })
+        expect(await backfillStatusColumns(t.db, 2)).toBe(ids.length - 2)
+        expect((await all('SELECT count(*) AS n FROM participants WHERE data_bytes IS NULL'))[0]!.n).toBe(2)
+      })
+
       it('applies only the later migrations, and keeps every record as it was', async () => {
         const before = await all('SELECT id, project_id, data, created_at, updated_at FROM participants ORDER BY id')
         expect(await runMigrations(t.db, MIGRATIONS)).toEqual(MIGRATIONS.slice(1).map(m => m.tag))
@@ -103,6 +112,13 @@ describe('a database with rows saved by earlier code', () => {
 
       it('fills the status columns from each record, null where the record has no usable value', async () => {
         await runMigrations(t.db, MIGRATIONS)
+        // Not part of the migration: older rows are filled afterwards, in batches
+        expect((await all('SELECT count(*) AS n FROM participants WHERE data_bytes IS NOT NULL'))[0]!.n).toBe(0)
+        const rows = Number((await all('SELECT count(*) AS n FROM participants'))[0]!.n)
+        expect(await backfillStatusColumns(t.db, 2)).toBe(rows)
+        // Done is recorded: a second call does nothing
+        expect(await backfillStatusColumns(t.db, 2)).toBe(0)
+        expect((await all(`SELECT hash FROM __drizzle_migrations WHERE tag = '${BACKFILL_TAG}'`))[0]!.hash).toBe('done')
         const status = async (id: string) => (await all(
           'SELECT rev, resume, consented, done, withdrawn, recruitment_service, started_at, ended_at, save_count, oversize, last_error FROM participants WHERE id = ?', [id]))[0]
         expect({ ...(await status('done')) }).toEqual({

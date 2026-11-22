@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Gzip for the bodies the sync loop sends. Every send carries the whole
  * record, and a record is repetitive JSON (the same keys in every trial), so
@@ -15,7 +16,8 @@ export const COMPRESS_MIN_LENGTH = 1024
 /**
  * The text, gzipped. Never throws.
  * @param {string} text - The body
- * @param {object} [env] - For tests: the stream constructors to use
+ * @param {{ CompressionStream?: typeof CompressionStream, Blob?: typeof Blob, Response?: typeof Response }} [env] -
+ *   For tests: the stream constructors to use
  * @returns {Promise<Uint8Array|null>} Null when the browser can't (no
  *   CompressionStream), when it fails, or when the result isn't smaller: the
  *   caller then sends the text

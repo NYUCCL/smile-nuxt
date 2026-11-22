@@ -165,3 +165,50 @@ async function isApplied(db: DB, migration: BundledMigration): Promise<boolean> 
 export function hashMigration(sqlContent: string): string {
   return createHash('sha256').update(sqlContent).digest('hex')
 }
+
+/**
+ * Fills the status columns and `data_bytes` of rows saved before migration
+ * 0001 (they are read from each record). This is not part of the migration:
+ * it reads every participant's whole record, which on a database with a few
+ * hundred large records takes longer than a request should wait, and all
+ * requests wait for migrations. It runs after them, in small batches, each
+ * its own statement, and can stop anywhere: the row tagged BACKFILL_TAG in
+ * `__drizzle_migrations` holds the last rowid done (in `hash`), or 'done'.
+ *
+ * A value of the wrong type, or a record that isn't a JSON object, leaves
+ * its column null. Rows saved since the migration already have these values;
+ * recomputing them from the same record gives the same values.
+ *
+ * @returns the number of rows filled by this call
+ */
+export const BACKFILL_TAG = '0001_sync_engine:backfill'
+
+export async function backfillStatusColumns(db: DB, batchSize = 25): Promise<number> {
+  const marker = await db.all<{ hash: string }>(sql`SELECT hash FROM __drizzle_migrations WHERE tag = ${BACKFILL_TAG} LIMIT 1`)
+  if (marker[0]?.hash === 'done') return 0
+  let after = Number(marker[0]?.hash ?? 0) || 0
+  if (marker.length === 0) {
+    await db.run(sql`INSERT INTO __drizzle_migrations (hash, created_at, tag) VALUES ('0', ${Date.now()}, ${BACKFILL_TAG})`)
+  }
+  let filled = 0
+  for (;;) {
+    const rows = await db.all<{ rowid: number }>(sql`
+      UPDATE participants SET
+        consented = CASE WHEN json_valid(data) THEN CASE json_type(data, '$.consented') WHEN 'true' THEN 1 WHEN 'false' THEN 0 END END,
+        done = CASE WHEN json_valid(data) THEN CASE json_type(data, '$.done') WHEN 'true' THEN 1 WHEN 'false' THEN 0 END END,
+        withdrawn = CASE WHEN json_valid(data) THEN CASE json_type(data, '$.withdrawn') WHEN 'true' THEN 1 WHEN 'false' THEN 0 END END,
+        recruitment_service = CASE WHEN json_valid(data) AND json_type(data, '$.recruitmentService') = 'text' THEN substr(json_extract(data, '$.recruitmentService'), 1, 100) END,
+        started_at = CASE WHEN json_valid(data) AND json_type(data, '$.starttime') IN ('integer', 'real') THEN CAST(json_extract(data, '$.starttime') AS INTEGER) END,
+        ended_at = CASE WHEN json_valid(data) AND json_type(data, '$.endtime') IN ('integer', 'real') THEN CAST(json_extract(data, '$.endtime') AS INTEGER) END,
+        data_bytes = length(CAST(data AS BLOB))
+      WHERE rowid IN (SELECT rowid FROM participants WHERE rowid > ${after} ORDER BY rowid LIMIT ${batchSize})
+      RETURNING rowid
+    `)
+    if (rows.length === 0) break
+    filled += rows.length
+    after = Math.max(...rows.map(r => Number(r.rowid)))
+    await db.run(sql`UPDATE __drizzle_migrations SET hash = ${String(after)} WHERE tag = ${BACKFILL_TAG}`)
+  }
+  await db.run(sql`UPDATE __drizzle_migrations SET hash = 'done' WHERE tag = ${BACKFILL_TAG}`)
+  return filled
+}

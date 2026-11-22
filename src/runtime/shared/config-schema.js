@@ -104,8 +104,9 @@ export const SETTINGS = [
   {
     key: 'SMILE_AUTH_SECRET', group: 'database', type: 'secret', default: 'TURSO_AUTH_TOKEN, else SMILE_DEV_PASSWORD, else a built-in key',
     phase: 'runtime', change: 'secret',
-    description: 'Signs participant and dev session tokens. Without it, rotating the Turso token or dev password logs '
-      + 'every participant out mid-study; with none of them, tokens use a key published in the package.',
+    description: 'Signs participant and dev session tokens. Without it, rotating the Turso token or dev password makes every '
+      + 'participant\'s token invalid mid-study: their browser keeps its record and saves it as a new row (the old row\'s id is in '
+      + 'data.previousParticipantIds). With none of them, tokens use a key published in the package.',
   },
 
   // --- Data saving -----------------------------------------------------------
@@ -119,7 +120,7 @@ export const SETTINGS = [
     configPath: 'maxWrites',
     description: 'The most saves one participant\'s browser sends, so that a page left running can\'t send forever. '
       + 'After that changes are kept in the browser and not sent by themselves; api.sync() still sends, up to twice this number. '
-      + 'A busy page sends at most one save every 5 seconds (720 an hour).',
+      + 'A page sends at most 30 saves a minute by itself (1800 an hour, reached by a task with a change every 2 seconds).',
   },
   {
     key: 'VITE_MIN_WRITE_INTERVAL', group: 'saving', type: 'int', default: '2000', phase: 'build', change: 'build',

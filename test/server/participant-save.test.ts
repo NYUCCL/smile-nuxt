@@ -4,7 +4,7 @@ import fc from 'fast-check'
 import { eq } from 'drizzle-orm'
 import { seededDatabase, schema } from './db-helpers'
 import {
-  MAX_BODY_BYTES, parseSaveBody, parseDataBody, parseJsonObject, statusFromData,
+  MAX_TEXT_BYTES, parseSaveBody, parseDataBody, parseJsonObject, statusFromData,
   saveParticipant, savePrivateData, deleteParticipant, parseOversizeReport, markOversize, parseLimitReport, markSendLimit,
 } from '../../src/runtime/server/utils/participant-save'
 import { toPlainJSON } from '../../src/runtime/utils/plainJSON.js'
@@ -49,7 +49,7 @@ describe('parseSaveBody', () => {
     ['rev is a string', '{"data": {}, "rev": "3"}', 400],
     ['rev is too large to be exact', '{"data": {}, "rev": 1e300}', 400],
     ['rev is an object', '{"data": {}, "rev": {}}', 400],
-    ['a body over the limit', body({ data: { big: 'x'.repeat(MAX_BODY_BYTES) } }), 413],
+    ['a body over the limit', body({ data: { big: 'x'.repeat(MAX_TEXT_BYTES) } }), 413],
   ]
   for (const [name, raw, status] of refused) {
     it(`refuses ${name} with ${status} and a message`, () => {
@@ -142,6 +142,23 @@ describe('saveParticipant', () => {
     expect(r!.data).toEqual({ a: 2 })
     expect(r!.rev).toBe(2)
     expect(r!.saveCount).toBe(2)
+  })
+
+  it('a save without rev is refused once a save with a rev and a position has been stored', async () => {
+    expect(await saveParticipant(t.db, 'p1', { data: { a: 1 } })).toEqual({ ok: true, rev: 1 })
+    expect(await saveParticipant(t.db, 'p1', { data: { a: 2 }, resume: { view: 'stroop' }, rev: 7 })).toEqual({ ok: true, rev: 7 })
+    expect(await saveParticipant(t.db, 'p1', { data: { a: 'old page' } })).toMatchObject({ ok: false, status: 409, rev: 7 })
+    expect((await row())!.data).toEqual({ a: 2 })
+    expect(await saveParticipant(t.db, 'nobody', { data: {} })).toMatchObject({ ok: false, status: 404 })
+  })
+
+  it('a save may carry the private data that changed; it must be an object', () => {
+    expect(parseSaveBody(JSON.stringify({ data: {}, rev: 1, private: { recruitmentInfo: { id: 'a' } } })))
+      .toEqual({ ok: true, save: { data: {}, rev: 1, private: { recruitmentInfo: { id: 'a' } } } })
+    expect(parseSaveBody(JSON.stringify({ data: {}, rev: 1 }))).toEqual({ ok: true, save: { data: {}, rev: 1 } })
+    for (const bad of ['text', 5, [1], true]) {
+      expect(parseSaveBody(JSON.stringify({ data: {}, rev: 1, private: bad }))).toMatchObject({ ok: false, status: 400 })
+    }
   })
 
   it('a save with a newer rev is stored, with resume and the status columns', async () => {

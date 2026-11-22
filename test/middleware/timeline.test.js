@@ -151,7 +151,7 @@ function createTestTimeline() {
  */
 function createMockStore(overrides = {}) {
   return {
-    config: { mode: 'production', localStorageKey: 'test_storage', autoSave: false },
+    config: { mode: 'production', localStorageKey: 'test_storage' },
     dev: { pinnedRoute: null, viewProvidesStepper: false },
     cookieState: {
       knownUser: false,

@@ -55,16 +55,29 @@ test.describe('Save endpoints', () => {
     }
     expect(await getParticipant(db, id)).toEqual({ step: 'a' })
 
-    // A save with no rev (a page still running older code) is stored as the next rev
+    // A save with no rev (a page still running older code) can't be compared
+    // with what this page has saved: refused, row unchanged
     const old = await patch(page, url, { data: { step: 'b' } })
-    expect(await old.json()).toEqual({ success: true, rev: start + 11 })
-    expect(await getParticipant(db, id)).toEqual({ step: 'b' })
+    expect(old.status()).toBe(409)
+    expect((await old.json()).data).toEqual({ rev: start + 10 })
+    expect(await getParticipant(db, id)).toEqual({ step: 'a' })
+  })
+
+  test('a save with no rev is stored as the next rev while only older code has saved the row', async ({ page }) => {
+    // A row made by the create request alone, as the older code left it: no position saved
+    const created = await (await post(page, '/api/participants', { data: { step: 'created' } })).json()
+    id = created.id
+    const url = `/api/participants/${id}`
+    expect(await (await patch(page, url, { data: { step: 'b' } })).json()).toEqual({ success: true, rev: 1 })
+    expect(await (await patch(page, url, { data: { step: 'c' } })).json()).toEqual({ success: true, rev: 2 })
+    expect(await getParticipant(db, id!)).toEqual({ step: 'c' })
   })
 
   test('each save updates the status columns', async ({ page }) => {
     id = await consent(page, db)
     const data = { consented: true, done: true, withdrawn: false, recruitmentService: 'prolific', starttime: 1700000000000, endtime: 1700000360000 }
-    expect((await patch(page, `/api/participants/${id}`, { data })).status()).toBe(200)
+    const start = (await (await page.request.get(`/api/participants/${id}`)).json()).rev as number
+    expect((await patch(page, `/api/participants/${id}`, { data, rev: start + 10 })).status()).toBe(200)
     const row = (await column('SELECT consented, done, withdrawn, recruitment_service, started_at, ended_at, data_bytes FROM participants WHERE id = ?'))[0]!
     expect({ ...row }).toEqual({
       consented: 1, done: 1, withdrawn: 0, recruitment_service: 'prolific',
@@ -107,6 +120,24 @@ test.describe('Save endpoints', () => {
 
     expect((await patch(page, url, { data: { workerId: 'W2' } })).status()).toBe(200)
     expect(JSON.parse((await column('SELECT data FROM private_data WHERE participant_id = ?'))[0]!.data as string)).toEqual({ workerId: 'W2' })
+  })
+
+  test('a save can carry the private data that changed; it is merged into the participant\'s one row', async ({ page }) => {
+    id = await consent(page, db)
+    const url = `/api/participants/${id}`
+    const start = (await (await page.request.get(url)).json()).rev as number
+    const priv = async () => JSON.parse((await column('SELECT data FROM private_data WHERE participant_id = ?'))[0]!.data as string)
+
+    expect((await patch(page, url, { data: { step: 'a' }, resume: { view: 'x' }, rev: start + 10, private: { recruitmentInfo: { id: 'P1' } } })).status()).toBe(200)
+    expect(await priv()).toMatchObject({ recruitmentInfo: { id: 'P1' } })
+    expect((await patch(page, url, { data: { step: 'b' }, resume: { view: 'x' }, rev: start + 11, private: { withdrawData: { reason: 'r' } } })).status()).toBe(200)
+    expect(await priv()).toMatchObject({ recruitmentInfo: { id: 'P1' }, withdrawData: { reason: 'r' } })
+    expect(await column('SELECT id FROM private_data WHERE participant_id = ?')).toHaveLength(1)
+
+    // Not an object: the whole save is refused and nothing is stored
+    const bad = await patch(page, url, { data: { step: 'c' }, resume: { view: 'x' }, rev: start + 12, private: 'text' })
+    expect(bad.status()).toBe(400)
+    expect(await getParticipant(db, id)).toEqual({ step: 'b' })
   })
 
   test('creating a participant with a bad body is refused and makes no row', async ({ page }) => {

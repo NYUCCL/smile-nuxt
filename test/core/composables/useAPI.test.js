@@ -275,8 +275,36 @@ describe('useAPI composable', () => {
   })
 
   it('should get URL helpers correctly', () => {
-    // New impl uses deployBasePath from runtimeConfig
-    expect(api.getPublicUrl('test.png')).toContain('test.png')
+    // The mocked runtime config's app.baseURL is '/test/'
+    expect(api.getPublicUrl('test.png')).toBe('/test/test.png')
+    expect(api.getPublicUrl('/stimuli/dog.png')).toBe('/test/stimuli/dog.png')
+    expect(api.getStaticUrl('test.png')).toBe('/test/test.png')
+    expect(api.getCoreStaticUrl('images/smile.svg')).toBe('/test/_smile/images/smile.svg')
+    expect(api.getCoreStaticUrl('/images/smile.svg')).toBe('/test/_smile/images/smile.svg')
+  })
+
+  it('reads data, private, config and urls from the store on each access', () => {
+    // loadData() replaces store.data and store.private with new objects
+    const newData = { trialNum: 7, loadedFromServer: true }
+    const newPrivate = { email: 'someone@example.com' }
+    api.store.data = newData
+    api.store.private = newPrivate
+
+    expect(api.data).toEqual(newData)
+    expect(api.data).toBe(api.store.data)
+    expect(api.all_data.data).toBe(api.store.data)
+    expect(api.private).toBe(api.store.private)
+    expect(api.all_data.private).toBe(api.store.private)
+
+    // A write through the API reaches the store's current object
+    api.data.addedThroughApi = 1
+    expect(api.store.data.addedThroughApi).toBe(1)
+
+    expect(api.config).toBe(api.store.config)
+    expect(api.urls).toBe(api.store.browserEphemeral.urls)
+    expect(api.all_config.config).toBe(api.store.config)
+    expect(api.all_config.code).toBe(api.store.config.github)
+    expect(api.all_config.dev).toBe(api.store.dev)
   })
 
   it('should reset app state correctly', () => {

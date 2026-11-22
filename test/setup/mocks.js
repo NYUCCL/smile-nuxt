@@ -62,9 +62,9 @@ vi.mock('#imports', () => ({
     return { value: val }
   }),
   useRuntimeConfig: vi.fn(() => ({
+    app: { baseURL: '/test/' },
     public: {
-      smile: { codeName: 'test', projectRef: 'test-project' },
-      deployBasePath: '/test/',
+      smile: { codeName: 'test' },
     },
   })),
 }))

@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * @fileoverview toPlainJSON: turns any value into plain JSON without throwing.
  *
@@ -12,12 +13,61 @@ import { isRef, toRaw } from 'vue'
 export const MAX_DEPTH = 64
 export const MAX_STRING = 1_000_000
 
-/** A path segment for a key: `a.b`, `a[0]` */
+/**
+ * An object JSON can hold.
+ * @typedef {{ [key: string]: JSONValue }} JSONObject
+ */
+
+/**
+ * A list JSON can hold.
+ * @typedef {JSONValue[]} JSONArray
+ */
+
+/**
+ * A value JSON can hold. (The list and the object have their own names
+ * because a JSDoc typedef can't refer to itself directly.)
+ * @typedef {null|boolean|number|string|JSONArray|JSONObject} JSONValue
+ */
+
+/**
+ * A change that lost or altered data.
+ * @typedef {object} Warning
+ * @property {string} path - Where in the value (`a.b[0]`; `(root)` for the value itself)
+ * @property {string} issue - What was changed
+ */
+
+/**
+ * An entry of a record's `smileWarnings` list.
+ * @typedef {object} WarningEntry
+ * @property {string} path - Where in the value
+ * @property {string} issue - What was changed
+ * @property {number} count - How many times it was reported
+ * @property {number} first - When it was first reported (ms since the epoch)
+ */
+
+/**
+ * @typedef {object} PlainJSONOptions
+ * @property {string} [path] - Path of the value, used in warnings
+ * @property {(warning: Warning) => void} [warn] - Called for each change that loses or alters data
+ * @property {number} [maxDepth] - Default 64
+ * @property {number} [maxString] - Default 1 000 000 characters
+ */
+
+/**
+ * A path segment for a key: `a.b`, `a[0]`
+ * @param {string} path - The path so far
+ * @param {string|number} key - The key, or the index in a list
+ * @returns {string} The path of the key
+ */
 function child(path, key) {
   if (typeof key === 'number') return `${path}[${key}]`
   return path ? `${path}.${key}` : key
 }
 
+/**
+ * @param {unknown} value - An object
+ * @returns {string} The name of its constructor
+ */
 function typeName(value) {
   try {
     const proto = Object.getPrototypeOf(value)
@@ -28,6 +78,10 @@ function typeName(value) {
   }
 }
 
+/**
+ * @param {Record<string, unknown>} value - An object
+ * @returns {boolean} True when it looks like a DOM node
+ */
 function isDomNode(value) {
   try {
     return typeof value.nodeType === 'number' && typeof value.nodeName === 'string'
@@ -37,6 +91,10 @@ function isDomNode(value) {
   }
 }
 
+/**
+ * @param {Record<string, unknown>} value - An object
+ * @returns {boolean} True when it looks like a Vue component
+ */
 function isVueComponent(value) {
   try {
     return typeof value.render === 'function'
@@ -48,12 +106,20 @@ function isVueComponent(value) {
   }
 }
 
+/**
+ * @param {object} value - An object
+ * @returns {boolean} True when it has no prototype or Object's
+ */
 function isPlainPrototype(value) {
   const proto = Object.getPrototypeOf(value)
   return proto === null || proto === Object.prototype
 }
 
-/** Replaces lone UTF-16 surrogates with U+FFFD */
+/**
+ * Replaces lone UTF-16 surrogates with U+FFFD
+ * @param {string} str - A string
+ * @returns {string} The string, well formed
+ */
 function wellFormed(str) {
   if (typeof str.isWellFormed === 'function') {
     return str.isWellFormed() ? str : str.toWellFormed()
@@ -61,6 +127,10 @@ function wellFormed(str) {
   return str.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '�')
 }
 
+/**
+ * @param {unknown} err - What was thrown
+ * @returns {string} Its message
+ */
 function errorText(err) {
   try {
     return err instanceof Error ? err.message : String(err)
@@ -70,7 +140,12 @@ function errorText(err) {
   }
 }
 
-/** Sets a key on a plain object, keeping `__proto__` as ordinary data */
+/**
+ * Sets a key on a plain object, keeping `__proto__` as ordinary data
+ * @param {Record<string, JSONValue>} out - The object
+ * @param {string} key - The key
+ * @param {JSONValue} value - The value
+ */
 function setKey(out, key, value) {
   if (key === '__proto__') {
     Object.defineProperty(out, key, { value, enumerable: true, writable: true, configurable: true })
@@ -103,13 +178,9 @@ function setKey(out, key, value) {
  * Keys are kept as given (including `.`, `/`, `[`, `]`, `*` and `__proto__`),
  * and nested arrays are kept.
  *
- * @param {*} value - Anything
- * @param {object} [options]
- * @param {string} [options.path] - Path of `value`, used in warnings
- * @param {(warning: {path: string, issue: string}) => void} [options.warn] - Called for each change that loses or alters data
- * @param {number} [options.maxDepth] - Default 64
- * @param {number} [options.maxString] - Default 1 000 000 characters
- * @returns {*} Plain JSON. `undefined` only if `value` was undefined, a function or a symbol.
+ * @param {unknown} value - Anything
+ * @param {PlainJSONOptions} [options]
+ * @returns {JSONValue|undefined} Plain JSON. `undefined` only if `value` was undefined, a function or a symbol.
  */
 export function toPlainJSON(value, options = {}) {
   const {
@@ -120,6 +191,10 @@ export function toPlainJSON(value, options = {}) {
   } = options
   const ancestors = new Set()
 
+  /**
+   * @param {string} p - The path
+   * @param {string} issue - What was changed
+   */
   const note = (p, issue) => {
     try {
       warn({ path: p || '(root)', issue })
@@ -129,7 +204,13 @@ export function toPlainJSON(value, options = {}) {
     }
   }
 
-  // Returns undefined for values that are dropped (undefined, functions, symbols)
+  /**
+   * Returns undefined for values that are dropped (undefined, functions, symbols)
+   * @param {unknown} v - The value
+   * @param {string} p - Its path
+   * @param {number} depth - How deep it is nested
+   * @returns {JSONValue|undefined} The value as plain JSON
+   */
   function clean(v, p, depth) {
     try {
       switch (typeof v) {
@@ -176,7 +257,9 @@ export function toPlainJSON(value, options = {}) {
       }
       ancestors.add(raw)
       try {
-        return cleanObject(raw, p, depth)
+        // The cast adds parentheses only: `raw` is an object here (every
+        // other type returned above), which the type checker does not work out
+        return cleanObject(/** @type {Record<string, unknown>} */ (raw), p, depth)
       }
       finally {
         ancestors.delete(raw)
@@ -188,7 +271,14 @@ export function toPlainJSON(value, options = {}) {
     }
   }
 
+  /**
+   * @param {ArrayLike<unknown>} items - A list
+   * @param {string} p - Its path
+   * @param {number} depth - How deep it is nested
+   * @returns {JSONValue[]} The list as plain JSON
+   */
   function cleanArrayLike(items, p, depth) {
+    /** @type {JSONValue[]} */
     const out = Array.from({ length: items.length })
     for (let i = 0; i < items.length; i++) {
       let item
@@ -206,7 +296,14 @@ export function toPlainJSON(value, options = {}) {
     return out
   }
 
+  /**
+   * @param {Iterable<[string, unknown]>} entries - Keys and values
+   * @param {string} p - The path of the object they belong to
+   * @param {number} depth - How deep it is nested
+   * @returns {Record<string, JSONValue>} An object as plain JSON
+   */
   function cleanEntries(entries, p, depth) {
+    /** @type {Record<string, JSONValue>} */
     const out = {}
     for (const [key, val] of entries) {
       const c = clean(val, child(p, key), depth + 1)
@@ -215,6 +312,12 @@ export function toPlainJSON(value, options = {}) {
     return out
   }
 
+  /**
+   * @param {Record<string, unknown>} v - An object of any kind (not a Vue proxy)
+   * @param {string} p - Its path
+   * @param {number} depth - How deep it is nested
+   * @returns {JSONValue|undefined} The object as plain JSON
+   */
   function cleanObject(v, p, depth) {
     if (Array.isArray(v)) return cleanArrayLike(v, p, depth)
 
@@ -227,10 +330,12 @@ export function toPlainJSON(value, options = {}) {
       return v.toISOString()
     }
     if (ArrayBuffer.isView(v) && !(v instanceof DataView)) {
+      // @ts-expect-error a view is not typed as a list; every view but DataView (left out above) is one
       return cleanArrayLike(Array.from(v), p, depth)
     }
     if (v instanceof ArrayBuffer) return Array.from(new Uint8Array(v))
     if (v instanceof Map) {
+      /** @type {Array<[string, unknown]>} */
       const entries = []
       for (const [k, val] of v) {
         const name = typeof k === 'string'
@@ -279,6 +384,7 @@ export function toPlainJSON(value, options = {}) {
       note(p, `${typeName(v)} has no plain fields`)
       return `[Unserializable: ${typeName(v)}]`
     }
+    /** @type {Record<string, JSONValue>} */
     const out = {}
     for (const key of keys) {
       let val
@@ -302,8 +408,8 @@ export function toPlainJSON(value, options = {}) {
 /**
  * JSON text for `value`: plain `JSON.stringify` when it works (fast), else
  * `toPlainJSON` first. Never throws.
- * @param {*} value
- * @param {object} [options] - Passed to toPlainJSON on the fallback path
+ * @param {unknown} value
+ * @param {PlainJSONOptions} [options] - Passed to toPlainJSON on the fallback path
  * @returns {{ text: string, cleaned: boolean }} `cleaned` when the fallback ran
  */
 export function safeStringify(value, options = {}) {
@@ -325,9 +431,10 @@ export function safeStringify(value, options = {}) {
 /**
  * `value` itself when it serializes, else a cleaned copy. For request bodies
  * that are serialized later (by $fetch). Never throws.
- * @param {*} value
- * @param {object} [options] - Passed to toPlainJSON on the fallback path
- * @returns {*} `value`, or its cleaned copy
+ * @template T
+ * @param {T} value
+ * @param {PlainJSONOptions} [options] - Passed to toPlainJSON on the fallback path
+ * @returns {T|JSONValue} `value`, or its cleaned copy
  */
 export function sendable(value, options = {}) {
   try {
@@ -345,13 +452,15 @@ export const MAX_WARNINGS = 100
  * Adds warnings to a record's `smileWarnings` list: one entry per path and
  * issue, with a count, at most MAX_WARNINGS entries (later new ones are only
  * counted in the last entry).
- * @param {object} data - The record (store.data)
- * @param {Array<{path: string, issue: string}>} warnings
+ * @param {Record<string, unknown>|null|undefined} data - The record (store.data)
+ * @param {Warning[]|null|undefined} warnings
  */
 export function addWarnings(data, warnings) {
   if (!warnings?.length || !data || typeof data !== 'object') return
   if (!Array.isArray(data.smileWarnings)) data.smileWarnings = []
-  const list = data.smileWarnings
+  // The cast adds parentheses only: the line above made sure it is a list;
+  // its entries are the ones this function writes
+  const list = /** @type {WarningEntry[]} */ (data.smileWarnings)
   for (const w of warnings) {
     const found = list.find(e => e && e.path === w.path && e.issue === w.issue)
     if (found) {

@@ -88,8 +88,14 @@ test.describe('Two tabs (plans/sync_engine.md, step 5)', () => {
     await page.bringToFront()
     await answerTrials(page, 1)
     await expect(notice(page)).toBeVisible({ timeout: 10_000 })
+    // This tab can't know another tab did it: the notice says only what it knows
+    await expect(notice(page)).toContainText('Your progress was saved somewhere else')
     await page.waitForTimeout(1_500)
     expect(JSON.stringify(stroopTrials(await getParticipant(db, participantId!)))).toBe(saved)
+    // The trial this tab couldn't save is set aside in the browser, not deleted
+    const aside = await page.evaluate(() => Object.keys(localStorage).filter(k => k.endsWith('_conflict')).map(k => JSON.parse(localStorage.getItem(k)!)))
+    expect(aside).toHaveLength(1)
+    expect(aside[0].data).toBeTruthy()
 
     // Continuing there starts from what the second tab saved
     await page.getByTestId('other-tab-continue').click()
@@ -98,5 +104,8 @@ test.describe('Two tabs (plans/sync_engine.md, step 5)', () => {
     await answerTrials(page, 1)
     await expect.poll(() => savedTrials(db, participantId!)).toBe(4)
     expect(JSON.stringify(stroopTrials(await getParticipant(db, participantId!)).slice(0, 3))).toBe(saved)
+    // and the record says a copy was set aside
+    const warnings = (await getParticipant(db, participantId!)).smileWarnings ?? []
+    expect(warnings.some((w: { issue: string }) => w.issue.includes('set aside'))).toBe(true)
   })
 })

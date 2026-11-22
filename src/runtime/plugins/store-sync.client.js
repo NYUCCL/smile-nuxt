@@ -17,6 +17,7 @@ import useSmileStore, { initDev, COOKIE_MAX_AGE } from '../stores/smilestore'
 import { RESUME_KEYS, LOCAL_KEYS } from '../core/sync/snapshot.js'
 import { createTabGuard } from '../core/sync/tabs.js'
 import appconfig from '../core/config.js'
+import useLog from '../stores/log.js'
 
 /** @type {import('#app').Plugin} */
 export default defineNuxtPlugin((nuxtApp) => {
@@ -35,7 +36,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     store.restoreLocal()
   }
   catch (e) {
-    console.warn('[store-sync] Could not read the local snapshot:', e)
+    useLog().warn('SMILESTORE: could not read the local snapshot: ' + e)
   }
 
   // --- 2. Watch cookieState → document.cookie ---
@@ -87,7 +88,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       store.captureSnapshot()
     }
     catch (e) {
-      console.warn('[store-sync] Could not write the local snapshot:', e)
+      useLog().warn('SMILESTORE: could not write the local snapshot: ' + e)
     }
   }
   const hidden = () => {
@@ -96,7 +97,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       store.saveOnClose()
     }
     catch (e) {
-      console.warn('[store-sync] Could not send the snapshot:', e)
+      useLog().warn('SMILESTORE: could not send the snapshot: ' + e)
     }
   }
   window.addEventListener('pagehide', hidden)
@@ -111,7 +112,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     }
     const max = Number(import.meta.env.VITE_MAX_WRITES)
     if (import.meta.env.VITE_MAX_WRITES && max > 0 && max < 2000) {
-      console.warn(`[smile] VITE_MAX_WRITES is ${max}: data is now saved after every change (at most every 5 seconds), so a long study can reach it and stop saving by itself. Remove it to use the default (10000).`)
+      console.warn(`[smile] VITE_MAX_WRITES is ${max}: data is now saved after every change (up to 30 saves a minute), so a long study can reach it and stop saving by itself. Remove it to use the default (10000).`)
     }
   }
 

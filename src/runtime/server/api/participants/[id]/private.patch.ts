@@ -3,6 +3,7 @@ import { defineEventHandler, createError, getRouterParam } from 'h3'
 import { useDB } from '../../../utils/db'
 import { parseJsonObject, isJsonObject, savePrivateData } from '../../../utils/participant-save'
 import { readBodyText, throwRefusal } from '../../../utils/read-body'
+import { NO_PARTICIPANT } from '../../../../shared/save-answers.js'
 
 /**
  * Saves a participant's private data: `{ data }`. Creates the row when the
@@ -23,7 +24,7 @@ export default defineEventHandler(async (event) => {
 
   const id = await savePrivateData(useDB(), participantId, data, randomUUID())
   if (!id) {
-    throw createError({ statusCode: 404, statusMessage: 'Participant not found' })
+    throw createError({ statusCode: 404, statusMessage: 'Participant not found', data: { smile: NO_PARTICIPANT } })
   }
   return { success: true }
 })

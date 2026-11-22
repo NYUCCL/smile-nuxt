@@ -19,11 +19,14 @@ function setup(options = {}) {
     statuses: [],
     confirmed: [],
     warnings: [],
-    gone: 0,
+    gone: [],
+    goOn: false, // what onGone answers
     conflicts: [],
     oversize: [],
     count: 0, // sends so far, as the store keeps it
     limits: [],
+    // Gzip for a closing page's send: by default a tenth of the size
+    compress: async text => new Uint8Array(Math.ceil(text.length / 10)),
   }
   world.answer = (...answers) => world.answers.push(...answers)
   /** A send that stays in flight until `release(answer)` is called. */
@@ -50,9 +53,11 @@ function setup(options = {}) {
       world.savedRev = Math.max(world.savedRev, rev)
     },
     onStatus: s => world.statuses.push(s),
-    onGone: () => {
-      world.gone += 1
+    onGone: (marker) => {
+      world.gone.push(marker)
+      return world.goOn
     },
+    compress: text => world.compress(text),
     onConflict: rev => world.conflicts.push(rev),
     onOversize: bytes => world.oversize.push(bytes),
     sent: () => world.count,
@@ -88,10 +93,26 @@ describe('the sync loop', () => {
     it.each([
       [200, 'ok'], [201, 'ok'], [204, 'ok'],
       [0, 'retry'], [408, 'retry'], [429, 'retry'], [500, 'retry'], [502, 'retry'], [503, 'retry'], [504, 'retry'], [302, 'retry'], [NaN, 'retry'],
-      [400, 'stop'], [404, 'stop'], [413, 'stop'], [422, 'stop'],
-      [409, 'conflict'], [403, 'gone'],
+      [400, 'retry'], [401, 'retry'], [413, 'retry'], [415, 'retry'], [422, 'retry'],
+      [409, 'conflict'], [403, 'retry'], [404, 'retry'],
     ])('%s is %s', (status, expected) => {
       expect(classify(status)).toBe(expected)
+    })
+
+    it('a 403 or 404 means the participant is gone only with the server\'s own mark', () => {
+      expect(classify(403, 'bad-token')).toBe('gone')
+      expect(classify(404, 'no-participant')).toBe('gone')
+      expect(classify(403, 'no-participant')).toBe('retry')
+      expect(classify(404, 'bad-token')).toBe('retry')
+      expect(classify(403, undefined)).toBe('retry')
+      expect(classify(200, 'bad-token')).toBe('ok')
+    })
+
+    it('a 400 or 413 stops that body only with the save route\'s own mark', () => {
+      expect(classify(400, 'refused')).toBe('stop')
+      expect(classify(413, 'refused')).toBe('stop')
+      expect(classify(400, undefined)).toBe('retry')
+      expect(classify(401, 'refused')).toBe('stop')
     })
   })
 
@@ -249,9 +270,9 @@ describe('the sync loop', () => {
       expect(w.confirmed).toEqual([3])
     })
 
-    it.each([400, 413, 404, 422])('status %s is not sent again as it is, and a later change is tried', async (status) => {
+    it.each([400, 413, 422])('status %s is not sent again as it is, and a later change is tried', async (status) => {
       const w = setup()
-      w.answer({ status, message: 'no' })
+      w.answer({ status, message: 'no', marker: 'refused' })
       w.change()
       await tick(1000)
       expect(w.loop.status).toMatchObject({ status: 'error', error: { kind: 'refused', status, message: 'no' }, retryAt: null })
@@ -264,15 +285,40 @@ describe('the sync loop', () => {
       expect(w.loop.status.status).toBe('saved')
     })
 
-    it('403: the participant is gone, and nothing more is sent', async () => {
+    it('a marked 404: the participant is gone, and nothing more is sent', async () => {
       const w = setup()
-      w.answer({ status: 403 })
+      w.answer({ status: 404, marker: 'no-participant' })
       w.change()
       await tick(1000)
-      expect(w.gone).toBe(1)
+      expect(w.gone).toEqual(['no-participant'])
       w.change()
       await tick(10_000)
       expect(w.sent).toHaveLength(1)
+      expect(w.loop.status).toMatchObject({ status: 'error', error: { kind: 'refused' } })
+    })
+
+    it('a marked 403 the caller can go on from: the same record is sent again at once', async () => {
+      const w = setup()
+      w.goOn = true
+      w.answer({ status: 403, marker: 'bad-token' })
+      w.change()
+      await tick(1000)
+      expect(w.gone).toEqual(['bad-token'])
+      await tick(10)
+      expect(w.sent.map(s => s.rev)).toEqual([1, 1])
+      expect(w.loop.status.status).toBe('saved')
+    })
+
+    it.each([400, 401, 403, 404, 413])('an unmarked %s is tried again like any failure', async (status) => {
+      const w = setup()
+      w.answer({ status })
+      w.change()
+      await tick(1000)
+      expect(w.gone).toEqual([])
+      expect(w.loop.status).toMatchObject({ status: 'error', error: { kind: 'retrying' } })
+      await tick(1000)
+      expect(w.sent).toHaveLength(2)
+      expect(w.loop.status.status).toBe('saved')
     })
 
     it('409: another copy saved something newer; nothing more is sent from this page', async () => {
@@ -450,13 +496,34 @@ describe('the sync loop', () => {
       expect(w.sent.map(s => s.rev)).toEqual([1, 2, 3])
     })
 
-    it('a body over 60 KB goes as an ordinary request', async () => {
+    it('a body over 60 KB is gzipped, and goes in the closing request when that fits', async () => {
       const w = setup()
       w.text = 'x'.repeat(70_000)
       w.change()
       w.loop.hidden()
       await tick(0)
+      expect(w.sent).toHaveLength(1)
+      expect(w.sent[0]).toMatchObject({ rev: 1, keepalive: true })
+      expect(w.sent[0].body).toBeInstanceOf(Uint8Array)
+      expect(w.sent[0].body.length).toBeLessThanOrEqual(60_000)
+      expect(w.confirmed).toEqual([1])
+    })
+
+    it.each([
+      ['still over 60 KB gzipped', async text => new Uint8Array(text.length)],
+      ['the browser can\'t compress', async () => null],
+      ['compressing fails', async () => {
+        throw new Error('no')
+      }],
+    ])('a body over 60 KB goes as an ordinary request when %s', async (_name, compress) => {
+      const w = setup()
+      w.compress = compress
+      w.text = 'x'.repeat(70_000)
+      w.change()
+      w.loop.hidden()
+      await tick(0)
       expect(w.sent).toEqual([expect.objectContaining({ rev: 1, keepalive: false })])
+      expect(typeof w.sent[0].body).toBe('string')
     })
 
     it('a failed closing send changes nothing; the loop goes on as it was', async () => {
@@ -567,8 +634,37 @@ describe('the sync loop', () => {
       expect(w.sent).toHaveLength(1)
     })
 
+    it('a record over the size limit as text is sent gzipped when that fits, and counted as one send', async () => {
+      const w = setup({ maxBytes: 1000 })
+      w.text = 'x'.repeat(2000) // a tenth of that gzipped, in this test
+      w.change()
+      await tick(1000)
+      expect(w.sent).toHaveLength(1)
+      expect(w.sent[0].body).toBeInstanceOf(Uint8Array)
+      expect(w.sent[0].body.length).toBeLessThanOrEqual(1000)
+      expect(w.oversize).toHaveLength(0)
+      expect(w.count).toBe(1)
+      expect(w.loop.status.status).toBe('saved')
+    })
+
+    it('a record over the largest text the server takes is not gzipped at all', async () => {
+      const w = setup({ maxBytes: 1000, maxTextBytes: 1500 })
+      let asked = 0
+      w.compress = async () => {
+        asked += 1
+        return new Uint8Array(10)
+      }
+      w.text = 'x'.repeat(2000)
+      w.change()
+      await tick(1000)
+      expect(asked).toBe(0)
+      expect(w.sent).toHaveLength(0)
+      expect(w.oversize).toHaveLength(1)
+    })
+
     it('a record over the size limit is not sent, and is reported once per snapshot', async () => {
       const w = setup({ maxBytes: 1000 })
+      w.compress = async text => new Uint8Array(text.length) // doesn't shrink
       w.text = 'x'.repeat(2000)
       w.change()
       await tick(1000)

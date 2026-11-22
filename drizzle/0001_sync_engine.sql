@@ -50,15 +50,4 @@ DELETE FROM `private_data` WHERE rowid NOT IN (
 		FROM `private_data`
 	) WHERE n = 1
 );--> statement-breakpoint
-CREATE UNIQUE INDEX `private_data_participant_unique` ON `private_data` (`participant_id`);--> statement-breakpoint
--- Status columns for rows saved before this migration, read from each record.
--- A value of the wrong type (or a record that isn't a JSON object) stays null.
-UPDATE `participants` SET
-	`consented` = CASE json_type(`data`, '$.consented') WHEN 'true' THEN 1 WHEN 'false' THEN 0 END,
-	`done` = CASE json_type(`data`, '$.done') WHEN 'true' THEN 1 WHEN 'false' THEN 0 END,
-	`withdrawn` = CASE json_type(`data`, '$.withdrawn') WHEN 'true' THEN 1 WHEN 'false' THEN 0 END,
-	`recruitment_service` = CASE WHEN json_type(`data`, '$.recruitmentService') = 'text' THEN substr(json_extract(`data`, '$.recruitmentService'), 1, 100) END,
-	`started_at` = CASE WHEN json_type(`data`, '$.starttime') IN ('integer', 'real') THEN CAST(json_extract(`data`, '$.starttime') AS INTEGER) END,
-	`ended_at` = CASE WHEN json_type(`data`, '$.endtime') IN ('integer', 'real') THEN CAST(json_extract(`data`, '$.endtime') AS INTEGER) END
-WHERE json_valid(`data`) AND json_type(`data`) = 'object';--> statement-breakpoint
-UPDATE `participants` SET `data_bytes` = length(CAST(`data` AS BLOB));
+CREATE UNIQUE INDEX `private_data_participant_unique` ON `private_data` (`participant_id`);

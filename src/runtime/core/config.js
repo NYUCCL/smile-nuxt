@@ -5,21 +5,7 @@
  * using Vite's import.meta.env string replacement.
  * @module config
  */
-/**
- * Parses a string in the format "WIDTHxHEIGHT" into width and height values
- * @param {string} value - String in format "WIDTHxHEIGHT" (e.g. "800x600")
- * @returns {object} Object containing parsed width and height as integers
- * @property {number} width - The parsed width value
- * @property {number} height - The parsed height value
- */
-/**
- * Parses a numeric env setting. import.meta.env values are strings, and an
- * unset one is undefined; without a fallback the write throttle and limits
- * would silently turn off (comparisons with NaN/undefined are always false).
- * @param {string|undefined} value - The env value
- * @param {number} fallback - Used when the value is unset or not a number
- * @returns {number} The parsed number
- */
+
 /**
  * The experiment's color mode setting: 'light', 'dark' or 'system' (follow the
  * participant's OS/browser preference). 'auto' is accepted for 'system'.
@@ -35,6 +21,14 @@ export function normalizeColorMode(value) {
   return 'light'
 }
 
+/**
+ * Parses a numeric env setting. import.meta.env values are strings, and an
+ * unset one is undefined; without a fallback the limits would silently turn
+ * off (comparisons with NaN/undefined are always false).
+ * @param {string|undefined} value - The env value
+ * @param {number} fallback - Used when the value is unset or not a number
+ * @returns {number} The parsed number
+ */
 function envNumber(value, fallback) {
   const n = Number(value)
   return value === undefined || value === '' || Number.isNaN(n) ? fallback : n
@@ -42,15 +36,19 @@ function envNumber(value, fallback) {
 
 /**
  * Reference size for the dev tools' data meter, in characters of JSON
- * (~bytes). Every save sends the participant's whole data object, and Vercel
- * Functions reject request bodies over 4.5 MB, so that's the practical limit
- * on the default deploy target. Display only; nothing enforces it.
+ * (~bytes): the 4.5 MB at which Vercel Functions reject a request body.
+ * Display only. The limit on what a save may send is separate: it is
+ * 4,000,000 bytes and is enforced in core/sync/loop.js.
  */
 export const DATA_SIZE_REFERENCE = 4_500_000
 
+/**
+ * Parses a string in the format "WIDTHxHEIGHT" into width and height values
+ * @param {string} value - String in format "WIDTHxHEIGHT" (e.g. "800x600")
+ * @returns {{ width: number, height: number }} The parsed width and height as
+ *   integers; both 0 when the value is unset
+ */
 function parseWidthHeight(value) {
-  // receives configuration option as WIDTHxHEIGHT
-  // split based on 'x' and assign to objects
   if (!value) return { width: 0, height: 0 }
   const w_h = value.split('x')
   return { width: Number.parseInt(w_h[0]), height: Number.parseInt(w_h[1]) }
@@ -74,9 +72,7 @@ function parseWidthHeight(value) {
  * @property {string} github.lastCommitHash - Last commit hash
  * @property {string} github.commitURL - URL to last commit
  * @property {boolean} allowRepeats - Whether to allow repeat participants
- * @property {boolean} autoSave - Whether to auto-save data
  * @property {number} maxWrites - The most saves one participant's browser sends
- * @property {number} minWriteInterval - Minimum interval between writes
  * @property {number} maxSteps - Maximum rows in stepper tables
  * @property {number} dataSizeReference - Reference size for the dev tools' data meter (see DATA_SIZE_REFERENCE)
  * @property {string} randomSeed - Seed for random number generation
@@ -112,13 +108,8 @@ export default {
     lastCommitHash: hash,
     commitURL: `https://github.com/${owner}/${repoName}/commit/${hash}`,
   },
-  // browser_exclude: import.meta.env.VITE_BROWSER_EXCLUDE,
   allowRepeats: import.meta.env.VITE_ALLOW_REPEATS === 'true',
-  // On unless set to 'false'. (The raw string 'false' is truthy, so setting
-  // VITE_AUTO_SAVE_DATA=false used to leave auto-save on.)
-  autoSave: import.meta.env.VITE_AUTO_SAVE_DATA !== 'false',
   maxWrites: envNumber(import.meta.env.VITE_MAX_WRITES, 10_000),
-  minWriteInterval: envNumber(import.meta.env.VITE_MIN_WRITE_INTERVAL, 2000),
   maxSteps: envNumber(import.meta.env.VITE_MAX_STEPS, 5000),
   dataSizeReference: DATA_SIZE_REFERENCE,
   randomSeed: import.meta.env.VITE_RANDOM_SEED,

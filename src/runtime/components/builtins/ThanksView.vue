@@ -8,11 +8,10 @@ import { ArrowRight, ClipboardCopy, SquareCheckBig } from 'lucide-vue-next'
  * Shows an upload progress animation before displaying the final thanks message.
  */
 
-// External library imports
-import Clipboard from 'clipboard'
 // Vue imports
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import useAPI from '../../composables/useAPI'
+import { copyText } from '../../utils/clipboard.js'
 
 /**
  * Initialize API
@@ -33,52 +32,81 @@ const uploadProgress = ref(alreadyCompleted ? 100 : 0)
 
 /**
  * Completion code — reuse from cookie on revisit, generate fresh on first visit.
- * On first visit, the code is computed immediately but only persisted to the cookie
- * after saveData succeeds (so the cookie acts as proof that data was saved).
+ * The code is shown whether or not the last save reached the server: a
+ * participant is paid for their time even when saving fails. The page waits
+ * for the save first (up to MAX_SAVE_WAIT), and says so if it is still going.
  */
 const completionCode = ref(
   alreadyCompleted ? api.store.cookieState.completionCode : api.computeCompletionCode(),
 )
+
+/** The longest the upload screen waits for the last save before showing the code */
+const MAX_SAVE_WAIT = 15000
+
+/**
+ * A save has failed and the sync loop is still trying (or the browser is
+ * offline). Not the second or so a normal save takes: that would only flash.
+ */
+const stillSaving = computed(() => ['offline', 'error'].includes(api.syncStatus.status))
 
 const prolificCompleteUrl = computed(
   () => `https://app.prolific.com/submissions/complete?cc=${completionCode.value}`,
 )
 
 /**
+ * Copies the text of a copy button's target. A copy button is any element
+ * with a data-clipboard-target attribute holding a CSS selector; the text
+ * copied is the value of the element the selector finds (its text content
+ * when it is not a form field).
+ * @param {MouseEvent} event - A click anywhere in the document
+ */
+async function copyFromClickedButton(event) {
+  const trigger = event.target instanceof Element ? event.target.closest('[data-clipboard-target]') : null
+  if (!trigger) return
+  const target = document.querySelector(trigger.getAttribute('data-clipboard-target'))
+  if (!target) return
+  const copied = await copyText(target.value ?? target.textContent, target)
+  if (copied) api.log.debug(`code copied to clipboard ${trigger.id}`)
+  else api.log.warn('could not copy the code to the clipboard')
+}
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', copyFromClickedButton)
+})
+
+/**
  * Initialize clipboard functionality and run upload animation
- * Sets up clipboard.js to handle copy-to-clipboard actions
+ * Listens for clicks on the copy buttons
  * Animates the progress bar over 20 seconds before showing thanks content
  */
 onMounted(() => {
   // Set up clipboard functionality
-  const clipboard = new Clipboard('[data-clipboard-target]')
-  clipboard.on('success', (e) => {
-    api.log.debug(`code copied to clipboard ${e.trigger.id}`)
-  })
+  document.addEventListener('click', copyFromClickedButton)
 
   // Skip upload animation and save if already completed
   if (alreadyCompleted) return
 
-  // Save data, then show a brief completion animation
-  // The progress bar animates to ~80% quickly, then jumps to 100% once save completes.
-  let saveComplete = false
+  // Save, then show the code. The progress bar animates to ~80% and jumps to
+  // 100% once the server has the record. If the save fails, the sync loop
+  // keeps trying; this screen waits up to MAX_SAVE_WAIT for it and then shows
+  // the code anyway, with a note that saving is still going on.
+  let saved = false
   const minDisplayTime = 2000 // show upload screen for at least 2 seconds
   const mountTime = Date.now()
 
-  // Start the save immediately (no delay)
-  Promise.resolve(api.saveData(true)).then(() => {
+  // Start the save immediately (no delay). sync() never rejects.
+  api.sync().then((result) => {
+    saved = result.ok
+    // Set either way: it marks the study as finished for a return visit
     api.setCompletionCode(completionCode.value)
-    saveComplete = true
-  }).catch(() => {
-    // Even on error, proceed to thanks screen
-    saveComplete = true
   })
 
   const updateProgress = () => {
     const elapsed = Date.now() - mountTime
 
-    if (saveComplete && elapsed >= minDisplayTime) {
-      // Save is done and minimum display time met — finish up
+    // A retry by the sync loop may have got through since sync() answered
+    if (!saved && elapsed >= minDisplayTime && api.syncStatus.status === 'saved' && api.store.cookieState.completionCode) saved = true
+    if ((saved && elapsed >= minDisplayTime) || elapsed >= MAX_SAVE_WAIT) {
       uploadProgress.value = 100
       isUploading.value = false
       return
@@ -124,6 +152,16 @@ onMounted(() => {
     class="w-full mx-auto py-10"
   >
     <div class="w-4/5 mx-auto text-left">
+      <!-- The last save hasn't arrived: ask for a moment more, without holding the code back -->
+      <p
+        v-if="stillSaving"
+        class="mb-6 rounded-md border border-border bg-muted px-4 py-3 text-sm"
+        role="status"
+        data-testid="thanks-still-saving"
+      >
+        Your data is still being saved. Please keep this page open for a moment before you leave it; this
+        message goes away when saving is finished.
+      </p>
       <!-- Prolific recruitment service completion -->
       <div v-if="api.getRecruitmentService() == 'prolific'">
         <TitleTwoCol

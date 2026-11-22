@@ -138,6 +138,9 @@ export default function useTimeline() {
     const prefix = _getRoutePrefix()
     const target = prefix + basePath
 
+    // As in _doNavigate: a View change sends unsent data at once (not awaited)
+    if (smilestore.isDataLoaded) smilestore.sync()
+
     if (force) {
       smilestore.browserEphemeral.forceNavigate = true
       await nuxtNavigateTo(target)

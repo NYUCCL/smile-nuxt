@@ -1,5 +1,6 @@
 import { readRawBody, getRequestHeader, createError, type H3Event } from 'h3'
-import { MAX_BODY_BYTES, type Refusal } from './participant-save'
+import { MAX_BODY_BYTES, MAX_TEXT_BYTES, type Refusal } from './participant-save'
+import { REFUSED } from '../../shared/save-answers.js'
 
 const GZIP_1 = 0x1F
 const GZIP_2 = 0x8B
@@ -20,7 +21,7 @@ export function looksGzipped(bytes: Uint8Array): boolean {
  * soon as it is passed, so a small body can't unpack into a huge one.
  * Never throws.
  */
-export async function decodeBody(bytes: Uint8Array, limit = MAX_BODY_BYTES): Promise<{ ok: true, text: string } | Refusal> {
+export async function decodeBody(bytes: Uint8Array, limit = MAX_TEXT_BYTES): Promise<{ ok: true, text: string } | Refusal> {
   if (!looksGzipped(bytes)) return { ok: true, text: new TextDecoder().decode(bytes) }
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined
   try {
@@ -63,7 +64,7 @@ export async function decodeBody(bytes: Uint8Array, limit = MAX_BODY_BYTES): Pro
 export async function readBodyText(event: H3Event): Promise<string | undefined> {
   const declared = Number(getRequestHeader(event, 'content-length'))
   if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
-    throw createError({ statusCode: 413, statusMessage: `The request body is over the ${MAX_BODY_BYTES} byte limit` })
+    throw createError({ statusCode: 413, statusMessage: `The request body is over the ${MAX_BODY_BYTES} byte limit`, data: { smile: REFUSED } })
   }
   let bytes: Uint8Array | undefined
   try {
@@ -73,6 +74,11 @@ export async function readBodyText(event: H3Event): Promise<string | undefined> 
     throw createError({ statusCode: 400, statusMessage: 'The request body could not be read' })
   }
   if (bytes === undefined) return undefined
+  // What came over the wire, gzipped or not (the host's own limit, here too
+  // so a local server refuses what a deployed one would)
+  if (bytes.length > MAX_BODY_BYTES) {
+    throw createError({ statusCode: 413, statusMessage: `The request body is over the ${MAX_BODY_BYTES} byte limit`, data: { smile: REFUSED } })
+  }
   const decoded = await decodeBody(bytes)
   if (!decoded.ok) throwRefusal(decoded)
   return decoded.text
@@ -80,5 +86,9 @@ export async function readBodyText(event: H3Event): Promise<string | undefined> 
 
 /** Throws the h3 error for a refused body */
 export function throwRefusal(refusal: Refusal, extra?: Record<string, unknown>): never {
-  throw createError({ statusCode: refusal.status, statusMessage: refusal.message, data: extra })
+  // A 400 or 413 from here carries the route's mark, so the browser can tell
+  // it from one made by something on the way (shared/save-answers.js)
+  const own = refusal.status === 400 || refusal.status === 413 ? { smile: REFUSED } : undefined
+  const data = own || extra ? { ...own, ...extra } : undefined
+  throw createError({ statusCode: refusal.status, statusMessage: refusal.message, data })
 }

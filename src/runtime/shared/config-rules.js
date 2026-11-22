@@ -191,7 +191,8 @@ export function deploySummary(ctx) {
     id: 'authsecret', question: 'Are participant tokens signed with a real secret?', status: 'check', keys: ['SMILE_AUTH_SECRET'],
     answer: 'Only if SMILE_AUTH_SECRET (or a Turso token) is set in Vercel.',
     explanation: 'The secret signs the tokens that let a participant\'s browser save their data. Without SMILE_AUTH_SECRET it '
-      + 'falls back to TURSO_AUTH_TOKEN (rotating it logs everyone out mid-study), then SMILE_DEV_PASSWORD, then a key published in this package.',
+      + 'falls back to TURSO_AUTH_TOKEN (rotating it mid-study makes every participant\'s token invalid; each browser then saves its record as a new row), '
+      + 'then SMILE_DEV_PASSWORD, then a key published in this package.',
     recommendation: 'Set SMILE_AUTH_SECRET in Vercel to a long random string (e.g. openssl rand -hex 32).',
   })
 
@@ -199,8 +200,8 @@ export function deploySummary(ctx) {
   lines.push({
     id: 'saving', question: 'Does data save?', status: 'ok', keys: ['VITE_MAX_WRITES', ...oldSaving],
     answer: 'Yes, automatically.',
-    explanation: 'A change is sent to the server a second after the last one, and at least every 5 seconds while changes keep coming. '
-      + 'A failed save is tried again. One participant\'s browser sends at most VITE_MAX_WRITES saves (default 10000).'
+    explanation: 'A change is sent to the server a second after the last one, at least every 5 seconds while changes keep coming, '
+      + 'and at most 30 times a minute. A failed save is tried again. One participant\'s browser sends at most VITE_MAX_WRITES saves (default 10000).'
       + (oldSaving.length ? ` ${oldSaving.join(', ')} no longer ${oldSaving.length > 1 ? 'have' : 'has'} an effect.` : ''),
     ...(oldSaving.length ? { recommendation: `Remove ${oldSaving.join(', ')}.` } : {}),
   })
@@ -311,7 +312,7 @@ export function checkConfig(ctx) {
   const maxWrites = Number(d.VITE_MAX_WRITES)
   if (d.VITE_MAX_WRITES !== undefined && d.VITE_MAX_WRITES !== '' && Number.isFinite(maxWrites) && maxWrites < LOW_MAX_WRITES) {
     add('warn', 'low-max-writes', ['VITE_MAX_WRITES'],
-      `VITE_MAX_WRITES is ${maxWrites}: a page that keeps changing sends a save every 5 seconds and would stop saving by itself after about ${Math.max(1, Math.round(maxWrites / 12))} minutes.`,
+      `VITE_MAX_WRITES is ${maxWrites}: a page sends up to 30 saves a minute by itself, so it could stop saving by itself after as little as ${Math.max(1, Math.round(maxWrites / 30))} minutes.`,
       'Remove it to use the default (10000), or set it higher. Older templates set it to 1000.')
   }
 

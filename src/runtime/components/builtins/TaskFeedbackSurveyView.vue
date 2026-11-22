@@ -50,7 +50,6 @@ api.setAutofill(autofill)
  */
 function finish() {
   api.recordPageData(api.persist.forminfo)
-  api.saveData()
   api.goNextView()
 }
 </script>

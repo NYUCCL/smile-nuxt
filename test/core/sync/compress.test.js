@@ -3,7 +3,7 @@ import { gunzipSync } from 'node:zlib'
 import fc from 'fast-check'
 import { gzipText, COMPRESS_MIN_LENGTH } from '../../../src/runtime/core/sync/compress.js'
 import { decodeBody } from '../../../src/runtime/server/utils/read-body'
-import { MAX_BODY_BYTES } from '../../../src/runtime/server/utils/participant-save'
+import { MAX_TEXT_BYTES } from '../../../src/runtime/server/utils/participant-save'
 
 const record = n => JSON.stringify({
   rev: 7,
@@ -97,10 +97,10 @@ describe('decodeBody (the server side)', () => {
 
   it('refuses (413) a small body that unzips to more than the limit', async () => {
     const { gzipSync } = await import('node:zlib')
-    const bomb = gzipSync(Buffer.alloc(MAX_BODY_BYTES + 1, 0x20))
-    expect(bomb.length).toBeLessThan(10_000)
+    const bomb = gzipSync(Buffer.alloc(MAX_TEXT_BYTES + 1, 0x20))
+    expect(bomb.length).toBeLessThan(40_000)
     expect(await decodeBody(bomb)).toMatchObject({ ok: false, status: 413 })
-    const fits = gzipSync(Buffer.alloc(MAX_BODY_BYTES, 0x20))
+    const fits = gzipSync(Buffer.alloc(MAX_TEXT_BYTES, 0x20))
     expect((await decodeBody(fits)).ok).toBe(true)
   })
 

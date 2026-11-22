@@ -1,4 +1,4 @@
-import { and, eq, lt, sql } from 'drizzle-orm'
+import { and, eq, isNull, lt, sql } from 'drizzle-orm'
 import type { useDB } from './db'
 import { participants, privateData, consoleLogs, interactionChunks } from '../database/schema'
 
@@ -10,6 +10,14 @@ type DB = ReturnType<typeof useDB>
  * behave the same way. (The client's own cap on a record is 4 MB.)
  */
 export const MAX_BODY_BYTES = 4_500_000
+
+/**
+ * The largest body accepted once it is unzipped. A save is sent gzipped (a
+ * record shrinks about five times), so a record can be larger than what the
+ * host lets through on the wire (MAX_BODY_BYTES). This bounds the memory one
+ * request can use, and what a small gzipped body can unpack into.
+ */
+export const MAX_TEXT_BYTES = 20_000_000
 
 export type Refusal = { ok: false, status: number, message: string }
 export type JsonObject = Record<string, unknown>
@@ -28,8 +36,8 @@ export function isJsonObject(value: unknown): value is JsonObject {
  */
 export function parseJsonObject(raw: string | undefined | null): { ok: true, body: JsonObject } | Refusal {
   if (raw === undefined || raw === null || raw === '') return refuse(400, 'The request has no body')
-  if (Buffer.byteLength(raw, 'utf8') > MAX_BODY_BYTES) {
-    return refuse(413, `The request body is over the ${MAX_BODY_BYTES} byte limit`)
+  if (Buffer.byteLength(raw, 'utf8') > MAX_TEXT_BYTES) {
+    return refuse(413, `The request body is over the ${MAX_TEXT_BYTES} byte limit`)
   }
   let body: unknown
   try {
@@ -48,6 +56,8 @@ export interface ParsedSave {
   resume?: JsonObject
   /** Absent from clients older than the sync engine */
   rev?: number
+  /** The parts of the private data that changed, when the save carries them */
+  private?: JsonObject
 }
 
 /**
@@ -59,7 +69,13 @@ export interface ParsedSave {
 export function parseSaveBody(raw: string | undefined | null): { ok: true, save: ParsedSave } | Refusal {
   const parsed = parseJsonObject(raw)
   if (!parsed.ok) return parsed
-  const { data, resume, rev } = parsed.body
+  return parseSaveObject(parsed.body)
+}
+
+/** As parseSaveBody, for a body that parseJsonObject has read already. */
+export function parseSaveObject(body: JsonObject): { ok: true, save: ParsedSave } | Refusal {
+  const { data, resume, rev } = body
+  if (body.private !== undefined && body.private !== null && !isJsonObject(body.private)) return refuse(400, '"private" must be a JSON object')
   if (data === undefined) return refuse(400, 'Missing "data"')
   if (!isJsonObject(data)) return refuse(400, '"data" must be a JSON object')
   if (resume !== undefined && resume !== null && !isJsonObject(resume)) return refuse(400, '"resume" must be a JSON object')
@@ -69,6 +85,7 @@ export function parseSaveBody(raw: string | undefined | null): { ok: true, save:
   const save: ParsedSave = { data }
   if (isJsonObject(resume)) save.resume = resume
   if (typeof rev === 'number') save.rev = rev
+  if (isJsonObject(body.private)) save.private = body.private
   return { ok: true, save }
 }
 
@@ -124,8 +141,9 @@ export type SaveResult
  * - With a `rev`: stored when `rev` is above the row's. An equal `rev` with
  *   the same content is a resend (the first response was lost) and succeeds
  *   without writing. Otherwise 409 with the row's `rev`.
- * - Without a `rev` (clients older than the sync engine): always stored, as
- *   the row's `rev + 1`.
+ * - Without a `rev` (pages still running the code from before the sync
+ *   engine): stored as the row's `rev + 1`, but only until a save with a
+ *   `rev` has been stored for the row. After that, 409.
  *
  * The write is one UPDATE whose WHERE holds the rev check, so two saves
  * arriving together can't both win.
@@ -144,12 +162,17 @@ export async function saveParticipant(db: DB, id: string, save: ParsedSave): Pro
   }
 
   if (save.rev === undefined) {
+    // Only while no page running the sync engine has saved this row (those
+    // saves carry a position, `resume`): after that an old page's save, which
+    // can't be compared, would overwrite newer data.
     const updated = await db.update(participants)
       .set({ ...values, rev: sql`${participants.rev} + 1` })
-      .where(eq(participants.id, id))
+      .where(and(eq(participants.id, id), isNull(participants.resume)))
       .returning({ rev: participants.rev })
-    if (updated.length === 0) return { ok: false, status: 404, message: 'Participant not found' }
-    return { ok: true, rev: updated[0]!.rev }
+    if (updated.length > 0) return { ok: true, rev: updated[0]!.rev }
+    const current = await db.select({ rev: participants.rev }).from(participants).where(eq(participants.id, id)).get()
+    if (!current) return { ok: false, status: 404, message: 'Participant not found' }
+    return { ok: false, status: 409, message: 'A newer page is saving this participant; a save without a rev is refused', rev: current.rev }
   }
 
   const updated = await db.update(participants)
@@ -247,6 +270,7 @@ export async function savePrivateData(db: DB, participantId: string, incoming: J
  * Deletes a participant and everything stored under them, in one transaction.
  * (The newer tables cascade, but the first tables' foreign keys don't, and a
  * database may not enforce foreign keys at all.)
+ * No route calls this yet: it is for the data dashboard (#45).
  * @returns whether the participant existed
  */
 export async function deleteParticipant(db: DB, id: string): Promise<boolean> {

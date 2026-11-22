@@ -5,7 +5,7 @@ import { mkdirSync } from 'node:fs'
 import { dirname } from 'node:path'
 import * as schema from '../database/schema'
 import { MIGRATIONS } from '../database/migrations'
-import { runMigrations } from './migrate'
+import { runMigrations, backfillStatusColumns } from './migrate'
 
 let _db: ReturnType<typeof drizzle> | null = null
 
@@ -55,6 +55,15 @@ async function prepareDatabase() {
   const db = useDB()
   await configureLocalSqlite(db)
   const applied = await runMigrations(db, MIGRATIONS)
+  // A transaction leaves the client with a new connection, which doesn't
+  // have the settings made on the old one: make them again
+  if (applied.length > 0) await configureLocalSqlite(db)
+  // Not waited for: requests go on while older rows' status columns are filled
+  backfillStatusColumns(db)
+    .then((filled) => {
+      if (filled > 0) console.log(`[SMILE] Filled the status columns of ${filled} participants saved before the sync engine`)
+    })
+    .catch(err => console.warn('[SMILE] Could not fill the status columns of older rows (it is tried again when the server next starts):', err))
   for (const tag of applied) console.log(`[SMILE] Applied migration ${tag}`)
   logDatabaseInfo(applied.length)
 }
