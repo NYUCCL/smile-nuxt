@@ -880,7 +880,11 @@ class ViewAPI extends SmileAPI {
     this._path.value = data.currentPath
     this._index.value = data.index
     this._gvars.value = reactive(data.data?.gvars || {})
-    this._stateMachine.value = this._visualizeStateMachine()
+    // The picture of the whole tree (_visualizeStateMachine) is not built
+    // here: nothing reads it (the dev tools use steps.visualize()), and
+    // building it on every step and every data change read every state
+    // through the stepper's proxy: about 0.6 s of main-thread time a step
+    // with 300 steps.
     if (save) {
       this._saveStepperState()
     }

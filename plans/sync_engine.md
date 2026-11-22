@@ -668,7 +668,26 @@ browser ones as plain tests.
 - `pnpm test:starter` (the packed module in a scaffolded project outside the
   workspace): passes, its 8 browser tests included.
 - `smile-sync-test` is kept for the live tests (Todd).
-- To do: the live tests below, the merge decision.
+- **Found while preparing the live test (not from this branch; the same code
+  is on `nuxt`):** `useViewAPI` rebuilt a picture of the whole stepper tree
+  (`_visualizeStateMachine`) on every step and every data change. Nothing
+  read it (the dev tools' step panel uses `steps.visualize()`); an old commit
+  added it for a state viewer that has since changed. With 300 steps it took
+  about 0.6 s of main-thread time each time: a step took about 1150 ms, and
+  about 70 ms without it. Removed. New browser test: the step panel follows
+  the current step. Full browser suite with the change: 190 passed (before
+  the new test). The step panel, when open, still rebuilds the tree on each
+  change, so a long task is slow in dev with that panel open.
+- One unit test failed once in six runs while other servers were running on
+  the machine; which one wasn't caught.
+- The live-test project is in `/tmp/smile-sync-live` (this branch's module
+  packed into a scaffolded project, a 300-trial task with a mouse stream,
+  `live-run.mjs` to run it in a scripted browser and check the database,
+  `deploy.sh`). Local production build, one trial a second: every trial and
+  all 14,889 mouse samples in the database, 136 sends, none failed, a 407 KB
+  record, 36.7 MB uploaded in 6 minutes.
+- To do: the live tests below (waiting on the Vercel project), the merge
+  decision.
 
 Old clients: a project upgraded mid-collection has participants whose page
 still runs the old code until they reload. The server accepts the old body (no
