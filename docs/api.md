@@ -114,7 +114,7 @@ The following functions are available when using `useViewAPI`:
 
 ### State Management
 
-- `clear()`: Clears the stepper state and component registry.
+- `clear()`: Clears the stepper state.
 - `clearCurrentStepData()`: Clears the data for the current step in the stepper.
 - `updateStepper()`: Updates the internal stepper state.
 - `recordStep()`: Records the current step data to the experiment data store.
@@ -126,10 +126,6 @@ The following functions are available when using `useViewAPI`:
 - `onKeyUp`: Handler for key up events.
 - `useMouse`: Hook for tracking mouse position and state.
 - `useMousePressed`: Hook for tracking mouse button press state.
-
-### Component Management
-
-- `componentRegistry`: Map for storing and retrieving component definitions.
 
 ## Base API Functions
 
@@ -151,6 +147,10 @@ The following functions are available in both `useAPI` and `useViewAPI`:
 - `hasPrevView()`: Checks if there's a previous View available.
 - `nextView()`: Returns the next view object in the navigation sequence.
 - `prevView()`: Returns the previous view object in the navigation sequence.
+
+`goNextView()`, `goPrevView()` and `goToView()` each start a save of whatever
+is unsent, but don't wait for the server's answer. Use `await api.sync()` where
+the experiment needs to know the data has arrived.
 
 ### Scroll Behavior
 
@@ -186,9 +186,12 @@ api.goToStep('trial/block1/step2', false)
 
 - `resetLocalState()`: Clears all locally stored data, and redirects to the
   landing page.
-- `resetApp()`: Resets the entire application state.
+- `resetApp()`: Sets a flag that asks for a reset. Nothing is cleared when it
+  is called: the next navigation's guard sees the flag and calls
+  `resetLocalState()`.
 - `isResetApp()`: Checks if the app has been reset.
-- `resetStore()`: Resets just the store state.
+- `resetStore()`: Resets the store state, and also clears the <SmileText/>
+  cookies and the browser's copy of the participant's data in local storage.
 - `setKnown()`: Marks the user as known (has begun the experiment).
 - `setDone()`: Marks the experiment as done.
 - `setConsented()`: Marks that the user has consented.
@@ -200,8 +203,9 @@ api.goToStep('trial/block1/step2', false)
   false).
 - `setCompletionCode(code)`: Sets the completion code for the experiment to
   `code`.
-- `connectDB()`: Ensures the user is known and has consented, setting these
-  states if needed.
+- `connectDB()`: For a new participant, creates their record and marks them
+  as known and consented. For a known participant whose data isn't loaded yet
+  (after a page load), loads their existing record again. Returns a promise.
 - `completeConsent()`: Completes the consent process by setting consented status
   and known user if needed.
 - `reloadBrowser()`: Reloads the current browser window/page.
@@ -227,7 +231,8 @@ api.goToStep('trial/block1/step2', false)
 - `private`: Direct access to private data store (alias for `store.private`)
 - `config`: Direct access to configuration (alias for `store.config`)
 - `all_data`: Accesses combined private and data stores
-- `all_config`: Accesses combined local, dev, github and main configs
+- `all_config`: An object with four keys: `browserPersisted`, `dev`, `code`
+  (the git information) and `config`
 - `urls`: Accesses URL configurations
 - `logStore`: Accesses the logging store
 - `route`: Accesses the current route
@@ -236,8 +241,9 @@ api.goToStep('trial/block1/step2', false)
 
 ## Utility Functions
 
-- `useStepper`: Provides trial stepper functionality.
-- `isBrowserTooSmall()`: Checks if the browser window is too small.
+- `isBrowserTooSmall(width, height)`: Checks if the space available to the
+  experiment (`width` and `height`, in pixels) is smaller than the configured
+  window size.
 - `setAutofill(autofill)`: Sets up view autofill (development mode only).
 - `removeAutofill()`: Removes view autofill (development mode only).
 - `getRecruitmentService()`: Retrieves the recruitment service information.
@@ -286,26 +292,29 @@ api.goToStep('trial/block1/step2', false)
 ## Data Recording and Saving
 
 The following methods are used to record and save data in the experiment.
-Recorded data is checked before it's stored, and must follow these rules:
+Any value can be recorded: objects, arrays (including arrays of arrays), and
+keys with any characters. What's stored is plain JSON, so values JSON can't
+hold are converted when they're recorded, never refused:
 
-- Values are strings, numbers, booleans, `null`, dates, or arrays and objects
-  of these
-- No arrays directly inside arrays (e.g., `[[1, 2], [3, 4]]`); put them in an
-  object instead (`[{ a: [1, 2] }, { a: [3, 4] }]`)
-- No functions or symbols
-- Keys can't contain `.`, `/`, `[`, `]`, or `*`
+- `NaN` and `Infinity` become `null`; a `BigInt` becomes its digits as a string
+- Dates become ISO strings; a `Map` becomes an object and a `Set` an array
+- Functions, symbols and `undefined` are left out
+- A circular reference becomes `"[Circular]"`; a DOM element or Vue component
+  becomes a short description such as `"[Unserializable: HTMLDivElement]"`
 
-Convert anything else (class instances, objects with circular references)
-to plain data before recording it.
+Each conversion that loses or changes data is listed in the participant's
+record under `smileWarnings` (where, what, and how many times) and in the
+browser console, so you can see it in the data and fix the experiment.
 
 - `recordPageData(data, routeName?)`: **Recommended** - Records data organized
   by route/page name and visit number. Data is stored in `pageData_<routeName>`
   with separate `visit_N` objects for each time the route is visited (e.g.,
   `visit_0`, `visit_1`, etc.). Each visit contains `timestamps` and `data`
   arrays that grow with each call during that visit. If routeName is omitted,
-  uses the current route name. Returns `true` on success, `false` on validation
-  failure. The data must follow the rules above, and must be an object, not an
-  array (wrap a list as `{ items: [...] }`).
+  uses the current route name. `data` can be any value (it is usually an
+  object) and is converted to plain JSON as described above. Returns `true`
+  when the data was recorded, and `false` only when there is no route name to
+  record it under.
 
   Example stored structure:
 
@@ -340,16 +349,24 @@ to plain data before recording it.
   [Understanding the Visit Structure](/analysis#understanding-the-visit-structure).
 
 - `recordProperty(name, data)`: Saves `data` (following the rules above) at
-  the top level of the data object. This does not save the data to the database,
-  but it does record it in the local state. The next call to `saveData()` will
-  save the data to the database.
-- `recordStep()`: Records the current step data using `recordPageData()`. This
-  does not save the data to the database, but it does record it in the local
-  state. The next call to `saveData()` will save the data to the database.
+  the top level of the data object. Like every change to the data, it is sent
+  to the database by itself about a second later.
+- `recordStep()`: Records the current step data using `recordPageData()`. It
+  is sent to the database by itself about a second later.
 - `recordWindowEvent(type, event_data = null)`: Records a window event. The
   event_data must follow the rules above if provided.
-- `saveData(force)`: Saves the current data to the database (force save if
-  specified).
+- `sync()`: Sends everything recorded so far to the database now and waits for
+  the answer. Returns a promise of `{ ok, rev, error }` and never throws; `ok`
+  is true when the database has everything. Saving happens by itself (about a
+  second after each change, with retries), so this is only for a point where
+  the experiment needs to know the data has arrived, such as before sending
+  the participant back to the recruitment site. See
+  [When data is saved](/coding/datastorage#when-data-is-saved).
+- `syncStatus`: Reactive `{ status, error, retryAt }`. `status` is `saved`,
+  `pending`, `saving`, `offline` or `error`; `error.kind` is `retrying`,
+  `refused`, `oversize`, `limit` or `conflict`.
+- `saveData()`: The older name for `sync()`. It takes no arguments; an
+  argument passed by older code is ignored.
 - `computeCompletionCode()`: Generates a unique completion code by hashing all
   `pageData_*` fields (falls back to `studyData` for backward compatibility).
 
@@ -364,8 +381,8 @@ These methods provide functionality for querying data across multiple steps in
 the experiment.
 
 - `queryStepData(pathFilter = null)`: Gets data for all leaf nodes in the
-  stepper, optionally filtered by path pattern. Returns only the data directly
-  associated with each leaf node, without merging parent block data.
+  stepper, optionally filtered by path pattern. Returns each leaf node's own
+  data, with any `gvars` key removed. Parent block data is not merged in.
 
 ```javascript
 // Get data for all leaf nodes
@@ -375,10 +392,8 @@ const allLeafData = api.queryStepData()
 const trialData = api.queryStepData('trial/block*')
 ```
 
-- `queryStepDataLeaf(pathFilter = null)`: Gets data for all leaf nodes in the
-  stepper, optionally filtered by path pattern. Returns only the data directly
-  associated with each leaf node, without merging parent block data. This is an
-  alias for `queryStepData` for consistency with the `stepDataLeaf` getter.
+- `queryStepDataLeaf(pathFilter = null)`: The same, but each leaf node's data
+  is returned as stored, without removing `gvars`.
 
 ```javascript
 // Get data for all leaf nodes
@@ -388,23 +403,10 @@ const allLeafData = api.queryStepDataLeaf()
 const trialData = api.queryStepDataLeaf('trial/block*')
 ```
 
-The difference between these methods:
-
-- `queryStepData()` returns the merged data for each leaf node (including parent
-  block data)
-- `queryStepDataLeaf()` returns only the data directly from each leaf node
-  (without parent block data)
-
-Example:
-
-Given a structure:
+Neither method merges parent block data into a leaf's data. Given a structure:
 
 - block (blockType: 'practice')
   - trial1 (response: 'A')
   - trial2 (response: 'B')
 
-`queryStepData()` returns (merged data):
-`[ { blockType: 'practice', response: 'A' }, { blockType: 'practice', response: 'B' }, ]`
-
-`queryStepDataLeaf()` returns (leaf data only):
-`[({ response: 'A' }, { response: 'B' })]`
+both return `[{ response: 'A' }, { response: 'B' }]`.

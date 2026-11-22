@@ -9,6 +9,7 @@ import {
   signSessionToken,
   type Scope,
 } from '../../utils/dev-auth'
+import { lt } from 'drizzle-orm'
 import { devSessions } from '../../database/schema'
 
 export default defineEventHandler(async (event) => {
@@ -24,6 +25,13 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'No login required' })
   }
 
+  // A missing body or a password that is not a string is a bad request, not a
+  // server error (bcrypt.compare throws on anything but a string).
+  const password: unknown = body?.password
+  if (typeof password !== 'string') {
+    throw createError({ statusCode: 400, statusMessage: 'Password required' })
+  }
+
   const expected = passwordForScope(scope)
   if (!expected) {
     throw createError({ statusCode: 500, statusMessage: 'Password not configured' })
@@ -32,12 +40,12 @@ export default defineEventHandler(async (event) => {
   let isValid: boolean
   if (expected.startsWith('$2')) {
     // Hashed password (bcrypt)
-    isValid = await bcrypt.compare(body.password, expected)
+    isValid = await bcrypt.compare(password, expected)
   }
   else {
     // Legacy plaintext — still works but log a warning
     console.warn(`[smile] ${scope} password is stored in plaintext. Run \`pnpm smile:hash-password\` to generate a hashed version.`)
-    isValid = body.password === expected
+    isValid = password === expected
   }
 
   if (!isValid) {
@@ -52,6 +60,15 @@ export default defineEventHandler(async (event) => {
     id,
     expiresAt,
   })
+
+  // Expired sessions are never used again: remove them. Not worth failing a
+  // login over.
+  try {
+    await db.delete(devSessions).where(lt(devSessions.expiresAt, new Date()))
+  }
+  catch (err) {
+    console.warn('[smile] Could not delete expired sessions:', err)
+  }
 
   setCookie(event, cookieNameForScope(scope), signSessionToken(id, scope), {
     httpOnly: true,

@@ -28,7 +28,7 @@ test.describe('Stepper persistence across page reload', () => {
       const key = Object.keys(localStorage).find(k => k.startsWith('smilestore-'))
       if (!key) return null
       const store = JSON.parse(localStorage.getItem(key)!)
-      return store?.viewSteppers?.[view]?.data?.stepperState ?? null
+      return store?.resume?.viewSteppers?.[view]?.data?.stepperState ?? null
     }, viewName)
   }
 
@@ -301,7 +301,7 @@ test.describe('Component references in step data', () => {
       const key = Object.keys(localStorage).find(k => k.startsWith('smilestore-'))
       if (!key) return null
       const store = JSON.parse(localStorage.getItem(key)!)
-      return store?.viewSteppers?.[view]?.data?.stepperState ?? null
+      return store?.resume?.viewSteppers?.[view]?.data?.stepperState ?? null
     }, viewName)
   }
 

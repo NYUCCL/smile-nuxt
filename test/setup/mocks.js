@@ -1,4 +1,15 @@
 import { vi } from 'vitest'
+import { Storage } from 'happy-dom'
+
+// Node 25+ defines its own global `localStorage` and `sessionStorage`. Its
+// localStorage is undefined without --localstorage-file, and both hide
+// happy-dom's. Give DOM tests happy-dom's (tests spy on `Storage.prototype`).
+if (globalThis.happyDOM && !globalThis.localStorage) {
+  for (const name of ['localStorage', 'sessionStorage']) {
+    Object.defineProperty(globalThis, name, { value: new Storage(), configurable: true, writable: true })
+  }
+  globalThis.Storage = Storage
+}
 
 // Debug flag for controlling console output in tests
 export const DEBUG = false
@@ -51,9 +62,9 @@ vi.mock('#imports', () => ({
     return { value: val }
   }),
   useRuntimeConfig: vi.fn(() => ({
+    app: { baseURL: '/test/' },
     public: {
-      smile: { codeName: 'test', projectRef: 'test-project' },
-      deployBasePath: '/test/',
+      smile: { codeName: 'test' },
     },
   })),
 }))

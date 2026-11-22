@@ -142,8 +142,17 @@ applyDevPalette()
                   <!-- Experiment content via slot -->
                   <template v-else>
                     <ResponsiveDeviceContainer>
+                      <!-- In place of the page, so the dev tools stay usable -->
+                      <OtherTabNotice
+                        v-if="api.store.browserEphemeral.otherTab"
+                        inline
+                      />
+                      <ReconnectingNotice
+                        v-else-if="api.store.browserEphemeral.loadFailed"
+                        inline
+                      />
                       <WindowSizerView
-                        v-if="showAggressiveOverlay"
+                        v-else-if="showAggressiveOverlay"
                         triggered
                       />
                       <slot v-else />

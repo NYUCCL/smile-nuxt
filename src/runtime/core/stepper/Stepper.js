@@ -4,6 +4,15 @@ import { StepperSerializer } from './StepperSerializer.js'
 import StepperProxy from './StepperProxy.js'
 import useLog from '../../stores/log.js'
 import seedrandom from 'seedrandom'
+import { toPlainJSON, safeStringify } from '../../utils/plainJSON.js'
+
+/** Stepper trees nest two levels per stepper level, so allow more than records do */
+const STATE_MAX_DEPTH = 256
+
+/** Text that identifies a step's data, for spotting duplicates. Never throws. */
+function dataKey(value) {
+  return safeStringify(value).text
+}
 
 // to be implemented functions
 
@@ -90,9 +99,21 @@ export class Stepper extends StepState {
    */
   _registerComponentsFromData(item) {
     if (!this._componentRegistry || !item || typeof item !== 'object') return
-    for (const value of Object.values(item)) {
-      if (value && typeof value === 'object' && value.name && (value.template || value.render)) {
-        this._componentRegistry.set(value.name, value)
+    let values
+    try {
+      values = Object.values(item)
+    }
+    catch {
+      return // a value that throws when read: saving cleans it later
+    }
+    for (const value of values) {
+      try {
+        if (value && typeof value === 'object' && value.name && (value.template || value.render)) {
+          this._componentRegistry.set(value.name, value)
+        }
+      }
+      catch {
+        // as above
       }
     }
   }
@@ -118,7 +139,7 @@ export class Stepper extends StepState {
     // Build existing id set from current children (O(n) once)
     const existingIds = new Set(this._states.map(state => state.id))
     // Build existing data set from current children (O(n) once)
-    const existingData = new Set(this._states.map(state => JSON.stringify(state.data)))
+    const existingData = new Set(this._states.map(state => dataKey(state.data)))
 
     return {
       /**
@@ -134,7 +155,7 @@ export class Stepper extends StepState {
         }
 
         // Check data content duplicates
-        const dataStr = JSON.stringify(item)
+        const dataStr = dataKey(item)
         if (existingData.has(dataStr)) {
           return true
         }
@@ -211,8 +232,8 @@ export class Stepper extends StepState {
    */
   _findExisting(row) {
     if (row.id !== undefined) return this._states.find(state => state.id === row.id)
-    const dataStr = JSON.stringify(row)
-    return this._states.find(state => JSON.stringify(state.data) === dataStr)
+    const dataStr = dataKey(row)
+    return this._states.find(state => dataKey(state.data) === dataStr)
   }
 
   /**
@@ -456,10 +477,6 @@ export class Stepper extends StepState {
     for (let i = this._states.length - 1; i > 0; i--) {
       const j = Math.floor(rng() * (i + 1))
       ;[this._states[i], this._states[j]] = [this._states[j], this._states[i]]
-
-      // Update indices for the swapped elements
-      this._states[i]._currentIndex = i
-      this._states[j]._currentIndex = j
     }
 
     // Mark as shuffled
@@ -600,24 +617,30 @@ export class Stepper extends StepState {
       return false
     }
 
-    const stepperData = {
-      data: {
-        stepperState: this.json,
-      },
+    // The saved state is plain JSON whatever the steps hold (a BigInt, a
+    // cycle, a DOM node in persist...): saving must never throw, or the
+    // participant can't advance (plans/sync_engine.md).
+    const warnings = []
+    let stepperState
+    try {
+      stepperState = toPlainJSON(this.json, { warn: w => warnings.push(w), maxDepth: STATE_MAX_DEPTH })
     }
-
-    // Update localStorage directly (guarded for SSR)
-    if (typeof localStorage !== 'undefined') {
-      const existingLocalStorage = JSON.parse(localStorage.getItem(this._store.config.localStorageKey) || '{}')
-      if (!existingLocalStorage.viewSteppers) {
-        existingLocalStorage.viewSteppers = {}
-      }
-      existingLocalStorage.viewSteppers[targetPage] = stepperData
-      localStorage.setItem(this._store.config.localStorageKey, JSON.stringify(existingLocalStorage))
+    catch (err) {
+      // toPlainJSON doesn't throw; this is serialize() itself
+      this._log.error('Stepper: could not serialize state: ' + err)
+      return false
     }
+    if (warnings.length && !this._warnedClean) {
+      this._warnedClean = true
+      this._log.warn(`Stepper: step data cleaned to save it (${warnings[0].path}: ${warnings[0].issue}`
+        + (warnings.length > 1 ? `, and ${warnings.length - 1} more)` : ')'))
+    }
+    const stepperData = { data: { stepperState } }
 
-    // Also update the store for consistency
     this._store.localState.viewSteppers[targetPage] = stepperData
+
+    // The store-sync plugin watches this and writes it to localStorage with
+    // the record, as one value (core/sync/snapshot.js).
 
     return true
   }

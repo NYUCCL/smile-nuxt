@@ -3,7 +3,7 @@
  * @module timeline
  */
 
-import _ from 'lodash'
+import { cloneRoute } from '../../utils/cloneRoute.js'
 
 // NOTE: RecruitmentChooser and PresentationMode views are handled via
 // route-based modes (/dev/, /presentation/) in Nuxt, not registered here.
@@ -46,7 +46,7 @@ class Timeline {
    * @returns {object} The cloned route with default values
    */
   cloneRouteAndFillDefaults(route) {
-    const newroute = _.cloneDeep(route)
+    const newroute = cloneRoute(route)
 
     if (newroute.path == null) {
       const nameAsPath = `/${encodeURIComponent(newroute.name.toLowerCase().replace(/\s/g, '_'))}`

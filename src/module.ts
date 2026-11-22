@@ -32,11 +32,17 @@ export default defineNuxtModule<ModuleOptions>({
   meta: {
     name: '@nyuccl/smile-nuxt',
     configKey: 'smile',
+    compatibility: { nuxt: '>=4.0.0' },
   },
   defaults: {
     preloadImages: [],
     preloadVideos: [],
     devTools: false,
+  },
+  // The runtime's stores are Pinia stores, so the module installs @pinia/nuxt.
+  // Nuxt skips this when the project's `modules` already lists it.
+  moduleDependencies: {
+    '@pinia/nuxt': {},
   },
   setup(_options, _nuxt) {
     const resolver = createResolver(import.meta.url)
@@ -144,9 +150,14 @@ export default defineNuxtModule<ModuleOptions>({
     // Public experiment identity is safe to bake at build time: it is derived
     // from the build's git context (VITE_* vars) and is exposed to the client.
     _nuxt.options.runtimeConfig.public = _nuxt.options.runtimeConfig.public || {}
-    _nuxt.options.runtimeConfig.public.smile = {
+    // Merged into whatever the project set under runtimeConfig.public.smile:
+    // the project's other keys are kept, and the module's values win for the
+    // keys below. (Typed loosely: the declared type of public.smile is
+    // generated from this object by `nuxt prepare`.)
+    const publicConfig = _nuxt.options.runtimeConfig.public as Record<string, unknown>
+    publicConfig.smile = {
+      ...(publicConfig.smile as Record<string, unknown> | undefined),
       codeName: process.env.VITE_CODE_NAME || 'unnamed-experiment',
-      projectRef: process.env.VITE_PROJECT_REF || 'local-experiment-main',
       owner: process.env.VITE_GIT_OWNER || 'local',
       repo: process.env.VITE_GIT_REPO_NAME || 'experiment',
       branch: process.env.VITE_GIT_BRANCH_NAME || 'main',
@@ -162,7 +173,7 @@ export default defineNuxtModule<ModuleOptions>({
     // Resolve module dependencies so that .vue component files inside
     // node_modules/@nyuccl/smile-nuxt/dist/runtime/ can import them correctly
     // (pnpm strict isolation prevents Vite from resolving across package boundaries)
-    for (const dep of ['lucide-vue-next', '@vueuse/core', 'motion', 'clipboard']) {
+    for (const dep of ['lucide-vue-next', '@vueuse/core', 'motion']) {
       _nuxt.options.alias[dep] = dirname(_require.resolve(`${dep}/package.json`))
     }
 
@@ -201,11 +212,6 @@ export default defineNuxtModule<ModuleOptions>({
     _nuxt.options.vite.optimizeDeps.include = _nuxt.options.vite.optimizeDeps.include || []
     _nuxt.options.vite.optimizeDeps.include.push(
       '@nyuccl/smile-nuxt > seedrandom',
-      '@nyuccl/smile-nuxt > lodash',
-      '@nyuccl/smile-nuxt > clipboard',
-      '@nyuccl/smile-nuxt > crypto-js/sha256',
-      '@nyuccl/smile-nuxt > crypto-js/enc-base64',
-      '@nyuccl/smile-nuxt > json-stable-stringify',
       '@nyuccl/smile-nuxt > qrcode-svg',
       '@nyuccl/smile-nuxt > lucide-vue-next',
       '@nyuccl/smile-nuxt > reka-ui',
@@ -216,7 +222,6 @@ export default defineNuxtModule<ModuleOptions>({
       '@nyuccl/smile-nuxt > clsx',
       '@nyuccl/smile-nuxt > tailwind-merge',
       '@nyuccl/smile-nuxt > @vueuse/core',
-      '@nyuccl/smile-nuxt > uuid',
       '@nyuccl/smile-nuxt > motion',
       // Nuxt devtools deps — Vite discovers these at runtime on first dev page
       // load and triggers a full reload to re-optimize. Including them upfront
@@ -233,9 +238,10 @@ export default defineNuxtModule<ModuleOptions>({
     _nuxt.options.css.unshift(resolver.resolve('./runtime/css/main.css'))
 
     // Client-only plugins — order matters:
-    // 1. store-sync: patches localState from localStorage, sets up cookie/localStorage watchers
+    // 1. store-sync: restores the position (stepper states, conditions, the current
+    //    View) from the local snapshot, then watches the store to write cookies and the snapshot
     addPlugin(resolver.resolve('./runtime/plugins/store-sync.client'))
-    // 2. seed: initializes global random seed (needs patched localState)
+    // 2. seed: initializes global random seed (needs the restored localState)
     addPlugin(resolver.resolve('./runtime/plugins/seed.client'))
     // 3. dev-sync: syncs dev cookie (after store is fully initialized)
     addPlugin(resolver.resolve('./runtime/plugins/dev-sync.client'))

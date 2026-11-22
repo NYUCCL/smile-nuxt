@@ -1,22 +1,39 @@
 <script setup>
 import { computed } from 'vue'
-import { CloudUpload, Database, UserMinus, UserCheck } from 'lucide-vue-next'
+import { CloudAlert, CloudOff, CloudUpload, Database, UserMinus, UserCheck } from 'lucide-vue-next'
 import useAPI from '../../../composables/useAPI'
+import { syncDisplay } from '../../../core/sync/display'
 
 const api = useAPI()
 
+const sync = computed(() => syncDisplay({
+  loaded: api.store.browserEphemeral.dataLoaded,
+  sync: api.syncStatus,
+  unsaved: api.store.browserEphemeral.unsavedChanges,
+  otherTab: api.store.browserEphemeral.otherTab,
+}))
+
+const SAVE_ICONS = { offline: CloudOff, retrying: CloudOff, stopped: CloudAlert, paused: CloudAlert }
+// Short labels: the stage has room for two or three words
+const SAVE_LABELS = {
+  none: 'Never saved', saved: 'Saved', pending: 'Unsaved changes', saving: 'Saving',
+  offline: 'Offline', retrying: 'Save failed, retrying', stopped: 'Not saving', paused: 'Paused (other tab)',
+}
+
 /**
  * The participant's data, in three stages: known user -> record created ->
- * saved. Each stage is 'ok', 'warn' (unsaved changes) or 'off'.
+ * saved. Each stage is 'ok', 'warn' (a change waiting or on its way),
+ * 'error' (the data isn't reaching the server) or 'off'.
  */
 const stages = computed(() => {
   const known = api.store.cookieState.knownUser
   const loaded = api.store.browserEphemeral.dataLoaded
-  const unsaved = api.store.browserEphemeral.unsavedChanges
+  const { state, label, detail, active, problem } = sync.value
+  const saveState = problem ? 'error' : state === 'none' ? 'off' : active ? 'warn' : 'ok'
   return [
     { key: 'user', icon: known ? UserCheck : UserMinus, state: known ? 'ok' : 'off', label: known ? 'Known user' : 'Unknown user' },
-    { key: 'record', icon: Database, state: loaded ? 'ok' : 'off', label: loaded ? 'Record created' : 'No record yet', action: () => api.connectDB() },
-    { key: 'save', icon: CloudUpload, state: !loaded ? 'off' : unsaved ? 'warn' : 'ok', label: !loaded ? 'Never saved' : unsaved ? 'Unsaved changes' : 'Saved' },
+    { key: 'record', icon: Database, state: loaded ? 'ok' : 'off', label: loaded ? 'Record created' : 'No record yet', action: () => api.connectDB(), title: 'Connect to the database' },
+    { key: 'save', icon: SAVE_ICONS[state] ?? CloudUpload, state: saveState, label: SAVE_LABELS[state], title: detail ? `${label} (${detail})` : label },
   ]
 })
 </script>
@@ -38,7 +55,7 @@ const stages = computed(() => {
       <component
         :is="stage.action ? 'button' : 'span'"
         class="sd-progress-dot"
-        :title="stage.action ? 'Connect to the database' : undefined"
+        :title="stage.title"
         @click="stage.action?.()"
       >
         <component :is="stage.icon" />
@@ -64,7 +81,8 @@ const stages = computed(() => {
   gap: 4px;
   /* Not reached: a dashed muted outline. Reached: --sd-done (sky; the
      accent in the other palettes), so a fresh visit (unknown user, no
-     record) reads plainly different from a connected one. Unsaved: amber. */
+     record) reads plainly different from a connected one. Unsaved: amber.
+     Not reaching the server: red. */
   --sd-stage: var(--sd-text-muted);
   --sd-stage-bg: transparent;
   --sd-stage-ring: var(--sd-line);
@@ -77,6 +95,11 @@ const stages = computed(() => {
 .sd-progress-stage[data-state='warn'] {
   --sd-stage: var(--sd-warn);
   --sd-stage-bg: var(--sd-warn-bg);
+  --sd-stage-ring: transparent;
+}
+.sd-progress-stage[data-state='error'] {
+  --sd-stage: var(--sd-error);
+  --sd-stage-bg: color-mix(in oklab, var(--sd-error) 15%, transparent);
   --sd-stage-ring: transparent;
 }
 
@@ -94,6 +117,9 @@ const stages = computed(() => {
 }
 .sd-progress-line[data-state='warn'] {
   background-color: var(--sd-warn);
+}
+.sd-progress-line[data-state='error'] {
+  background-color: var(--sd-error);
 }
 
 .sd-progress-dot {

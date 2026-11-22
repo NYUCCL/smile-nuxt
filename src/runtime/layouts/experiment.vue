@@ -22,6 +22,8 @@ useHead({ htmlAttrs: { class: colorMode } })
 <template>
   <div class="@container bg-background text-foreground experiment-container flex flex-col h-screen">
     <ClientOnly>
+      <OtherTabNotice />
+      <ReconnectingNotice />
       <LocalDevBanner />
       <DevCommandPalette
         v-if="DevCommandPalette"

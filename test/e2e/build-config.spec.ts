@@ -37,7 +37,7 @@ test.describe('Build & deploy settings', () => {
     await expect(view.getByTestId('deploy-devtools')).toContainText('Are the dev tools in the build?')
 
     // A setting from the tracked .env, with where it comes from and how to change it
-    const row = view.getByTestId('setting-VITE_MAX_WRITES')
+    const row = view.getByTestId('setting-VITE_MAX_STEPS')
     await expect(row.getByTestId('value')).toContainText('.env')
     await expect(row).toContainText('Change it')
 
@@ -48,9 +48,9 @@ test.describe('Build & deploy settings', () => {
 
     // A line opens to say why; its keys jump to their rows
     await view.getByTestId('deploy-saving').locator('summary').click()
-    await view.getByTestId('deploy-saving').getByRole('button', { name: 'VITE_AUTO_SAVE_DATA' }).click()
-    await expect(view.getByTestId('setting-VITE_AUTO_SAVE_DATA')).toBeInViewport()
-    await expect(view.getByTestId('setting-VITE_AUTO_SAVE_DATA')).toHaveAttribute('open', '')
+    await view.getByTestId('deploy-saving').getByRole('button', { name: 'VITE_MAX_WRITES' }).click()
+    await expect(view.getByTestId('setting-VITE_MAX_WRITES')).toBeInViewport()
+    await expect(view.getByTestId('setting-VITE_MAX_WRITES')).toHaveAttribute('open', '')
   })
 
   test('the filter narrows the settings', async ({ page }) => {

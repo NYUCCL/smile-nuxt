@@ -9,7 +9,7 @@
  * Must run AFTER store-sync.client.js so localState is patched from localStorage.
  */
 import { defineNuxtPlugin } from '#imports'
-import { v4 as uuidv4 } from 'uuid'
+import { uuidv4 } from '../utils/uuid.js'
 import seedrandom from 'seedrandom'
 import useSmileStore from '../stores/smilestore'
 

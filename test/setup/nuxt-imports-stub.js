@@ -12,8 +12,8 @@ export const useCookie = (name, opts) => {
   return { value: val }
 }
 export const useRuntimeConfig = () => ({
+  app: { baseURL: '/test/' },
   public: {
-    smile: { codeName: 'test', projectRef: 'test-project' },
-    deployBasePath: '/test/',
+    smile: { codeName: 'test' },
   },
 })

@@ -210,8 +210,8 @@ test.describe('Experiment flow', () => {
 //
 //   pageData_task: { visit_0: { timestamps: [...], data: [{ response, rt, ... }] } }
 //
-// Saves are throttled (VITE_MIN_WRITE_INTERVAL), so poll the database rather
-// than reading it once.
+// A save is sent about a second after each change, so poll the database
+// rather than reading it once.
 
 test.describe('Your task', () => {
   let db: ReturnType<typeof createClient>

@@ -17,14 +17,12 @@
 
 import { reactive } from 'vue'
 import { useRoute, useRouter, useRuntimeConfig, useNuxtApp } from '#imports'
-import useSmileStore, { dataBackupKey } from '../stores/smilestore'
+import useSmileStore from '../stores/smilestore'
+import * as participant from '../core/participant-actions.js'
 import useLog from '../stores/log'
 import useTimeline from './useTimeline'
-import seedrandom from 'seedrandom'
-import { v4 as uuidv4 } from 'uuid'
-import sha256 from 'crypto-js/sha256'
-import Base64url from 'crypto-js/enc-base64'
-import stringify from 'json-stable-stringify'
+import { sha256Base64 } from '../utils/sha256.js'
+import { stableStringify } from '../utils/stableStringify.js'
 import {
   randomInt,
   shuffle,
@@ -45,12 +43,13 @@ import {
  * @property {object} route - Vue Router route object for current route
  * @property {object} router - Vue Router instance for navigation
  * @property {object} timeline - Timeline instance for managing view sequence
- * @property {object} config - Application configuration from store
- * @property {object} data - Application data from store
- * @property {object} private - Private data from store
- * @property {object} all_data - Combined private and public data
- * @property {object} all_config - Combined bro, dev, github and main configs
- * @property {object} urls - Global URL configurations
+ * @property {object} config - The store's configuration (read from the store on each access)
+ * @property {object} data - The participant's data in the store (read on each access)
+ * @property {object} private - The participant's private data in the store (read on each access)
+ * @property {object} all_data - `{ private, data }`: the private and the public data
+ * @property {object} all_config - `{ browserPersisted, dev, code, config }`: the persisted browser state
+ *   (cookie and local state merged), the dev tools' state, the git information (`config.github`) and the configuration
+ * @property {object} urls - The store's `browserEphemeral.urls`
  * @property {object} log - Logging methods interface
  */
 // Space WindowSizerView leaves around its box (classes m-2 mt-5), in px.
@@ -74,19 +73,46 @@ export class SmileAPI {
     this.router = router
     this.timeline = timeline
     this.runtimeConfig = runtimeConfig
+  }
 
-    // Store data access
-    this.config = store.config
-    this.data = store.data
-    this.private = store.private
-    this.all_data = { private: store.private, data: store.data }
-    this.all_config = {
-      browserPersisted: store.browserPersisted, // compatibility getter (read-only merge of both tiers)
-      dev: store.dev,
-      code: store.config.github,
-      config: store.config,
+  // Store data access. These are getters, not copies made in the constructor:
+  // the store replaces `data` and `private` with new objects (loadData), and
+  // an API object that outlives that (the one given to design.js, the
+  // useViewAPI() instance) must read the current ones.
+
+  /** @returns {object} The store's configuration */
+  get config() {
+    return this.store.config
+  }
+
+  /** @returns {object} The participant's data */
+  get data() {
+    return this.store.data
+  }
+
+  /** @returns {object} The participant's private data */
+  get private() {
+    return this.store.private
+  }
+
+  /** @returns {{ private: object, data: object }} The private and the public data */
+  get all_data() {
+    return { private: this.store.private, data: this.store.data }
+  }
+
+  /** @returns {{ browserPersisted: object, dev: object, code: object, config: object }} The state and configuration the dev tools list */
+  get all_config() {
+    return {
+      browserPersisted: this.store.browserPersisted, // read-only merge of the local and the cookie state
+      dev: this.store.dev,
+      code: this.store.config.github,
+      config: this.store.config,
     }
-    this.urls = store.browserEphemeral.urls
+  }
+
+  /** @returns {object} The store's `browserEphemeral.urls` */
+  get urls() {
+    return this.store.browserEphemeral.urls
   }
 
   // Logging methods
@@ -244,9 +270,9 @@ export class SmileAPI {
   /**
    * Get the URL for an asset in the consumer app's public/ directory.
    * @param {string} name - Relative path (no leading slash), e.g. 'stimuli/dog.png'
-   * @returns {string} Absolute URL respecting deployBasePath
+   * @returns {string} URL under the app's base URL (`app.baseURL`), e.g. '/stimuli/dog.png'
    */
-  getPublicUrl = name => (this.runtimeConfig?.public?.deployBasePath || '/') + name.replace(/^\//, '')
+  getPublicUrl = name => participant.withBase(this.runtimeConfig?.app?.baseURL, name)
 
   /**
    * Get the URL for an asset shipped by the @nyuccl/smile-nuxt module itself
@@ -254,9 +280,9 @@ export class SmileAPI {
    * nitro.publicAssets — see src/module.ts.
    * @param {string} name - Relative path under the module's public dir,
    *   e.g. 'images/smile.svg'
-   * @returns {string} Absolute URL respecting deployBasePath
+   * @returns {string} URL under the app's base URL (`app.baseURL`), e.g. '/_smile/images/smile.svg'
    */
-  getCoreStaticUrl = name => (this.runtimeConfig?.public?.deployBasePath || '/') + '_smile/' + name.replace(/^\//, '')
+  getCoreStaticUrl = name => participant.withBase(this.runtimeConfig?.app?.baseURL, '_smile/' + String(name).replace(/^\/+/, ''))
 
   /**
    * Alias for getPublicUrl — kept for compatibility with experiments that
@@ -285,33 +311,12 @@ export class SmileAPI {
   resetStore = () => this.store.resetLocal()
 
   /**
-   * Reset local storage state and reload the application
-   * Removes local storage data, resets store state, and refreshes page
+   * Removes everything the browser stores for this participant (the local
+   * snapshot and the cookies), then loads the app's first page.
    * @returns {void}
    */
   resetLocalState() {
-    // Clear all persistence, then hard-navigate to reload with a clean slate.
-    // We do NOT call store.resetLocal() / $reset() because that would trigger
-    // the store-sync watchers which re-write default values back to cookies
-    // and localStorage, undoing our cleanup.
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem(this.config.localStorageKey)
-      localStorage.removeItem(dataBackupKey)
-    }
-    if (typeof document !== 'undefined') {
-      const prefix = `smile_${this.config.codeName}_`
-      const cookieKeys = ['knownUser', 'lastRoute', 'participantId', 'completionCode', 'consented', 'withdrawn', 'done', 'seedID', 'seedSet']
-      cookieKeys.forEach((key) => {
-        document.cookie = `${prefix}${key}=; path=/; max-age=0; SameSite=Lax`
-      })
-    }
-    if (typeof window !== 'undefined') {
-      const path = window.location.pathname
-      let targetPath = '/'
-      if (path.startsWith('/dev/') || path === '/dev') targetPath = '/dev/'
-      else if (path.startsWith('/presentation/') || path === '/presentation') targetPath = '/presentation/'
-      window.location.href = window.location.origin + targetPath
-    }
+    participant.resetLocalState(this.store, this.runtimeConfig?.app?.baseURL)
   }
 
   /**
@@ -424,14 +429,7 @@ export class SmileAPI {
    * @returns {Promise<void>}
    */
   async connectDB() {
-    if (!this.store.cookieState.knownUser) {
-      await this.store.setKnown()
-      this.store.setConsented()
-    }
-    else if (!this.store.isDataLoaded) {
-      // Known user after a page load: reconnect to their existing row (#58)
-      await this.store.loadData()
-    }
+    await participant.connectDB(this.store)
   }
 
   /**
@@ -476,88 +474,17 @@ export class SmileAPI {
   }
 
   /**
-   * Validates data structure for safe storage.
-   * Rejects:
-   * - Nested arrays (arrays containing arrays)
-   * - Functions or Symbols
-   * - Keys containing ".", "/", "[", "]", or "*"
-   *
-   * @param {*} value - The value to validate
-   * @param {string} [path] - Current path for error messages
-   * @returns {{valid: boolean, error: string|null}} Validation result
-   * @private
-   */
-  validateData(value, path = '') {
-    // Null/undefined are valid
-    if (value === null || value === undefined) {
-      return { valid: true, error: null }
-    }
-
-    // Primitives are valid
-    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' || value instanceof Date) {
-      return { valid: true, error: null }
-    }
-
-    // Check for unsupported types
-    if (typeof value === 'function') {
-      return { valid: false, error: `Functions are not supported at path: ${path || 'root'}` }
-    }
-    if (typeof value === 'symbol') {
-      return { valid: false, error: `Symbols are not supported at path: ${path || 'root'}` }
-    }
-
-    // Check arrays
-    if (Array.isArray(value)) {
-      for (let i = 0; i < value.length; i++) {
-        // Check for nested arrays
-        if (Array.isArray(value[i])) {
-          return {
-            valid: false,
-            error: `Nested arrays are not allowed at path: ${path}[${i}]`,
-          }
-        }
-        // Recursively validate array elements
-        const result = this.validateData(value[i], `${path}[${i}]`)
-        if (!result.valid) {
-          return result
-        }
-      }
-      return { valid: true, error: null }
-    }
-
-    // Check objects
-    if (typeof value === 'object') {
-      for (const [key, val] of Object.entries(value)) {
-        // Check for invalid key characters
-        if (/[./[\]*]/.test(key)) {
-          return {
-            valid: false,
-            error: `Invalid key name "${key}" at path: ${path || 'root'}. Keys cannot contain ".", "/", "[", "]", or "*"`,
-          }
-        }
-        // Recursively validate object values
-        const result = this.validateData(val, path ? `${path}.${key}` : key)
-        if (!result.valid) {
-          return result
-        }
-      }
-      return { valid: true, error: null }
-    }
-
-    return { valid: false, error: `Unsupported data type at path: ${path || 'root'}` }
-  }
-
-  /**
    * Records data associated with a specific page/route.
    * Data is organized by visit number using visit_N keys (visit_0, visit_1, etc.).
    * Multiple calls within the same visit append to that visit's timestamps and data arrays.
    *
-   * Note: Arrays at the top level are not allowed because they would create nested
-   * arrays when stored. Use an object wrapper instead.
+   * Any value can be recorded. Values plain JSON can't hold (a BigInt, a
+   * circular reference, a DOM node, NaN...) are cleaned before they're stored,
+   * never refused, and each change is noted in `data.smileWarnings`.
    *
-   * @param {object} data - The data to record for this page (must be an object, not an array)
+   * @param {*} data - The data to record for this page (usually an object)
    * @param {string} [routeName] - Optional route name override. Uses current route if not provided
-   * @returns {boolean} True if data was recorded successfully, false if validation failed
+   * @returns {boolean} True if data was recorded, false if there is no route to record it under
    *
    * @example
    * // Record data for current page (uses current route name)
@@ -571,30 +498,11 @@ export class SmileAPI {
    * //   visit_0: { timestamps: [...], data: [...] },
    * //   visit_1: { timestamps: [...], data: [...] }
    * // }
-   *
-   * // WRONG: Don't pass arrays directly (will be rejected)
-   * api.recordPageData([1, 2, 3]) // Error: use { items: [1, 2, 3] } instead
    */
   recordPageData(data, routeName = null) {
     const pageName = routeName || this.currentRouteName()
     if (!pageName) {
       this.logStore.error('SMILE API: recordPageData() - No route name available')
-      return false
-    }
-
-    // Validate that data is not an array (would create nested arrays)
-    if (Array.isArray(data)) {
-      this.logStore.error(
-        'SMILE API: recordPageData() - Data cannot be an array (would create nested arrays). '
-        + 'Wrap your array in an object, e.g., { items: [...] }',
-      )
-      return false
-    }
-
-    // Validate data structure
-    const validation = this.validateData(data)
-    if (!validation.valid) {
-      this.logStore.error(`SMILE API: recordPageData() - Invalid data: ${validation.error}`)
       return false
     }
 
@@ -622,7 +530,9 @@ export class SmileAPI {
 
     // Append timestamp and data to the current visit
     this.store.data[fieldName][visitKey].timestamps.push(Date.now())
-    this.store.data[fieldName][visitKey].data.push(JSON.parse(JSON.stringify(data)))
+    const visit = this.store.data[fieldName][visitKey]
+    const cleaned = this.store.cleanValue(data, `${fieldName}.${visitKey}.data[${visit.data.length}]`)
+    visit.data.push(cleaned === undefined ? null : cleaned)
     this.store.browserEphemeral.unsavedChanges = true
 
     this.logStore.debug(`SMILE API: recordPageData() recorded to ${fieldName}.${visitKey}`, data)
@@ -710,13 +620,15 @@ export class SmileAPI {
     // Use pageData if available, fallback to studyData for backward compat
     let dataToHash
     if (Object.keys(pageDataFields).length > 0) {
-      dataToHash = stringify(pageDataFields)
+      dataToHash = stableStringify(pageDataFields)
     }
     else {
-      dataToHash = stringify(this.store.data.studyData)
+      dataToHash = stableStringify(this.store.data.studyData)
     }
 
-    const hashDigest = Base64url.stringify(sha256(dataToHash))
+    // stableStringify gives undefined when there is no studyData; the code is
+    // then the hash of the empty string.
+    const hashDigest = sha256Base64(dataToHash ?? '')
 
     const codes = {
       withdrew: 'xx',
@@ -840,12 +752,34 @@ export class SmileAPI {
   }
 
   /**
-   * Saves the current data
-   * @param {boolean} force - Whether to force save
-   * @returns {void}
+   * Sends the participant's data to the server now and waits for the answer.
+   * Data is saved by itself about a second after every change, so this is
+   * only for a point where the experiment needs to know the data has arrived
+   * (before sending the participant back to the recruitment site, for
+   * example). Never throws.
+   * @returns {Promise<{ ok: boolean, rev: number, error: string|null }>} `ok`
+   *   is true when the server has everything recorded so far
    */
-  saveData(force) {
-    this.store.saveData(force)
+  sync() {
+    return this.store.sync()
+  }
+
+  /**
+   * The older name for sync(). Saving no longer needs to be asked for.
+   * @returns {Promise<{ ok: boolean, rev: number, error: string|null }>} As sync()
+   */
+  saveData() {
+    return this.store.sync()
+  }
+
+  /**
+   * Whether the participant's data has reached the server (reactive):
+   * `{ status, error, retryAt }` with status 'saved', 'pending' (a change is
+   * waiting to be sent), 'saving', 'offline' or 'error'.
+   * @returns {{ status: string, error: object|null, retryAt: number|null }} The sync loop's state
+   */
+  get syncStatus() {
+    return this.store.browserEphemeral.sync
   }
 
   /**
@@ -867,8 +801,8 @@ export class SmileAPI {
    * @param {string} [seed] - The seed to use, defaults to a random UUID
    * @returns {void}
    */
-  randomSeed(seed = uuidv4()) {
-    seedrandom(seed, { global: true })
+  randomSeed(seed) {
+    participant.randomSeed(seed)
   }
 
   /**
@@ -949,10 +883,7 @@ export class SmileAPI {
    * @returns {Promise<void>}
    */
   async completeConsent() {
-    this.setConsented()
-    if (!this.store.cookieState.knownUser) {
-      await this.setKnown()
-    }
+    await participant.completeConsent(this.store)
   }
 }
 

@@ -74,18 +74,19 @@ most important are the methods which help navigate between views.
 - `api.prevView()`: Returns the previous view object in the navigation sequence.
 
 There is more information on view navigation in the
-[timeline](/coding/timeline.html#navigating-between-views) section. One
-important point is that `goNextView()`, `goPrevView()`, and `goToView()` also
-automatically call `saveData()` on the global store prior to View changes. So as
-a result, you can trust that your data will be saved/synchronized with the
-persistent store (Turso/libsql, see [Data Storage](/coding/datastorage))
-whenever you navigate between Views.
+[timeline](/coding/timeline.html#navigating-between-views) section. Data is
+saved to the database by itself about a second after each change, and
+`goNextView()`, `goPrevView()`, and `goToView()` also send whatever is unsent
+when the View changes, without waiting for the server's answer. Use
+`await api.sync()` where the experiment needs to wait for it (see
+[Data Storage](/coding/datastorage)).
 
 ## Persisting data for the view
 
 The ViewAPI object provides a `.persist` object that can be used to
 [persist](/coding/persistence) data for the view. This data is stored in the
-browser's local storage and is available even after the page is reloaded.
+browser's local storage and is available even after the page is reloaded. While
+the View is the current one, it is also saved to the database with each save.
 
 ```js
 api.persist.myVar = 'value'

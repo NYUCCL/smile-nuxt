@@ -16,7 +16,6 @@
  */
 import { useRoute, useRouter, useNuxtApp, navigateTo as nuxtNavigateTo } from '#imports'
 import useSmileStore from '../stores/smilestore'
-import useLog from '../stores/log'
 
 /**
  * Timeline management composable for handling view navigation
@@ -28,7 +27,6 @@ export default function useTimeline() {
   const route = useRoute()
   // eslint-disable-next-line no-unused-vars
   const _router = useRouter()
-  const log = useLog()
 
   /**
    * Detects the current route prefix ('/dev', '/presentation', or '').
@@ -140,6 +138,9 @@ export default function useTimeline() {
     const prefix = _getRoutePrefix()
     const target = prefix + basePath
 
+    // As in _doNavigate: a View change sends unsent data at once (not awaited)
+    if (smilestore.isDataLoaded) smilestore.sync()
+
     if (force) {
       smilestore.browserEphemeral.forceNavigate = true
       await nuxtNavigateTo(target)
@@ -159,10 +160,8 @@ export default function useTimeline() {
     // sets the current page as done
     smilestore.browserEphemeral.currentViewDone = true
 
-    if (smilestore.config.autoSave) {
-      log.log('TIMELINE STEPPER: Attempting auto saving on navigation')
-      smilestore.saveData() // automatically saves data
-    }
+    // Data is saved by itself after every change; a View change sends at once
+    if (smilestore.isDataLoaded) smilestore.sync()
     if (goto) nuxtNavigateTo(goto)
   }
 

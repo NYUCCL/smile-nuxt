@@ -13,36 +13,29 @@ describe('config: data saving settings (#35)', () => {
     vi.unstubAllEnvs()
   })
 
-  it('parses numbers and booleans from the env strings', async () => {
+  it('parses numbers from the env strings', async () => {
     const config = await loadConfig({
-      VITE_AUTO_SAVE_DATA: 'true',
       VITE_MAX_WRITES: '250',
-      VITE_MIN_WRITE_INTERVAL: '1500',
       VITE_MAX_STEPS: '42',
     })
-    expect(config.autoSave).toBe(true)
     expect(config.maxWrites).toBe(250)
-    expect(config.minWriteInterval).toBe(1500)
     expect(config.maxSteps).toBe(42)
   })
 
-  it('turns auto-save off when set to "false"', async () => {
-    // The raw string 'false' is truthy; it used to leave auto-save on.
-    const config = await loadConfig({ VITE_AUTO_SAVE_DATA: 'false' })
-    expect(config.autoSave).toBe(false)
+  it('has no key for the settings that no longer have an effect', async () => {
+    // Every key of the config is recorded in each participant's data.smileConfig.
+    const config = await loadConfig({ VITE_AUTO_SAVE_DATA: 'false', VITE_MIN_WRITE_INTERVAL: '1500' })
+    expect(config).not.toHaveProperty('autoSave')
+    expect(config).not.toHaveProperty('minWriteInterval')
   })
 
   it('falls back to the defaults when the settings are empty', async () => {
-    // Without fallbacks the throttle and the write cap silently turned off.
+    // Without fallbacks the write cap silently turned off.
     const config = await loadConfig({
-      VITE_AUTO_SAVE_DATA: '',
       VITE_MAX_WRITES: '',
-      VITE_MIN_WRITE_INTERVAL: 'not a number',
-      VITE_MAX_STEPS: '',
+      VITE_MAX_STEPS: 'not a number',
     })
-    expect(config.autoSave).toBe(true)
-    expect(config.maxWrites).toBe(1000)
-    expect(config.minWriteInterval).toBe(2000)
+    expect(config.maxWrites).toBe(10_000)
     expect(config.maxSteps).toBe(5000)
   })
 

@@ -1,15 +1,14 @@
 /**
  * @fileoverview Global navigation middleware for SMILE experiments.
- * Ported from src/core/router.js beforeEach + beforeResolve guards.
  *
  * In Nuxt with a catch-all route, all experiment URLs hit the same Vue Router
  * route (`/:slug(.*)*`). So we look up route metadata from $timeline.routes
  * instead of Vue Router's to.meta / from.meta.
  */
 import seedrandom from 'seedrandom'
-import { v4 as uuidv4 } from 'uuid'
-import { defineNuxtRouteMiddleware, useNuxtApp, navigateTo } from '#imports'
-import useSmileStore, { dataBackupKey } from '../stores/smilestore'
+import { defineNuxtRouteMiddleware, useNuxtApp, useRuntimeConfig, navigateTo } from '#imports'
+import useSmileStore from '../stores/smilestore'
+import { resetLocalState, completeConsent, connectDB, randomSeed } from '../core/participant-actions.js'
 import useLog from '../stores/log'
 import { getQueryParams, processQuery, initService } from '../utils/utils'
 
@@ -48,7 +47,8 @@ export async function executeGuards(to, from, { timeline, store, log, api, skipB
 }
 
 /**
- * Runs all 22 guards in order. Returns undefined to allow, or a navigateTo result to redirect.
+ * Runs the guards in order; the first one that decides ends the run.
+ * Returns undefined to allow, or a navigateTo result to redirect.
  */
 async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGuards = false }) {
   // --- Helper: resolve a route name to its path for navigateTo ---
@@ -293,8 +293,8 @@ async function _runGuards(to, from, { timeline, store, log, api, skipBlockingGua
 }
 
 /**
- * Post-guard logic ported from router.beforeResolve.
- * Handles seed setup and view state reset.
+ * Post-guard logic: records the route, sets the random seed and resets the
+ * per-view state.
  * Runs only when navigation is allowed (guard returned undefined).
  */
 // eslint-disable-next-line no-unused-vars
@@ -377,54 +377,21 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
   // Build a lightweight api-like object with the methods guards need.
   // We avoid calling useAPI() here because it pulls in useRoute()/useRouter()
-  // which can cause issues in middleware context. Instead, proxy only the
-  // methods actually used by the guards.
+  // which can cause issues in middleware context. The actions shared with
+  // useAPI.js are in core/participant-actions.js.
   const api = {
     isResetApp: () => store.localState.reset,
-    resetLocalState: () => {
-      // Clear persistence then hard-navigate. Don't touch the store —
-      // watchers would re-write defaults back to storage before navigation.
-      if (typeof localStorage !== 'undefined') {
-        localStorage.removeItem(store.config.localStorageKey)
-        localStorage.removeItem(dataBackupKey)
-      }
-      if (typeof document !== 'undefined') {
-        const prefix = `smile_${store.config.codeName}_`
-        const cookieKeys = ['knownUser', 'lastRoute', 'participantId', 'completionCode', 'consented', 'withdrawn', 'done', 'seedID', 'seedSet']
-        cookieKeys.forEach((key) => {
-          document.cookie = `${prefix}${key}=; path=/; max-age=0; SameSite=Lax`
-        })
-      }
-      if (typeof window !== 'undefined') {
-        const path = window.location.pathname
-        let targetPath = '/'
-        if (path.startsWith('/dev/') || path === '/dev') targetPath = '/dev/'
-        else if (path.startsWith('/presentation/') || path === '/presentation') targetPath = '/presentation/'
-        window.location.href = window.location.origin + targetPath
-      }
-    },
-    completeConsent: async () => {
-      store.setConsented()
-      if (!store.cookieState.knownUser) {
-        await store.setKnown()
-      }
-    },
+    resetLocalState: () => resetLocalState(store, useRuntimeConfig().app?.baseURL),
+    completeConsent: () => completeConsent(store),
     setDone: () => store.setDone(),
     resetApp: () => store.resetApp(),
-    connectDB: async () => {
-      if (!store.cookieState.knownUser) {
-        await store.setKnown()
-        store.setConsented()
-      }
-    },
+    connectDB: () => connectDB(store),
     removeAutofill: () => {
       if (import.meta.dev) {
         store.removeAutofill()
       }
     },
-    randomSeed: () => {
-      seedrandom(uuidv4(), { global: true })
-    },
+    randomSeed: () => randomSeed(),
   }
 
   // For dev/presentation routes: run state-setting guards and post-guard,

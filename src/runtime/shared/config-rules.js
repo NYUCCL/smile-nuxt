@@ -25,6 +25,9 @@ import { SETTINGS, SETTINGS_BY_KEY } from './config-schema.js'
 const TRUE = ['include', 'true', '1', 'yes', 'on']
 const FALSE = ['exclude', 'false', '0', 'no', 'off']
 
+// Under this, a page that changes all the time stops saving within 3 hours
+const LOW_MAX_WRITES = 2000
+
 const norm = v => (typeof v === 'string' ? v.trim().toLowerCase() : '')
 const isSet = v => (v && typeof v === 'object' ? !!v.set : v !== undefined && v !== '')
 
@@ -188,25 +191,20 @@ export function deploySummary(ctx) {
     id: 'authsecret', question: 'Are participant tokens signed with a real secret?', status: 'check', keys: ['SMILE_AUTH_SECRET'],
     answer: 'Only if SMILE_AUTH_SECRET (or a Turso token) is set in Vercel.',
     explanation: 'The secret signs the tokens that let a participant\'s browser save their data. Without SMILE_AUTH_SECRET it '
-      + 'falls back to TURSO_AUTH_TOKEN (rotating it logs everyone out mid-study), then SMILE_DEV_PASSWORD, then a key published in this package.',
+      + 'falls back to TURSO_AUTH_TOKEN (rotating it mid-study makes every participant\'s token invalid; each browser then saves its record as a new row), '
+      + 'then SMILE_DEV_PASSWORD, then a key published in this package.',
     recommendation: 'Set SMILE_AUTH_SECRET in Vercel to a long random string (e.g. openssl rand -hex 32).',
   })
 
-  const autoSave = norm(d.VITE_AUTO_SAVE_DATA) !== 'false'
-  const interval = Number(d.VITE_MIN_WRITE_INTERVAL ?? 2000)
-  const writes = Number(d.VITE_MAX_WRITES ?? 1000)
-  lines.push(autoSave
-    ? {
-        id: 'saving', question: 'Does data save?', status: 'ok', keys: ['VITE_AUTO_SAVE_DATA', 'VITE_MIN_WRITE_INTERVAL', 'VITE_MAX_WRITES'],
-        answer: 'Yes, automatically.',
-        explanation: `At most one save every ${Number.isFinite(interval) ? interval : 2000} ms, and up to ${Number.isFinite(writes) ? writes : 1000} saves per visit.`,
-      }
-    : {
-        id: 'saving', question: 'Does data save?', status: 'risk', keys: ['VITE_AUTO_SAVE_DATA'],
-        answer: 'Only where the design saves explicitly.',
-        explanation: 'VITE_AUTO_SAVE_DATA is false, so nothing is saved as participants go.',
-        recommendation: 'Remove VITE_AUTO_SAVE_DATA (or set it to true) unless your design calls api.saveData() itself.',
-      })
+  const oldSaving = ['VITE_AUTO_SAVE_DATA', 'VITE_MIN_WRITE_INTERVAL'].filter(key => d[key] !== undefined && d[key] !== '')
+  lines.push({
+    id: 'saving', question: 'Does data save?', status: 'ok', keys: ['VITE_MAX_WRITES', ...oldSaving],
+    answer: 'Yes, automatically.',
+    explanation: 'A change is sent to the server a second after the last one, at least every 5 seconds while changes keep coming, '
+      + 'and at most 30 times a minute. A failed save is tried again. One participant\'s browser sends at most VITE_MAX_WRITES saves (default 10000).'
+      + (oldSaving.length ? ` ${oldSaving.join(', ')} no longer ${oldSaving.length > 1 ? 'have' : 'has'} an effect.` : ''),
+    ...(oldSaving.length ? { recommendation: `Remove ${oldSaving.join(', ')}.` } : {}),
+  })
 
   return lines
 }
@@ -311,11 +309,11 @@ export function checkConfig(ctx) {
     add('info', 'allow-repeats', ['VITE_ALLOW_REPEATS'],
       'VITE_ALLOW_REPEATS is true: someone who finished can take the study again from the same browser.')
   }
-  const interval = Number(d.VITE_MIN_WRITE_INTERVAL)
-  if (d.VITE_MIN_WRITE_INTERVAL !== undefined && Number.isFinite(interval) && interval < 500) {
-    add('info', 'fast-writes', ['VITE_MIN_WRITE_INTERVAL'],
-      `VITE_MIN_WRITE_INTERVAL is ${interval} ms: busy views can send a save request for nearly every change.`,
-      'The default (2000 ms) delays saves without losing any.')
+  const maxWrites = Number(d.VITE_MAX_WRITES)
+  if (d.VITE_MAX_WRITES !== undefined && d.VITE_MAX_WRITES !== '' && Number.isFinite(maxWrites) && maxWrites < LOW_MAX_WRITES) {
+    add('warn', 'low-max-writes', ['VITE_MAX_WRITES'],
+      `VITE_MAX_WRITES is ${maxWrites}: a page sends up to 30 saves a minute by itself, so it could stop saving by itself after as little as ${Math.max(1, Math.round(maxWrites / 30))} minutes.`,
+      'Remove it to use the default (10000), or set it higher. Older templates set it to 1000.')
   }
 
   const order = { error: 0, warn: 1, info: 2 }

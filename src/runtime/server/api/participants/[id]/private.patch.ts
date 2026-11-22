@@ -1,34 +1,30 @@
-import { eq } from 'drizzle-orm'
-import { defineEventHandler, readBody, createError, getRouterParam } from 'h3'
+import { randomUUID } from 'node:crypto'
+import { defineEventHandler, createError, getRouterParam } from 'h3'
 import { useDB } from '../../../utils/db'
-import { privateData } from '../../../database/schema'
+import { parseJsonObject, isJsonObject, savePrivateData } from '../../../utils/participant-save'
+import { readBodyText, throwRefusal } from '../../../utils/read-body'
+import { NO_PARTICIPANT } from '../../../../shared/save-answers.js'
 
+/**
+ * Saves a participant's private data: `{ data }`. Creates the row when the
+ * POST that should have made it never arrived.
+ */
 export default defineEventHandler(async (event) => {
   const participantId = getRouterParam(event, 'id')
   if (!participantId) {
     throw createError({ statusCode: 400, statusMessage: 'Missing participant id' })
   }
 
-  const body = await readBody(event)
-  const db = useDB()
-
-  const existing = await db
-    .select()
-    .from(privateData)
-    .where(eq(privateData.participantId, participantId))
-    .get()
-
-  if (!existing) {
-    throw createError({ statusCode: 404, statusMessage: 'Private data not found' })
+  const parsed = parseJsonObject(await readBodyText(event))
+  if (!parsed.ok) throwRefusal(parsed)
+  const { data } = parsed.body
+  if (!isJsonObject(data)) {
+    throw createError({ statusCode: 400, statusMessage: data === undefined ? 'Missing "data"' : '"data" must be a JSON object' })
   }
 
-  await db
-    .update(privateData)
-    .set({
-      data: body.data,
-      updatedAt: new Date(),
-    })
-    .where(eq(privateData.participantId, participantId))
-
+  const id = await savePrivateData(useDB(), participantId, data, randomUUID())
+  if (!id) {
+    throw createError({ statusCode: 404, statusMessage: 'Participant not found', data: { smile: NO_PARTICIPANT } })
+  }
   return { success: true }
 })

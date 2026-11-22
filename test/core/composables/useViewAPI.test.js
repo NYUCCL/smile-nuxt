@@ -8,6 +8,7 @@ import { vi, describe, beforeEach, afterEach, it, expect } from 'vitest'
 
 // import shared mocks
 import { setupBrowserEnvironment } from '../../setup/mocks'
+import { useRuntimeConfig } from '#imports'
 
 // import the composable
 import useViewAPI from '@/core/composables/useViewAPI'
@@ -130,6 +131,42 @@ describe('useViewAPI composable', () => {
     }
 
     wrapper.unmount()
+  })
+
+  it('preloads the images and videos listed in the runtime config', () => {
+    // useViewAPI() reads the runtime config when it creates the shared instance
+    useViewAPI._reset()
+    vi.mocked(useRuntimeConfig).mockReturnValueOnce({
+      app: { baseURL: '/study/' },
+      public: { smile: { preloadImages: ['stimuli/a.png', 'b.png'], preloadVideos: ['clip.mp4'] } },
+    })
+    const api = useViewAPI()
+
+    const imageSrcs = []
+    vi.spyOn(window, 'Image').mockImplementation(function () {
+      return {
+        set src(value) {
+          imageSrcs.push(value)
+        },
+      }
+    })
+    const videos = []
+    const createElement = document.createElement.bind(document)
+    vi.spyOn(document, 'createElement').mockImplementation((tag) => {
+      const el = createElement(tag)
+      if (tag === 'video') videos.push(el)
+      return el
+    })
+
+    api.preloadAllImages()
+    api.preloadAllVideos()
+
+    expect(imageSrcs).toEqual(['/study/stimuli/a.png', '/study/b.png'])
+    expect(videos).toHaveLength(1)
+    expect(videos[0].getAttribute('src')).toBe('/study/clip.mp4')
+
+    vi.restoreAllMocks()
+    useViewAPI._reset()
   })
 
   it('should provide all core API functionality plus view-specific features', () => {
@@ -425,7 +462,7 @@ describe('useViewAPI composable', () => {
     expect(api.persist.startTime_test).toBe(mockNow)
 
     // Test timer started check
-    expect(api.isTimerStarted('test')).toBe(mockNow)
+    expect(api.isTimerStarted('test')).toBe(true)
     expect(api.isTimerStarted('nonexistent')).toBe(false)
 
     // Test elapsed time calculations

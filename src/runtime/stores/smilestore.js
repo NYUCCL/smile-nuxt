@@ -9,49 +9,30 @@
  * The store serves as the central state management system for the SMILE framework,
  * coordinating data flow between components, views, and external services.
  *
- * State is split into two persistence tiers:
- * - cookieState: Small gate flags (knownUser, consented, etc.) persisted via cookies
- *   so they're available during SSR for hydration. Client-side sync plugin handles writes.
- * - localState: Larger/complex data (viewSteppers, routes, conditions, etc.) persisted
- *   via localStorage. Client-side sync plugin patches on load and watches for writes.
+ * State is kept in the browser in two places (the app is client-rendered;
+ * the server reads neither):
+ * - cookieState: small flags (knownUser, consented, etc.) in cookies, written
+ *   by the store-sync plugin.
+ * - localState: larger values (viewSteppers, conditions, etc.), part of the
+ *   one local snapshot in localStorage, together with the record (`data`) and
+ *   the private data. restoreLocal() reads it when the page starts and
+ *   captureSnapshot() writes it (core/sync/snapshot.js).
+ *
+ * The code that saves and loads the record is in core/sync/engine.js. The
+ * actions that belong to it (loadData, sync, captureSnapshot, ...) each call
+ * the engine function of the same name with the store. The initial values of
+ * the state are in stores/initial-state.js.
  */
 import { defineStore } from 'pinia'
-import { useCookie, navigateTo } from '#imports'
+import { useCookie } from '#imports'
 import appconfig from '../core/config.js'
 import useLog from './log.js'
-
-// Cookie max age: 30 days in seconds
-const COOKIE_MAX_AGE = 86400 * 30
-
-/**
- * localStorage key for the local backup of store.data (#42).
- *
- * store.data only reaches the database when saveData() runs (on navigation
- * between views, or explicitly). Without a local copy, anything recorded since
- * the last save (e.g. stepper trials) was lost on reload: loadData() replaced
- * it with the older DB copy. The backup is { participantId, rev, savedRev, data }:
- * every change to store.data bumps rev, a successful save records the rev it
- * sent as savedRev, and on load a backup with rev > savedRev (unsaved changes)
- * for the same participant wins over the DB copy and is saved immediately.
- */
-const dataBackupKey = `${appconfig.localStorageKey}-data`
-
-// Browsers cap the body of keepalive requests (the close-time save) at 64 KiB.
-const KEEPALIVE_MAX_BYTES = 60_000
-
-// A save deferred by minWriteInterval (at most one pending at a time).
-let deferredSaveTimer = null
-
-function readDataBackup() {
-  if (typeof localStorage === 'undefined') return null
-  try {
-    const raw = localStorage.getItem(dataBackupKey)
-    return raw ? JSON.parse(raw) : null
-  }
-  catch {
-    return null
-  }
-}
+import { toPlainJSON, addWarnings } from '../utils/plainJSON.js'
+import * as engine from '../core/sync/engine.js'
+import {
+  COOKIE_MAX_AGE, snapshotKey, initDev, initCookieState, initLocalState, initBrowserEphemeral,
+  freshLocalState, freshData, freshPrivate,
+} from './initial-state.js'
 
 /**
  * Returns the current local time as an ISO-like string in the user's timezone
@@ -76,99 +57,10 @@ function getLocalTimeString() {
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}${sign}${offsetHours}:${offsetMins}`
 }
 
-const initDev = {
-  viewProvidesAutofill: null,
-  viewProvidesStepper: false,
-  showConsoleBar: false,
-  showSideBar: false,
-  pinnedRoute: null,
-  mainView: 'devmode',
-  docsPage: null, // the page open in Docs mode ('coding/steps.md')
-  consoleBarHeight: 300,
-  consoleBarTab: 'browse',
-  sideBarTab: 'steps',
-  searchParams: '',
-  logFilter: 'All',
-  notificationFilter: 'Errors only',
-  lastViewLimit: false,
-  dataPath: null,
-  configPath: null,
-  selectedDevice: 'desktop2',
-  deviceWidth: 1024,
-  deviceHeight: 768,
-  isRotated: false,
-  isFullscreen: false,
-  routePanelVisible: false,
-  globalColorMode: 'auto', // the dev tools' own theme; 'auto' = follow the system
-  devPalette: 'default', // the dev tools' palette (useDevPalette.js)
-  experimentColorMode: null, // null = follow config.colorMode
-}
-
-/**
- * Tier 1: Cookie-backed state — small gate flags.
- * useCookie() in state() provides server-side read for SSR hydration.
- * Client-side store-sync plugin handles writing changes back to document.cookie.
- */
-const initCookieState = {
-  knownUser: false,
-  lastRoute: 'landing',
-  participantId: null,
-  completionCode: null,
-  consented: false,
-  withdrawn: false,
-  done: false,
-  seedID: '',
-  seedSet: false,
-}
-
-/**
- * Tier 2: localStorage-backed state — larger/complex data.
- * Plain defaults in state(). Client-side store-sync plugin patches from
- * localStorage on load and watches for changes to write back.
- */
-const initLocalState = {
-  privateDataId: null,
-  verifiedVisibility: false,
-  reset: false,
-  totalWrites: 0,
-  lastWrite: null,
-  approxDataSize: 0,
-  useSeed: true,
-  viewSteppers: {},
-  possibleConditions: {},
-  seqtimeline: [],
-  routes: [],
-  conditions: {},
-  randomizedRoutes: {},
-}
-
-const initBrowserEphemeral = {
-  currentViewDone: false,
-  forceNavigate: false,
-  tooSmall: false,
-  steppers: {},
-  dataLoaded: false,
-  unsavedChanges: true,
-  // Revision counters for the local data backup (see dataBackupKey):
-  // dataRev counts changes to store.data; savedRev is the last rev saved to the DB.
-  dataRev: 0,
-  savedRev: 0,
-  urls: {
-    prolific: '/welcome/prolific?PROLIFIC_PID=XXXX&STUDY_ID=XXXX&SESSION_ID=XXXXX',
-    cloudresearch:
-      '/welcome/cloudresearch?assignmentId=123RVWYBAZW00EXAMPLE456RVWYBAZW00EXAMPLE&hitId=123RVWYBAZW00EXAMPLE&workerId=AZ3456EXAMPLE',
-    citizensci:
-      '/welcome/citizensci?CITIZEN_ID=XXXXX&CITIZEN_STUDY_ID=123RVWYBAZW00EXAMPLE&CITIZEN_SESSION_ID=AZ3456EXAMPLE',
-    sona: '/welcome/sona?survey_code=SONA_TEST_12345',
-    sona_paid: '/welcome/sona_paid?survey_code=SONA_PAID_TEST_67890',
-    spark: '/welcome/spark?subject_ID=SPARK_TEST_001&participant_ID=SPARK_PID_001&age=14&gender=female',
-    panda: '/welcome/panda?ID=PANDA_TEST_001',
-    web: '/welcome',
-  },
-}
-
-// Export initial values so plugins can reference them
-export { initCookieState, initLocalState, initDev, COOKIE_MAX_AGE, dataBackupKey }
+// The initial values and the snapshot's key are defined in initial-state.js,
+// and LOAD_RETRY_DELAYS in the sync engine; they are exported from here too
+export { initCookieState, initLocalState, initDev, COOKIE_MAX_AGE, snapshotKey }
+export { LOAD_RETRY_DELAYS } from '../core/sync/engine.js'
 
 /**
  * @module smilestore
@@ -180,8 +72,8 @@ export { initCookieState, initLocalState, initDev, COOKIE_MAX_AGE, dataBackupKey
  * - browserPersisted: Compatibility getter merging both tiers (read-only)
  * - browserEphemeral: Ephemeral state that resets on refresh
  * - dev: Development-only state and configuration
- * - private: Sensitive user data not synced to database
- * - data: Public experiment data synced to database
+ * - private: Sensitive data (recruitment ids, the withdraw form), saved to the private_data table
+ * - data: The participant's record, saved to the participants table
  * - config: Application configuration settings
  */
 export default defineStore('smilestore', {
@@ -201,41 +93,16 @@ export default defineStore('smilestore', {
       seedSet: useCookie(`${prefix}seedSet`, { default: () => false, maxAge: COOKIE_MAX_AGE }).value ?? false,
     }
 
-    // Tier 2: plain defaults; client sync plugin patches from localStorage and writes back
-    const localState = { ...initLocalState }
+    // Plain defaults; restoreLocal() fills them from the local snapshot
+    const localState = freshLocalState()
 
     return {
       cookieState,
       localState,
-      browserEphemeral: { ...initBrowserEphemeral },
+      browserEphemeral: structuredClone(initBrowserEphemeral),
       dev: useCookie(`smile_${appconfig.codeName}_dev`, { default: () => ({ ...initDev }), maxAge: 86400 * 365 }).value ?? { ...initDev },
-      private: {
-        recruitmentInfo: {},
-        withdrawData: {},
-        browserFingerprint: {},
-      },
-      data: {
-        appStartTime: Date.now(),
-        seedID: '',
-        trialNum: 0,
-        consented: false,
-        verifiedVisibility: false,
-        done: false,
-        starttime: null,
-        endtime: null,
-        starttimeLocal: null,
-        endtimeLocal: null,
-        userTimezone: null,
-        userTimezoneOffset: null,
-        recruitmentService: 'web',
-        browserData: [],
-        withdrawn: false,
-        routeOrder: [],
-        conditions: {},
-        randomizedRoutes: {},
-        smileConfig: { ...appconfig },
-        studyData: [],
-      },
+      private: freshPrivate(),
+      data: freshData(),
       config: appconfig,
     }
   },
@@ -243,7 +110,6 @@ export default defineStore('smilestore', {
   getters: {
     // Compatibility getter: merges both tiers for read-only access
     browserPersisted: state => ({ ...state.localState, ...state.cookieState }),
-    isDataBarVisible: state => state.dev.showConsoleBar,
     isKnownUser: state => state.cookieState.knownUser,
     isConsented: state => state.cookieState.consented,
     isWithdrawn: state => state.cookieState.withdrawn,
@@ -253,21 +119,10 @@ export default defineStore('smilestore', {
     hasAutofill: state => state.dev?.viewProvidesAutofill,
     searchParams: state => state.dev?.searchParams,
     recruitmentService: state => state.data.recruitmentService,
-    isSeedSet: state => state.cookieState.seedSet,
     getSeedID: state => state.cookieState.seedID,
-    getLocal: state => ({ ...state.localState, ...state.cookieState }),
     getConditions: state => state.localState.conditions,
     getRandomizedRoutes: state => state.localState.randomizedRoutes,
     verifiedVisibility: state => state.data.verifiedVisibility,
-    getAllPageData: (state) => {
-      const pageDataFields = {}
-      for (const key in state.data) {
-        if (key.startsWith('pageData_')) {
-          pageDataFields[key] = state.data[key]
-        }
-      }
-      return pageDataFields
-    },
     getShortId: (state) => {
       if (!state.cookieState.participantId || typeof state.cookieState.participantId !== 'string') return 'N/A'
       return `${state.cookieState.participantId.substring(0, 10)}`
@@ -290,10 +145,6 @@ export default defineStore('smilestore', {
       this.browserEphemeral.dataLoaded = true
     },
 
-    setSearchParams(searchParams) {
-      this.dev.searchParams = searchParams
-    },
-
     setConsented() {
       this.cookieState.consented = true
       this.data.consented = true
@@ -301,11 +152,6 @@ export default defineStore('smilestore', {
       this.data.starttimeLocal = getLocalTimeString()
       this.data.userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
       this.data.userTimezoneOffset = new Date().getTimezoneOffset()
-    },
-
-    setUnconsented() {
-      this.cookieState.consented = false
-      this.data.consented = false
     },
 
     setWithdrawn(forminfo) {
@@ -375,12 +221,33 @@ export default defineStore('smilestore', {
       }
     },
 
+    /**
+     * A plain-JSON copy of `value` for the record (plans/sync_engine.md). Never
+     * throws. Anything changed on the way (a BigInt, a cycle, a DOM node...)
+     * is logged and counted in `data.smileWarnings`.
+     * @param {*} value - Anything experiment code passes in
+     * @param {string} path - Where it will be stored, for the warnings
+     * @returns {*} Plain JSON (undefined only for undefined, a function or a symbol)
+     */
+    cleanValue(value, path) {
+      const warnings = []
+      const cleaned = toPlainJSON(value, { path, warn: w => warnings.push(w) })
+      if (warnings.length) {
+        addWarnings(this.data, warnings)
+        const log = useLog()
+        for (const w of warnings.slice(0, 5)) log.warn(`SMILE: recorded value cleaned at ${w.path}: ${w.issue}`)
+        if (warnings.length > 5) log.warn(`SMILE: ...and ${warnings.length - 5} more (see data.smileWarnings)`)
+      }
+      return cleaned
+    },
+
     recordWindowEvent(type, event_data = null) {
       if (event_data) {
+        const index = Array.isArray(this.data.browserData) ? this.data.browserData.length : 0
         this.data.browserData.push({
           event_type: type,
           timestamp: Date.now(),
-          event_data,
+          event_data: this.cleanValue(event_data, `browserData[${index}].event_data`) ?? null,
         })
       }
       else {
@@ -452,12 +319,13 @@ export default defineStore('smilestore', {
     },
 
     recordData(data) {
-      this.data.studyData.push(JSON.parse(JSON.stringify(data)))
+      const index = this.data.studyData.length
+      this.data.studyData.push(this.cleanValue(data, `studyData[${index}]`) ?? null)
       this.browserEphemeral.unsavedChanges = true
     },
 
     recordProperty(name, data) {
-      this.data[name] = JSON.parse(JSON.stringify(data))
+      this.data[name] = this.cleanValue(data, String(name)) ?? null
       this.browserEphemeral.unsavedChanges = true
     },
 
@@ -474,101 +342,54 @@ export default defineStore('smilestore', {
     },
 
     async setKnown() {
-      const log = useLog()
       this.cookieState.knownUser = true
       this.data.seedID = this.cookieState.seedID
-      try {
-        const { id } = await $fetch('/api/participants', {
-          method: 'POST',
-          body: { data: this.data },
-        })
-        this.cookieState.participantId = id
-        const { id: privateId } = await $fetch(`/api/participants/${id}/private`, {
-          method: 'POST',
-          body: { data: this.private },
-        })
-        this.localState.privateDataId = privateId
-        this.setDataLoaded()
+      const created = await this.createParticipant()
+      if (created.status !== 200) {
+        useLog().error('SMILESTORE: could not create participant record (it will be tried again): ' + created.message)
       }
-      catch (err) {
-        log.error('SMILESTORE: could not create participant record: ' + err)
-      }
+      // The record in memory is this participant's from here on. If the
+      // request failed, the sync loop creates the row with its first save.
+      this.setDataLoaded()
+      this.captureSnapshot()
+      // The first save, with the private data (recruitment ids), goes now
+      // rather than a second from now. Not waited for.
+      this.sync()
     },
 
-    async loadData() {
-      if (this.cookieState.participantId) {
-        try {
-          const result = await $fetch(`/api/participants/${this.cookieState.participantId}`)
-          if (result?.data) {
-            // Prefer the local backup if it holds changes the DB never got
-            // (e.g. trials recorded before a reload). This browser is the only
-            // writer for this participant, so an unsaved backup is newer (#42).
-            const backup = readDataBackup()
-            const restore = backup
-              && backup.participantId === this.cookieState.participantId
-              && backup.rev > backup.savedRev
-              && backup.data
-            if (restore) {
-              useLog().warn(
-                `SMILESTORE: restoring unsaved data from local backup (rev ${backup.rev}, last saved ${backup.savedRev})`,
-              )
-              this.browserEphemeral.dataRev = backup.rev
-              this.browserEphemeral.savedRev = backup.savedRev
-              this.data = backup.data
-            }
-            else {
-              const rev = backup?.participantId === this.cookieState.participantId ? backup.rev : 0
-              this.browserEphemeral.dataRev = rev
-              this.browserEphemeral.savedRev = rev
-              this.data = result.data
-            }
-            this.localState.approxDataSize = JSON.stringify(this.data).length
-            this.setDataLoaded()
-            this.writeDataBackup()
-            if (restore) await this.saveData()
-          }
-          else {
-            // Record exists but has no data — treat as orphaned
-            this.resetOrphanedUser()
-          }
-        }
-        catch (err) {
-          if (err?.statusCode === 404 || err?.statusCode === 403) {
-            // User in cookie but not in DB or token invalid — reset everything
-            const log = useLog()
-            log.warn('SMILESTORE: Participant not found or token invalid, resetting to new user')
-            this.resetOrphanedUser()
-          }
-          else {
-            const log = useLog()
-            log.error('SMILESTORE: could not load participant data: ' + err)
-          }
-        }
-      }
+    /** See createParticipant() in core/sync/engine.js. */
+    createParticipant() {
+      return engine.createParticipant(this)
     },
 
-    /**
-     * Resets an orphaned user (cookie exists but DB record is missing).
-     * Clears cookies and localStorage, then redirects to the welcome page.
-     */
+    /** See sendSnapshot() in core/sync/engine.js. */
+    sendSnapshot(body, options) {
+      return engine.sendSnapshot(this, body, options)
+    },
+
+    /** See applyResume() in core/sync/engine.js. */
+    applyResume(resume) {
+      return engine.applyResume(this, resume)
+    },
+
+    /** See restoreLocal() in core/sync/engine.js. */
+    restoreLocal() {
+      return engine.restoreLocal(this)
+    },
+
+    /** See loadData() in core/sync/engine.js. */
+    loadData() {
+      return engine.loadData(this)
+    },
+
+    /** See continueAsNewRow() in core/sync/engine.js. */
+    continueAsNewRow() {
+      return engine.continueAsNewRow(this)
+    },
+
+    /** See resetOrphanedUser() in core/sync/engine.js. */
     resetOrphanedUser() {
-      const log = useLog()
-      log.warn('SMILESTORE: Orphaned user detected — clearing state and redirecting to welcome')
-
-      // Reset cookie state to defaults
-      this.clearSmileCookies()
-
-      // Clear localStorage
-      if (typeof localStorage !== 'undefined') {
-        localStorage.removeItem(appconfig.localStorageKey)
-      }
-      this.clearDataBackup()
-
-      // Reset local state to defaults
-      Object.assign(this.localState, { ...initLocalState })
-
-      // Redirect to welcome
-      navigateTo('/welcome')
+      return engine.resetOrphanedUser(this)
     },
 
     setLastRoute(route) {
@@ -596,144 +417,52 @@ export default defineStore('smilestore', {
       this.browserEphemeral.unsavedChanges = true
     },
 
-    async saveData(force = false) {
-      const log = useLog()
-      if (this.isDataLoaded) {
-        if (!force && this.localState.totalWrites >= appconfig.maxWrites) {
-          log.error(
-            'SMILESTORE: max writes reached. Data NOT saved. Call saveData() less frequently.',
-          )
-          return
-        }
-
-        if (
-          !force
-          && this.localState.lastWrite
-          && Date.now() - this.localState.lastWrite < appconfig.minWriteInterval
-        ) {
-          // Too soon after the last write: save once the interval has passed
-          // instead of dropping it. The data stays in memory (and the local
-          // backup) meanwhile, and one pending save covers any number of calls.
-          if (!deferredSaveTimer) {
-            const wait = appconfig.minWriteInterval - (Date.now() - this.localState.lastWrite)
-            log.log(`SMILESTORE: write interval too short, deferring save by ${wait}ms`)
-            deferredSaveTimer = setTimeout(() => {
-              deferredSaveTimer = null
-              this.saveData()
-            }, wait)
-          }
-          return
-        }
-
-        if (deferredSaveTimer) {
-          clearTimeout(deferredSaveTimer) // this save covers the pending one
-          deferredSaveTimer = null
-        }
-
-        // Changes made while the request is in flight stay unsaved (rev > sentRev).
-        const sentRev = this.browserEphemeral.dataRev
-        try {
-          await $fetch(`/api/participants/${this.cookieState.participantId}`, {
-            method: 'PATCH',
-            body: { data: this.data },
-          })
-          this.browserEphemeral.savedRev = Math.max(this.browserEphemeral.savedRev, sentRev)
-          this.writeDataBackup()
-          if (this.localState.privateDataId) {
-            await $fetch(`/api/participants/${this.cookieState.participantId}/private`, {
-              method: 'PATCH',
-              body: { data: this.private },
-            })
-          }
-          this.localState.approxDataSize = JSON.stringify(this.data).length
-          this.localState.totalWrites += 1
-          this.localState.lastWrite = Date.now()
-          this.browserEphemeral.unsavedChanges = this.browserEphemeral.dataRev > this.browserEphemeral.savedRev
-          log.success('SMILESTORE: saveData() successful (force = ' + force + ')')
-        }
-        catch (err) {
-          if (err?.statusCode === 403) {
-            log.warn('SMILESTORE: Participant token invalid during save, resetting to new user')
-            this.resetOrphanedUser()
-          }
-          else {
-            log.error('SMILESTORE: error saving data: ' + err)
-          }
-        }
-      }
-      else if (!this.data.consented && !this.cookieState.consented) {
-        log.log('SMILESTORE: not saving because not consented')
-      }
-      else {
-        log.error('SMILESTORE: can\'t save data, not connected to server')
-      }
+    /** See sync() in core/sync/engine.js. */
+    sync() {
+      return engine.sync(this)
     },
 
     /**
-     * Called (by the store-sync plugin) whenever store.data changes.
-     * An in-place change is a new, unsaved revision; a replaced object (from
-     * loadData) is not. Either way the local backup is refreshed.
-     * @param {object} opts
-     * @param {boolean} opts.replaced - store.data was swapped for a new object
+     * The older name for sync(). Saving no longer needs to be asked for.
+     * @returns {Promise<{ ok: boolean, rev: number, error: string|null }>} As sync()
      */
-    noteDataChanged({ replaced }) {
-      if (!replaced) {
-        this.browserEphemeral.dataRev += 1
-        this.browserEphemeral.unsavedChanges = true
-      }
-      this.writeDataBackup()
+    saveData() {
+      return this.sync()
     },
 
-    /**
-     * Writes store.data and its save state to the local backup (#42).
-     * Only for a participant with a DB record; before consent there is
-     * nothing to restore into.
-     */
-    writeDataBackup() {
-      if (typeof localStorage === 'undefined' || !this.cookieState.participantId) return
-      try {
-        localStorage.setItem(dataBackupKey, JSON.stringify({
-          participantId: this.cookieState.participantId,
-          rev: this.browserEphemeral.dataRev,
-          savedRev: this.browserEphemeral.savedRev,
-          data: this.data,
-        }))
-      }
-      catch (err) {
-        // e.g. quota exceeded: the DB save path still works, only reload safety is lost
-        useLog().warn('SMILESTORE: could not write local data backup: ' + err)
-      }
+    /** See captureSnapshot() in core/sync/engine.js. */
+    captureSnapshot() {
+      return engine.captureSnapshot(this)
     },
 
-    /** Removes the local data backup (on reset or when the participant is cleared). */
-    clearDataBackup() {
-      if (typeof localStorage === 'undefined') return
-      localStorage.removeItem(dataBackupKey)
+    /** See requestSnapshot() in core/sync/engine.js. */
+    requestSnapshot() {
+      return engine.requestSnapshot(this)
     },
 
-    /**
-     * Best-effort save when the page is closing (pagehide). Uses a keepalive
-     * request so it can outlive the page. Browsers cap keepalive bodies at
-     * 64 KiB, so larger records are skipped; the local backup still restores
-     * them if the participant comes back in this browser. Mobile browsers may
-     * not fire pagehide at all, so this is never the only safeguard.
-     */
+    /** See pauseForOtherTab() in core/sync/engine.js. */
+    pauseForOtherTab(reason) {
+      return engine.pauseForOtherTab(this, reason)
+    },
+
+    /** See stopSnapshots() in core/sync/engine.js. */
+    stopSnapshots() {
+      return engine.stopSnapshots(this)
+    },
+
+    /** See clearLocalSnapshot() in core/sync/engine.js. */
+    clearLocalSnapshot() {
+      return engine.clearLocalSnapshot(this)
+    },
+
+    /** See saveOnClose() in core/sync/engine.js. */
     saveOnClose() {
-      if (!this.isDataLoaded || !this.cookieState.participantId) return
-      if (this.browserEphemeral.dataRev <= this.browserEphemeral.savedRev) return
-      const body = JSON.stringify({ data: this.data })
-      if (new TextEncoder().encode(body).length > KEEPALIVE_MAX_BYTES) return
-      try {
-        fetch(`/api/participants/${this.cookieState.participantId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body,
-          keepalive: true,
-        })
-      }
-      catch {
-        // nothing to do: the page is going away
-      }
+      return engine.saveOnClose(this)
+    },
+
+    /** See networkChanged() in core/sync/engine.js. */
+    networkChanged(online) {
+      return engine.networkChanged(this, online)
     },
 
     /**
@@ -751,7 +480,7 @@ export default defineStore('smilestore', {
      */
     resetLocal() {
       this.clearSmileCookies()
-      this.clearDataBackup()
+      this.clearLocalSnapshot()
       this.$reset()
     },
 

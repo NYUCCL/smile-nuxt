@@ -109,8 +109,8 @@ A reload starts a new visit (`visit_1`, and so on); see
 
 ### Tips
 
-- **Poll, don't read once.** Saves are throttled by `VITE_MIN_WRITE_INTERVAL`
-  (2 seconds by default), so data reaches the database a moment after the click.
+- **Poll, don't read once.** A save is sent about a second after each change,
+  so data reaches the database a moment after the click.
   `expect.poll()` retries until the value appears.
 - **Multi-trial tasks:** press keys with `page.keyboard.press('f')` and wait for
   each trial to change (for example `await expect(page.locator('#prompt')).toHaveText(...)`)

@@ -8,7 +8,7 @@ import useAPI from '../../composables/useAPI'
 const api = useAPI()
 
 // Force a data save when component mounts
-api.saveData(true)
+api.sync()
 
 /**
  * Card content configuration for different recruitment services

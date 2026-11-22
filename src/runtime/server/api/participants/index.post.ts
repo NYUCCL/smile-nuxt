@@ -1,18 +1,16 @@
-import { randomUUID, createHmac } from 'node:crypto'
-import { defineEventHandler, readBody, setCookie, getRequestProtocol } from 'h3'
+import { randomUUID } from 'node:crypto'
+import { defineEventHandler } from 'h3'
 import { useDB } from '../../utils/db'
 import { getAuthSecret } from '../../utils/dev-auth'
 import { participants, projects } from '../../database/schema'
 import { buildProjectId, getCurrentProjectInfo } from '../../utils/project'
-
-function signParticipantToken(id: string, secret: string): string {
-  const issuedAt = Math.floor(Date.now() / 1000)
-  const sig = createHmac('sha256', secret).update(`${id}.${issuedAt}`).digest('hex')
-  return `${id}.${issuedAt}.${sig}`
-}
+import { parseDataBody, statusFromData } from '../../utils/participant-save'
+import { readBodyText, throwRefusal } from '../../utils/read-body'
+import { setParticipantCookie } from '../../utils/participant-token'
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
+  const parsed = parseDataBody(await readBodyText(event))
+  if (!parsed.ok) throwRefusal(parsed)
   const db = useDB()
   const id = randomUUID()
   const now = new Date()
@@ -34,20 +32,14 @@ export default defineEventHandler(async (event) => {
   await db.insert(participants).values({
     id,
     projectId,
-    data: body.data || {},
+    data: parsed.data,
+    ...statusFromData(parsed.data),
+    dataBytes: Buffer.byteLength(JSON.stringify(parsed.data), 'utf8'),
     createdAt: now,
     updatedAt: now,
   })
 
-  const signedToken = signParticipantToken(id, getAuthSecret())
+  setParticipantCookie(event, id, getAuthSecret())
 
-  setCookie(event, 'smile_participant', signedToken, {
-    httpOnly: true,
-    secure: getRequestProtocol(event, { xForwardedProto: true }) === 'https', // HTTPS-only on deploys; plain HTTP still works locally
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 86400 * 7,
-  })
-
-  return { id }
+  return { id, rev: 0 }
 })

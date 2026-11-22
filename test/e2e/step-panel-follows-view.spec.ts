@@ -27,3 +27,29 @@ test('step panel clears when leaving a view with steps', async ({ page }) => {
   await expect(page).toHaveURL(/\/dev\/?$/)
   await expect(panel).not.toContainText('stroop/')
 })
+
+/**
+ * The panel builds its tree from the stepper itself (steps.visualize()), so
+ * it follows a step without ViewAPI keeping its own copy of the tree.
+ */
+test('step panel follows the current step', async ({ page }) => {
+  await page.goto('/dev/stroop')
+  await expect(page.locator('nav')).toBeVisible({ timeout: 10000 })
+  await page.evaluate(() => {
+    type Root = Element & { __vue_app__: { config: { globalProperties: { $pinia: { _s: Map<string, { dev: Record<string, unknown> }> } } } } }
+    const store = (document.querySelector('#__nuxt') as Root).__vue_app__.config.globalProperties.$pinia._s.get('smilestore')!
+    store.dev.showSideBar = true
+    store.dev.sideBarTab = 'steps'
+  })
+  const selected = page.locator('.sidebar .node-selected')
+  await expect(selected).toHaveCount(1)
+  const seen = [(await selected.textContent())!.trim()]
+
+  // Answer two trials: the highlighted row is a different one each time
+  for (let i = 0; i < 2; i++) {
+    await page.keyboard.press('r')
+    await expect.poll(async () => (await selected.textContent())?.trim()).not.toBe(seen.at(-1))
+    seen.push((await selected.textContent())!.trim())
+  }
+  expect(new Set(seen).size).toBe(3)
+})
