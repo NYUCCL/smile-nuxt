@@ -12,6 +12,7 @@ import { useRuntimeConfig } from '#imports'
 
 // import the composable
 import useViewAPI from '@/core/composables/useViewAPI'
+import useSmileStore, { snapshotKey } from '@/core/stores/smilestore'
 
 /* eslint-disable no-undef */
 // Mock the config import before any other imports
@@ -311,7 +312,7 @@ describe('useViewAPI composable', () => {
     expect(api.pathString).toBe('start')
   })
 
-  it.skip('should handle complex nested state construction and navigation', async () => {
+  it('should handle complex nested state construction and navigation', async () => {
     const { api } = getMockComponentAndAPI(wrapper)
 
     // Create initial trial structure
@@ -348,21 +349,19 @@ describe('useViewAPI composable', () => {
     expect(api.nSteps).toBe(9) // 8 factorial combinations + 1 summary step
     expect(api.pathString).toBe('trial/rss')
 
-    // Verify we can access the data for each combination
+    // queryStepData returns each leaf's own data; the parent block's data
+    // (rt, hit, response) is not merged in
     const allData = api.queryStepData('trial*')
-    console.log('All data:', allData) // Debug log
-    expect(allData.length).toBe(8) // 8 factorial combinations + 1 summary step
-
-    // Check that each combination has all required properties
+    expect(allData.length).toBe(8)
     allData.forEach((combo) => {
       expect(combo).toHaveProperty('color')
       expect(combo).toHaveProperty('size')
       expect(combo).toHaveProperty('shape')
-      expect(combo).toHaveProperty('rt')
-      expect(combo).toHaveProperty('hit')
-      expect(combo).toHaveProperty('response')
-      // expect(combo).toHaveProperty('id')
+      expect(combo).not.toHaveProperty('rt')
     })
+
+    // stepData merges the data along the current path, so it has both
+    expect(api.stepData).toMatchObject({ color: 'red', size: 'small', shape: 'square', rt: 0, hit: 0, response: '' })
 
     // Verify we can navigate through all combinations
     let visitedPaths = new Set()
@@ -373,7 +372,6 @@ describe('useViewAPI composable', () => {
       api.goNextStep()
     }
 
-    console.log('visitedPaths', visitedPaths)
     // Verify we visited all combinations
     expect(visitedPaths.size).toBe(8)
 
@@ -618,7 +616,7 @@ describe('useViewAPI composable', () => {
     expect(api.hasPrevStep()).toBe(false)
   })
 
-  it.skip('should handle data recording and persistence correctly', async () => {
+  it('should handle data recording and persistence correctly', async () => {
     // this test isn't checking the full integration it is just
     // spying on literal function
     const { api } = getMockComponentAndAPI(wrapper)
@@ -896,24 +894,23 @@ describe('useViewAPI composable', () => {
     expect(recordedData[0].response.val).toBe('test')
   })
 
-  it.skip('should support chainable methods and async update', async () => {
-    const api = useViewAPI()
+  it('returns the stepper from append, so calls can be chained', () => {
+    const { api } = getMockComponentAndAPI(wrapper)
 
-    // Test that modifier methods return the stepper instance (not a promise)
+    // append returns the stepper itself, not a promise
     const stepper = api.steps.append([{ data: 'test1' }])
     expect(stepper).toBe(api.steps)
     expect(stepper instanceof Promise).toBe(false)
 
-    // Test that we can await the update
-    await updatePromise
+    const seen = []
+    const chained = stepper
+      .append([{ data: 'test2' }])
+      .forEach(row => seen.push(row.data.data))
+    expect(chained).toBe(api.steps)
+    expect(seen).toEqual(['test2'])
 
-    // Test that we can chain after update
-    const finalStepper = await stepper.append([{ data: 'test2' }])
-    expect(finalStepper).toBe(api.steps)
-    expect(finalStepper instanceof Promise).toBe(false)
-
-    // Verify the data was actually written
-    expect(api.steps._states.length).toBe(2)
+    expect(api.steps.states.length).toBe(2)
+    expect(api.nSteps).toBe(2)
   })
 
   it('should handle stepData and stepDataLeaf correctly with hierarchical structure', async () => {
@@ -1100,66 +1097,41 @@ describe('useViewAPI composable', () => {
     expect(api.stepData.difficulty).toBe('extremely hard')
   })
 
-  it.skip('should persist step state across reloads', async () => {
-    // Create a mock storage object to track localStorage operations
-    const mockStorage = {}
-    const mockLocalStorage = {
-      getItem: vi.fn(key => mockStorage[key] || null),
-      setItem: vi.fn((key, value) => {
-        mockStorage[key] = value
-      }),
-      removeItem: vi.fn((key) => {
-        delete mockStorage[key]
-      }),
-      clear: vi.fn(() => {
-        Object.keys(mockStorage).forEach(key => delete mockStorage[key])
-      }),
-    }
-
-    // Mock localStorage
-    Object.defineProperty(window, 'localStorage', {
-      value: mockLocalStorage,
-      writable: true,
-    })
-
-    console.log('api created')
+  it('should persist step state across reloads', async () => {
     const { api } = getMockComponentAndAPI(wrapper)
 
-    // Add steps using api.steps
     api.steps.append([
       { id: 'step1', data: { value: 1 } },
       { id: 'step2', data: { value: 2 } },
     ])
-
     api.persist.simpleValue = 42
-    // Navigate to second step
     api.goNextStep()
     expect(api.pathString).toBe('step2')
     expect(api.stepData).toEqual({ id: 'step2', data: { value: 2 } })
 
-    // Verify localStorage was updated
-    expect(mockLocalStorage.setItem).toHaveBeenCalled()
-    const storedData = JSON.parse(mockStorage['smile_test'] || '{}')
-    expect(storedData).toHaveProperty('viewSteppers')
-    expect(storedData.viewSteppers).toHaveProperty('welcome_anonymous')
-    expect(storedData.viewSteppers.welcome_anonymous).toHaveProperty('data')
-    expect(storedData.viewSteppers.welcome_anonymous.data).toHaveProperty('stepperState')
-    expect(storedData.viewSteppers.welcome_anonymous.data.stepperState).toHaveProperty('data')
-    expect(storedData.viewSteppers.welcome_anonymous.data.stepperState.data).toHaveProperty('gvars')
-    expect(storedData.viewSteppers.welcome_anonymous.data.stepperState.data.gvars).toHaveProperty('simpleValue')
-    expect(storedData.viewSteppers.welcome_anonymous.data.stepperState.data.gvars.simpleValue).toBe(42)
+    // What the page writes when it is hidden or closing: the snapshot, one
+    // value in localStorage (plugins/store-sync.client.js)
+    const before = useSmileStore()
+    before.captureSnapshot()
+    const text = localStorage.getItem(snapshotKey)
+    expect(text).toBeTruthy()
+    const snapshot = JSON.parse(text)
+    const views = Object.keys(snapshot.resume.viewSteppers)
+    expect(views).toHaveLength(1)
 
-    // Simulate reload by unmounting and remounting
+    // A reload: the page and the store are gone, the snapshot is not
     wrapper.unmount()
-
-    // Create a fresh router and pinia
+    useViewAPI._reset()
     const pinia = setupPinia()
+    const after = useSmileStore()
+    expect(after).not.toBe(before)
+    expect(after.localState.viewSteppers ?? {}).not.toHaveProperty(views[0])
+    after.restoreLocal()
+
     const router = createRouter({
       history: createWebHashHistory(),
       routes,
     })
-
-    // Remount the component
     wrapper = mount(TestComponent, {
       global: {
         plugins: [router, pinia],
@@ -1168,25 +1140,15 @@ describe('useViewAPI composable', () => {
         },
       },
     })
-
-    // Wait for router to be ready and navigate to the initial route
     await router.push('/')
     await router.isReady()
     await flushPromises()
 
-    // Wait for the route to be properly initialized
-    await new Promise(resolve => setTimeout(resolve, 10))
-
-    // Get the new API instance
-    console.log('newApi being created')
+    // The new page is on the second step, with the persisted value
     const { api: newApi } = getMockComponentAndAPI(wrapper)
-
-    // Verify we're still on the second step
     expect(newApi.persist.simpleValue).toBe(42)
     expect(newApi.pathString).toBe('step2')
     expect(newApi.stepData).toEqual({ id: 'step2', data: { value: 2 } })
-
-    // Verify localStorage was read during initialization
-    expect(mockLocalStorage.getItem).toHaveBeenCalled()
+    expect(newApi.nSteps).toBe(2)
   })
 })

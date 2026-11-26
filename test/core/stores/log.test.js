@@ -64,6 +64,42 @@ describe('log store', () => {
     expect(entry.trace).toContain('log.test.js')
   })
 
+  it('writes an object that can\'t be turned into JSON as an empty string, and keeps the rest', () => {
+    const circular = {}
+    circular.self = circular
+    log.log('before', circular, 'after')
+    expect(log.history[0].message).toBe('before  after')
+  })
+
+  it('writes numbers, null and undefined as text', () => {
+    log.log(1, null, undefined, true)
+    expect(log.history[0].message).toBe('1 null undefined true')
+  })
+
+  it('says so when the stack has no frames to read the caller from', () => {
+    const limit = Error.stackTraceLimit
+    Error.stackTraceLimit = 0
+    try {
+      log.log('no frames')
+    }
+    finally {
+      Error.stackTraceLimit = limit
+    }
+    expect(log.history[0].trace).toBe('(could not parse trace)')
+  })
+
+  it('says so when the caller\'s frame has no file, line and column', () => {
+    const prepare = Error.prepareStackTrace
+    Error.prepareStackTrace = () => Array.from({ length: 8 }, () => '    at <anonymous>').join('\n')
+    try {
+      log.log('odd frames')
+    }
+    finally {
+      Error.prepareStackTrace = prepare
+    }
+    expect(log.history[0].trace).toBe('(could not parse trace)')
+  })
+
   it('prints each level to the console as before', () => {
     log.log('a')
     expect(console.log).not.toHaveBeenCalled()

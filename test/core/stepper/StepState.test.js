@@ -8,33 +8,33 @@ describe('StepState', () => {
     stepper = new StepState('/')
   })
 
-  describe.skip('basic interactive checks', () => {
-    it('should make sense to use', () => {
+  describe('a small tree, walked forward and back', () => {
+    it('visits the leaves in order and stops at both ends', () => {
       const a = stepper.push('a')
-      const _a1 = a.push()
+      const a1 = a.push()
       const a2 = a.push()
-
       const b = stepper.push('b')
-      const _c = stepper.push('c')
-      console.log(stepper.treeDiagram)
+      stepper.push('c')
+
+      expect(a1.pathString).toBe('a/0')
+      expect(a2.pathString).toBe('a/1')
+      expect([stepper.depth, a.depth, a2.depth]).toEqual([0, 1, 2])
+      expect([stepper.treeDepth, a.treeDepth, a2.treeDepth, b.treeDepth]).toEqual([2, 1, 0, 0])
 
       stepper.reset()
-      console.log(a2.path)
-      console.log(stepper.depth)
-      console.log(a2.depth)
-      console.log('tree depth at', stepper.treeDepth)
-      console.log('tree depth at', a.treeDepth)
-      console.log('tree depth at', a2.treeDepth)
-      console.log('tree depth at', b.treeDepth)
-      stepper.reset()
-      console.log(stepper.next()) // 0
-      console.log(stepper.next()) // 1
-      console.log(stepper.next()) // b
-      console.log(stepper.next()) // c
-      console.log(stepper.next()) // null
-      console.log(stepper.next()) // null
-      console.log(stepper.prev()) // b
-      console.log(stepper.prev()) // a
+      const forward = []
+      for (let i = 0; i < 6; i++) {
+        stepper.next()
+        forward.push(stepper.currentPathString)
+      }
+      const back = []
+      for (let i = 0; i < 6; i++) {
+        stepper.prev()
+        back.push(stepper.currentPathString)
+      }
+      // Forward from a/0 to the last leaf, where it stays; back to the first, where it stays
+      expect(forward).toEqual(['a/1', 'b', 'c', 'c', 'c', 'c'])
+      expect(back).toEqual(['b', 'a/1', 'a/0', 'a/0', 'a/0', 'a/0'])
     })
 
     it('should allow nested states', () => {
