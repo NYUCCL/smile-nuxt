@@ -53,7 +53,8 @@
     "docs:serve": "vitepress serve docs",
     "docs:agents": "node scripts/build-agent-docs.mjs",
     "smile:hash-password": "node scripts/hash-password.js",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:perf": "SMILE_PERF_TESTS=1 vitest run test/core/stepper/StepperPerformance.test.js"
   },
   "dependencies": {
     "@internationalized/date": "^3.12.4",

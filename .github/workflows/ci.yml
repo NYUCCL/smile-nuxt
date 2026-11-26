@@ -44,8 +44,9 @@ jobs:
       - name: Build module
         run: pnpm run prepack
 
+      # With coverage: fails when it drops under the floor in vitest.config.js
       - name: Run tests
-        run: pnpm run test
+        run: pnpm run test:coverage
 
       - name: Override / inheritance regression test (real consumer install)
         run: pnpm run test:overrides
