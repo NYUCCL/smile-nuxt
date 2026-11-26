@@ -42,6 +42,15 @@ const forminfo = reactive({
   email: props.prefillEmail || '',
 })
 
+// The email to prefill can arrive after the form is set up (the recruitment
+// service's id is read later). Use it unless the participant typed their own.
+watch(
+  () => props.prefillEmail,
+  (email, before) => {
+    if (forminfo.email === '' || forminfo.email === before) forminfo.email = email || ''
+  },
+)
+
 /**
  * Available withdraw reason options for participants to select from
  * @type {string[]}
@@ -152,9 +161,9 @@ onUnmounted(() => {
                   >
                     <Checkbox
                       :id="`withdraw-option-${index}`"
-                      :checked="forminfo.reason_select.includes(option)"
+                      :model-value="forminfo.reason_select.includes(option)"
                       class="border-input data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                      @update:checked="
+                      @update:model-value="
                         (checked) => {
                           if (checked) {
                             if (!forminfo.reason_select.includes(option)) {

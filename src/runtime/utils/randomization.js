@@ -68,7 +68,9 @@ export function sampleWithReplacement(array, sampleSize, weights = undefined) {
     const random = Math.random()
     let i = 0
     let sum = normalizedWeights[i]
-    while (random > sum) {
+    // Stops at the last element: rounding can leave the weights summing to
+    // just under 1, and a draw above that sum would otherwise run off the end
+    while (random > sum && i < normalizedWeights.length - 1) {
       i += 1
       sum += normalizedWeights[i]
     }

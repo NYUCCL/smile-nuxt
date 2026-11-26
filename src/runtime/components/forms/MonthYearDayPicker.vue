@@ -44,11 +44,12 @@ function isoToCalendarDate(isoString) {
   return new CalendarDate(year, month, day)
 }
 
-// Convert CalendarDate to ISO string
+// Convert CalendarDate to ISO string (YYYY-MM-DD). The calendar date itself
+// is written out: going through a Date and toISOString() gave the day before
+// in time zones ahead of UTC (local midnight is the previous day in UTC).
 function calendarDateToIso(calendarDate) {
   if (!calendarDate) return ''
-  const date = calendarDate.toDate(getLocalTimeZone())
-  return date.toISOString().split('T')[0]
+  return calendarDate.toString()
 }
 
 // Internal state for placeholder (controls which month/year is shown)

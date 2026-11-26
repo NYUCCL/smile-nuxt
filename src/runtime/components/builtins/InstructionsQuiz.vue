@@ -87,7 +87,6 @@ function autofill() {
   }
 
   // Start from root state and traverse all states
-  console.log('api.sm', api.steps)
   updateQuestionsInState(api.steps)
 }
 

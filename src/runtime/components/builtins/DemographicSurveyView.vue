@@ -80,7 +80,8 @@ const page_one_complete = computed(
  */
 const page_two_complete = computed(
   () =>
-    api.persist.forminfo.color_blind !== ''
+    api.persist.forminfo.normal_vision !== ''
+    && api.persist.forminfo.color_blind !== ''
     && api.persist.forminfo.learning_disability !== ''
     && api.persist.forminfo.neurodevelopmental_disorder !== ''
     && api.persist.forminfo.psychiatric_disorder !== '',
