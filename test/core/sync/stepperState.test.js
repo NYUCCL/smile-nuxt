@@ -267,7 +267,8 @@ describe('damaged state', () => {
     fc.constant(null),
     fc.string(),
     fc.integer({ min: -5, max: 50 }),
-    fc.double(),
+    // saved state is JSON, which has no NaN or Infinity
+    fc.double({ noNaN: true, noDefaultInfinity: true }),
     fc.boolean(),
     fc.constant([]),
     fc.constant({}),
