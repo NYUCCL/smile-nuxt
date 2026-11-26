@@ -14,6 +14,38 @@ function dataKey(value) {
   return safeStringify(value).text
 }
 
+/**
+ * A short key for a row as it was given to append(), outer() or zip() (a
+ * 53-bit hash of its text). A step keeps the key of the row it was made from,
+ * so the same row is recognised when the view's code runs again, whatever has
+ * been written to the step's data since.
+ * @param {object} row - The row
+ * @returns {string} The key
+ */
+function rowKey(row) {
+  const text = dataKey(row)
+  let h1 = 0xDEADBEEF
+  let h2 = 0x41C6CE57
+  for (let i = 0; i < text.length; i++) {
+    const ch = text.charCodeAt(i)
+    h1 = Math.imul(h1 ^ ch, 2654435761)
+    h2 = Math.imul(h2 ^ ch, 1597334677)
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909)
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909)
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36)
+}
+
+/**
+ * The key of the row a step was made from. A step from a tree saved before
+ * steps kept that key is known by its data as it is now.
+ * @param {Stepper} state - The step
+ * @returns {string} The key
+ */
+function stepKey(state) {
+  return state._source ?? rowKey(state.data)
+}
+
 // to be implemented functions
 
 // some write operations should be named and only go once
@@ -138,8 +170,11 @@ export class Stepper extends StepState {
   _buildDuplicateChecker() {
     // Build existing id set from current children (O(n) once)
     const existingIds = new Set(this._states.map(state => state.id))
-    // Build existing data set from current children (O(n) once)
-    const existingData = new Set(this._states.map(state => dataKey(state.data)))
+    // The rows the current children were made from (O(n) once). Not their
+    // data as it is now: a response recorded on a step, or a change made in
+    // forEach(), must not make the same row look new when the view's code
+    // runs again (after a reload, say), or the step would be added twice.
+    const existingData = new Set(this._states.map(stepKey))
 
     return {
       /**
@@ -155,7 +190,7 @@ export class Stepper extends StepState {
         }
 
         // Check data content duplicates
-        const dataStr = dataKey(item)
+        const dataStr = rowKey(item)
         if (existingData.has(dataStr)) {
           return true
         }
@@ -192,6 +227,7 @@ export class Stepper extends StepState {
     catch (error) {
       this._log.error(error.message)
     }
+    if (state) state._source = rowKey(item)
     return state
   }
 
@@ -232,8 +268,8 @@ export class Stepper extends StepState {
    */
   _findExisting(row) {
     if (row.id !== undefined) return this._states.find(state => state.id === row.id)
-    const dataStr = dataKey(row)
-    return this._states.find(state => dataKey(state.data) === dataStr)
+    const key = rowKey(row)
+    return this._states.find(state => stepKey(state) === key)
   }
 
   /**

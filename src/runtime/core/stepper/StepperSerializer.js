@@ -136,6 +136,8 @@ export class StepperSerializer {
       currentIndex: Stepper._currentIndex,
       depth: Stepper._depth,
       shuffled: Stepper._shuffled,
+      // The key of the row this step was made from (Stepper.js, rowKey)
+      ...(typeof Stepper._source === 'string' ? { source: Stepper._source } : {}),
       states: Stepper._states.map(state => StepperSerializer.serialize(state)),
       data: cleanData(Stepper.data),
       // Note: We don't serialize _parent or _root as they are circular references
@@ -219,6 +221,7 @@ export class StepperSerializer {
     target._currentIndex = currentIndex
     target._depth = depth
     target._shuffled = shuffled
+    if (typeof data.source === 'string') target._source = data.source
     let stepData
     try {
       stepData = StepperSerializer._reconstructData(data.data, root)

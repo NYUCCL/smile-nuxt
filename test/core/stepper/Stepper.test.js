@@ -615,6 +615,84 @@ describe('Stepper test', () => {
     })
   })
 
+  describe('building the same steps again (the view mounted again, or the page reloaded)', () => {
+    const design = { color: ['red', 'blue'], size: ['small', 'large'] }
+
+    it('does not add a row again after data was recorded on its step', () => {
+      stepper.outer(design)
+      expect(stepper.states).toHaveLength(4)
+
+      // What a task does as it runs
+      stepper.states[0].data.rt = 450
+      stepper.states[1].data.response = 'f'
+
+      stepper.outer(design)
+      expect(stepper.states).toHaveLength(4)
+      expect(stepper.states[0].data).toEqual({ color: 'red', size: 'small', rt: 450 })
+    })
+
+    it('does not add a row again after forEach changed it', () => {
+      const build = () => stepper
+        .append([{ color: 'red' }, { color: 'blue' }])
+        .forEach((row) => {
+          row.data.label = row.data.color.toUpperCase()
+        })
+      build()
+      build()
+      expect(stepper.states.map(s => s.data)).toEqual([
+        { color: 'red', label: 'RED' },
+        { color: 'blue', label: 'BLUE' },
+      ])
+    })
+
+    it('runs a forEach that returns new data twice without adding or throwing', () => {
+      const build = () => stepper
+        .zip({ word: ['SHIP', 'RED'], ink: ['red', 'blue'] })
+        .forEach(row => ({ congruent: row.data.word.toLowerCase() === row.data.ink }))
+      build()
+      expect(() => build()).not.toThrow()
+      expect(stepper.states.map(s => s.data)).toEqual([
+        { word: 'SHIP', ink: 'red', congruent: false },
+        { word: 'RED', ink: 'blue', congruent: false },
+      ])
+    })
+
+    it('still recognises the rows after the tree is saved and loaded', () => {
+      stepper.outer(design)
+      stepper.states[2].data.rt = 300
+      const saved = JSON.parse(JSON.stringify(stepper.json))
+      expect(typeof saved.states[0].source).toBe('string')
+
+      const loaded = new Stepper({ id: '/', serializedState: saved })
+      loaded.outer(design)
+      expect(loaded.states).toHaveLength(4)
+      expect(loaded.states[2].data).toEqual({ color: 'blue', size: 'small', rt: 300 })
+    })
+
+    it('knows the steps of a tree saved before steps kept their row by their data', () => {
+      stepper.outer(design)
+      const saved = JSON.parse(JSON.stringify(stepper.json))
+      saved.states.forEach(state => delete state.source)
+
+      const loaded = new Stepper({ id: '/', serializedState: saved })
+      loaded.outer(design)
+      expect(loaded.states).toHaveLength(4)
+    })
+
+    it('adds a row whose data matches what another step was changed to', () => {
+      stepper.append([{ value: 1 }])
+      stepper.states[0].data.value = 2
+      stepper.append([{ value: 2 }])
+      expect(stepper.states.map(s => s.data)).toEqual([{ value: 2 }, { value: 2 }])
+    })
+
+    it('still skips a row given twice', () => {
+      stepper.append([{ value: 1 }, { value: 1 }])
+      stepper.append([{ value: 1 }])
+      expect(stepper.states).toHaveLength(1)
+    })
+  })
+
   describe('shuffle Operations', () => {
     it('should shuffle rows with a specific seed', () => {
       stepper.append([{ value: 'a' }, { value: 'b' }, { value: 'c' }, { value: 'd' }, { value: 'e' }])

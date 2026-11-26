@@ -585,6 +585,13 @@ the row as it is. The rows are compared once every callback has run: if two
 rows would end up with the same data or the same `id`, `forEach()` throws and
 changes nothing.
 
+A view's code runs again each time the view mounts, including after a reload,
+and the stepper keeps the steps from the earlier visit. `append()`, `outer()`
+and `zip()` skip a row they were given before: each step remembers the row it
+was built from, so it is recognised whatever has been recorded on it or changed
+by `forEach()` since. Giving the same row twice on purpose (two identical
+trials) needs something that tells them apart, such as an `id`.
+
 Chained after `append()`, `outer()` or `zip()`, `forEach()` runs over the rows
 that call added. Called on its own, it runs over every child of the node. This
 matters because a view's code runs again each time the view mounts: the
