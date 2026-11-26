@@ -49,7 +49,7 @@ Online docs: [https://smile.gureckislab.org](https://smile.gureckislab.org)
 
 ## Quick start
 
-Requires Node ≥ 22 and [pnpm](https://pnpm.io/installation). Scaffold a new
+Requires Node ≥ 24.13 and [pnpm](https://pnpm.io/installation). Scaffold a new
 experiment with:
 
 ```sh

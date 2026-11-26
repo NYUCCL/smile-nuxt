@@ -8,7 +8,7 @@ The <SmileText/> repo
 ([https://github.com/NYUCCL/smile-nuxt](https://github.com/NYUCCL/smile-nuxt))
 includes both the code and documentation for the code.
 
-If you haven't already, make sure you have Node.js (≥ 22) and pnpm installed — see the [Quick Start](/quickstart) for setup.
+If you haven't already, make sure you have Node.js (≥ 24.13) and pnpm installed — see the [Quick Start](/quickstart) for setup.
 
 The next step is to fork the project from
 [github repo](https://github.com/NYUCCL/smile-nuxt), clone it on your machine,

@@ -17,7 +17,7 @@
     "src"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=24.13.0"
   },
   "scripts": {
     "release": "pnpm whoami && bumpp --no-push --commit \"chore(create-smile-nuxt): release v%s\" --tag \"create-smile-nuxt-v%s\" && pnpm publish --access public && git push --follow-tags"
