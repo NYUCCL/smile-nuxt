@@ -506,15 +506,70 @@ describe('Stepper test', () => {
       expect(results).toEqual([1, 2, 3])
     })
 
-    it.skip('should allow updating items through callback', () => {
+    it('should allow updating items through callback', () => {
       stepper.append([{ value: 1 }, { value: 2 }])
 
       stepper.forEach((item, _index) => {
         return { value: item.data.value * 2 }
       })
 
-      expect(stepper.states[1].data).toEqual({ value: 2 })
-      expect(stepper.states[2].data).toEqual({ value: 4 })
+      // The first row's new data equals the second row's old data; rows are
+      // compared as they will be once every update is applied
+      expect(stepper.states[0].data).toEqual({ value: 2 })
+      expect(stepper.states[1].data).toEqual({ value: 4 })
+    })
+
+    it('runs the example in the docs: one row changed, the other returned as it is', () => {
+      stepper
+        .append([
+          { shape: 'circle', color: 'red' },
+          { shape: 'square', color: 'green' },
+        ])
+        .forEach((row, index) => {
+          if (index === 0) return { ...row, color: 'blue' }
+          return row
+        })
+
+      expect(stepper.states.map(s => s.data)).toEqual([
+        { shape: 'circle', color: 'blue' },
+        { shape: 'square', color: 'green' },
+      ])
+    })
+
+    it('changes nothing when the same data is returned again (the view mounted again)', () => {
+      const build = () => stepper
+        .append([{ id: 'a', value: 1 }, { id: 'b', value: 2 }])
+        .forEach(row => ({ ...row.data, label: `value ${row.data.value}` }))
+
+      build()
+      const first = stepper.states.map(s => ({ ...s.data }))
+      expect(() => build()).not.toThrow()
+      expect(stepper.states.map(s => s.data)).toEqual(first)
+      expect(stepper.states).toHaveLength(2)
+    })
+
+    it('throws and applies nothing when two rows would end up the same', () => {
+      stepper.append([{ value: 1 }, { value: 2 }, { value: 3 }])
+
+      expect(() => stepper.forEach(row => ({ value: row.data.value === 3 ? 3 : 0 })))
+        .toThrow('Cannot update item: would create duplicate paths')
+      expect(stepper.states.map(s => s.data)).toEqual([{ value: 1 }, { value: 2 }, { value: 3 }])
+    })
+
+    it('throws when a new id is the id of a row that is not being changed', () => {
+      stepper.append([{ id: 'a' }, { id: 'b' }])
+
+      expect(() => stepper.forEach((row, index) => (index === 0 ? { id: 'b', extra: 1 } : undefined)))
+        .toThrow('Cannot update item: would create duplicate paths')
+      expect(stepper.states.map(s => s.data.id)).toEqual(['a', 'b'])
+    })
+
+    it('ignores a returned value that is not an object', () => {
+      stepper.append([{ value: 1 }])
+      stepper.forEach(() => 'text')
+      stepper.forEach(() => null)
+      stepper.forEach(() => 7)
+      expect(stepper.states.map(s => s.data)).toEqual([{ value: 1 }])
     })
 
     it('should prevent duplicate paths created by forEach transformations', () => {

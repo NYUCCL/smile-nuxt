@@ -505,9 +505,6 @@ export class Stepper extends StepState {
    * @returns {Stepper} The current instance for chaining
    */
   forEach(callback) {
-    // Build duplicate checker once for the entire forEach pass
-    const { isDuplicate } = this._buildDuplicateChecker()
-
     // Chained after append/outer/zip, run over the rows that call named (in
     // their current order), not every child: a view's build code re-runs on
     // each mount, and children appended later in the chain on an earlier
@@ -516,39 +513,48 @@ export class Stepper extends StepState {
     this._lastAdded = null
     const items = scope ? this._states.filter(state => scope.includes(state)) : this._states
 
+    // The rows whose callback returned new data, with that data
+    const updates = []
     items.forEach((item, index) => {
-      // Call the callback and check if it returns a new value
       const result = callback(item, index)
-      if (result !== undefined) {
-        // If result is an object with properties from the proxy, extract just the data properties
-        if (typeof result === 'object' && result !== null) {
-          // Create a new data object by starting with the original data
-          const newData = { ...item.data }
-
-          // Add or update properties from the result object
-          // This allows new properties to be added that weren't in the original data
-          Object.keys(result).forEach((key) => {
-            // Only copy properties that are not internal properties of the Stepper
-            if (
-              key !== '_id'
-              && key !== '_states'
-              && key !== '_parent'
-              && key !== '_path'
-              && key !== 'data'
-              && typeof result[key] !== 'function'
-            ) {
-              newData[key] = result[key]
-            }
-          })
-
-          // Check for duplicate paths before updating
-          if (isDuplicate(newData)) {
-            throw new Error('Cannot update item: would create duplicate paths')
-          }
-
-          item.data = newData
-        }
+      if (typeof result !== 'object' || result === null) return
+      // Start from the row's data, so the callback can return only what changes
+      const newData = { ...item.data }
+      // `return row` changes nothing; `{ ...row, color: 'blue' }` also copies
+      // the row object's own fields, which are not data
+      if (result !== item) {
+        Object.keys(result).forEach((key) => {
+          if (key === 'data' || typeof result[key] === 'function') return
+          if (Object.hasOwn(item, key) && result[key] === item[key]) return
+          newData[key] = result[key]
+        })
       }
+      updates.push({ item, newData })
+    })
+
+    // Duplicates are judged on the rows as they will be once every update is
+    // applied: a row is compared with its siblings' new data, never with its
+    // own old data or a sibling's old data. So returning the same data again
+    // (the view mounted again) changes nothing, and nothing is applied when
+    // any update would make a duplicate.
+    const updated = new Set(updates.map(update => update.item))
+    const ids = new Set()
+    const data = new Set()
+    this._states.forEach((state) => {
+      if (updated.has(state)) return
+      ids.add(state.id)
+      data.add(dataKey(state.data))
+    })
+    updates.forEach(({ newData }) => {
+      const key = dataKey(newData)
+      if ((newData.id !== undefined && ids.has(newData.id)) || data.has(key)) {
+        throw new Error('Cannot update item: would create duplicate paths')
+      }
+      if (newData.id !== undefined) ids.add(newData.id)
+      data.add(key)
+    })
+    updates.forEach(({ item, newData }) => {
+      item.data = newData
     })
     this._markForWrite()
     return this

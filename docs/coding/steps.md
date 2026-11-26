@@ -579,6 +579,12 @@ const trials = api.steps
 // ]
 ```
 
+A row is changed by returning new data (any fields you leave out keep their
+values) or by setting fields on `row.data`. Returning `row`, or nothing, leaves
+the row as it is. The rows are compared once every callback has run: if two
+rows would end up with the same data or the same `id`, `forEach()` throws and
+changes nothing.
+
 Chained after `append()`, `outer()` or `zip()`, `forEach()` runs over the rows
 that call added. Called on its own, it runs over every child of the node. This
 matters because a view's code runs again each time the view mounts: the
