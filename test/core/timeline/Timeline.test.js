@@ -754,12 +754,46 @@ describe('Timeline tests', () => {
 
       // Should have called randomAssignCondition with the possible condition values
       expect(api.randomAssignCondition).toHaveBeenCalledWith({
-        conditionname: ['AB', 'BA'],
+        taskOrder: ['AB', 'BA'],
       })
 
       // And still produce correct traversal based on randomly assigned 'AB'
       expect(timeline.seqtimeline[1].name).toBe('taskA')
       expect(timeline.seqtimeline[2].name).toBe('taskB')
+    })
+
+    it('gives two conditional nodes on different conditions their own values', () => {
+      const assigned = {}
+      api.getConditionByName.mockImplementation(name => assigned[name])
+      api.randomAssignCondition.mockImplementation((options) => {
+        const [name] = Object.keys(options)
+        assigned[name] = options[name][options[name].length - 1]
+        return assigned[name]
+      })
+      const timeline = new Timeline(api)
+      addWelcomeRoute(timeline)
+      for (const name of ['taskA', 'taskB', 'easy', 'hard']) timeline.registerView({ name, component: MockComponent })
+
+      timeline.pushConditionalNode({ name: 'order', taskOrder: { AB: ['taskA', 'taskB'], BA: ['taskB', 'taskA'] } })
+      timeline.pushConditionalNode({ name: 'level', difficulty: { low: ['easy'], high: ['hard'] } })
+      timeline.build()
+
+      expect(assigned).toEqual({ taskOrder: 'BA', difficulty: 'high' })
+      expect(timeline.seqtimeline.map(view => view.name).slice(1)).toEqual(['taskB', 'taskA', 'hard'])
+    })
+
+    it('keeps the value of a participant whose condition was stored under the old name', () => {
+      api.getConditionByName.mockImplementation(name => (name === 'conditionname' ? 'BA' : undefined))
+      const timeline = new Timeline(api)
+      addWelcomeRoute(timeline)
+      timeline.registerView({ name: 'taskA', component: MockComponent })
+      timeline.registerView({ name: 'taskB', component: MockComponent })
+
+      timeline.pushConditionalNode({ name: 'order', taskOrder: { AB: ['taskA', 'taskB'], BA: ['taskB', 'taskA'] } })
+      timeline.build()
+
+      expect(api.randomAssignCondition).not.toHaveBeenCalled()
+      expect(timeline.seqtimeline.map(view => view.name).slice(1)).toEqual(['taskB', 'taskA'])
     })
 
     it('should connect conditional node between other sequential views', () => {

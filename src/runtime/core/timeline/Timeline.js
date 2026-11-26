@@ -371,9 +371,13 @@ class Timeline {
         `Condition ${name} not found in data.conditions -- assigning uniformly from keys of condition object: ${possibleConditions}`,
       )
 
-      assignedCondition = this.api.randomAssignCondition({
-        conditionname: possibleConditions,
-      })
+      // Stored under the condition's own name. It used to be stored under
+      // the literal name 'conditionname': a participant assigned that way
+      // keeps their value.
+      const legacy = this.api.getConditionByName('conditionname')
+      assignedCondition = possibleConditions.includes(legacy)
+        ? legacy
+        : this.api.randomAssignCondition({ [name]: possibleConditions })
     }
 
     // based on assigned condition, get the correct set of routes
@@ -427,7 +431,11 @@ class Timeline {
           this.seqtimeline[i].meta.next = this.seqtimeline[i + 1].name
         }
       }
-      if (!this.seqtimeline[i].meta.root && this.seqtimeline[i].meta.prev === undefined) {
+      if (this.seqtimeline[i].meta.root) {
+        this.seqtimeline[i].meta.prev = null
+      }
+      // A prev set in the design file (meta: { prev: 'name' }) is kept
+      else if (this.seqtimeline[i].meta.prev === undefined) {
         if (this.seqtimeline.length === 1) {
           this.seqtimeline[i].meta.prev = null
         }
@@ -440,9 +448,6 @@ class Timeline {
         else {
           this.seqtimeline[i].meta.prev = this.seqtimeline[i - 1].name
         }
-      }
-      else {
-        this.seqtimeline[i].meta.prev = null
       }
     }
   }

@@ -58,7 +58,7 @@ function createTestTimeline() {
     },
     sampleWithReplacement: vi.fn(options => [options[0]]),
     getConditionByName: vi.fn(),
-    randomAssignCondition: vi.fn(options => options.conditionname[0]),
+    randomAssignCondition: vi.fn(options => Object.values(options)[0][0]),
   }
 
   const timeline = new Timeline(mockApi)
@@ -952,7 +952,7 @@ describe('Timeline middleware guards', () => {
         },
         sampleWithReplacement: vi.fn(options => [options[0]]),
         getConditionByName: vi.fn(),
-        randomAssignCondition: vi.fn(options => options.conditionname[0]),
+        randomAssignCondition: vi.fn(options => Object.values(options)[0][0]),
       }
 
       paramTimeline = new Timeline(mockApi)
