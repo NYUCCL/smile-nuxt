@@ -283,7 +283,7 @@ const currentService = computed(() => services[selectedService.value])
         <!-- Left column: logo + QR -->
         <div class="shrink-0 flex flex-col items-end gap-3">
           <img
-            src="/_smile/images/smile.svg"
+            :src="api.getCoreStaticUrl('images/smile.svg')"
             alt="SMILE"
             class="w-52"
           >
