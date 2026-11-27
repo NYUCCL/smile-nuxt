@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi, type MockInstance } fr
 import bcrypt from 'bcryptjs'
 import { startServer, projectConfig, type TestServer, type Browser } from './handler-helpers'
 import { schema } from './db-helpers'
+import { setFlags, resetFlags } from '../setup/flags'
 
 vi.mock('h3', async () => (await import('./handler-helpers')).loadH3())
 vi.mock('nitropack/runtime', async () => (await import('./handler-helpers')).nitroRuntime())
@@ -486,5 +487,35 @@ describe('GET /api/qr', () => {
   it('needs no session', async () => {
     vi.stubEnv('SMILE_DEV_PASSWORD', 'letmein')
     expect((await server.browser().get('/api/qr')).status).toBe(200)
+  })
+})
+
+describe('on a local dev server (import.meta.dev)', () => {
+  beforeEach(() => setFlags({ dev: true }))
+  afterEach(resetFlags)
+
+  it('opens /dev and /presentation with nothing set up', async () => {
+    for (const path of ['/dev', '/dev/data', '/presentation', '/presentation/x']) {
+      expect((await browser.get(path)).status).toBe(200)
+    }
+  })
+
+  it('answers the routes for developers without a session', async () => {
+    expect((await browser.get('/api/db-info')).status).toBe(200)
+    expect((await browser.get('/api/projects')).status).toBe(200)
+  })
+
+  it('still asks for a password that is set when the server is not local', async () => {
+    vi.stubEnv('SMILE_DEV_PASSWORD', 'letmein')
+    expect((await browser.get('/api/projects')).status).toBe(200)
+    resetFlags()
+    expect((await browser.get('/api/projects')).status).toBe(403)
+  })
+
+  it('names the project\'s mode "test"; a deployed server names it "live"', async () => {
+    const { getCurrentProjectInfo } = await import('../../src/runtime/server/utils/project')
+    expect(getCurrentProjectInfo()).toEqual({ owner: 'local', repo: 'experiment', branch: 'main', mode: 'test' })
+    resetFlags()
+    expect(getCurrentProjectInfo().mode).toBe('live')
   })
 })

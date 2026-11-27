@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
+import { setFlags, resetFlags } from '../setup/flags'
 
 // dev-auth imports the DB helper for sessions; access resolution doesn't need it.
 vi.mock('../../src/runtime/server/utils/db', () => ({ useDB: () => ({}) }))
@@ -67,6 +68,16 @@ describe('the secret that signs tokens (getAuthSecret)', () => {
     expect(getAuthSecret()).toBe('smile-local-dev-key')
     expect(warn).toHaveBeenCalledTimes(1)
     expect(String(warn.mock.calls[0]![0])).toContain('Set SMILE_AUTH_SECRET')
+  })
+
+  it('does not warn on a local dev server, where the built-in key is expected', async () => {
+    clear()
+    setFlags({ dev: true })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { getAuthSecret } = await load()
+    expect(getAuthSecret()).toBe('smile-local-dev-key')
+    resetFlags()
+    expect(warn).not.toHaveBeenCalled()
   })
 
   it('does not warn when a secret is set', async () => {

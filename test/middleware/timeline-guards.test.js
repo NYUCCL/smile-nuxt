@@ -6,6 +6,7 @@
  * middleware function itself (prefixes, the api object it builds).
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { setFlags, resetFlags } from '../setup/flags'
 import { useNuxtApp, useRuntimeConfig, navigateTo } from '#imports'
 import middleware, { executeGuards } from '../../src/runtime/middleware/timeline.global.js'
 import useSmileStore from '../../src/runtime/stores/smilestore'
@@ -444,6 +445,7 @@ describe('the middleware', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
+    resetFlags()
   })
 
   it('does nothing, with a warning, when the timeline is not available', async () => {
@@ -553,5 +555,46 @@ describe('the middleware', () => {
       await middleware(route('/welcome'), route('/'))
       expect(store.removeAutofill).not.toHaveBeenCalled()
     })
+
+    it('removes autofill in a development build', async () => {
+      setFlags({ dev: true })
+      vi.spyOn(console, 'log').mockImplementation(() => {})
+      await middleware(route('/welcome'), route('/'))
+      expect(store.removeAutofill).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('in a development build (import.meta.dev)', () => {
+    it('logs each navigation to the console', async () => {
+      setFlags({ dev: true })
+      const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+      await middleware(route('/welcome'), route('/'))
+      expect(log).toHaveBeenCalledWith('[SMILE middleware] / → /welcome')
+    })
+
+    it('does not log outside one', async () => {
+      const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+      await middleware(route('/welcome'), route('/'))
+      expect(log).not.toHaveBeenCalled()
+    })
+
+    it('honours a pinned route on a participant route', async () => {
+      setFlags({ dev: true })
+      vi.spyOn(console, 'log').mockImplementation(() => {})
+      store.dev.pinnedRoute = 'task'
+      expect(await middleware(route('/feedback'), route('/'))).toEqual(redirectTo('/task'))
+    })
+
+    it('ignores a pinned route on a participant route outside one', async () => {
+      store.dev.pinnedRoute = 'task'
+      expect(await middleware(route('/feedback'), route('/'))).toEqual(redirectTo('/welcome'))
+    })
+  })
+
+  it('does nothing on the server', async () => {
+    setFlags({ server: true })
+    useNuxtApp.mockClear()
+    expect(await middleware(route('/task'), route('/welcome'))).toBeUndefined()
+    expect(useNuxtApp).not.toHaveBeenCalled()
   })
 })

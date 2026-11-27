@@ -7,8 +7,27 @@ import vue from '@vitejs/plugin-vue'
 // coverage instrumentation, they fail on time alone. `pnpm test:perf` runs them.
 const perfRun = !!process.env.SMILE_PERF_TESTS
 
+// Nuxt replaces import.meta.dev, .client and .server when it builds. Under
+// vitest they are undefined, so the code behind them never ran. This puts a
+// global in their place that a test can set (test/setup/flags.js). Unset, a
+// global is undefined, as before. Each name is as long as the text it
+// replaces, so line and column numbers (and coverage) stay exact.
+const FLAGS = {
+  'import.meta.dev': 'globalThis.SDEV',
+  'import.meta.client': 'globalThis.SCLIENT',
+  'import.meta.server': 'globalThis.SSERVER',
+}
+const smileFlags = {
+  name: 'smile-test-flags',
+  enforce: 'pre',
+  transform(code, id) {
+    if (!id.includes('/src/') || !code.includes('import.meta.')) return null
+    return { code: code.replace(/import\.meta\.(dev|client|server)\b/g, match => FLAGS[match]), map: null }
+  },
+}
+
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [smileFlags, vue()],
   resolve: {
     alias: {
       // Map legacy @/core/... import paths to new locations

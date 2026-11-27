@@ -6,6 +6,7 @@
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
+import { setFlags, resetFlags } from '../../setup/flags'
 import { setActivePinia, createPinia } from 'pinia'
 import useSmileStore, { initDev, COOKIE_MAX_AGE } from '../../../src/runtime/stores/smilestore'
 import useLog from '../../../src/runtime/stores/log'
@@ -66,6 +67,63 @@ describe('store-sync plugin', () => {
     store.stopSnapshots()
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
+    vi.unstubAllEnvs()
+    resetFlags()
+  })
+
+  describe('settings from before the sync loop (dev server only)', () => {
+    let warn
+    const warnings = () => warn.mock.calls.map(call => String(call[0])).filter(text => text.startsWith('[smile]'))
+    beforeEach(() => {
+      warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      for (const key of ['VITE_AUTO_SAVE_DATA', 'VITE_MIN_WRITE_INTERVAL', 'VITE_MAX_WRITES']) vi.stubEnv(key, '')
+    })
+
+    it('says nothing when none is set', () => {
+      setFlags({ dev: true })
+      start()
+      expect(warnings()).toEqual([])
+    })
+
+    it('says one setting no longer has an effect', () => {
+      setFlags({ dev: true })
+      vi.stubEnv('VITE_AUTO_SAVE_DATA', 'true')
+      start()
+      expect(warnings()).toHaveLength(1)
+      expect(warnings()[0]).toContain('VITE_AUTO_SAVE_DATA no longer has an effect')
+      expect(warnings()[0]).toContain('Remove it from your env files')
+    })
+
+    it('names both settings when both are set', () => {
+      setFlags({ dev: true })
+      vi.stubEnv('VITE_AUTO_SAVE_DATA', 'false')
+      vi.stubEnv('VITE_MIN_WRITE_INTERVAL', '2000')
+      start()
+      expect(warnings()[0]).toContain('VITE_AUTO_SAVE_DATA, VITE_MIN_WRITE_INTERVAL no longer have an effect')
+      expect(warnings()[0]).toContain('Remove them from your env files')
+    })
+
+    it('warns about a limit on saves that a long study can reach', () => {
+      setFlags({ dev: true })
+      vi.stubEnv('VITE_MAX_WRITES', '500')
+      start()
+      expect(warnings()).toHaveLength(1)
+      expect(warnings()[0]).toContain('VITE_MAX_WRITES is 500')
+    })
+
+    it.each(['2000', '10000', '0', 'many'])('says nothing about a limit on saves of %s', (value) => {
+      setFlags({ dev: true })
+      vi.stubEnv('VITE_MAX_WRITES', value)
+      start()
+      expect(warnings()).toEqual([])
+    })
+
+    it('says nothing in a build, whatever is set', () => {
+      vi.stubEnv('VITE_AUTO_SAVE_DATA', 'true')
+      vi.stubEnv('VITE_MAX_WRITES', '500')
+      start()
+      expect(warnings()).toEqual([])
+    })
   })
 
   describe('at startup', () => {
