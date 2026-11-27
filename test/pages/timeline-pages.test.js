@@ -3,7 +3,8 @@
  * which view they show for an address, what they show for an unknown one,
  * and where a redirect entry of the timeline sends the browser.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { flushPromises } from '@vue/test-utils'
 import { defineComponent, h, nextTick, reactive } from 'vue'
 import { useRoute, useNuxtApp, navigateTo } from '#imports'
 import ParticipantPage from '../../src/runtime/pages/[...slug].vue'
@@ -11,6 +12,7 @@ import DevPage from '../../src/runtime/pages/dev/[...slug].vue'
 import PresentationPage from '../../src/runtime/pages/presentation/[...slug].vue'
 import { createStore, mountComponent } from '../components/mount'
 import { NuxtLayout, marker, stub } from './stubs'
+import { _resetPreload } from '../../src/runtime/composables/usePreload.js'
 
 vi.mock('../../src/runtime/components/dev/RecruitmentChooserView.vue', async () => (await import('./stubs')).markerModule('recruitment-chooser'))
 vi.mock('../../src/runtime/components/builtins/PresentationModeView.vue', async () => (await import('./stubs')).markerModule('presentation-home', ['title']))
@@ -31,6 +33,8 @@ const VIEWS = {
   '/old': { name: 'old', redirect: { path: '/other' } },
   '/lost': { name: 'lost', redirect: { name: 'missing' } },
   '/empty': { name: 'empty' },
+  // A view that lists files to have in memory before it shows (#30)
+  '/media': { name: 'media', component: OtherView, preload: ['clip.mp4'] },
 }
 
 let route
@@ -257,5 +261,65 @@ describe('the presentation page', () => {
   it('a redirect to a name the timeline does not have goes nowhere', async () => {
     await mountPage(PresentationPage, '/presentation/lost')
     expect(navigateTo).not.toHaveBeenCalled()
+  })
+})
+
+describe.each([
+  ['participant', ParticipantPage, ''],
+  ['dev', DevPage, '/dev'],
+  ['presentation', PresentationPage, '/presentation'],
+])('a view that lists files to preload, on the %s page (#30)', (_name, page, prefix) => {
+  let finish
+  let inMemory
+
+  beforeEach(() => {
+    inMemory = false
+    _resetPreload({
+      preloader: {
+        report: () => ({ ok: inMemory }),
+        progress: urls => ({ total: urls.length, ready: 0, failed: 0, fraction: 0 }),
+        loadAll: vi.fn(() => new Promise((resolve) => {
+          finish = ok => resolve({ ok, total: 1, ready: ok ? 1 : 0, bytes: 0, ms: 10, failed: ok ? [] : [{ url: '/test/clip.mp4', error: 'the server answered 404' }] })
+        })),
+      },
+    })
+  })
+  afterEach(() => _resetPreload())
+
+  it('is not shown while its files load, and is shown when they are in memory', async () => {
+    const wrapper = await mountPage(page, `${prefix}/media`)
+    expect(wrapper.find('#other-view').exists()).toBe(false)
+    expect(wrapper.findComponent({ name: 'PreloadingView' }).props('gate')).toMatchObject({ status: 'loading', view: 'media', urls: ['/test/clip.mp4'] })
+    finish(true)
+    await flushPromises()
+    expect(wrapper.find('#other-view').exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'PreloadingView' }).exists()).toBe(false)
+  })
+
+  it('stays closed when a file could not be loaded', async () => {
+    const wrapper = await mountPage(page, `${prefix}/media`)
+    finish(false)
+    await flushPromises()
+    expect(wrapper.find('#other-view').exists()).toBe(false)
+    expect(wrapper.findComponent({ name: 'PreloadingView' }).props('gate').status).toBe('failed')
+  })
+
+  it('is shown at once when its files are already in memory', async () => {
+    inMemory = true
+    const wrapper = await mountPage(page, `${prefix}/media`)
+    expect(wrapper.find('#other-view').exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'PreloadingView' }).exists()).toBe(false)
+  })
+
+  it('going from a view with no files to it never draws it early', async () => {
+    const wrapper = await mountPage(page, `${prefix}/task`)
+    expect(wrapper.find('#task-view').exists()).toBe(true)
+    route.path = `${prefix}/media`
+    await nextTick()
+    expect(wrapper.find('#task-view').exists()).toBe(false)
+    expect(wrapper.find('#other-view').exists()).toBe(false)
+    finish(true)
+    await flushPromises()
+    expect(wrapper.find('#other-view').exists()).toBe(true)
   })
 })

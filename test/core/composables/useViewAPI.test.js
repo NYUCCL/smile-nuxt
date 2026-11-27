@@ -1,4 +1,5 @@
 // general testing functions
+import { _resetPreload } from '../../../src/runtime/composables/usePreload.js'
 import { defineComponent, markRaw } from 'vue'
 import { setActivePinia } from 'pinia'
 import { createRouter, createWebHashHistory } from 'vue-router'
@@ -134,7 +135,7 @@ describe('useViewAPI composable', () => {
     wrapper.unmount()
   })
 
-  it('preloads the images and videos listed in the runtime config', () => {
+  it('preloads the images and videos listed in the runtime config', async () => {
     // useViewAPI() reads the runtime config when it creates the shared instance
     useViewAPI._reset()
     vi.mocked(useRuntimeConfig).mockReturnValueOnce({
@@ -142,31 +143,17 @@ describe('useViewAPI composable', () => {
       public: { smile: { preloadImages: ['stimuli/a.png', 'b.png'], preloadVideos: ['clip.mp4'] } },
     })
     const api = useViewAPI()
-
-    const imageSrcs = []
-    vi.spyOn(window, 'Image').mockImplementation(function () {
-      return {
-        set src(value) {
-          imageSrcs.push(value)
-        },
-      }
-    })
-    const videos = []
-    const createElement = document.createElement.bind(document)
-    vi.spyOn(document, 'createElement').mockImplementation((tag) => {
-      const el = createElement(tag)
-      if (tag === 'video') videos.push(el)
-      return el
-    })
+    const preloader = { loadAll: vi.fn(async () => ({ ok: true, failed: [] })) }
+    _resetPreload({ preloader })
 
     api.preloadAllImages()
     api.preloadAllVideos()
 
-    expect(imageSrcs).toEqual(['/study/stimuli/a.png', '/study/b.png'])
-    expect(videos).toHaveLength(1)
-    expect(videos[0].getAttribute('src')).toBe('/study/clip.mp4')
+    await vi.waitFor(() => expect(preloader.loadAll).toHaveBeenCalledTimes(2))
+    expect(preloader.loadAll).toHaveBeenCalledWith(['/study/stimuli/a.png', '/study/b.png'], { urgent: false })
+    expect(preloader.loadAll).toHaveBeenCalledWith(['/study/clip.mp4'], { urgent: false })
 
-    vi.restoreAllMocks()
+    _resetPreload()
     useViewAPI._reset()
   })
 

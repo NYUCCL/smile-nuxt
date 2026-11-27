@@ -252,8 +252,17 @@ api.goToStep('trial/block1/step2', false)
 - `currentRouteName()`: Returns the current route name.
 - `currentViewName()`: Returns the current view name.
 - `getBrowserFingerprint()`: Retrieves the browser fingerprint.
+- `preload(files)`: Loads files into memory so they show without a network
+  request: paths in `public/`, patterns (`'stimuli/*.png'`) and full URLs.
+  Returns a promise of `{ ok, total, ready, failed, bytes, ms }`. A view's
+  files are usually listed under `preload` in `design.js` instead (see
+  [Preloading](/styling/imagesvideo#preloading)).
+- `asset(path)`: The URL to give a `<video>`, `<audio>` or `fetch()` for a
+  preloaded file. Images don't need it.
+- `preloadProgress(files)`: `{ total, ready, failed, fraction }` for a list of
+  paths, for your own progress display.
 - `preloadAllImages()`: Preloads the images listed in the `smile.preloadImages`
-  option in `nuxt.config.ts` (see [Preloading](/styling/imagesvideo#preloading)).
+  option in `nuxt.config.ts`.
 - `preloadAllVideos()`: Preloads the videos listed in `smile.preloadVideos`.
 - `getPublicUrl(path)`: Returns the URL of a file in your project's `public/`
   folder, with the deploy base path added.

@@ -26,8 +26,7 @@ with `/`:
 
 Use `public/` for stimuli and anything you pick in code (for example, a
 random image per trial), because the file names stay the same and are easy to
-build in code. It's also the folder the [preloading](#preloading) options read
-from.
+build in code. It's also the folder [preloading](#preloading) reads from.
 
 ### `assets/`
 
@@ -130,32 +129,130 @@ color mode.
 
 ## Preloading
 
-Preloading asks the browser to download images or videos before they're needed,
-so the participant isn't left waiting for them. This matters when stimuli have
-to appear quickly.
+A file that is downloaded at the moment it is shown appears late, and how late
+depends on the participant's connection. Preloading downloads a view's files
+into the browser's memory beforehand, so they appear at once. This matters for
+any view where timing matters.
 
-List the files to preload, relative to `public/`, in `nuxt.config.ts`:
+### List a view's files in `design.js`
 
-```ts
-export default defineNuxtConfig({
-  modules: ['@pinia/nuxt', '@nyuccl/smile-nuxt'],
-  smile: {
-    preloadImages: ['bees/bees-01.svg', 'bees/bees-02.svg'],
-    preloadVideos: ['intro.mp4'],
-  },
+Add `preload` to the view, with paths relative to `public/`:
+
+```js
+timeline.pushSeqView({
+  name: 'task',
+  component: markRaw(MyTaskView),
+  preload: [
+    'stimuli/*.png', // every PNG in public/stimuli/
+    'instructions/intro.mp4',
+    'sounds/beep.wav',
+  ],
 })
 ```
 
-Then call `api.preloadAllImages()` or `api.preloadAllVideos()` at a good time,
-for example once the participant has consented, so the downloads happen while
-they read the instructions:
+Two things follow from this:
+
+- **Loading starts when the page opens.** The files of every view that lists
+  some are downloaded in the background, in timeline order, while the
+  participant reads the consent form and instructions.
+- **The view waits for its files.** If they are not all in memory when the
+  participant reaches the view, a loading screen with a progress bar is shown
+  in its place, and the view appears when the last file has arrived. A file
+  that fails is tried three times. If it still can't be loaded the view stays
+  closed, and the page keeps trying every few seconds and when the connection
+  comes back. A view is never shown with files missing.
+
+Usually the loading screen is never seen, because the files arrived while the
+participant was on earlier views.
+
+A list entry can be:
+
+- a path in `public/`: `'stimuli/dog.png'`
+- a pattern: `'stimuli/*.png'`, `'stimuli/**'` (all subfolders too),
+  `'clips/*.{mp4,webm}'`
+- a full URL of a file on another server: `'https://cdn.example.org/intro.mp4'`
+
+When the files depend on the participant's condition, give a function. It is
+called with the API:
 
 ```js
-function finish() {
-  api.preloadAllImages() // start loading the listed images
-  api.goNextView()
+preload: api => [`stimuli/${api.getConditionByName('set')}/*.png`],
+```
+
+### Showing a preloaded file
+
+**Images** need no change. Once preloaded, an image is drawn from memory
+wherever its URL is used: in an `<img>`, from `api.getPublicUrl()`, or as a
+CSS background.
+
+**Video, audio and other files** (JSON, CSV) must be shown from
+`api.asset(path)`:
+
+```vue
+<script setup>
+const api = useViewAPI()
+</script>
+
+<template>
+  <video :src="api.asset('instructions/intro.mp4')" controls />
+  <audio :src="api.asset('sounds/beep.wav')" />
+</template>
+```
+
+```js
+const trials = await (await fetch(api.asset('data/trials.json'))).json()
+```
+
+`api.asset()` returns the address of the copy in memory. A `<video>` given the
+file's own URL downloads it again, even after preloading. On the local dev
+server, the console log warns when `api.asset()` is called for a file that was
+not preloaded.
+
+Record the path in your data (`'instructions/intro.mp4'`), not what
+`api.asset()` returns: that address only means something inside the
+participant's page.
+
+### Preloading from code
+
+`api.preload()` does the same for a list you build in code. It returns when
+the files are in memory:
+
+```js
+const report = await api.preload(['stimuli/block2/*.png', 'clips/block2.mp4'])
+if (!report.ok) {
+  // report.failed lists each file that could not be loaded, and why
 }
 ```
+
+Use it for files that are known only once the view is running. For everything
+else, prefer `preload` in `design.js`: it is what holds the view back.
+
+### What is recorded
+
+When a participant had to wait for a view's files, an entry is added to
+`browserData` in their record, with the view's name, the number of files, how
+long they waited (`waited_ms`) and any files that failed. A participant whose
+files were already in memory has no entry.
+
+### Limits
+
+- **Memory.** Preloaded files are held in the browser's memory. Hundreds of
+  megabytes of video will slow a participant's browser or fail on a phone.
+  For that much video, preload a block at a time with `api.preload()`.
+- **Files on another server.** An image loads from anywhere. A video, sound or
+  data file on another server can only be preloaded if that server allows
+  cross-origin requests (CORS). YouTube and Vimeo embeds cannot be preloaded.
+- **A reload starts again.** The files are in the page's memory, so they are
+  loaded again after a reload. The view waits for them as before.
+- **To load a view's files only when it is reached**, set
+  `smile: { preloadAhead: false }` in `nuxt.config.ts`.
+
+::: tip Older projects
+The `smile.preloadImages` and `smile.preloadVideos` options in
+`nuxt.config.ts`, with `api.preloadAllImages()` and `api.preloadAllVideos()`,
+still work and now load files the same way. They don't hold a view back, so
+prefer `preload` in `design.js`.
+:::
 
 ## Dealing with large files
 

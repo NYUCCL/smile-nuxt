@@ -7,6 +7,11 @@
       v-bind="presentationHomeProps"
     />
     <!-- Normal timeline view resolution -->
+    <!-- The view's files are still loading (design.js `preload`, #30) -->
+    <PreloadingView
+      v-else-if="viewConfig && viewConfig.component && gate.status !== 'ready'"
+      :gate="gate"
+    />
     <component
       :is="viewConfig.component"
       v-else-if="viewConfig && viewConfig.component"
@@ -23,6 +28,8 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useNuxtApp, navigateTo } from '#imports'
 import PresentationModeView from '../../components/builtins/PresentationModeView.vue'
+import PreloadingView from '../../components/builtins/PreloadingView.vue'
+import useViewGate from '../../composables/useViewGate'
 import useSmileStore from '../../stores/smilestore'
 
 const route = useRoute()
@@ -58,6 +65,9 @@ const viewConfig = computed(() => {
   if (!timeline) return undefined
   return timeline.getViewForPath(experimentPath.value)
 })
+
+// Holds the view back until the files it lists under `preload` are in memory
+const gate = useViewGate(viewConfig)
 
 onMounted(() => {
   timelineReady.value = true

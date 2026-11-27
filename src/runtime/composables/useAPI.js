@@ -21,6 +21,7 @@ import useSmileStore from '../stores/smilestore'
 import * as participant from '../core/participant-actions.js'
 import useLog from '../stores/log'
 import useTimeline from './useTimeline'
+import usePreload from './usePreload'
 import { sha256Base64 } from '../utils/sha256.js'
 import { stableStringify } from '../utils/stableStringify.js'
 import {
@@ -52,6 +53,9 @@ import {
  * @property {object} urls - The store's `browserEphemeral.urls`
  * @property {object} log - Logging methods interface
  */
+// Files api.asset() already warned about (dev server only)
+const notPreloaded = new Set()
+
 // Space WindowSizerView leaves around its box (classes m-2 mt-5), in px.
 const WINDOWSIZER_MARGIN_X = 16 // 8 left + 8 right
 const WINDOWSIZER_MARGIN_Y = 28 // 20 top + 8 bottom
@@ -848,34 +852,81 @@ export class SmileAPI {
   }
 
   /**
-   * Preload images declared via the smile.preloadImages module option.
-   * Paths are resolved through getPublicUrl (consumer public/ directory).
-   * Browser caches each fetched image so subsequent views render instantly.
+   * Loads files into memory, so showing them later needs no network request.
+   * Images are then drawn from memory wherever their URL is used. A video, a
+   * sound or any other file has to be shown from `api.asset(path)`.
+   *
+   * A view's files are usually listed in design.js instead (`preload:` on the
+   * view), which also keeps the view from showing before they are loaded.
+   * @param {string|string[]} files - Paths relative to public/ ('stimuli/a.png'),
+   *   patterns ('stimuli/*.png') and full URLs
+   * @param {object} [options] - Options
+   * @param {boolean} [options.urgent] - Load these before files waiting in the background (default true)
+   * @returns {Promise<object>} `{ ok, total, ready, failed: [{ url, error }], bytes, ms }`.
+   *   Never rejects: check `ok`.
+   */
+  async preload(files, { urgent = true } = {}) {
+    if (typeof window === 'undefined') return { ok: true, total: 0, ready: 0, failed: [], bytes: 0, ms: 0 }
+    const { preloader, urlsOf } = usePreload(this.runtimeConfig?.app?.baseURL)
+    const urls = await urlsOf(files, this)
+    const report = await preloader.loadAll(urls, { urgent })
+    for (const { url, error } of report.failed) {
+      this.logStore.error(`PRELOAD: ${url} could not be loaded: ${error}`)
+    }
+    return report
+  }
+
+  /**
+   * The URL to give an <img>, <video> or <audio> for a file in public/. For a
+   * preloaded video, sound or other file this is a blob: URL of the copy in
+   * memory; for an image, or a file that was not preloaded, the file's own URL
+   * (as getPublicUrl). Record the path in your data, not what this returns.
+   * @param {string} path - Path relative to public/, or a full URL
+   * @returns {string} The URL for the element
+   */
+  asset(path) {
+    if (typeof window === 'undefined') return this.getPublicUrl(path)
+    const { preloader, urlOf } = usePreload(this.runtimeConfig?.app?.baseURL)
+    const url = urlOf(path)
+    if (import.meta.dev && preloader.status(url) === 'none' && !notPreloaded.has(url)) {
+      notPreloaded.add(url)
+      this.logStore.warn(`PRELOAD: api.asset('${path}') was not preloaded, so it loads from the network when shown. List it under the view's preload in design.js.`)
+    }
+    return preloader.resolve(url)
+  }
+
+  /**
+   * Counts for a set of files, for a progress display. Reactive in a template
+   * or a computed. Patterns are not expanded here: pass paths or URLs.
+   * @param {string|string[]} files - Paths relative to public/ and full URLs
+   * @returns {{total: number, ready: number, failed: number, fraction: number}} The counts
+   */
+  preloadProgress(files) {
+    if (typeof window === 'undefined') return { total: 0, ready: 0, failed: 0, fraction: 1 }
+    const { preloader, urlOf } = usePreload(this.runtimeConfig?.app?.baseURL)
+    return preloader.progress([files].flat().map(urlOf))
+  }
+
+  /**
+   * Preload the images listed in the smile.preloadImages module option
+   * (nuxt.config.ts). Starts the loads and returns; see {@link preload}.
    * @returns {void}
    */
   preloadAllImages() {
     const list = this.runtimeConfig?.public?.smile?.preloadImages || []
     this.logStore.debug(`Preloading ${list.length} image(s)`)
-    if (typeof window === 'undefined') return
-    for (const path of list) {
-      const img = new window.Image()
-      img.src = this.getPublicUrl(path)
-    }
+    this.preload(list, { urgent: false })
   }
 
   /**
-   * Preload videos declared via the smile.preloadVideos module option.
+   * Preload the videos listed in the smile.preloadVideos module option. A
+   * view shows one from `api.asset(path)`.
    * @returns {void}
    */
   preloadAllVideos() {
     const list = this.runtimeConfig?.public?.smile?.preloadVideos || []
     this.logStore.debug(`Preloading ${list.length} video(s)`)
-    if (typeof window === 'undefined') return
-    for (const path of list) {
-      const video = window.document.createElement('video')
-      video.preload = 'auto'
-      video.src = this.getPublicUrl(path)
-    }
+    this.preload(list, { urgent: false })
   }
 
   /**

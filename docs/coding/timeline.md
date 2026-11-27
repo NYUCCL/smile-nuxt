@@ -183,6 +183,20 @@ prevented from starting the experiment again or not access the final page.
 
 :::
 
+A View can also list the files it shows, under `preload`. They are downloaded
+into memory ahead of time, and the View is not shown until they are all there:
+
+```js
+{
+  name: 'task',
+  component: markRaw(MyTaskView),
+  preload: ['stimuli/*.png', 'instructions/intro.mp4'],
+}
+```
+
+See [Preloading](/styling/imagesvideo#preloading) for what a list can contain
+and how a View shows a preloaded video.
+
 ### Components: string names vs. `markRaw()`
 
 The `component` field accepts two kinds of values, and the right choice

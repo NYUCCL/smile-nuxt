@@ -4,8 +4,14 @@
     <RecruitmentChooserView v-if="isDevRoot && timelineReady" />
     <template v-else-if="viewConfig && viewConfig.component">
       <ExperimentStatusBar />
+      <!-- The view's files are still loading (design.js `preload`, #30) -->
+      <PreloadingView
+        v-if="gate.status !== 'ready'"
+        :gate="gate"
+      />
       <component
         :is="viewConfig.component"
+        v-else
         v-bind="viewConfig.props"
       />
     </template>
@@ -20,6 +26,8 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useNuxtApp, navigateTo } from '#imports'
 import RecruitmentChooserView from '#smile-dev/RecruitmentChooserView.vue'
+import useViewGate from '../../composables/useViewGate'
+import PreloadingView from '../../components/builtins/PreloadingView.vue'
 
 const route = useRoute()
 const nuxtApp = useNuxtApp()
@@ -46,6 +54,9 @@ const rawViewConfig = computed(() => {
 
 // Pass through — global components work with string names in <component :is>
 const viewConfig = rawViewConfig
+
+// Holds the view back until the files it lists under `preload` are in memory
+const gate = useViewGate(viewConfig)
 
 onMounted(() => {
   timelineReady.value = true

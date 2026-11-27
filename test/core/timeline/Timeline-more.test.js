@@ -270,6 +270,15 @@ describe('Timeline: more cases', () => {
       expect(timeline.getViewForPath('/').name).toBe('landing')
     })
 
+    it('getViewForPath passes on the files a view lists to preload (#30)', () => {
+      const list = api => [`stimuli/${api.conditions.set}/*.png`]
+      timeline.pushSeqView({ name: 'media', component: 'ExpView', preload: ['a.png', 'clips/*.mp4'] })
+      timeline.registerView({ name: 'by_condition', component: 'ExpView', preload: list })
+      expect(timeline.getViewForPath('/media').preload).toEqual(['a.png', 'clips/*.mp4'])
+      expect(timeline.getViewForPath('/by_condition').preload).toBe(list)
+      expect(timeline.getViewForPath('/welcome').preload).toBeUndefined()
+    })
+
     it('getViewForPath gives a redirect for the landing route', () => {
       expect(timeline.getViewForPath('/')).toEqual({
         redirect: { name: 'welcome_anonymous' },

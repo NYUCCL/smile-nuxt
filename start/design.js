@@ -76,6 +76,10 @@ export default function createTimeline(api) {
   timeline.pushSeqView({
     name: 'task',
     component: markRaw(MyTaskView),
+    // Files in public/ this view shows. They are downloaded ahead of time and
+    // the view waits for them, so stimuli appear at once (see the docs,
+    // "Images and Video > Preloading"):
+    // preload: ['stimuli/*.png', 'instructions/intro.mp4'],
   })
 
   // Example Stroop task — a color-word interference experiment
