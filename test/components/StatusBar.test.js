@@ -4,6 +4,7 @@ import StatusBar from '../../src/runtime/components/builtins/StatusBar.vue'
 import WithdrawModal from '../../src/runtime/components/builtins/WithdrawModal.vue'
 import InformedConsentModal from '../../src/runtime/components/builtins/InformedConsentModal.vue'
 import SyncIndicator from '../../src/runtime/components/builtins/SyncIndicator.vue'
+import { setFlags, resetFlags } from '../setup/flags'
 import { createStore, createFakeApi, mountComponent } from './mount'
 
 const fake = vi.hoisted(() => ({ api: null }))
@@ -37,6 +38,17 @@ describe('StatusBar', () => {
     expect(wrapper.text()).toContain('Study: test-study')
     expect(wrapper.text()).toContain('Version: abc1234')
     expect(wrapper.find('a[href="https://lab.example"] img').attributes('src')).toBe('/public/logo.png')
+  })
+
+  it('adds the mode to the version on the dev server only', () => {
+    expect(mountBar().wrapper.text()).not.toContain('abc1234-')
+    setFlags({ dev: true })
+    try {
+      expect(mountBar().wrapper.text()).toContain('Version: abc1234-development')
+    }
+    finally {
+      resetFlags()
+    }
   })
 
   it('shows the short participant ID once there is one', () => {
