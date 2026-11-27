@@ -42,25 +42,18 @@ const api = useAPI()
  * @returns {void}
  */
 const handleDeviceChange = (value) => {
-  console.log('handleDeviceChange called with:', value)
-
   if (value === 'custom') {
     api.store.dev.selectedDevice = 'custom'
     return
   }
 
   const preset = devicePresets[value]
-  console.log('preset found:', preset)
 
   if (preset) {
     // Update the device dimensions in the store
     api.store.dev.deviceWidth = preset.width
     api.store.dev.deviceHeight = preset.height
     api.store.dev.selectedDevice = value
-    console.log('Updated dimensions to:', api.store.dev.deviceWidth, 'x', api.store.dev.deviceHeight)
-  }
-  else {
-    console.log('No preset found for value:', value)
   }
 }
 </script>

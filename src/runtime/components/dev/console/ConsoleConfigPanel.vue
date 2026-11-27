@@ -129,12 +129,13 @@ function panel3_select(option) {
  * @param {number} index - Index of the panel to jump to
  */
 function panel_jump(index) {
-  // for everything after index set to null
-  for (let i = index + 1; i < browse_panels.path.length; i++) {
-    browse_panels.path[i] = null
+  // keep the path up to the breadcrumb, with at least three places for the panels
+  const path = browse_panels.path.slice(0, index + 1)
+  while (path.length < 3) {
+    path.push(null)
   }
-  // trim browse_panels to length three
-  browse_panels.path = browse_panels.path.slice(0, 3)
+  browse_panels.path = path
+  save_path()
 }
 
 /**

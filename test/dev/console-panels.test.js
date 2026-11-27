@@ -244,12 +244,21 @@ describe('ConsoleDatabaseBrowsePanel', () => {
     expect(rows(lists()[1])).toEqual([])
   })
 
-  it('a click on a breadcrumb closes what is after it', async () => {
-    mountPanel({ dataPath: JSON.stringify(['/', 'data', 'conditions']) })
+  it('a click on a breadcrumb closes what is after it and stores the path', async () => {
+    const store = mountPanel({ dataPath: JSON.stringify(['/', 'data', 'conditions']) })
     await nextTick()
     await wrapper.find('nav').findAll('button')[1].trigger('click')
     expect(crumbs()).toEqual(['/', 'data'])
     expect(rows(lists()[2])).toEqual([])
+    expect(JSON.parse(store.dev.dataPath)).toEqual(['/', 'data', null])
+  })
+
+  it('a click on the fourth breadcrumb of a longer path keeps the first four', async () => {
+    const store = mountPanel({ dataPath: JSON.stringify(['/', 'a', 'b', 'c', 'd']) })
+    await nextTick()
+    await wrapper.find('nav').findAll('button')[3].trigger('click')
+    expect(crumbs()).toEqual(['/', 'a', 'b', 'c'])
+    expect(JSON.parse(store.dev.dataPath)).toEqual(['/', 'a', 'b', 'c'])
   })
 })
 
@@ -309,12 +318,21 @@ describe('ConsoleConfigPanel', () => {
   })
 
   it('a click on a breadcrumb closes what is after it', async () => {
-    mountPanel({ configPath: JSON.stringify(['/', 'config', 'github', 'commit']) })
+    const store = mountPanel({ configPath: JSON.stringify(['/', 'config', 'github', 'commit']) })
     await nextTick()
     await wrapper.find('nav').findAll('button')[1].trigger('click')
     expect(crumbs()).toEqual(['/', 'config'])
     expect(rows(lists()[1])).toContain('github >')
     expect(rows(lists()[2])).toEqual([])
+    expect(JSON.parse(store.dev.configPath)).toEqual(['/', 'config', null])
+  })
+
+  it('a click on the last breadcrumb of a longer path keeps the whole path', async () => {
+    const store = mountPanel({ configPath: JSON.stringify(['/', 'config', 'github', 'commit']) })
+    await nextTick()
+    await wrapper.find('nav').findAll('button')[3].trigger('click')
+    expect(crumbs()).toEqual(['/', 'config', 'github', 'commit'])
+    expect(JSON.parse(store.dev.configPath)).toEqual(['/', 'config', 'github', 'commit'])
   })
 })
 
@@ -396,6 +414,11 @@ describe('ConsoleLogPanel', () => {
   it('the filter and the search apply together, to the current view\'s messages too', () => {
     mountPanel({ lastViewLimit: true, logFilter: 'Errors only' })
     expect(messages()).toEqual([])
+  })
+
+  it('the "Current page only" filter shows only the messages of the current view', () => {
+    mountPanel({ logFilter: 'Current page only' })
+    expect(messages()).toEqual(['12:00:06 TRIAL STEPPER: step 2', '12:00:07 a plain message'])
   })
 
   // The Selects' menus do not open in happy-dom: the choice is made by

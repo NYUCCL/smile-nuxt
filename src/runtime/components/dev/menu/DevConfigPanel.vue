@@ -34,6 +34,7 @@ import { DEV_PALETTES, useDevPalette } from '../../../composables/useDevPalette'
  */
 import { devicePresets } from '../devicePresets.js'
 import useAPI from '../../../composables/useAPI'
+import { initDev } from '../../../stores/initial-state.js'
 
 /**
  * Initialize SMILE API instance
@@ -102,8 +103,7 @@ const toggleRotation = () => {
 function resetDevState() {
   localStorage.removeItem(api.config.devLocalStorageKey) // delete the local store (legacy)
   // Reset cookie-backed dev state to defaults
-  const defaults = { viewProvidesAutofill: null, viewProvidesStepper: false, showConsoleBar: false, showSideBar: false, pinnedRoute: null, mainView: 'devmode', consoleBarHeight: 300, consoleBarTab: 'browse', sideBarTab: 'steps', searchParams: '', logFilter: 'All', notificationFilter: 'Errors only', lastViewLimit: false, dataPath: null, configPath: null, selectedDevice: 'desktop2', deviceWidth: 1024, deviceHeight: 768, isRotated: false, isFullscreen: false, routePanelVisible: false, globalColorMode: 'auto', devPalette: 'default', experimentColorMode: null }
-  Object.assign(api.store.dev, defaults)
+  Object.assign(api.store.dev, initDev)
   location.reload()
 }
 </script>

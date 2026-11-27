@@ -28,6 +28,15 @@ const log = useLog()
 const height_pct = computed(() => `${api.store.dev.consoleBarHeight - 55}px`)
 
 /**
+ * Whether the list is limited to the messages logged since the current view
+ * was entered: the "Since last view" switch, or the "Current page only" filter
+ * @returns {boolean}
+ */
+const current_view_only = computed(
+  () => api.store.dev.lastViewLimit || api.store.dev.logFilter === 'Current page only',
+)
+
+/**
  * Filter log messages based on search text and log type
  * @param {object} msg - Log message object
  * @param {string} msg.message - Log message text
@@ -39,6 +48,7 @@ function filter_log(msg) {
   let type_match = true
   switch (api.store.dev.logFilter) {
     case 'All':
+    case 'Current page only': // limits the list (current_view_only), not the type
       break
     case 'Debug only':
       type_match = msg.type === 'debug'
@@ -168,7 +178,7 @@ function getBgClass(msg) {
       <div class="w-full min-w-0">
         <!-- Log messages list - filtered by last view setting -->
         <ul
-          v-if="api.store.dev.lastViewLimit"
+          v-if="current_view_only"
           class="w-full min-w-0"
         >
           <template

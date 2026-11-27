@@ -5,7 +5,7 @@
  * reka-ui's Select does not open in happy-dom, so a choice is made by
  * emitting update:modelValue on the Select component.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { nextTick } from 'vue'
 import DevConfigPanel from '../../src/runtime/components/dev/menu/DevConfigPanel.vue'
 import ResponsiveDeviceSelect from '../../src/runtime/components/dev/menu/ResponsiveDeviceSelect.vue'
@@ -17,10 +17,6 @@ const fake = vi.hoisted(() => ({ api: null }))
 vi.mock('../../src/runtime/composables/useAPI', async original => ({ ...(await original()), default: () => fake.api }))
 fake.api = devApi
 
-beforeEach(() => {
-  // ResponsiveDeviceSelect logs every choice to the console
-  vi.spyOn(console, 'log').mockImplementation(() => {})
-})
 afterEach(() => {
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
@@ -74,6 +70,14 @@ describe('ResponsiveDeviceSelect', () => {
     expect(store.dev.selectedDevice).toBe('custom')
     expect(store.dev.deviceWidth).toBe(555)
     expect(store.dev.deviceHeight).toBe(444)
+  })
+
+  it('a choice is not written to the browser console', async () => {
+    const logged = vi.spyOn(console, 'log')
+    const { wrapper } = mountDev(ResponsiveDeviceSelect)
+    await choose(selects(wrapper)[0], Object.keys(devicePresets)[0])
+    await choose(selects(wrapper)[0], 'no-such-device')
+    expect(logged).not.toHaveBeenCalled()
   })
 
   it('a value that is not a preset keeps the width and height', async () => {
@@ -179,14 +183,13 @@ describe('DevConfigPanel', () => {
         showSideBar: true, showConsoleBar: true, pinnedRoute: 'task', mainView: 'config', sideBarTab: 'db',
         consoleBarTab: 'log', selectedDevice: 'iphone', deviceWidth: 393, deviceHeight: 852, isRotated: true,
         isFullscreen: true, globalColorMode: 'dark', devPalette: 'nord', experimentColorMode: 'dark',
+        docsPage: 'coding/steps.md',
       })
     })
     api.config.devLocalStorageKey = 'smile_test_dev'
 
     await button(wrapper, 'Reset to defaults').trigger('click')
-    // docsPage is not one of the settings the reset covers
-    const { docsPage: _docsPage, ...defaults } = initDev
-    expect(store.dev).toMatchObject(defaults)
+    expect(store.dev).toMatchObject(initDev)
     expect(removeItem).toHaveBeenCalledWith('smile_test_dev')
     expect(reload).toHaveBeenCalledTimes(1)
   })
