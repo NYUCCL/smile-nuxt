@@ -27,6 +27,18 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+    // Firefox and WebKit (Safari's engine) run the preloading tests only: what
+    // a browser does with a preloaded file differs between them (#30).
+    {
+      name: 'firefox',
+      testMatch: /preload\.spec\.ts/,
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      testMatch: /preload\.spec\.ts/,
+      use: { ...devices['Desktop Safari'] },
+    },
   ],
 
   webServer: {

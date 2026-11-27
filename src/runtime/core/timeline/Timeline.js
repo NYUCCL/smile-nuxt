@@ -494,6 +494,7 @@ class Timeline {
       props: match.props || {},
       meta: match.meta,
       name: match.name,
+      preload: match.preload, // files the view needs in memory before it shows (#30)
     }
   }
 }

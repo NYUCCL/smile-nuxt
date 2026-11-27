@@ -11,7 +11,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import * as kit from '@nuxt/kit'
-import smileModule from '../src/module'
+import smileModule, { listPublicFiles } from '../src/module'
 import { createDevConfigHandler } from '../src/devconfig/handler'
 
 const fsState = vi.hoisted(() => ({ docs: true as boolean, unreadable: '' }))
@@ -26,6 +26,8 @@ vi.mock('@nuxt/kit', async () => {
     useLogger: () => logger,
     addDevServerHandler: vi.fn(),
     addPlugin: vi.fn(),
+    addTemplate: vi.fn(),
+    updateTemplates: vi.fn(),
     addImports: vi.fn(),
     addRouteMiddleware: vi.fn(),
     extendPages: vi.fn(),
@@ -125,8 +127,8 @@ describe('the module definition', () => {
     expect(definition.moduleDependencies).toEqual({ '@pinia/nuxt': {} })
   })
 
-  it('preloads nothing and leaves the dev tools out of a build by default', () => {
-    expect(definition.defaults).toEqual({ preloadImages: [], preloadVideos: [], devTools: false })
+  it('lists nothing to preload, loads the views\' files ahead, and leaves the dev tools out of a build by default', () => {
+    expect(definition.defaults).toEqual({ preloadImages: [], preloadVideos: [], preloadAhead: true, devTools: false })
   })
 })
 
@@ -182,6 +184,7 @@ describe('what the setup changes in the project\'s options', () => {
       branch: 'main',
       preloadImages: [],
       preloadVideos: [],
+      preloadAhead: true,
     })
   })
 
@@ -198,7 +201,13 @@ describe('what the setup changes in the project\'s options', () => {
       branch: 'pilot',
       preloadImages: ['a.png'],
       preloadVideos: ['b.mp4'],
+      preloadAhead: true,
     })
+  })
+
+  it('passes preloadAhead: false on, and nothing else turns it off', () => {
+    expect(run({ moduleOptions: { preloadAhead: false } }).nuxt.options.runtimeConfig.public.smile.preloadAhead).toBe(false)
+    expect(run({ moduleOptions: { preloadAhead: undefined } }).nuxt.options.runtimeConfig.public.smile.preloadAhead).toBe(true)
   })
 
   it('keeps the project\'s other public settings, and its values win for its own keys', () => {
@@ -258,13 +267,14 @@ describe('what the setup changes in the project\'s options', () => {
 })
 
 describe('what the setup registers', () => {
-  it('adds the four client plugins in the order they depend on each other', () => {
+  it('adds the five client plugins in the order they depend on each other', () => {
     run()
     expect(vi.mocked(kit.addPlugin).mock.calls.map(call => call[0])).toEqual([
       resolve(SRC, 'runtime/plugins/store-sync.client'),
       resolve(SRC, 'runtime/plugins/seed.client'),
       resolve(SRC, 'runtime/plugins/dev-sync.client'),
       resolve(SRC, 'runtime/plugins/timeline.client'),
+      resolve(SRC, 'runtime/plugins/preload.client'),
     ])
   })
 
@@ -510,5 +520,59 @@ describe('a build: whether the dev tools are in it (#38)', () => {
     vi.stubEnv('SMILE_DEV_ACCESS', 'disabled')
     expect(built()).toBe('false')
     expect(logger.warn).not.toHaveBeenCalled()
+  })
+})
+
+describe('the list of public files, for patterns in a preload list (#30)', () => {
+  const PLAYGROUND = resolve(import.meta.dirname, '../playground')
+  const template = () => vi.mocked(kit.addTemplate).mock.calls[0]![0] as unknown as { filename: string, getContents: () => string }
+
+  it('lists every file under a folder, relative to it, sorted, without hidden files', () => {
+    const files = listPublicFiles(resolve(PLAYGROUND, 'public'))
+    expect(files).toEqual([...files].sort())
+    expect(files).toEqual(expect.arrayContaining(['universitylogo.png', 'preload-test/a.png', 'preload-test/set/c.png']))
+    expect(files.some(file => file.startsWith('.') || file.includes('/.'))).toBe(false)
+    expect(files).not.toContain('preload-test')
+  })
+
+  it('is empty for a project with no public folder', () => {
+    expect(listPublicFiles('/no/such/folder')).toEqual([])
+  })
+
+  it('is written as a module of the project\'s public folder', () => {
+    run({ nuxtOptions: { rootDir: PLAYGROUND } })
+    expect(template().filename).toBe('smile-public-files.mjs')
+    const contents = template().getContents()
+    expect(contents.startsWith('export default [')).toBe(true)
+    expect(JSON.parse(contents.replace('export default ', ''))).toEqual(listPublicFiles(resolve(PLAYGROUND, 'public')))
+  })
+
+  it('reads the folder Nuxt is set to use', () => {
+    run({ nuxtOptions: { rootDir: PLAYGROUND, dir: { public: 'public/preload-test' } } })
+    expect(JSON.parse(template().getContents().replace('export default ', ''))).toContain('set/c.png')
+  })
+
+  it('is written again when a public file is added or removed on the dev server', () => {
+    const { hooks } = run({ dev: true, nuxtOptions: { rootDir: PLAYGROUND } })
+    const watch = hooks['builder:watch']![0]!
+    watch('add', 'public/new.png')
+    watch('unlink', resolve(PLAYGROUND, 'public/old.png'))
+    expect(kit.updateTemplates).toHaveBeenCalledTimes(2)
+    const { filter } = vi.mocked(kit.updateTemplates).mock.calls[0]![0] as unknown as { filter: (_t: { filename: string }) => boolean }
+    expect(filter({ filename: 'smile-public-files.mjs' })).toBe(true)
+    expect(filter({ filename: 'other.mjs' })).toBe(false)
+  })
+
+  it('is left alone when a file only changes, or when the file is not a public one', () => {
+    const { hooks } = run({ dev: true, nuxtOptions: { rootDir: PLAYGROUND } })
+    const watch = hooks['builder:watch']![0]!
+    watch('change', 'public/a.png')
+    watch('add', 'components/New.vue')
+    expect(kit.updateTemplates).not.toHaveBeenCalled()
+  })
+
+  it('a build does not watch', () => {
+    const { hooks } = run({ nuxtOptions: { rootDir: PLAYGROUND } })
+    expect(hooks['builder:watch']).toBeUndefined()
   })
 })

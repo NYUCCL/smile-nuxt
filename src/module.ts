@@ -1,8 +1,9 @@
-import { defineNuxtModule, addDevServerHandler, addPlugin, addImports, addRouteMiddleware, createResolver, extendPages, addComponentsDir, addServerHandler, addServerScanDir, addServerImportsDir, useLogger } from '@nuxt/kit'
+import { defineNuxtModule, addDevServerHandler, addPlugin, addTemplate, updateTemplates, addImports, addRouteMiddleware, createResolver, extendPages, addComponentsDir, addServerHandler, addServerScanDir, addServerImportsDir, useLogger } from '@nuxt/kit'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
-import { basename, dirname, extname, join, resolve } from 'node:path'
+import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
+import type { Dirent } from 'node:fs'
 import tailwindcss from '@tailwindcss/vite'
 import { createDevConfigHandler, DEV_CONFIG_ROUTE } from './devconfig/handler'
 
@@ -19,6 +20,14 @@ export interface ModuleOptions {
    * when api.preloadAllVideos() is called.
    */
   preloadVideos?: string[]
+  /**
+   * Load the files that the views in design.js list under `preload` in the
+   * background, starting when the page opens, in timeline order. A view still
+   * waits for its own files if they are not in memory when it is reached.
+   * Set false to load a view's files only when the participant gets to it.
+   * Default true.
+   */
+  preloadAhead?: boolean
   /**
    * Include the developer tools (/dev and its data endpoints) in a production
    * build. Off by default: participant-facing deploys ship without them. The
@@ -37,6 +46,7 @@ export default defineNuxtModule<ModuleOptions>({
   defaults: {
     preloadImages: [],
     preloadVideos: [],
+    preloadAhead: true,
     devTools: false,
   },
   // The runtime's stores are Pinia stores, so the module installs @pinia/nuxt.
@@ -163,6 +173,24 @@ export default defineNuxtModule<ModuleOptions>({
       branch: process.env.VITE_GIT_BRANCH_NAME || 'main',
       preloadImages: _options.preloadImages || [],
       preloadVideos: _options.preloadVideos || [],
+      preloadAhead: _options.preloadAhead !== false,
+    }
+
+    // The project's public files, for patterns in a preload list
+    // ('stimuli/*.png'). Imported on first use (composables/usePreload.js), so
+    // it is its own chunk. Rewritten when a public file is added or removed
+    // while `nuxt dev` runs.
+    const publicDir = resolve(_nuxt.options.rootDir, _nuxt.options.dir?.public || 'public')
+    addTemplate({
+      filename: 'smile-public-files.mjs',
+      getContents: () => `export default ${JSON.stringify(listPublicFiles(publicDir))}\n`,
+    })
+    if (_nuxt.options.dev) {
+      _nuxt.hook('builder:watch', (event, path) => {
+        if (event === 'change') return
+        if (!resolve(_nuxt.options.rootDir, path).startsWith(publicDir)) return
+        updateTemplates({ filter: template => template.filename === 'smile-public-files.mjs' })
+      })
     }
 
     // Aliases for layouts — layouts are copied into .nuxt/ so relative imports break;
@@ -247,6 +275,8 @@ export default defineNuxtModule<ModuleOptions>({
     addPlugin(resolver.resolve('./runtime/plugins/dev-sync.client'))
     // 4. timeline: creates timeline instance (needs seed set)
     addPlugin(resolver.resolve('./runtime/plugins/timeline.client'))
+    // 5. preload: starts loading the views' files in the background (needs the timeline)
+    addPlugin(resolver.resolve('./runtime/plugins/preload.client'))
 
     // Register global navigation guard middleware
     addRouteMiddleware({
@@ -411,6 +441,19 @@ export default defineNuxtModule<ModuleOptions>({
     }
   },
 })
+
+/**
+ * Every file under a project's public/ folder.
+ * @param dir - The folder's absolute path
+ * @returns Paths relative to it, with forward slashes, sorted; hidden files left out
+ */
+export function listPublicFiles(dir: string): string[] {
+  if (!existsSync(dir)) return []
+  return (readdirSync(dir, { recursive: true, withFileTypes: true }) as Dirent[])
+    .filter(entry => entry.isFile() && !entry.name.startsWith('.'))
+    .map(entry => relative(dir, join(entry.parentPath, entry.name)).split(sep).join('/'))
+    .sort()
+}
 
 /**
  * Whether this build ships the developer tools (#38). Always in `nuxt dev`.

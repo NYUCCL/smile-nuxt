@@ -1,8 +1,13 @@
 <template>
   <NuxtLayout name="experiment">
+    <!-- The view's files are still loading (design.js `preload`, #30) -->
+    <PreloadingView
+      v-if="viewConfig && viewConfig.component && gate.status !== 'ready'"
+      :gate="gate"
+    />
     <component
       :is="viewConfig.component"
-      v-if="viewConfig && viewConfig.component"
+      v-else-if="viewConfig && viewConfig.component"
       v-bind="viewConfig.props"
     />
     <div v-else-if="viewConfig === null && timelineReady">
@@ -15,6 +20,8 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useNuxtApp, navigateTo } from '#imports'
+import useViewGate from '../composables/useViewGate'
+import PreloadingView from '../components/builtins/PreloadingView.vue'
 
 const route = useRoute()
 const nuxtApp = useNuxtApp()
@@ -29,6 +36,9 @@ const viewConfig = computed(() => {
   if (!timeline) return undefined
   return timeline.getViewForPath(route.path)
 })
+
+// Holds the view back until the files it lists under `preload` are in memory
+const gate = useViewGate(viewConfig)
 
 onMounted(() => {
   timelineReady.value = true

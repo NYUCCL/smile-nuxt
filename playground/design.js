@@ -16,6 +16,7 @@ import InformedConsentText from './components/InformedConsentText.vue'
 import DebriefText from './components/DebriefText.vue'
 import StroopExpView from './components/StroopExpView.vue'
 import ComponentStepsView from './components/ComponentStepsView.vue'
+import PreloadDemoView from './components/PreloadDemoView.vue'
 import { QUIZ_QUESTIONS } from './components/quizQuestions'
 
 export default function createTimeline(api) {
@@ -221,6 +222,32 @@ export default function createTimeline(api) {
       requiresDone: true,
       resetApp: api.getConfig('allowRepeats'),
     },
+  })
+
+  // Preloading test views (test/e2e/preload.spec.ts, #30). Outside the
+  // sequence and open to anyone, so a test can go straight to them.
+  timeline.registerView({
+    name: 'preload_demo',
+    component: markRaw(PreloadDemoView),
+    // Paths in public/, patterns, and a function are all allowed
+    preload: [
+      'preload-test/a.png',
+      '/preload-test/b.png',
+      'preload-test/bg.png',
+      'preload-test/set/*.png',
+      'preload-test/clip.{webm,mp4}',
+      'preload-test/tone.wav',
+      'preload-test/trials.json',
+    ],
+    meta: { allowAlways: true, requiresConsent: false },
+  })
+
+  // A view whose list names a file that does not exist: it must never show
+  timeline.registerView({
+    name: 'preload_missing',
+    component: markRaw(PreloadDemoView),
+    preload: () => ['preload-test/a.png', 'preload-test/not-there.mp4'],
+    meta: { allowAlways: true, requiresConsent: false },
   })
 
   // Withdraw page (special page for withdrawing from the study)

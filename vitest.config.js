@@ -41,6 +41,8 @@ export default defineConfig({
       // The module's own aliases (src/module.ts)
       '#smile-dev': resolve(import.meta.dirname, 'src/runtime/components/dev'),
       '#smile-composables': resolve(import.meta.dirname, 'src/runtime/composables'),
+      // The list of public files the module writes at build time
+      '#build/smile-public-files.mjs': resolve(import.meta.dirname, 'test/setup/public-files-stub.js'),
       // Stub #imports so vi.mock('#imports') can intercept it
       '#imports': resolve(import.meta.dirname, 'test/setup/nuxt-imports-stub.js'),
     },

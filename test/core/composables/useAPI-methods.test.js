@@ -9,6 +9,8 @@ import { useNuxtApp } from '#imports'
 import { SmileAPI } from '../../../src/runtime/composables/useAPI.js'
 import useSmileStore from '../../../src/runtime/stores/smilestore'
 import * as participant from '../../../src/runtime/core/participant-actions.js'
+import { _resetPreload } from '../../../src/runtime/composables/usePreload.js'
+import { setFlags, resetFlags } from '../../setup/flags.js'
 
 vi.mock('../../../src/runtime/core/participant-actions.js', async (importOriginal) => {
   const actual = await importOriginal()
@@ -61,6 +63,7 @@ describe('SmileAPI', () => {
     store.stopSnapshots()
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
+    resetFlags()
   })
 
   describe('store access', () => {
@@ -503,38 +506,100 @@ describe('SmileAPI', () => {
   })
 
   describe('preloading', () => {
-    it('preloadAllImages creates an image for each path, under the base URL', () => {
-      const created = []
-      vi.spyOn(window, 'Image').mockImplementation(function () {
-        created.push(this)
-      })
-      api = build({ app: { baseURL: '/study/' }, public: { smile: { preloadImages: ['a.png', '/img/b.png'] } } })
-      api.preloadAllImages()
-      expect(created.map(img => img.src)).toEqual(['/study/a.png', '/study/img/b.png'])
-      expect(log.debug).toHaveBeenCalledWith('Preloading 2 image(s)')
+    let preloader
+
+    beforeEach(() => {
+      const ready = new Set()
+      preloader = {
+        loadAll: vi.fn(async (urls) => {
+          const failed = urls.filter(url => url.includes('missing')).map(url => ({ url, error: 'the server answered 404' }))
+          urls.filter(url => !url.includes('missing')).forEach(url => ready.add(url))
+          return { ok: failed.length === 0, total: urls.length, ready: urls.length - failed.length, failed, bytes: 10, ms: 5 }
+        }),
+        status: vi.fn(url => (ready.has(url) ? 'ready' : 'none')),
+        resolve: vi.fn(url => (ready.has(url) && url.endsWith('.mp4') ? `blob:${url}` : url)),
+        progress: vi.fn(urls => ({ total: urls.length, ready: 0, failed: 0, fraction: 0 })),
+      }
+      _resetPreload({ preloader, publicFiles: ['stimuli/a.png', 'stimuli/b.png', 'clip.mp4'] })
+    })
+    afterEach(() => _resetPreload())
+
+    it('preload loads paths under the base URL, patterns and full URLs, before what waits in the background', async () => {
+      const report = await api.preload(['stimuli/*.png', '/clip.mp4', 'https://cdn.example.org/x.mp4'])
+      expect(preloader.loadAll).toHaveBeenCalledWith(
+        ['/study/stimuli/a.png', '/study/stimuli/b.png', '/study/clip.mp4', 'https://cdn.example.org/x.mp4'],
+        { urgent: true },
+      )
+      expect(report).toMatchObject({ ok: true, total: 4, ready: 4 })
+      expect(log.error).not.toHaveBeenCalled()
     })
 
-    it('preloadAllVideos creates a video element for each path, set to load at once', () => {
-      const created = []
-      const realCreate = document.createElement.bind(document)
-      vi.spyOn(document, 'createElement').mockImplementation((tag) => {
-        const el = realCreate(tag)
-        if (tag === 'video') created.push(el)
-        return el
-      })
-      api = build({ app: { baseURL: '/' }, public: { smile: { preloadVideos: ['v/intro.mp4'] } } })
+    it('preload takes one path, and can wait its turn', async () => {
+      await api.preload('clip.mp4', { urgent: false })
+      expect(preloader.loadAll).toHaveBeenCalledWith(['/study/clip.mp4'], { urgent: false })
+    })
+
+    it('preload reports what failed and logs each file, without throwing', async () => {
+      const report = await api.preload(['clip.mp4', 'missing.mp4'])
+      expect(report.ok).toBe(false)
+      expect(report.failed).toEqual([{ url: '/study/missing.mp4', error: 'the server answered 404' }])
+      expect(log.error).toHaveBeenCalledWith('PRELOAD: /study/missing.mp4 could not be loaded: the server answered 404')
+    })
+
+    it('preload warns once about a pattern that matches no file', async () => {
+      await api.preload('stimuli/*.gif')
+      await api.preload('stimuli/*.gif')
+      expect(log.warn).toHaveBeenCalledTimes(1)
+      expect(log.warn).toHaveBeenCalledWith('PRELOAD: the pattern \'stimuli/*.gif\' matches no file in public/')
+      expect(preloader.loadAll).toHaveBeenLastCalledWith([], { urgent: true })
+    })
+
+    it('asset gives a preloaded video\'s blob: URL, and a file\'s own URL otherwise', async () => {
+      await api.preload(['clip.mp4', 'stimuli/a.png'])
+      expect(api.asset('clip.mp4')).toBe('blob:/study/clip.mp4')
+      expect(api.asset('/stimuli/a.png')).toBe('/study/stimuli/a.png')
+      expect(api.asset('other.mp4')).toBe('/study/other.mp4')
+      expect(api.asset('https://cdn.example.org/x.mp4')).toBe('https://cdn.example.org/x.mp4')
+    })
+
+    it('asset says once, on the dev server, that a file was not preloaded', async () => {
+      setFlags({ dev: true })
+      await api.preload('clip.mp4')
+      api.asset('clip.mp4')
+      api.asset('never-listed.mp4')
+      api.asset('never-listed.mp4')
+      expect(log.warn).toHaveBeenCalledTimes(1)
+      expect(log.warn.mock.calls[0][0]).toContain('api.asset(\'never-listed.mp4\') was not preloaded')
+    })
+
+    it('asset says nothing in a build', () => {
+      api.asset('never-listed-either.mp4')
+      expect(log.warn).not.toHaveBeenCalled()
+    })
+
+    it('preloadProgress counts the files given', () => {
+      expect(api.preloadProgress(['a.png', '/b.png'])).toEqual({ total: 2, ready: 0, failed: 0, fraction: 0 })
+      expect(preloader.progress).toHaveBeenCalledWith(['/study/a.png', '/study/b.png'])
+      api.preloadProgress('a.png')
+      expect(preloader.progress).toHaveBeenLastCalledWith(['/study/a.png'])
+    })
+
+    it('preloadAllImages and preloadAllVideos load the module options\' lists in the background', async () => {
+      api = build({ app: { baseURL: '/study/' }, public: { smile: { preloadImages: ['a.png', '/img/b.png'], preloadVideos: ['v/intro.mp4'] } } })
+      api.preloadAllImages()
       api.preloadAllVideos()
-      expect(created).toHaveLength(1)
-      expect(created[0].preload).toBe('auto')
-      expect(created[0].getAttribute('src')).toBe('/v/intro.mp4')
+      await vi.waitFor(() => expect(preloader.loadAll).toHaveBeenCalledTimes(2))
+      expect(preloader.loadAll).toHaveBeenCalledWith(['/study/a.png', '/study/img/b.png'], { urgent: false })
+      expect(preloader.loadAll).toHaveBeenCalledWith(['/study/v/intro.mp4'], { urgent: false })
+      expect(log.debug).toHaveBeenCalledWith('Preloading 2 image(s)')
       expect(log.debug).toHaveBeenCalledWith('Preloading 1 video(s)')
     })
 
-    it('both do nothing when the module option is not set', () => {
-      const image = vi.spyOn(window, 'Image')
+    it('both load nothing when the module option is not set', async () => {
       api.preloadAllImages()
       api.preloadAllVideos()
-      expect(image).not.toHaveBeenCalled()
+      await vi.waitFor(() => expect(preloader.loadAll).toHaveBeenCalledTimes(2))
+      expect(preloader.loadAll).toHaveBeenCalledWith([], { urgent: false })
       expect(log.debug).toHaveBeenCalledWith('Preloading 0 image(s)')
       expect(log.debug).toHaveBeenCalledWith('Preloading 0 video(s)')
       api = build(null)
@@ -544,13 +609,15 @@ describe('SmileAPI', () => {
       }).not.toThrow()
     })
 
-    it('both do nothing where there is no window', () => {
-      api = build({ public: { smile: { preloadImages: ['a.png'], preloadVideos: ['a.mp4'] } } })
+    it('where there is no window nothing is loaded, and asset is the file\'s own URL', async () => {
+      api = build({ app: { baseURL: '/study/' }, public: { smile: { preloadImages: ['a.png'], preloadVideos: ['a.mp4'] } } })
       vi.stubGlobal('window', undefined)
-      expect(() => {
-        api.preloadAllImages()
-        api.preloadAllVideos()
-      }).not.toThrow()
+      api.preloadAllImages()
+      api.preloadAllVideos()
+      expect(await api.preload(['a.png'])).toEqual({ ok: true, total: 0, ready: 0, failed: [], bytes: 0, ms: 0 })
+      expect(api.asset('a.mp4')).toBe('/study/a.mp4')
+      expect(api.preloadProgress(['a.mp4'])).toEqual({ total: 0, ready: 0, failed: 0, fraction: 1 })
+      expect(preloader.loadAll).not.toHaveBeenCalled()
     })
   })
 })
