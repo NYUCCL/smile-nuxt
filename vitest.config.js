@@ -56,10 +56,10 @@ export default defineConfig({
       include: ['src/**/*.{js,ts,vue}'],
       exclude: ['src/**/*.d.ts'],
       reporter: ['text-summary', 'html', 'json-summary'],
-      // A floor a little under the numbers on 2026-11-26 (68% lines, 68%
-      // statements, 68% branches, 65% functions), so coverage can't drop
+      // A floor a little under the numbers on 2026-11-27 (94.6% lines, 94.3%
+      // statements, 94.3% branches, 95.0% functions), so coverage can't drop
       // unnoticed. Raise it as coverage goes up.
-      thresholds: { lines: 67, statements: 67, branches: 67, functions: 64 },
+      thresholds: { lines: 93, statements: 93, branches: 93, functions: 93 },
     },
   },
 })
