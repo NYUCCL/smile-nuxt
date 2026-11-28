@@ -239,6 +239,10 @@ files were already in memory has no entry.
 - **Memory.** Preloaded files are held in the browser's memory. Hundreds of
   megabytes of video will slow a participant's browser or fail on a phone.
   For that much video, preload a block at a time with `api.preload()`.
+  Preloading has been tested with small files only; how much video a browser
+  can hold has not been measured
+  ([#83](https://github.com/NYUCCL/smile-nuxt/issues/83)). Test a large set
+  on the devices your participants will use.
 - **Files on another server.** An image loads from anywhere. A video, sound or
   data file on another server can only be preloaded if that server allows
   cross-origin requests (CORS). YouTube and Vimeo embeds cannot be preloaded.
